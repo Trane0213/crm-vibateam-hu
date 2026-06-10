@@ -13,7 +13,7 @@ function EmailsPage() {
       icon={Mail}
       table="emails"
       emptyTitle="Itt jelennek meg a projekt-kommunikációk."
-      emptyDescription="Még nincs rögzített email. Az új üzeneteket a jobb felső „Új email" gombbal vehetjük fel, vagy a Gmail-szinkron után automatikusan ide kerülnek."
+      emptyDescription={`Még nincs rögzített email. Az új üzeneteket a jobb felső „Új email” gombbal vehetjük fel, vagy a Gmail-szinkron után automatikusan ide kerülnek.`}
       newButtonLabel="Új email"
       order="created_at"
       ascending={false}
