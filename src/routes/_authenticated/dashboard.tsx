@@ -139,25 +139,32 @@ function Dashboard() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base">Aktív projektek</CardTitle>
-              <CardDescription>
-                {activeProjects.data ?? "—"} folyamatban lévő projekt
-              </CardDescription>
+              <CardTitle className="text-base">Következő teendők</CardTitle>
+              <CardDescription>nyitott feladatok</CardDescription>
             </div>
-            <Link to="/projects" className="text-xs text-primary hover:underline">Összes projekt</Link>
+            <Link to="/tasks" className="text-xs text-primary hover:underline">Mind</Link>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <Briefcase className="h-8 w-8" />
-              </div>
-              <div>
-                <div className="text-3xl font-semibold tabular-nums">
-                  {activeProjects.data ?? "—"}
-                </div>
-                <div className="text-sm text-muted-foreground">Nem lezárt projekt</div>
-              </div>
-            </div>
+            {taskList.length === 0 ? (
+              <EmptyState icon={ListChecks} title="Nincs nyitott feladat" />
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {taskList.map((t: any) => {
+                  const overdue = new Date(t.due_date) < new Date();
+                  return (
+                    <li key={t.id} className="flex items-center justify-between gap-3">
+                      <span className="truncate font-medium">{t.title}</span>
+                      <span className="flex items-center gap-2">
+                        <Badge variant="outline" className="font-normal">{t.priority ?? "—"}</Badge>
+                        <span className={`tabular-nums ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
+                          {fmtDateTime(t.due_date)}
+                        </span>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -206,58 +213,6 @@ function Dashboard() {
                 })}
               </ul>
             )}
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-base">Következő teendők</CardTitle>
-              <CardDescription>nyitott feladatok</CardDescription>
-            </div>
-            <Link to="/tasks" className="text-xs text-primary hover:underline">Mind</Link>
-          </CardHeader>
-          <CardContent>
-            {taskList.length === 0 ? (
-              <EmptyState icon={ListChecks} title="Nincs nyitott feladat" />
-            ) : (
-              <ul className="space-y-2 text-sm">
-                {taskList.map((t: any) => {
-                  const overdue = new Date(t.due_date) < new Date();
-                  return (
-                    <li key={t.id} className="flex items-center justify-between gap-3">
-                      <span className="truncate font-medium">{t.title}</span>
-                      <span className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-normal">{t.priority ?? "—"}</Badge>
-                        <span className={`tabular-nums ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
-                          {fmtDateTime(t.due_date)}
-                        </span>
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ajánlat-pipeline</CardTitle>
-            <CardDescription>nyitott összérték</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-                <TrendingUp className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-2xl font-semibold tabular-nums">
-                  {openQuotesSum.data != null ? formatHuf(openQuotesSum.data) : "—"}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {openQuotesCount.data ?? 0} nyitott ajánlat
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
