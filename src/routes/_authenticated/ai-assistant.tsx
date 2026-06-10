@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle, Search, TrendingUp, Hammer, Phone, AlertOctagon, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -69,15 +69,33 @@ const AGENT_META: Record<AgentId, { name: string; tagline: string; icon: any }> 
 };
 
 function AiAssistantPage() {
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
+  const urlAgent = (() => {
+    const v = new URLSearchParams(searchStr ?? "").get("agent");
+    return v === "sales" || v === "pm" || v === "crm" ? (v as AgentId) : null;
+  })();
+
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads());
   const [activeId, setActiveId] = useState<string | null>(() => {
     const all = loadThreads();
     return all[0]?.id ?? null;
   });
   const [agent, setAgent] = useState<AgentId>(() => {
+    const v = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("agent") : null;
+    if (v === "sales" || v === "pm" || v === "crm") return v as AgentId;
     const all = loadThreads();
     return (all[0]?.agent as AgentId) ?? "crm";
   });
+
+  // URL `?agent=` változás → agent váltás (sidebar deep-link).
+  useEffect(() => {
+    if (urlAgent && urlAgent !== agent) {
+      setAgent(urlAgent);
+      setActiveId(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlAgent]);
+
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);

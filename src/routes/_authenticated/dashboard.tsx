@@ -9,6 +9,9 @@ import {
   ListChecks,
   TrendingUp,
   Briefcase,
+  AlertOctagon,
+  AlertTriangle,
+  CalendarClock,
 } from "lucide-react";
 import { formatHuf } from "@/lib/format";
 import { useCount, useAggregateSum, useList } from "@/lib/db-hooks";
@@ -33,10 +36,15 @@ function Dashboard() {
   const todayStart = isoStartOfDay();
   const todayEnd = isoEndOfDay();
   const weekAgo = isoWeekAgo();
+  const tomorrowStart = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(0,0,0,0); return d.toISOString(); })();
+  const tomorrowEnd = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(23,59,59,999); return d.toISOString(); })();
 
   const openQuotesCount = useCount("quotes", (q) => q.not("status", "in", "(won,lost)"), "open");
   const openQuotesSum = useAggregateSum("quotes", "total_amount", (q) => q.not("status", "in", "(won,lost)"), "open");
   const overdueFollowups = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue");
+  const todayFollowups   = useCount("followups", (q) => q.eq("completed", false).gte("due_date", todayStart).lte("due_date", todayEnd), "today-fu");
+  const tomorrowFollowups= useCount("followups", (q) => q.eq("completed", false).gte("due_date", tomorrowStart).lte("due_date", tomorrowEnd), "tomorrow-fu");
+  const overdueTasks     = useCount("tasks", (q) => q.neq("status", "done").lt("due_date", now), "overdue-tasks");
   const todayTasks = useCount("tasks", (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd), "today");
   const weeklyLeads = useCount("leads", (q) => q.gte("created_at", weekAgo), "week");
   const monthlyLeads = useCount("leads", (q) => q.gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()), "month");
@@ -65,13 +73,60 @@ function Dashboard() {
   const wonTotal = (wonQuotes.data ?? 0) + (lostQuotes.data ?? 0);
   const conversionPct = wonTotal > 0 ? Math.round(((wonQuotes.data ?? 0) / wonTotal) * 100) : null;
 
+  // Veszélyes projektek = ahol van lejárt feladat vagy lejárt follow-up.
+  const riskyProjectIds = new Set<string>();
+  for (const t of upcomingTasks.data ?? []) {
+    if (t.status !== "done" && t.due_date && new Date(t.due_date) < new Date() && t.project_id) riskyProjectIds.add(t.project_id);
+  }
+  for (const f of upcomingFollowups.data ?? []) {
+    if (!f.completed && f.due_date && new Date(f.due_date) < new Date() && f.project_id) riskyProjectIds.add(f.project_id);
+  }
+  const riskyCount = riskyProjectIds.size;
+
   return (
     <div className="flex flex-col">
       <WelcomeHeader subtitle="Itt vannak a mai legfontosabb teendőid és nyitott ügyek." />
+
+      {/* HERO — FOLLOW-UP FÓKUSZ */}
+      <div className="px-6 pt-4">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Follow-up fókusz · az utánkövetés pénz</div>
+          <Link to="/followups" className="text-xs text-primary hover:underline">Mind →</Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <HeroStat
+            to="/followups"
+            tone="danger"
+            icon={AlertOctagon}
+            label="Lejárt follow-up"
+            value={overdueFollowups.data ?? 0}
+            sub="haladéktalanul intézendő"
+          />
+          <HeroStat
+            to="/followups"
+            tone="warning"
+            icon={BellRing}
+            label="Ma esedékes"
+            value={todayFollowups.data ?? 0}
+            sub="ma kell megcsinálni"
+          />
+          <HeroStat
+            to="/followups"
+            tone="info"
+            icon={CalendarClock}
+            label="Holnapi"
+            value={tomorrowFollowups.data ?? 0}
+            sub="előre tervezhető"
+          />
+        </div>
+      </div>
+
+      {/* AI BRIEFING */}
       <div className="px-6 pt-4">
         <DailyBriefing />
       </div>
-      <div className="flex items-center justify-between border-b px-6 py-3">
+
+      <div className="flex items-center justify-between border-b px-6 py-3 mt-2">
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Mai fókusz</div>
         <AiSummaryDialog
             title="AI napi összefoglaló"
@@ -88,7 +143,18 @@ function Dashboard() {
             ].join(" ")}
         />
       </div>
-      <div className="grid gap-4 p-6 lg:grid-cols-4">
+
+      {/* KRITIKUS */}
+      <SectionLabel tone="danger" title="Kritikus · azonnal kezelendő" />
+      <div className="grid gap-3 px-6 lg:grid-cols-3">
+        <Kpi icon={AlertOctagon} tone="danger" label="Lejárt follow-up" value={overdueFollowups.data ?? "—"} sub="haladéktalanul" />
+        <Kpi icon={AlertTriangle} tone="danger" label="Lejárt feladat" value={overdueTasks.data ?? "—"} sub="határidőn túl" />
+        <Kpi icon={Briefcase} tone="danger" label="Veszélyes projektek" value={riskyCount} sub="lejárt teendővel" />
+      </div>
+
+      {/* BEVÉTEL */}
+      <SectionLabel tone="primary" title="Bevétel · pipeline" />
+      <div className="grid gap-3 px-6 lg:grid-cols-3">
         <Kpi
           icon={FileText}
           label="Nyitott ajánlatok"
@@ -96,51 +162,26 @@ function Dashboard() {
           sub={openQuotesSum.data != null ? formatHuf(openQuotesSum.data) : "összérték"}
         />
         <Kpi
-          icon={BellRing}
-          label="Lejárt follow-up"
-          value={overdueFollowups.data ?? "—"}
-          sub="haladéktalanul"
-          tone="danger"
-        />
-        <Kpi
-          icon={ListChecks}
-          label="Ma esedékes"
-          value={todayTasks.data ?? "—"}
-          sub="feladatok"
-          tone="warning"
-        />
-        <Kpi
-          icon={Sparkles}
-          label="Új leadek (7 nap)"
-          value={weeklyLeads.data ?? "—"}
-          sub="ezen a héten"
-          tone="info"
-        />
-      </div>
-      <div className="grid gap-4 px-6 pb-2 lg:grid-cols-4">
-        <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjects.data ?? "—"} sub="folyamatban" />
-        <Kpi icon={Sparkles} label="Új leadek (30 nap)" value={monthlyLeads.data ?? "—"} sub="elmúlt hónap" tone="info" />
-        <Kpi
           icon={TrendingUp}
           label="Ajánlat-konverzió"
           value={conversionPct != null ? `${conversionPct}%` : "—"}
           sub={wonTotal > 0 ? `${wonQuotes.data}/${wonTotal} megnyert` : "nincs lezárt ajánlat"}
         />
-        <Kpi
-          icon={BellRing}
-          label="Közelgő (7 nap)"
-          value={fuBuckets["due-3d"] + fuBuckets["due-7d"]}
-          sub="follow-up"
-          tone="warning"
-        />
+        <Kpi icon={Sparkles} tone="info" label="Új leadek (7 nap)" value={weeklyLeads.data ?? "—"} sub={`30 napban: ${monthlyLeads.data ?? "—"}`} />
       </div>
+
+      {/* PROJEKT */}
+      <SectionLabel tone="primary" title="Projekt · kivitelezés" />
+      <div className="grid gap-3 px-6 lg:grid-cols-3">
+        <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjects.data ?? "—"} sub="folyamatban" />
+        <Kpi icon={ListChecks} tone="warning" label="Ma esedékes feladat" value={todayTasks.data ?? "—"} sub="mai határidős" />
+        <Kpi icon={BellRing} tone="warning" label="Közelgő follow-up (7 nap)" value={fuBuckets["due-3d"] + fuBuckets["due-7d"]} sub="ezen a héten" />
+      </div>
+
       <div className="px-6 pb-4">
+        <SectionLabel title="Follow-up esedékesség" />
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Follow-up figyelmeztetések</CardTitle>
-            <CardDescription>Esedékesség szerint kategorizálva</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
               {(["overdue", "due-3d", "due-7d", "due-14d", "due-30d"] as FollowupBucket[]).map((b) => (
                 <Link
@@ -237,6 +278,42 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function HeroStat({ to, tone, icon: Icon, label, value, sub }: {
+  to: string; tone: "danger" | "warning" | "info"; icon: any; label: string; value: number | string; sub: string;
+}) {
+  const toneClass = {
+    danger: "border-destructive/40 bg-destructive/5 hover:bg-destructive/10 text-destructive",
+    warning: "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/5 hover:bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]",
+    info: "border-[color:var(--status-info)]/40 bg-[color:var(--status-info)]/5 hover:bg-[color:var(--status-info)]/10 text-[color:var(--status-info)]",
+  }[tone];
+  return (
+    <Link to={to} className={`flex items-center gap-4 rounded-lg border p-5 transition ${toneClass}`}>
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-background/60">
+        <Icon className="h-6 w-6" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{label}</div>
+        <div className="mt-1 text-4xl font-bold tabular-nums leading-none">{value}</div>
+        <div className="mt-1 text-xs opacity-70">{sub}</div>
+      </div>
+    </Link>
+  );
+}
+
+function SectionLabel({ title, tone = "muted" }: { title: string; tone?: "muted" | "danger" | "primary" }) {
+  const dot = {
+    muted: "bg-muted-foreground/40",
+    danger: "bg-destructive",
+    primary: "bg-primary",
+  }[tone];
+  return (
+    <div className="flex items-center gap-2 px-6 pt-5 pb-2 text-xs uppercase tracking-wider text-muted-foreground">
+      <span className={`inline-block h-2 w-2 rounded-full ${dot}`} />
+      {title}
     </div>
   );
 }
