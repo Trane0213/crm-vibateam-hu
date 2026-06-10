@@ -29,7 +29,10 @@ function LeadsPage() {
   return (
     <ResourcePage
       title="Leadek"
-      description="Új érdeklődők, források, státusz."
+      description="Új érdeklődők és potenciális ügyfelek."
+      emptyTitle="Itt jelennek meg az új érdeklődők."
+      emptyDescription={`A „Új lead” gombbal rögzíthetsz egy beérkezett megkeresést — később ajánlattá és projektté alakítható.`}
+      newButtonLabel="Új lead"
       icon={Sparkles}
       table="leads"
       fields={[
