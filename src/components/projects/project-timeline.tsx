@@ -123,3 +123,28 @@ export function ProjectTimeline(props: {
     </ol>
   );
 }
+
+const ENTITY_LABEL: Record<string, string> = {
+  projects: "Projekt", quotes: "Ajánlat", leads: "Lead",
+  companies: "Cég", contacts: "Kapcsolattartó", tasks: "Feladat",
+  followups: "Follow-up", emails: "Email", phone_calls: "Hívás",
+  meetings: "Találkozó", project_documents: "Dokumentum",
+  project_notes: "Jegyzet",
+};
+
+function mapAudit(a: ActivityEntry): Ev {
+  const kind: Ev["kind"] =
+    a.action === "create" ? "audit_create" :
+    a.action === "delete" ? "audit_delete" : "audit_update";
+  const entity = ENTITY_LABEL[a.entity_type] ?? a.entity_type;
+  const p = a.payload ?? {};
+  const summary =
+    (p as any).title ?? (p as any).name ?? (p as any).subject ??
+    (p as any).status ?? "—";
+  return {
+    at: a.created_at,
+    kind,
+    title: `${entity}: ${summary}`,
+    detail: (p as any).status ?? undefined,
+  };
+}
