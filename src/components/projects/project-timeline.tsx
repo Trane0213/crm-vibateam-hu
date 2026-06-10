@@ -1,15 +1,23 @@
-import { History, FileText, BellRing, ListChecks, Mail, Phone, Calendar, FolderOpen } from "lucide-react";
+import { History, FileText, BellRing, ListChecks, Mail, Phone, Calendar, FolderOpen, Briefcase, StickyNote } from "lucide-react";
 import { EmptyState } from "@/components/page-header";
 import { formatDateTime } from "@/lib/format";
 
 type Ev = {
   at: string;
-  kind: "quote" | "quote_update" | "followup" | "followup_done" | "task" | "task_done" | "email" | "call" | "meeting" | "document";
+  kind:
+    | "project_created" | "project_closed"
+    | "quote" | "quote_update"
+    | "followup" | "followup_done"
+    | "task" | "task_done"
+    | "email" | "call" | "meeting"
+    | "document" | "note";
   title: string;
   detail?: string;
 };
 
 const META: Record<Ev["kind"], { label: string; icon: any; tone: string }> = {
+  project_created:{ label: "Projekt létrehozva",   icon: Briefcase,  tone: "text-primary" },
+  project_closed: { label: "Projekt lezárva",      icon: Briefcase,  tone: "text-emerald-500" },
   quote:          { label: "Ajánlat létrehozva",   icon: FileText,   tone: "text-primary" },
   quote_update:   { label: "Ajánlat módosítva",    icon: FileText,   tone: "text-primary" },
   followup:       { label: "Follow-up létrehozva", icon: BellRing,   tone: "text-amber-500" },
@@ -20,13 +28,23 @@ const META: Record<Ev["kind"], { label: string; icon: any; tone: string }> = {
   call:           { label: "Hívás",                icon: Phone,      tone: "text-cyan-500" },
   meeting:        { label: "Találkozó",            icon: Calendar,   tone: "text-violet-500" },
   document:       { label: "Dokumentum feltöltve", icon: FolderOpen, tone: "text-slate-500" },
+  note:           { label: "Jegyzet",              icon: StickyNote, tone: "text-slate-500" },
 };
 
 export function ProjectTimeline(props: {
+  project?: any | null;
   quotes?: any[]; followups?: any[]; tasks?: any[];
-  emails?: any[]; calls?: any[]; meetings?: any[]; documents?: any[];
+  emails?: any[]; calls?: any[]; meetings?: any[]; documents?: any[]; notes?: any[];
 }) {
   const events: Ev[] = [];
+
+  if (props.project) {
+    const p = props.project;
+    if (p.created_at) events.push({ at: p.created_at, kind: "project_created", title: p.title ?? "Projekt", detail: p.status ?? undefined });
+    if ((p.status === "completed" || p.status === "lost") && (p.closed_at ?? p.updated_at)) {
+      events.push({ at: p.closed_at ?? p.updated_at, kind: "project_closed", title: p.title ?? "Projekt", detail: p.status });
+    }
+  }
 
   for (const r of props.quotes ?? []) {
     if (r.created_at) events.push({ at: r.created_at, kind: "quote", title: r.title ?? `Ajánlat #${String(r.id).slice(0, 8)}`, detail: r.status ?? undefined });
@@ -52,6 +70,9 @@ export function ProjectTimeline(props: {
   }
   for (const r of props.documents ?? []) {
     if (r.created_at) events.push({ at: r.created_at, kind: "document", title: r.name ?? "Dokumentum", detail: r.document_type ?? undefined });
+  }
+  for (const r of props.notes ?? []) {
+    if (r.created_at) events.push({ at: r.created_at, kind: "note", title: (r.note ?? "").slice(0, 80) || "Jegyzet" });
   }
 
   events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());

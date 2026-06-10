@@ -22,18 +22,17 @@ function EmailsPage() {
       columns={[
         {
           key: "summary",
-          label: "Összefoglaló",
+          label: "Tárgy",
           className: "font-medium max-w-[360px] truncate",
           render: (r) =>
             r.thread_id ? (
               <Link to="/emails/$threadId" params={{ threadId: r.thread_id }} className="text-primary hover:underline">
-                {r.summary ?? "(nincs összefoglaló)"}
+                {r.summary ?? "(nincs tárgy)"}
               </Link>
             ) : (r.summary ?? "—"),
         },
         { key: "from_email", label: "Feladó", className: "text-muted-foreground" },
         { key: "to_email", label: "Címzett", className: "text-muted-foreground" },
-        { key: "thread_id", label: "Szál", className: "text-muted-foreground font-mono text-xs max-w-[160px] truncate" },
         { key: "created_at", label: "Időpont", render: (r) => fmtDateTime(r.created_at) },
       ]}
     />

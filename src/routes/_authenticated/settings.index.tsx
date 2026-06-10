@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/settings/")({
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Rendszer</CardTitle>
-          <CardDescription>Külső Supabase projekt: uepqejecsiuhodegbcff</CardDescription>
+          <CardDescription>Lovable Cloud — adatbázis, felhasználók, integrációk központi konfigurációja.</CardDescription>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
           A bal oldali menüben konfigurálhatod az integrációkat (Gmail, OpenAI, R2), felhasználókat és szerepköröket.
