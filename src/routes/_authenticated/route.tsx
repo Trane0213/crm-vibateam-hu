@@ -3,6 +3,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { PulseBar } from "@/components/pulse-bar";
 import { UserMenu } from "@/components/user-menu";
+import { GlobalSearch } from "@/components/global-search";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnsureProfile } from "@/hooks/use-ensure-profile";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -36,7 +37,10 @@ function AppShell() {
               <SidebarTrigger />
               <span className="text-sm font-medium text-muted-foreground">VIBA CRM V1</span>
             </div>
-            <UserMenu />
+            <div className="flex items-center gap-2">
+              <GlobalSearch />
+              <UserMenu />
+            </div>
           </header>
           <PulseBar />
           <main className="flex-1 min-w-0 overflow-auto">
