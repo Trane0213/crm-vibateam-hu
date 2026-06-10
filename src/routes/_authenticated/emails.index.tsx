@@ -1,36 +1,39 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
-import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/resource-page";
+import { Link } from "@tanstack/react-router";
+import { ResourcePage, fmtDateTime } from "@/components/resource/resource-page";
 
 function EmailsPage() {
-  const projectLabel = useLookup("projects", "title");
-  const companyLabel = useLookup("companies", "name");
   return (
     <ResourcePage
       title="Emailek"
-      description="Bejövő/kimenő üzenetek projektekhez kötve. (Gmail szinkron: következő fázis.)"
+      description="Email üzenetek és szálak. (Gmail szinkron: következő fázis.)"
       icon={Mail}
       table="emails"
       order="created_at"
       ascending={false}
       fields={[
-        { name: "subject", label: "Tárgy", type: "text", required: true },
-        { name: "from_address", label: "Feladó", type: "text" },
-        { name: "to_address", label: "Címzett", type: "text" },
-        { name: "direction", label: "Irány", type: "select", options: [
-          { value: "inbound", label: "Bejövő" },
-          { value: "outbound", label: "Kimenő" },
-        ]},
-        { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" } },
-        { name: "company_id", label: "Cég", type: "ref", ref: { table: "companies", labelColumn: "name" } },
+        { name: "from_email", label: "Feladó", type: "text" },
+        { name: "to_email", label: "Címzett", type: "text" },
+        { name: "thread_id", label: "Szál azonosító", type: "text" },
+        { name: "summary", label: "Összefoglaló", type: "text" },
         { name: "body", label: "Tartalom", type: "textarea" },
       ]}
       columns={[
-        { key: "subject", label: "Tárgy", className: "font-medium max-w-[320px] truncate" },
-        { key: "direction", label: "Irány" },
-        { key: "from_address", label: "Feladó", className: "text-muted-foreground" },
-        { key: "project", label: "Projekt", render: (r) => projectLabel(r.project_id) },
-        { key: "company", label: "Cég", render: (r) => companyLabel(r.company_id) },
+        {
+          key: "summary",
+          label: "Összefoglaló",
+          className: "font-medium max-w-[360px] truncate",
+          render: (r) =>
+            r.thread_id ? (
+              <Link to="/emails/$threadId" params={{ threadId: r.thread_id }} className="text-primary hover:underline">
+                {r.summary ?? "(nincs összefoglaló)"}
+              </Link>
+            ) : (r.summary ?? "—"),
+        },
+        { key: "from_email", label: "Feladó", className: "text-muted-foreground" },
+        { key: "to_email", label: "Címzett", className: "text-muted-foreground" },
+        { key: "thread_id", label: "Szál", className: "text-muted-foreground font-mono text-xs max-w-[160px] truncate" },
         { key: "created_at", label: "Időpont", render: (r) => fmtDateTime(r.created_at) },
       ]}
     />

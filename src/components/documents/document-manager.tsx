@@ -30,15 +30,6 @@ export const CATEGORY_LABEL: Record<DocCategory, string> = {
 
 const CATEGORIES: DocCategory[] = ["quote", "contract", "plan", "technical", "photo", "other"];
 
-function fmtSize(n: number | null | undefined) {
-  if (!n || n <= 0) return "—";
-  const u = ["B", "KB", "MB", "GB"];
-  let i = 0;
-  let v = n;
-  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
-  return `${v.toFixed(i === 0 ? 0 : 1)} ${u[i]}`;
-}
-
 // A public.project_documents tényleges sémája:
 // id, project_id, name, file_url, document_type, created_at, uploaded_by
 function getCategory(row: any): DocCategory {
@@ -226,7 +217,6 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
               <tr>
                 <th className="px-3 py-2 text-left">Fájl</th>
                 <th className="px-3 py-2 text-left">Kategória</th>
-                <th className="px-3 py-2 text-right">Méret</th>
                 <th className="px-3 py-2 text-left">Feltöltve</th>
                 <th className="px-3 py-2 text-right">Művelet</th>
               </tr>
@@ -236,7 +226,6 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
                 <tr key={r.id} className="border-t hover:bg-muted/30">
                   <td className="px-3 py-2 font-medium">{getName(r)}</td>
                   <td className="px-3 py-2"><Badge variant="secondary">{CATEGORY_LABEL[getCategory(r)]}</Badge></td>
-                  <td className="px-3 py-2 text-right tabular-nums">{fmtSize(r.file_size ?? r.size)}</td>
                   <td className="px-3 py-2">{formatDateTime(r.created_at)}</td>
                   <td className="px-3 py-2 text-right">
                     <Button size="sm" variant="ghost" onClick={() => download.mutate(r)} title="Letöltés">
