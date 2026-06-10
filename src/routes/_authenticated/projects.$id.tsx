@@ -229,6 +229,7 @@ function ProjectDetail() {
           </TabsContent>
           <TabsContent value="timeline" className="mt-4">
             <ProjectTimeline
+              project={project}
               quotes={quotes.data ?? []}
               followups={followups.data ?? []}
               tasks={[]}
@@ -236,6 +237,7 @@ function ProjectDetail() {
               calls={calls.data ?? []}
               meetings={meetings.data ?? []}
               documents={docs.data ?? []}
+              notes={notes.data ?? []}
             />
           </TabsContent>
         </Tabs>
