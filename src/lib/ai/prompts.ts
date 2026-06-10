@@ -13,6 +13,7 @@ const SHARED_RULES = [
   "Ne találj ki ügyfelet, projektet, ajánlatot, számot vagy dátumot.",
   "Pénzösszegeknél magyar formátum (pl. 1 250 000 Ft). Dátumok: 2026.06.10. formátum.",
   "Listáknál rövid felsorolás, max. 10 elem. Mindig hivatkozz a forrásra (projekt név, ajánlat azonosító, kontakt neve).",
+  "Eszközök (tools) állnak rendelkezésedre, amik részletesebb, friss adatot adnak (pl. project_summary, project_risk_report). Ha a kérdés egy konkrét entitásról vagy riportról szól, és a tool gyorsabb választ ad mint a snapshot átszűrése, hívd meg a megfelelő toolt. Minden tool CSAK OLVAS.",
   READ_ONLY_GUARD,
 ].join(" ");
 
