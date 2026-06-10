@@ -28,6 +28,7 @@ import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as ApiPublicDebugSchemaRouteImport } from './routes/api/public/_debug-schema'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -141,6 +142,11 @@ const AuthenticatedCompaniesIndexRoute =
     path: '/companies/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicDebugSchemaRoute = ApiPublicDebugSchemaRouteImport.update({
+  id: '/api/public/_debug-schema',
+  path: '/api/public',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsUsersRoute =
   AuthenticatedSettingsUsersRouteImport.update({
     id: '/users',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/api/public': typeof ApiPublicDebugSchemaRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/emails/': typeof AuthenticatedEmailsIndexRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/api/public': typeof ApiPublicDebugSchemaRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/emails': typeof AuthenticatedEmailsIndexRoute
@@ -299,6 +307,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/api/public/_debug-schema': typeof ApiPublicDebugSchemaRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
@@ -333,6 +342,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/api/public'
     | '/companies/'
     | '/contacts/'
     | '/emails/'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/api/public'
     | '/companies'
     | '/contacts'
     | '/emails'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
+    | '/api/public/_debug-schema'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
     | '/_authenticated/emails/'
@@ -411,6 +423,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiR2UploadRoute: typeof ApiR2UploadRoute
+  ApiPublicDebugSchemaRoute: typeof ApiPublicDebugSchemaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -547,6 +560,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/companies/'
       preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/_debug-schema': {
+      id: '/api/public/_debug-schema'
+      path: '/api/public'
+      fullPath: '/api/public'
+      preLoaderRoute: typeof ApiPublicDebugSchemaRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/users': {
       id: '/_authenticated/settings/users'
@@ -714,6 +734,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiR2UploadRoute: ApiR2UploadRoute,
+  ApiPublicDebugSchemaRoute: ApiPublicDebugSchemaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
