@@ -2,6 +2,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+/** Supabase / PostgREST / R2 hibák emberi nyelvű (magyar) üzenetté formálása. */
+export function humanizeSupabaseError(e: any): string {
+  if (!e) return "Ismeretlen hiba történt.";
+  const code = e?.code ?? e?.status ?? "";
+  const msg = String(e?.message ?? e?.error_description ?? e?.error ?? e ?? "");
+  const m = msg.toLowerCase();
+  if (code === "PGRST116" || /no rows/.test(m)) return "Nincs találat.";
+  if (code === "23505" || /duplicate key/.test(m)) return "Már létezik egy rekord ezekkel az adatokkal.";
+  if (code === "23503" || /foreign key/.test(m)) return "Hivatkozott rekord nem található vagy használatban van.";
+  if (code === "23502" || /null value/.test(m)) return "Kötelező mező hiányzik.";
+  if (code === "42501" || /permission denied|not authorized/.test(m)) return "Nincs jogosultságod ehhez a művelethez.";
+  if (code === "42P01" || /does not exist/.test(m)) return "A kért tábla vagy oszlop nem található.";
+  if (/jwt|invalid token|not authenticated|auth session/.test(m)) return "A munkamenet lejárt. Jelentkezz be újra.";
+  if (/network|failed to fetch|fetch failed/.test(m)) return "Hálózati hiba. Ellenőrizd a kapcsolatot.";
+  if (/row-level security|rls/.test(m)) return "A művelet nem engedélyezett (RLS).";
+  return msg || "Ismeretlen hiba történt.";
+}
+
 export function useList<T = any>(
   table: string,
   opts?: { order?: string; ascending?: boolean; select?: string },
@@ -93,7 +111,7 @@ export function useUpsert(table: string) {
       toast.success("Sikeres mentés");
     },
     onError: (e: any) =>
-      toast.error("Mentési hiba", { description: e?.message ?? String(e) }),
+      toast.error("Mentési hiba", { description: humanizeSupabaseError(e) }),
   });
 }
 
@@ -109,7 +127,7 @@ export function useDelete(table: string) {
       toast.success("Törölve");
     },
     onError: (e: any) =>
-      toast.error("Törlési hiba", { description: e?.message ?? String(e) }),
+      toast.error("Törlési hiba", { description: humanizeSupabaseError(e) }),
   });
 }
 
