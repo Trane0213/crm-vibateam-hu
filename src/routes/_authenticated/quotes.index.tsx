@@ -29,7 +29,10 @@ function QuotesPage() {
   return (
     <ResourcePage
       title="Ajánlatok"
-      description="Az Excel-alapú ajánlatkövetés digitális kiváltása."
+      description="Kiküldött és nyitott ajánlatok, státuszokkal és összegekkel."
+      emptyTitle="Itt kezelheted az ajánlatokat."
+      emptyDescription={`A „Új ajánlat” gombbal készíthetsz új ajánlatot — projekthez és ügyfélhez kötve.`}
+      newButtonLabel="Új ajánlat"
       icon={FileText}
       table="quotes"
       fields={[

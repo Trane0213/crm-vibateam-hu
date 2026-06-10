@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { PulseBar } from "@/components/pulse-bar";
 import { UserMenu } from "@/components/user-menu";
 import { GlobalSearch } from "@/components/global-search";
+import { QuickAddMenu } from "@/components/quick-add-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnsureProfile } from "@/hooks/use-ensure-profile";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -39,6 +40,7 @@ function AppShell() {
             </div>
             <div className="flex items-center gap-2">
               <GlobalSearch />
+              <QuickAddMenu />
               <UserMenu />
             </div>
           </header>

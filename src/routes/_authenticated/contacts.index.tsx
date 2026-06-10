@@ -11,7 +11,10 @@ function ContactsPage() {
   return (
     <ResourcePage
       title="Kapcsolattartók"
-      description="Cégekhez tartozó kapcsolattartók."
+      description="Cégekhez tartozó személyek — döntéshozók, beszerzők, kivitelezők."
+      emptyTitle="Itt tároljuk a kapcsolattartókat."
+      emptyDescription={`A „Új kapcsolattartó” gombbal vehetsz fel egy új személyt — köthető céghez és projektekhez.`}
+      newButtonLabel="Új kapcsolattartó"
       icon={UserPlus}
       table="contacts"
       fields={[

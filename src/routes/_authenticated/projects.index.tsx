@@ -32,7 +32,10 @@ function ProjectsPage() {
   return (
     <ResourcePage
       title="Projektek"
-      description="A rendszer központja — minden projekt köré épül: ügyfél, ajánlatok, dokumentumok, kommunikáció."
+      description="A rendszer központja — ügyfél, ajánlatok, feladatok, dokumentumok és kommunikáció egy helyen."
+      emptyTitle="Itt jelennek meg a projektjeink."
+      emptyDescription={`A „Új projekt” gombbal indíthatsz új munkát. Minden ajánlat, feladat és dokumentum a projekt köré szerveződik.`}
+      newButtonLabel="Új projekt"
       icon={Briefcase}
       table="projects"
       fields={[

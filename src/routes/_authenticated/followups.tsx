@@ -40,7 +40,10 @@ function FollowupsPage() {
     </div>
     <ResourcePage
       title="Follow-up"
-      description="Lejárt, ma esedékes és közelgő utánkövetések."
+      description="Itt kezelheted az ajánlatok és projektek utánkövetését."
+      emptyTitle="Itt kezelheted az utánkövetéseket."
+      emptyDescription={`Még nincs felvett follow-up. A „Új follow-up” gombbal rögzíthetsz egyet (pl. visszahívás, ajánlat-emlékeztető).`}
+      newButtonLabel="Új follow-up"
       icon={BellRing}
       table="followups"
       order="due_date"

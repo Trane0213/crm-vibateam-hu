@@ -24,7 +24,10 @@ function CallsPage() {
   return (
     <ResourcePage
       title="Hívások"
-      description="Telefonbeszélgetések projektekhez, cégekhez és kapcsolattartókhoz kötve."
+      description="Itt rögzítheted az ügyfélhívásokat — projekthez vagy ügyfélhez kötve."
+      emptyTitle="Itt rögzítheted az ügyfélhívásokat."
+      emptyDescription={`A jobb felső „Új hívás” gombbal vehetsz fel egy bejövő vagy kimenő hívást, és kapcsolhatod ügyfélhez vagy projekthez.`}
+      newButtonLabel="Új hívás"
       icon={Phone}
       table="phone_calls"
       order="created_at"

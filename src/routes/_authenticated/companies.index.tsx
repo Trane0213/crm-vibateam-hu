@@ -6,7 +6,10 @@ export const Route = createFileRoute("/_authenticated/companies/")({
   component: () => (
     <ResourcePage
       title="Cégek"
-      description="Ügyfelek és potenciális partnerek."
+      description="Ügyfelek és partnercégek nyilvántartása."
+      emptyTitle="Itt tároljuk az ügyfélcégeket."
+      emptyDescription={`A „Új cég” gombbal vehetsz fel egy új ügyfelet vagy partnert.`}
+      newButtonLabel="Új cég"
       icon={Building2}
       table="companies"
       fields={[
