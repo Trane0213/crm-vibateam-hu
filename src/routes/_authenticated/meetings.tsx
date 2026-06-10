@@ -11,23 +11,23 @@ function MeetingsPage() {
       description="Helyszíni felmérés, prezentáció, szerződéskötés."
       icon={Calendar}
       table="meetings"
-      order="start_at"
+      order="meeting_date"
       ascending={true}
       fields={[
         { name: "title", label: "Megnevezés", type: "text", required: true },
-        { name: "start_at", label: "Kezdés", type: "datetime", required: true },
-        { name: "end_at", label: "Vége", type: "datetime" },
+        { name: "meeting_date", label: "Időpont", type: "datetime", required: true },
         { name: "location", label: "Helyszín", type: "text" },
         { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" } },
         { name: "company_id", label: "Cég", type: "ref", ref: { table: "companies", labelColumn: "name" } },
-        { name: "notes", label: "Jegyzet", type: "textarea" },
+        { name: "summary", label: "Összefoglaló / jegyzet", type: "textarea" },
       ]}
       columns={[
-        { key: "start_at", label: "Kezdés", className: "font-medium tabular-nums", render: (r) => fmtDateTime(r.start_at) },
+        { key: "meeting_date", label: "Időpont", className: "font-medium tabular-nums", render: (r) => fmtDateTime(r.meeting_date) },
         { key: "title", label: "Megnevezés" },
         { key: "location", label: "Helyszín", className: "text-muted-foreground" },
         { key: "project", label: "Projekt", render: (r) => projectLabel(r.project_id) },
         { key: "company", label: "Cég", render: (r) => companyLabel(r.company_id) },
+        { key: "summary", label: "Jegyzet", className: "text-muted-foreground max-w-[260px] truncate" },
       ]}
     />
   );
