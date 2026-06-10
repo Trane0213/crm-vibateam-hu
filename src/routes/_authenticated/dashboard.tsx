@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatHuf } from "@/lib/format";
 import { useCount, useAggregateSum, useList } from "@/lib/db-hooks";
+import { summarizeFollowups, BUCKET_LABEL, BUCKET_TONE, type FollowupBucket } from "@/lib/followup-alerts";
 import { fmtDateTime } from "@/components/resource/resource-page";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -34,7 +35,10 @@ function Dashboard() {
   const overdueFollowups = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue");
   const todayTasks = useCount("tasks", (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd), "today");
   const weeklyLeads = useCount("leads", (q) => q.gte("created_at", weekAgo), "week");
+  const monthlyLeads = useCount("leads", (q) => q.gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()), "month");
   const activeProjects = useCount("projects", (q) => q.not("status", "in", "(completed,lost)"), "active");
+  const wonQuotes = useCount("quotes", (q) => q.eq("status", "won"), "won");
+  const lostQuotes = useCount("quotes", (q) => q.eq("status", "lost"), "lost");
 
   const upcomingFollowups = useList<any>("followups", { order: "due_date", ascending: true });
   const upcomingTasks = useList<any>("tasks", { order: "due_date", ascending: true });
@@ -52,6 +56,10 @@ function Dashboard() {
     const s = l.status ?? "—";
     leadStatusCounts[s] = (leadStatusCounts[s] ?? 0) + 1;
   }
+
+  const fuBuckets = summarizeFollowups((upcomingFollowups.data ?? []) as any[]);
+  const wonTotal = (wonQuotes.data ?? 0) + (lostQuotes.data ?? 0);
+  const conversionPct = wonTotal > 0 ? Math.round(((wonQuotes.data ?? 0) / wonTotal) * 100) : null;
 
   return (
     <div className="flex flex-col">
@@ -87,6 +95,45 @@ function Dashboard() {
           sub="ezen a héten"
           tone="info"
         />
+      </div>
+      <div className="grid gap-4 px-6 pb-2 lg:grid-cols-4">
+        <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjects.data ?? "—"} sub="folyamatban" />
+        <Kpi icon={Sparkles} label="Új leadek (30 nap)" value={monthlyLeads.data ?? "—"} sub="elmúlt hónap" tone="info" />
+        <Kpi
+          icon={TrendingUp}
+          label="Ajánlat-konverzió"
+          value={conversionPct != null ? `${conversionPct}%` : "—"}
+          sub={wonTotal > 0 ? `${wonQuotes.data}/${wonTotal} megnyert` : "nincs lezárt ajánlat"}
+        />
+        <Kpi
+          icon={BellRing}
+          label="Közelgő (7 nap)"
+          value={fuBuckets["due-3d"] + fuBuckets["due-7d"]}
+          sub="follow-up"
+          tone="warning"
+        />
+      </div>
+      <div className="px-6 pb-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Follow-up figyelmeztetések</CardTitle>
+            <CardDescription>Esedékesség szerint kategorizálva</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+              {(["overdue", "due-3d", "due-7d", "due-14d", "due-30d"] as FollowupBucket[]).map((b) => (
+                <Link
+                  key={b}
+                  to="/followups"
+                  className={`rounded-md border px-3 py-2 transition hover:opacity-80 ${BUCKET_TONE[b]}`}
+                >
+                  <div className="text-[10px] uppercase tracking-wider opacity-80">{BUCKET_LABEL[b]}</div>
+                  <div className="text-2xl font-semibold tabular-nums">{fuBuckets[b]}</div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
       <div className="grid gap-4 px-6 pb-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

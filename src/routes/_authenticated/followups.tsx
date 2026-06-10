@@ -1,15 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BellRing, Check } from "lucide-react";
+import { useState } from "react";
 import {
   ResourcePage,
   fmtDateTime,
   useLookup,
 } from "@/components/resource/resource-page";
+import { Badge } from "@/components/ui/badge";
+import {
+  bucketFollowup,
+  BUCKET_LABEL,
+  BUCKET_TONE,
+  type FollowupBucket,
+} from "@/lib/followup-alerts";
 
 function FollowupsPage() {
   const projectLabel = useLookup("projects", "title");
   const companyLabel = useLookup("companies", "name");
+  const [active, setActive] = useState<FollowupBucket | "all">("all");
+  const buckets: (FollowupBucket | "all")[] = [
+    "all", "overdue", "due-3d", "due-7d", "due-14d", "due-30d", "future", "done",
+  ];
   return (
+    <div>
+    <div className="flex flex-wrap gap-1.5 border-b bg-background px-6 py-2">
+      {buckets.map((b) => (
+        <button
+          key={b}
+          onClick={() => setActive(b)}
+          className={`rounded-full border px-3 py-1 text-xs transition ${
+            active === b
+              ? "bg-primary text-primary-foreground border-primary"
+              : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {b === "all" ? "Mind" : BUCKET_LABEL[b]}
+        </button>
+      ))}
+    </div>
     <ResourcePage
       title="Follow-up"
       description="Lejárt, ma esedékes és közelgő utánkövetések."
@@ -17,6 +45,10 @@ function FollowupsPage() {
       table="followups"
       order="due_date"
       ascending={true}
+      filter={(rows) => {
+        if (active === "all") return rows;
+        return rows.filter((r) => bucketFollowup(r.due_date, r.completed) === active);
+      }}
       fields={[
         {
           name: "project_id",
@@ -53,6 +85,18 @@ function FollowupsPage() {
       ]}
       columns={[
         {
+          key: "bucket",
+          label: "Állapot",
+          render: (r) => {
+            const b = bucketFollowup(r.due_date, r.completed);
+            return (
+              <Badge variant="outline" className={`text-[10px] ${BUCKET_TONE[b]}`}>
+                {BUCKET_LABEL[b]}
+              </Badge>
+            );
+          },
+        },
+        {
           key: "due_date",
           label: "Esedékesség",
           className: "font-medium tabular-nums",
@@ -82,6 +126,7 @@ function FollowupsPage() {
         { key: "result", label: "Eredmény", className: "text-muted-foreground max-w-[260px] truncate" },
       ]}
     />
+    </div>
   );
 }
 
