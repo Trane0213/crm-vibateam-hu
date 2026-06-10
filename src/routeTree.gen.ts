@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -44,6 +45,11 @@ import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -232,6 +238,7 @@ const AuthenticatedCompaniesIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/ai-sales': typeof AuthenticatedAiSalesRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/ai-sales': typeof AuthenticatedAiSalesRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/_authenticated/ai-sales': typeof AuthenticatedAiSalesRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/forgot-password'
     | '/ai-sales'
     | '/calls'
     | '/dashboard'
@@ -375,6 +385,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/forgot-password'
     | '/ai-sales'
     | '/calls'
     | '/dashboard'
@@ -410,6 +421,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/forgot-password'
     | '/_authenticated/ai-sales'
     | '/_authenticated/calls'
     | '/_authenticated/dashboard'
@@ -447,6 +459,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   ApiR2UploadRoute: typeof ApiR2UploadRoute
   ApiGmailProxyRoute: typeof ApiGmailProxyRoute
   ApiGmailStartRoute: typeof ApiGmailStartRoute
@@ -454,6 +467,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -776,6 +796,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   ApiR2UploadRoute: ApiR2UploadRoute,
   ApiGmailProxyRoute: ApiGmailProxyRoute,
   ApiGmailStartRoute: ApiGmailStartRoute,
