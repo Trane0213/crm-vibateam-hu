@@ -34,6 +34,7 @@ const PRIO_TONE: Record<string, string> = {
 
 function TasksPage() {
   const userLabel = useLookup("users_profile", "full_name");
+  const projectLabel = useLookup("projects", "title");
   return (
     <ResourcePage
       title="Feladatok"
@@ -46,6 +47,12 @@ function TasksPage() {
         { name: "title", label: "Megnevezés", type: "text", required: true },
         { name: "description", label: "Leírás", type: "textarea" },
         {
+          name: "project_id",
+          label: "Projekt",
+          type: "ref",
+          ref: { table: "projects", labelColumn: "title" },
+        },
+        {
           name: "assigned_user",
           label: "Felelős",
           type: "ref",
@@ -57,6 +64,7 @@ function TasksPage() {
       ]}
       columns={[
         { key: "title", label: "Megnevezés", className: "font-medium" },
+        { key: "project", label: "Projekt", render: (r) => projectLabel(r.project_id) },
         {
           key: "status",
           label: "Státusz",
