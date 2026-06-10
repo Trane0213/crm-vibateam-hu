@@ -76,8 +76,33 @@ export const Route = createFileRoute("/api/gmail/start")({
         );
         const text = await res.text();
         if (!res.ok) {
+          // Részletes szerver-oldali log a debughoz
+          console.error("[gmail/start] gateway error", {
+            status: res.status,
+            clientIdPreview: clientId.slice(0, 8) + "…(" + clientId.length + ")",
+            clientIdLooksLikeGoogle: clientId.endsWith(".apps.googleusercontent.com"),
+            returnUrl,
+            targetOrigin,
+            response: text.slice(0, 800),
+          });
+          // Tipikus hiba felismerése és user-friendly üzenet
+          let hint = "";
+          if (text.includes("app-user-connector-client_not_found")) {
+            hint =
+              " — A GOOGLE_APP_USER_CONNECTOR_CLIENT_ID értéke NEM a Google Cloud OAuth Client ID-t várja (…apps.googleusercontent.com), hanem egy Lovable App User Connector Client azonosítót (auccli_…). " +
+              "A Google OAuth Client-et először regisztrálni kell a Lovable connector gateway-en, és az ott kapott ID kerül a secret-be. " +
+              "Részletek a chatben.";
+            if (clientId.endsWith(".apps.googleusercontent.com")) {
+              hint +=
+                " (A jelenlegi érték Google Cloud Client ID-nek tűnik — ezt kell becserélni a Lovable-tól kapott auccli_… ID-re.)";
+            }
+          }
           return Response.json(
-            { error: `Gmail OAuth indítás sikertelen (HTTP ${res.status}): ${text.slice(0, 400)}` },
+            {
+              error: `Gmail OAuth indítás sikertelen (HTTP ${res.status}): ${text.slice(0, 400)}${hint}`,
+              gatewayStatus: res.status,
+              gatewayBody: text.slice(0, 800),
+            },
             { status: 502 },
           );
         }
