@@ -54,7 +54,10 @@ const comms: Item[] = [
   { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
 ];
 
-const ai: Item[] = [{ title: "AI Értékesítő", url: "/ai-sales", icon: Bot }];
+const ai: Item[] = [
+  { title: "AI Asszisztens", url: "/ai-assistant", icon: Bot, highlight: true },
+  { title: "AI Értékesítő", url: "/ai-sales", icon: Bot },
+];
 
 const sys: Item[] = [{ title: "Beállítások", url: "/settings", icon: Settings }];
 
