@@ -35,8 +35,8 @@ function StoragePage() {
         <CardContent className="space-y-2 text-sm">
           {status.data?.ok ? (
             <>
-              <Field label="Bucket" value={status.data.bucket} />
-              <Field label="Endpoint" value={status.data.endpoint} />
+              <Field label="Bucket" value={status.data.bucket ?? "—"} />
+              <Field label="Endpoint" value={status.data.endpoint ?? "—"} />
               <p className="pt-2 text-xs text-muted-foreground">
                 A dokumentumkezelő a Dokumentumtár oldalon és a projekt adatlap Dokumentumok fülén érhető el.
               </p>
