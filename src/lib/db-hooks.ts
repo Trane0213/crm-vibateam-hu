@@ -83,6 +83,34 @@ export function useRefOptions(table: string, labelColumn: string) {
   });
 }
 
+/**
+ * Mint a useRefOptions, csak több oszlopot tölt be és egyedi formázót használ.
+ * Hasznos pl. ajánlat választóhoz: `v{version} · {status}` formátum.
+ */
+export function useRefOptionsRich(
+  table: string,
+  columns: string[],
+  format: (row: any) => string,
+  orderColumn?: string,
+) {
+  const cols = Array.from(new Set(["id", ...columns]));
+  const order = orderColumn ?? "created_at";
+  return useQuery({
+    queryKey: [table, "ref-options-rich", cols.join(","), order],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from(table)
+        .select(cols.join(","))
+        .order(order, { ascending: false });
+      if (error) throw error;
+      return ((data ?? []) as any[]).map((r) => ({
+        value: r.id as string,
+        label: format(r) || "—",
+      }));
+    },
+  });
+}
+
 export function useUpsert(table: string) {
   const qc = useQueryClient();
   return useMutation({
