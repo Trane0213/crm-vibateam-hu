@@ -33,6 +33,7 @@ import { Route as ApiGmailProxyRouteImport } from './routes/api/gmail/proxy'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
+import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
 import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
@@ -171,6 +172,12 @@ const AuthenticatedSettingsRolesRoute =
     path: '/roles',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsPermissionsAuditRoute =
+  AuthenticatedSettingsPermissionsAuditRouteImport.update({
+    id: '/permissions-audit',
+    path: '/permissions-audit',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsOpenaiRoute =
   AuthenticatedSettingsOpenaiRouteImport.update({
     id: '/openai',
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
@@ -276,6 +284,7 @@ export interface FileRoutesByTo {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
@@ -312,6 +321,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/_authenticated/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/gmail'
     | '/settings/openai'
+    | '/settings/permissions-audit'
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
@@ -381,6 +392,7 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/gmail'
     | '/settings/openai'
+    | '/settings/permissions-audit'
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
@@ -416,6 +428,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/gmail'
     | '/_authenticated/settings/openai'
+    | '/_authenticated/settings/permissions-audit'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
@@ -609,6 +622,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/permissions-audit': {
+      id: '/_authenticated/settings/permissions-audit'
+      path: '/permissions-audit'
+      fullPath: '/settings/permissions-audit'
+      preLoaderRoute: typeof AuthenticatedSettingsPermissionsAuditRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/openai': {
       id: '/_authenticated/settings/openai'
       path: '/openai'
@@ -679,6 +699,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
   AuthenticatedSettingsOpenaiRoute: typeof AuthenticatedSettingsOpenaiRoute
+  AuthenticatedSettingsPermissionsAuditRoute: typeof AuthenticatedSettingsPermissionsAuditRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsStorageRoute: typeof AuthenticatedSettingsStorageRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
@@ -689,6 +710,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsGmailRoute: AuthenticatedSettingsGmailRoute,
   AuthenticatedSettingsOpenaiRoute: AuthenticatedSettingsOpenaiRoute,
+  AuthenticatedSettingsPermissionsAuditRoute:
+    AuthenticatedSettingsPermissionsAuditRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsStorageRoute: AuthenticatedSettingsStorageRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
@@ -760,3 +783,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
