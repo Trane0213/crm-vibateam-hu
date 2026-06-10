@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/page-header";
-import { Briefcase, FileText, BellRing, Phone, Calendar, FolderOpen, UserPlus, StickyNote, History, Trash2 } from "lucide-react";
+import { Briefcase, FileText, BellRing, Phone, Calendar, FolderOpen, UserPlus, StickyNote, History, Trash2, ListChecks, Mail } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -46,6 +46,8 @@ function ProjectDetail() {
   const meetings = useListWhere<any>("meetings", "project_id", id, { order: "meeting_date", ascending: true });
   const docs = useListWhere<any>("project_documents", "project_id", id, { order: "created_at", ascending: false });
   const notes = useListWhere<any>("project_notes", "project_id", id, { order: "created_at", ascending: false });
+  const tasks = useListWhere<any>("tasks", "project_id", id, { order: "due_date", ascending: true });
+  const emails = useListWhere<any>("emails", "project_id", id, { order: "created_at", ascending: false });
   const projectContacts = useListWhere<any>("contacts", "company_id", project?.company_id, {
     order: "name",
     ascending: true,
@@ -111,6 +113,8 @@ function ProjectDetail() {
             <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Follow-up ({openFollowups.length})</TabsTrigger>
             <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="tasks"><ListChecks className="mr-1.5 h-3.5 w-3.5" />Feladatok ({tasks.data?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({emails.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({projectContacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="notes"><StickyNote className="mr-1.5 h-3.5 w-3.5" />Jegyzetek ({notes.data?.length ?? 0})</TabsTrigger>
@@ -212,6 +216,23 @@ function ProjectDetail() {
               { label: "Jegyzet", get: (r) => r.summary ?? "—" },
             ]} empty="Nincs találkozó." />
           </TabsContent>
+          <TabsContent value="tasks" className="mt-4">
+            <RelationList rows={tasks.data} columns={[
+              { label: "Megnevezés", get: (r) => r.title ?? "—" },
+              { label: "Státusz", get: (r) => r.status ?? "—" },
+              { label: "Prioritás", get: (r) => r.priority ?? "—" },
+              { label: "Határidő", get: (r) => fmtDateTime(r.due_date) },
+            ]} empty="Nincs feladat ehhez a projekthez." />
+          </TabsContent>
+          <TabsContent value="emails" className="mt-4">
+            <RelationList rows={emails.data} columns={[
+              { label: "Tárgy", get: (r) => r.subject ?? r.summary ?? "(nincs tárgy)" },
+              { label: "Feladó", get: (r) => r.from_email ?? "—" },
+              { label: "Címzett", get: (r) => r.to_email ?? "—" },
+              { label: "Időpont", get: (r) => fmtDateTime(r.created_at) },
+            ]} link={(r) => r.thread_id ? { to: "/emails/$threadId", params: { threadId: r.thread_id } } : undefined as any}
+              empty="Nincs email ehhez a projekthez." />
+          </TabsContent>
           <TabsContent value="docs" className="mt-4">
             <DocumentManager projectId={id} />
           </TabsContent>
@@ -236,8 +257,8 @@ function ProjectDetail() {
               project={project}
               quotes={quotes.data ?? []}
               followups={followups.data ?? []}
-              tasks={[]}
-              emails={[]}
+              tasks={tasks.data ?? []}
+              emails={emails.data ?? []}
               calls={calls.data ?? []}
               meetings={meetings.data ?? []}
               documents={docs.data ?? []}
