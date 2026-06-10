@@ -6,7 +6,6 @@ import {
   BellRing,
   Sparkles,
   Building2,
-  Users,
   ListChecks,
   Mail,
   Phone,
@@ -33,30 +32,35 @@ import { canAccessRoute } from "@/lib/permissions";
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean };
 
-const pipeline: Item[] = [
+const home: Item[] = [
   { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
-  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
-  { title: "Follow-up", url: "/followups", icon: BellRing, highlight: true },
-  { title: "Leadek", url: "/leads", icon: Sparkles },
 ];
 
-const crm: Item[] = [
+const sales: Item[] = [
+  { title: "Leadek", url: "/leads", icon: Sparkles },
+  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
+  { title: "Follow-up", url: "/followups", icon: BellRing, highlight: true },
+];
+
+const projects: Item[] = [
+  { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
+  { title: "Feladatok", url: "/tasks", icon: ListChecks },
+  { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
+];
+
+const contacts: Item[] = [
   { title: "Cégek", url: "/companies", icon: Building2 },
   { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
-  { title: "Feladatok", url: "/tasks", icon: ListChecks },
 ];
 
 const comms: Item[] = [
   { title: "Emailek", url: "/emails", icon: Mail },
   { title: "Hívások", url: "/calls", icon: Phone },
   { title: "Találkozók", url: "/meetings", icon: Calendar },
-  { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
 ];
 
 const ai: Item[] = [
-  { title: "AI Asszisztens", url: "/ai-assistant", icon: Bot, highlight: true },
-  { title: "AI Értékesítő", url: "/ai-sales", icon: Bot },
+  { title: "CRM Asszisztens", url: "/ai-assistant", icon: Bot, highlight: true },
 ];
 
 const sys: Item[] = [{ title: "Beállítások", url: "/settings", icon: Settings }];
@@ -106,9 +110,11 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent>
-        {visible(pipeline).length > 0 && renderGroup("Pipeline", visible(pipeline))}
-        {visible(crm).length > 0 && renderGroup("CRM", visible(crm))}
+      <SidebarContent className="gap-1">
+        {visible(home).length > 0 && renderGroup("", visible(home))}
+        {visible(sales).length > 0 && renderGroup("Értékesítés", visible(sales))}
+        {visible(projects).length > 0 && renderGroup("Projektek", visible(projects))}
+        {visible(contacts).length > 0 && renderGroup("Kapcsolatok", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
         {visible(ai).length > 0 && renderGroup("AI", visible(ai))}
         {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
