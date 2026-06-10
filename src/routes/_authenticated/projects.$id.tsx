@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/page-header";
 import { Briefcase, FileText, BellRing, Phone, Calendar, FolderOpen, UserPlus, StickyNote, History, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { formatHuf } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere, humanizeSupabaseError } from "@/lib/db-hooks";
@@ -340,9 +344,25 @@ function ProjectNotes({ projectId, notes }: { projectId: string; notes: any[] })
             <li key={n.id} className="rounded-md border bg-card p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="whitespace-pre-wrap text-sm">{n.note ?? "—"}</div>
-                <Button size="icon" variant="ghost" className="text-destructive" onClick={() => del.mutate(n.id)} title="Törlés">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="icon" variant="ghost" className="text-destructive" title="Törlés">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Jegyzet törlése</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Biztosan törlöd ezt a jegyzetet? Ez a művelet nem visszavonható.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Mégse</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => del.mutate(n.id)}>Törlés</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
               <div className="mt-1 text-xs text-muted-foreground">{fmtDateTime(n.created_at)}</div>
             </li>

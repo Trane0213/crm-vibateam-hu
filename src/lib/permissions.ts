@@ -14,8 +14,14 @@ export function normalizeRole(input: unknown): RoleSlug {
   if (["owner", "tulajdonos", "admin", "superadmin"].includes(v)) return "owner";
   if (["project_manager", "projektvezeto", "projektvezető", "pm", "manager"].includes(v))
     return "project_manager";
-  if (["sales", "ertekesito", "értékesítő", "sales_rep"].includes(v)) return "sales";
-  if (["marketing", "marketinges", "marketer"].includes(v)) return "marketing";
+  if ([
+    "sales", "ertekesito", "értékesítő", "sales_rep",
+    "irodai", "iroda", "irodai_munkatars", "irodai munkatárs", "office",
+  ].includes(v)) return "sales";
+  if ([
+    "marketing", "marketinges", "marketer",
+    "szerelo", "szerelő", "installer", "technician", "field",
+  ].includes(v)) return "marketing";
   return "owner";
 }
 
