@@ -1,30 +1,90 @@
 import { Link } from "@tanstack/react-router";
 import { FileText, BellRing, ListChecks, Sparkles } from "lucide-react";
+import { useCount } from "@/lib/db-hooks";
 
-type Chip = {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: number | string;
-  to: string;
-  tone: "primary" | "warning" | "danger" | "info";
-};
-
-const toneClass: Record<Chip["tone"], string> = {
+const toneClass = {
   primary: "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15",
-  warning: "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30 hover:bg-[color:var(--status-warning)]/20",
+  warning:
+    "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30 hover:bg-[color:var(--status-warning)]/20",
   danger: "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/15",
   info: "bg-[color:var(--status-info)]/10 text-[color:var(--status-info)] border-[color:var(--status-info)]/20 hover:bg-[color:var(--status-info)]/15",
-};
+} as const;
 
-// TODO: backend — valós számok lekérése a /quotes, /followups, /tasks, /leads aggregátumokból
-const chips: Chip[] = [
-  { icon: FileText, label: "nyitott ajánlat", value: "—", to: "/quotes", tone: "primary" },
-  { icon: BellRing, label: "lejárt follow-up", value: "—", to: "/followups", tone: "danger" },
-  { icon: ListChecks, label: "ma esedékes", value: "—", to: "/tasks", tone: "warning" },
-  { icon: Sparkles, label: "új lead", value: "—", to: "/leads", tone: "info" },
-];
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+function endOfToday() {
+  const d = new Date();
+  d.setHours(23, 59, 59, 999);
+  return d.toISOString();
+}
+function weekAgo() {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  return d.toISOString();
+}
 
 export function PulseBar() {
+  const nowIso = new Date().toISOString();
+  const todayStart = startOfToday();
+  const todayEnd = endOfToday();
+  const weekStart = weekAgo();
+
+  const openQuotes = useCount(
+    "quotes",
+    (q) => q.not("status", "in", "(won,lost)"),
+    "open",
+  );
+  const overdueFu = useCount(
+    "followups",
+    (q) => q.eq("completed", false).lt("due_date", nowIso),
+    "overdue",
+  );
+  const tasksToday = useCount(
+    "tasks",
+    (q) =>
+      q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd),
+    "today",
+  );
+  const newLeads = useCount(
+    "leads",
+    (q) => q.gte("created_at", weekStart),
+    "week",
+  );
+
+  const chips = [
+    {
+      icon: FileText,
+      label: "nyitott ajánlat",
+      value: openQuotes.data ?? "—",
+      to: "/quotes" as const,
+      tone: "primary" as const,
+    },
+    {
+      icon: BellRing,
+      label: "lejárt follow-up",
+      value: overdueFu.data ?? "—",
+      to: "/followups" as const,
+      tone: "danger" as const,
+    },
+    {
+      icon: ListChecks,
+      label: "ma esedékes",
+      value: tasksToday.data ?? "—",
+      to: "/tasks" as const,
+      tone: "warning" as const,
+    },
+    {
+      icon: Sparkles,
+      label: "új lead (7 nap)",
+      value: newLeads.data ?? "—",
+      to: "/leads" as const,
+      tone: "info" as const,
+    },
+  ];
+
   return (
     <div className="flex items-center gap-2 overflow-x-auto border-b bg-muted/30 px-4 py-2">
       <span className="text-[11px] uppercase tracking-wider text-muted-foreground mr-2">

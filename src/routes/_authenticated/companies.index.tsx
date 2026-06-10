@@ -1,13 +1,43 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { PageHeader, EmptyState } from "@/components/page-header";
+import { Building2 } from "lucide-react";
+import { ResourcePage, fmtDate } from "@/components/resource/resource-page";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
   component: () => (
-    <div className="flex flex-col">
-      <PageHeader title="Cégek" description="Ügyfelek és potenciális partnerek." actions={<Button size="sm" disabled><Plus className="mr-1 h-4 w-4" />Új cég</Button>} />
-      <div className="p-6"><EmptyState icon={Building2} title="Még nincs cég" description="TODO: backend — companies tábla." /></div>
-    </div>
+    <ResourcePage
+      title="Cégek"
+      description="Ügyfelek és potenciális partnerek."
+      icon={Building2}
+      table="companies"
+      fields={[
+        { name: "name", label: "Cégnév", type: "text", required: true },
+        {
+          name: "company_type",
+          label: "Típus",
+          type: "select",
+          options: [
+            { value: "ugyfel", label: "Ügyfél" },
+            { value: "alvallalkozo", label: "Alvállalkozó" },
+            { value: "beszallito", label: "Beszállító" },
+            { value: "potencialis", label: "Potenciális" },
+          ],
+        },
+        { name: "tax_number", label: "Adószám", type: "text" },
+        { name: "website", label: "Weboldal", type: "text", placeholder: "https://" },
+        { name: "notes", label: "Megjegyzés", type: "textarea" },
+      ]}
+      columns={[
+        { key: "name", label: "Cégnév", className: "font-medium" },
+        { key: "company_type", label: "Típus" },
+        { key: "tax_number", label: "Adószám" },
+        { key: "website", label: "Weboldal" },
+        {
+          key: "created_at",
+          label: "Létrehozva",
+          className: "text-muted-foreground",
+          render: (r) => fmtDate(r.created_at),
+        },
+      ]}
+    />
   ),
 });
