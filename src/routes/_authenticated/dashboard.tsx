@@ -17,6 +17,7 @@ import { fmtDateTime } from "@/components/resource/resource-page";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import { WelcomeHeader } from "@/components/welcome-header";
+import { DailyBriefing } from "@/components/ai/daily-briefing";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -67,6 +68,9 @@ function Dashboard() {
   return (
     <div className="flex flex-col">
       <WelcomeHeader subtitle="Itt vannak a mai legfontosabb teendőid és nyitott ügyek." />
+      <div className="px-6 pt-4">
+        <DailyBriefing />
+      </div>
       <div className="flex items-center justify-between border-b px-6 py-3">
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Mai fókusz</div>
         <AiSummaryDialog
