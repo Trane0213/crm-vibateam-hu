@@ -16,6 +16,7 @@ import { summarizeFollowups, BUCKET_LABEL, BUCKET_TONE, type FollowupBucket } fr
 import { fmtDateTime } from "@/components/resource/resource-page";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
+import { WelcomeHeader } from "@/components/welcome-header";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -65,11 +66,10 @@ function Dashboard() {
 
   return (
     <div className="flex flex-col">
-      <PageHeader
-        title="Irányítópult"
-        description="Ajánlatkövetés, follow-upok és napi teendők — valós idejű adatok."
-        actions={
-          <AiSummaryDialog
+      <WelcomeHeader subtitle="Itt vannak a mai legfontosabb teendőid és nyitott ügyek." />
+      <div className="flex items-center justify-between border-b px-6 py-3">
+        <div className="text-xs uppercase tracking-wider text-muted-foreground">Mai fókusz</div>
+        <AiSummaryDialog
             title="AI napi összefoglaló"
             description="Az AI a CRM aktuális ajánlatai, follow-upjai, projektjei és feladatai alapján készít napi vezetői összefoglalót."
             triggerLabel="AI napi összefoglaló"
@@ -82,9 +82,8 @@ function Dashboard() {
               "4) FELADATOK: ma esedékes és lejárt feladatok rövid listája.",
               "A végén 2 mondatos vezetői fókusz: mire koncentráljon ma a csapat.",
             ].join(" ")}
-          />
-        }
-      />
+        />
+      </div>
       <div className="grid gap-4 p-6 lg:grid-cols-4">
         <Kpi
           icon={FileText}
