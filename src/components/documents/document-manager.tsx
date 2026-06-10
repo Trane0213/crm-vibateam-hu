@@ -133,7 +133,10 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
       qc.invalidateQueries({ queryKey: ["project_documents"] });
     },
     onError: (e: any) =>
-      toast.error("Feltöltési hiba", { description: humanizeSupabaseError(e) }),
+      toast.error("Feltöltési hiba", {
+        description: e?.message ?? humanizeSupabaseError(e),
+        duration: 10000,
+      }),
     onSettled: () => setUploading(false),
   });
 
