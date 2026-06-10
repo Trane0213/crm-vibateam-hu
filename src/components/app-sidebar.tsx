@@ -73,9 +73,12 @@ export function AppSidebar() {
   const { role } = usePermissions();
   const visible = (items: Item[]) => items.filter((i) => canAccessRoute(role, i.url));
 
-  const renderGroup = (label: string, items: Item[]) => (
-    <SidebarGroup>
-      {!collapsed && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
+  const renderGroup = (label: string, items: Item[], withDivider = true) => (
+    <SidebarGroup
+      key={label || "home"}
+      className={withDivider && !collapsed ? "mt-1 border-t border-sidebar-border/60 pt-1" : ""}
+    >
+      {label && !collapsed && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
@@ -111,7 +114,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent className="gap-1">
-        {visible(home).length > 0 && renderGroup("", visible(home))}
+        {visible(home).length > 0 && renderGroup("", visible(home), false)}
         {visible(sales).length > 0 && renderGroup("Értékesítés", visible(sales))}
         {visible(projects).length > 0 && renderGroup("Projektek", visible(projects))}
         {visible(contacts).length > 0 && renderGroup("Kapcsolatok", visible(contacts))}
