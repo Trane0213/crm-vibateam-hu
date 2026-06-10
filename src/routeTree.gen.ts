@@ -28,9 +28,12 @@ import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as ApiGmailStartRouteImport } from './routes/api/gmail/start'
+import { Route as ApiGmailProxyRouteImport } from './routes/api/gmail/proxy'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
+import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
 import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
@@ -141,6 +144,16 @@ const AuthenticatedCompaniesIndexRoute =
     path: '/companies/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiGmailStartRoute = ApiGmailStartRouteImport.update({
+  id: '/api/gmail/start',
+  path: '/api/gmail/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailProxyRoute = ApiGmailProxyRouteImport.update({
+  id: '/api/gmail/proxy',
+  path: '/api/gmail/proxy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSettingsUsersRoute =
   AuthenticatedSettingsUsersRouteImport.update({
     id: '/users',
@@ -157,6 +170,12 @@ const AuthenticatedSettingsRolesRoute =
   AuthenticatedSettingsRolesRouteImport.update({
     id: '/roles',
     path: '/roles',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsPermissionsAuditRoute =
+  AuthenticatedSettingsPermissionsAuditRouteImport.update({
+    id: '/permissions-audit',
+    path: '/permissions-audit',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsOpenaiRoute =
@@ -231,9 +250,12 @@ export interface FileRoutesByFullPath {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/api/gmail/proxy': typeof ApiGmailProxyRoute
+  '/api/gmail/start': typeof ApiGmailStartRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/emails/': typeof AuthenticatedEmailsIndexRoute
@@ -262,9 +284,12 @@ export interface FileRoutesByTo {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/api/gmail/proxy': typeof ApiGmailProxyRoute
+  '/api/gmail/start': typeof ApiGmailStartRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/emails': typeof AuthenticatedEmailsIndexRoute
@@ -296,9 +321,12 @@ export interface FileRoutesById {
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/_authenticated/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/api/gmail/proxy': typeof ApiGmailProxyRoute
+  '/api/gmail/start': typeof ApiGmailStartRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
@@ -330,9 +358,12 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/gmail'
     | '/settings/openai'
+    | '/settings/permissions-audit'
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/api/gmail/proxy'
+    | '/api/gmail/start'
     | '/companies/'
     | '/contacts/'
     | '/emails/'
@@ -361,9 +392,12 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/gmail'
     | '/settings/openai'
+    | '/settings/permissions-audit'
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/api/gmail/proxy'
+    | '/api/gmail/start'
     | '/companies'
     | '/contacts'
     | '/emails'
@@ -394,9 +428,12 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/gmail'
     | '/_authenticated/settings/openai'
+    | '/_authenticated/settings/permissions-audit'
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
+    | '/api/gmail/proxy'
+    | '/api/gmail/start'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
     | '/_authenticated/emails/'
@@ -411,6 +448,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiR2UploadRoute: typeof ApiR2UploadRoute
+  ApiGmailProxyRoute: typeof ApiGmailProxyRoute
+  ApiGmailStartRoute: typeof ApiGmailStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -548,6 +587,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/gmail/start': {
+      id: '/api/gmail/start'
+      path: '/api/gmail/start'
+      fullPath: '/api/gmail/start'
+      preLoaderRoute: typeof ApiGmailStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gmail/proxy': {
+      id: '/api/gmail/proxy'
+      path: '/api/gmail/proxy'
+      fullPath: '/api/gmail/proxy'
+      preLoaderRoute: typeof ApiGmailProxyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/settings/users': {
       id: '/_authenticated/settings/users'
       path: '/users'
@@ -567,6 +620,13 @@ declare module '@tanstack/react-router' {
       path: '/roles'
       fullPath: '/settings/roles'
       preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/permissions-audit': {
+      id: '/_authenticated/settings/permissions-audit'
+      path: '/permissions-audit'
+      fullPath: '/settings/permissions-audit'
+      preLoaderRoute: typeof AuthenticatedSettingsPermissionsAuditRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
     '/_authenticated/settings/openai': {
@@ -639,6 +699,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
   AuthenticatedSettingsOpenaiRoute: typeof AuthenticatedSettingsOpenaiRoute
+  AuthenticatedSettingsPermissionsAuditRoute: typeof AuthenticatedSettingsPermissionsAuditRoute
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsStorageRoute: typeof AuthenticatedSettingsStorageRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
@@ -649,6 +710,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsGmailRoute: AuthenticatedSettingsGmailRoute,
   AuthenticatedSettingsOpenaiRoute: AuthenticatedSettingsOpenaiRoute,
+  AuthenticatedSettingsPermissionsAuditRoute:
+    AuthenticatedSettingsPermissionsAuditRoute,
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsStorageRoute: AuthenticatedSettingsStorageRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
@@ -714,6 +777,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiR2UploadRoute: ApiR2UploadRoute,
+  ApiGmailProxyRoute: ApiGmailProxyRoute,
+  ApiGmailStartRoute: ApiGmailStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

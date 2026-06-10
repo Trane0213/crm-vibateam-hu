@@ -4,9 +4,9 @@ import { normalizeRole, type RoleSlug } from "@/lib/permissions";
 import { useAuth } from "@/hooks/use-auth";
 
 /**
- * Lekéri a bejelentkezett felhasználó szerepkörét a `users_profile` táblából.
- * Ha a tábla / oszlop nem létezik vagy nincs profil → "owner" fallback,
- * hogy a rendszer használható maradjon (TODO: profil-seed indításkor).
+ * Lekéri a bejelentkezett felhasználó profilját és szerepkörét.
+ * A valós séma: users_profile.auth_user_id → auth.users.id, role_id → roles.id (név oszlop a roles-on).
+ * Ha nincs profil sor → "owner" fallback (a useEnsureProfile hook hoz létre egyet).
  */
 export function usePermissions() {
   const { user, loading } = useAuth();
@@ -16,8 +16,8 @@ export function usePermissions() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("*")
-        .eq("user_id", user!.id)
+        .select("*, roles ( id, name )")
+        .eq("auth_user_id", user!.id)
         .maybeSingle();
       if (error) {
         console.warn("[usePermissions] users_profile lekérdezés sikertelen:", error.message);
@@ -27,7 +27,7 @@ export function usePermissions() {
     },
   });
 
-  const raw = q.data?.role ?? q.data?.user_role ?? null;
+  const raw = q.data?.roles?.name ?? q.data?.role ?? null;
   const role: RoleSlug = normalizeRole(raw);
   return {
     role,

@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { PulseBar } from "@/components/pulse-bar";
 import { UserMenu } from "@/components/user-menu";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnsureProfile } from "@/hooks/use-ensure-profile";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AppShell() {
+  useEnsureProfile();
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
