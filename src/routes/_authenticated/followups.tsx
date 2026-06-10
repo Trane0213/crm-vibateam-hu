@@ -66,7 +66,16 @@ function FollowupsPage() {
           name: "quote_id",
           label: "Ajánlat",
           type: "ref",
-          ref: { table: "quotes", labelColumn: "id" },
+          ref: {
+            table: "quotes",
+            labelColumn: "version",
+            extraColumns: ["version", "status", "total_amount", "created_at"],
+            formatLabel: (r: any) => {
+              const v = r.version != null ? `v${r.version}` : `#${String(r.id).slice(0, 6)}`;
+              const s = r.status ? ` · ${r.status}` : "";
+              return `${v}${s}`;
+            },
+          },
         },
         {
           name: "followup_type",
