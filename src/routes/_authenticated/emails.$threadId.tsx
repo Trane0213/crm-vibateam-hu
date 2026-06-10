@@ -24,7 +24,7 @@ function EmailThread() {
         <div className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">Email szál</div>
         <h1 className="mt-1 text-xl font-semibold flex items-center gap-2">
           <Mail className="h-5 w-5 text-primary" />
-          <span className="font-mono text-sm text-muted-foreground">{threadId}</span>
+          {emails.data?.[0]?.summary ?? "Email szál"}
         </h1>
         <div className="mt-1 text-sm text-muted-foreground">
           {emails.data?.length ?? 0} üzenet a szálban
