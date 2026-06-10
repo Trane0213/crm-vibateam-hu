@@ -28,6 +28,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { usePermissions } from "@/hooks/use-permissions";
+import { canAccessRoute } from "@/lib/permissions";
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean };
 
@@ -61,6 +63,8 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isActive = (url: string) => pathname === url || pathname.startsWith(url + "/");
+  const { role } = usePermissions();
+  const visible = (items: Item[]) => items.filter((i) => canAccessRoute(role, i.url));
 
   const renderGroup = (label: string, items: Item[]) => (
     <SidebarGroup>
@@ -100,11 +104,11 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {renderGroup("Pipeline", pipeline)}
-        {renderGroup("CRM", crm)}
-        {renderGroup("Kommunikáció", comms)}
-        {renderGroup("AI", ai)}
-        {renderGroup("Rendszer", sys)}
+        {visible(pipeline).length > 0 && renderGroup("Pipeline", visible(pipeline))}
+        {visible(crm).length > 0 && renderGroup("CRM", visible(crm))}
+        {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
+        {visible(ai).length > 0 && renderGroup("AI", visible(ai))}
+        {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
       </SidebarContent>
     </Sidebar>
   );
