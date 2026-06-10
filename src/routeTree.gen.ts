@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiR2UploadRouteImport } from './routes/api/r2-upload'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
@@ -52,6 +53,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiR2UploadRoute = ApiR2UploadRouteImport.update({
+  id: '/api/r2-upload',
+  path: '/api/r2-upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
@@ -215,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/tasks': typeof AuthenticatedTasksRoute
+  '/api/r2-upload': typeof ApiR2UploadRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
@@ -245,6 +252,7 @@ export interface FileRoutesByTo {
   '/followups': typeof AuthenticatedFollowupsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/api/r2-upload': typeof ApiR2UploadRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/api/r2-upload': typeof ApiR2UploadRoute
   '/_authenticated/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/meetings'
     | '/settings'
     | '/tasks'
+    | '/api/r2-upload'
     | '/companies/$id'
     | '/contacts/$id'
     | '/emails/$threadId'
@@ -341,6 +351,7 @@ export interface FileRouteTypes {
     | '/followups'
     | '/meetings'
     | '/tasks'
+    | '/api/r2-upload'
     | '/companies/$id'
     | '/contacts/$id'
     | '/emails/$threadId'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meetings'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
+    | '/api/r2-upload'
     | '/_authenticated/companies/$id'
     | '/_authenticated/contacts/$id'
     | '/_authenticated/emails/$threadId'
@@ -398,6 +410,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiR2UploadRoute: typeof ApiR2UploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -421,6 +434,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/r2-upload': {
+      id: '/api/r2-upload'
+      path: '/api/r2-upload'
+      fullPath: '/api/r2-upload'
+      preLoaderRoute: typeof ApiR2UploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/tasks': {
@@ -693,6 +713,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiR2UploadRoute: ApiR2UploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

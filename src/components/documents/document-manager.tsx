@@ -84,13 +84,27 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
       const ts = Date.now();
       const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const key = `${projectId ?? "global"}/${uploadCategory}/${ts}-${safe}`;
-      const { url } = await presignUpload({ data: { key, contentType: file.type } });
-      const putRes = await fetch(url, {
-        method: "PUT",
-        headers: file.type ? { "Content-Type": file.type } : {},
-        body: file,
-      });
-      if (!putRes.ok) throw new Error(`R2 feltöltés sikertelen (${putRes.status})`);
+      // Server-side proxy upload — elkerüli a böngésző→R2 CORS preflight hibát.
+      const fd = new FormData();
+      fd.append("file", file, file.name);
+      fd.append("key", key);
+      if (file.type) fd.append("contentType", file.type);
+      let putRes: Response;
+      try {
+        putRes = await fetch("/api/r2-upload", { method: "POST", body: fd });
+      } catch (netErr: any) {
+        throw new Error(`Hálózati hiba a szerverhez: ${netErr?.message ?? netErr}`);
+      }
+      if (!putRes.ok) {
+        let detail = "";
+        try {
+          const j = await putRes.json();
+          detail = j?.error ?? j?.body ?? `${j?.status ?? putRes.status} ${j?.statusText ?? ""}`.trim();
+        } catch {
+          detail = await putRes.text().catch(() => "");
+        }
+        throw new Error(`R2 feltöltés sikertelen (HTTP ${putRes.status}): ${detail || "ismeretlen hiba"}`);
+      }
       // DB rekord — defenzív oszlop-nevek
       const payload: any = {
         project_id: projectId ?? null,
@@ -119,7 +133,10 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
       qc.invalidateQueries({ queryKey: ["project_documents"] });
     },
     onError: (e: any) =>
-      toast.error("Feltöltési hiba", { description: humanizeSupabaseError(e) }),
+      toast.error("Feltöltési hiba", {
+        description: e?.message ?? humanizeSupabaseError(e),
+        duration: 10000,
+      }),
     onSettled: () => setUploading(false),
   });
 
