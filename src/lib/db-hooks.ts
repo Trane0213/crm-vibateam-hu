@@ -22,6 +22,32 @@ export function useList<T = any>(
   });
 }
 
+/** Lista egy adott oszlop = érték szűréssel (pl. project_id = ...). */
+export function useListWhere<T = any>(
+  table: string,
+  column: string,
+  value: string | number | null | undefined,
+  opts?: { order?: string; ascending?: boolean; select?: string; enabled?: boolean },
+) {
+  const order = opts?.order ?? "created_at";
+  const ascending = opts?.ascending ?? false;
+  const select = opts?.select ?? "*";
+  const enabled = (opts?.enabled ?? true) && value != null && value !== "";
+  return useQuery({
+    queryKey: [table, "where", column, value, select, order, ascending],
+    enabled,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from(table)
+        .select(select)
+        .eq(column, value as any)
+        .order(order, { ascending });
+      if (error) throw error;
+      return (data ?? []) as T[];
+    },
+  });
+}
+
 export function useRefOptions(table: string, labelColumn: string) {
   return useQuery({
     queryKey: [table, "ref-options", labelColumn],
