@@ -69,7 +69,7 @@ function CrmAgent() {
         <CardContent>
           <div className="flex gap-2">
             <Search className="h-4 w-4 text-muted-foreground self-center" />
-            <Input autoFocus placeholder="Pl. „Kovács", cég név, projekt cím, ajánlat azonosító…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <Input autoFocus placeholder={`Pl. „Kovács", cég név, projekt cím, ajánlat azonosító…`} value={q} onChange={(e) => setQ(e.target.value)} />
           </div>
         </CardContent>
       </Card>
