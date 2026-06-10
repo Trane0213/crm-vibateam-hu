@@ -8,10 +8,11 @@ import { PageHeader } from "@/components/page-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { aiComplete } from "@/lib/ai/ai.functions";
+import { aiStep } from "@/lib/ai/ai.functions";
 import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import type { AgentId } from "@/lib/ai/agents";
+import { getToolDefsForAgent, runTool } from "@/lib/ai/tools";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantPage,
@@ -130,14 +131,32 @@ function AiAssistantPage() {
       const snapshot = await loadCrmSnapshot();
       const context = serializeSnapshot(snapshot);
       const history = (thread.messages ?? []).slice(-10).map((m) => ({ role: m.role, content: m.content }));
-      const messages = [
+      const messages: any[] = [
         { role: "system" as const, content: SYSTEM_PROMPTS[usedAgent] },
         { role: "system" as const, content: `[CRM KONTEXTUS — ${new Date().toLocaleString("hu-HU")}]\n${context}` },
         ...history,
         { role: "user" as const, content: question },
       ];
-      const res = await aiComplete({ data: { messages } });
-      const assistantMsg: Msg = { id: uid(), role: "assistant", content: res.text || "(üres válasz)", at: Date.now() };
+      const tools = getToolDefsForAgent(usedAgent);
+      // Tool-loop: max 5 iteráció. Az LLM toolt hívhat → kliens végrehajtja
+      // (csak olvasás), az eredményt visszaadjuk neki, amíg szöveggel nem zár.
+      let finalText = "";
+      for (let i = 0; i < 5; i++) {
+        const step = await aiStep({ data: { messages, tools } });
+        if (step.tool_calls && step.tool_calls.length > 0) {
+          messages.push({ role: "assistant", content: step.text ?? "", tool_calls: step.tool_calls });
+          for (const call of step.tool_calls) {
+            let args: any = {};
+            try { args = JSON.parse(call.function.arguments || "{}"); } catch { /* ignore */ }
+            const result = await runTool(call.function.name, args);
+            messages.push({ role: "tool", tool_call_id: call.id, name: call.function.name, content: JSON.stringify(result).slice(0, 12000) });
+          }
+          continue;
+        }
+        finalText = step.text || "";
+        break;
+      }
+      const assistantMsg: Msg = { id: uid(), role: "assistant", content: finalText || "(üres válasz)", at: Date.now() };
       setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
         ...t, updatedAt: Date.now(), messages: [...t.messages, assistantMsg],
       } : t));
