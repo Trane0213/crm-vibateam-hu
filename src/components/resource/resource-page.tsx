@@ -40,7 +40,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader, EmptyState } from "@/components/page-header";
-import { useList, useUpsert, useDelete, useRefOptions } from "@/lib/db-hooks";
+import { useList, useUpsert, useDelete, useRefOptions, useRefOptionsRich } from "@/lib/db-hooks";
 
 export type FieldType =
   | "text"
@@ -59,7 +59,15 @@ export type Field = {
   required?: boolean;
   placeholder?: string;
   options?: { value: string; label: string }[];
-  ref?: { table: string; labelColumn: string };
+  ref?: {
+    table: string;
+    labelColumn: string;
+    /** Opcionális: extra oszlopok dúsított címkéhez (useRefOptionsRich). */
+    extraColumns?: string[];
+    /** Opcionális: ha megadod, a select labelje ezzel formázódik. */
+    formatLabel?: (row: any) => string;
+    orderColumn?: string;
+  };
 };
 
 export type Column = {
@@ -427,7 +435,17 @@ function RefSelect({
   value: any;
   onChange: (v: any) => void;
 }) {
-  const { data, isLoading } = useRefOptions(field.ref!.table, field.ref!.labelColumn);
+  const ref = field.ref!;
+  const rich = useRefOptionsRich(
+    ref.table,
+    Array.from(new Set([ref.labelColumn, ...(ref.extraColumns ?? [])])),
+    ref.formatLabel ?? ((r: any) => String(r[ref.labelColumn] ?? "—")),
+    ref.orderColumn,
+  );
+  const plain = useRefOptions(ref.table, ref.labelColumn);
+  const useRich = !!(ref.formatLabel || (ref.extraColumns && ref.extraColumns.length));
+  const data = useRich ? rich.data : plain.data;
+  const isLoading = useRich ? rich.isLoading : plain.isLoading;
   return (
     <Select value={value ?? ""} onValueChange={(v) => onChange(v)}>
       <SelectTrigger id={field.name}>
