@@ -1,5 +1,6 @@
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, Settings as SettingsIcon, UserCog } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,9 +20,12 @@ export function UserMenu() {
   const { user } = useAuth();
   const { role } = usePermissions();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const initials = (user?.email ?? "?").slice(0, 2).toUpperCase();
 
   const signOut = async () => {
+    await qc.cancelQueries();
+    qc.clear();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };
@@ -46,8 +50,11 @@ export function UserMenu() {
           <div className="mt-1 text-xs text-muted-foreground">Szerepkör: <span className="text-foreground">{ROLE_LABEL[role]}</span></div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate({ to: "/settings/profile" })}>
+          <UserCog className="mr-2 h-4 w-4" /> Saját profil
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
-          <UserIcon className="mr-2 h-4 w-4" /> Beállítások
+          <SettingsIcon className="mr-2 h-4 w-4" /> Beállítások
         </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" /> Kijelentkezés

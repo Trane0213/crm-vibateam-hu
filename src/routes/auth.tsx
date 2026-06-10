@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -132,6 +132,14 @@ function SignInCard({ onSuccess }: { onSuccess: () => void }) {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Bejelentkezés…" : "Bejelentkezés"}
           </Button>
+          <div className="text-center">
+            <Link
+              to="/forgot-password"
+              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+            >
+              Elfelejtetted a jelszavadat?
+            </Link>
+          </div>
         </form>
       </CardContent>
     </Card>
