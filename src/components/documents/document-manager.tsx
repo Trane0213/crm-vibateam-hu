@@ -107,15 +107,26 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
         }
         throw new Error(`R2 feltöltés sikertelen (HTTP ${putRes.status}): ${detail || "ismeretlen hiba"}`);
       }
-      // DB rekord — a valós séma oszlopnevei
+      // DB rekord — valós séma. uploaded_by FK → users_profile.id, ezért
+      // auth.uid-ról át kell mapelni users_profile.id-ra.
       const { data: userRes } = await supabase.auth.getUser();
-      const payload = {
+      const authUid = userRes.user?.id ?? null;
+      let profileId: string | null = null;
+      if (authUid) {
+        const { data: prof } = await supabase
+          .from("users_profile")
+          .select("id")
+          .eq("auth_user_id", authUid)
+          .maybeSingle();
+        profileId = (prof as any)?.id ?? null;
+      }
+      const payload: any = {
         project_id: projectId ?? null,
         name: file.name,
         file_url: key,
         document_type: uploadCategory,
-        uploaded_by: userRes.user?.id ?? null,
       };
+      if (profileId) payload.uploaded_by = profileId;
       const ins = await supabase.from("project_documents").insert(payload);
       if (ins.error) throw ins.error;
     },
