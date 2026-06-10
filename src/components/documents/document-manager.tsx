@@ -39,16 +39,18 @@ function fmtSize(n: number | null | undefined) {
   return `${v.toFixed(i === 0 ? 0 : 1)} ${u[i]}`;
 }
 
+// A public.project_documents tényleges sémája:
+// id, project_id, name, file_url, document_type, created_at, uploaded_by
 function getCategory(row: any): DocCategory {
-  const c = String(row.category ?? row.type ?? "other").toLowerCase();
+  const c = String(row.document_type ?? "other").toLowerCase();
   if ((CATEGORIES as string[]).includes(c)) return c as DocCategory;
   return "other";
 }
 function getKey(row: any): string | null {
-  return row.object_key ?? row.file_path ?? row.path ?? row.storage_key ?? null;
+  return row.file_url ?? null;
 }
 function getName(row: any): string {
-  return row.file_name ?? row.name ?? row.filename ?? "Névtelen";
+  return row.name ?? "Névtelen";
 }
 
 export function DocumentManager({ projectId }: { projectId?: string | null }) {
@@ -105,28 +107,17 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
         }
         throw new Error(`R2 feltöltés sikertelen (HTTP ${putRes.status}): ${detail || "ismeretlen hiba"}`);
       }
-      // DB rekord — defenzív oszlop-nevek
-      const payload: any = {
+      // DB rekord — a valós séma oszlopnevei
+      const { data: userRes } = await supabase.auth.getUser();
+      const payload = {
         project_id: projectId ?? null,
-        file_name: file.name,
-        file_path: key,
-        object_key: key,
-        category: uploadCategory,
-        mime_type: file.type || null,
-        file_size: file.size,
+        name: file.name,
+        file_url: key,
+        document_type: uploadCategory,
+        uploaded_by: userRes.user?.id ?? null,
       };
-      // Próbáljuk full payload-dal; ha hibás oszlop van, levesszük és újrapróbáljuk.
-      let ins = await supabase.from("project_documents").insert(payload);
-      if (ins.error) {
-        const minimal: any = {
-          project_id: projectId ?? null,
-          file_name: file.name,
-          file_path: key,
-          category: uploadCategory,
-        };
-        ins = await supabase.from("project_documents").insert(minimal);
-        if (ins.error) throw ins.error;
-      }
+      const ins = await supabase.from("project_documents").insert(payload);
+      if (ins.error) throw ins.error;
     },
     onSuccess: () => {
       toast.success("Dokumentum feltöltve");
