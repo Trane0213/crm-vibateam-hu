@@ -43,6 +43,15 @@ export function canAccessRoute(role: RoleSlug, pathname: string): boolean {
   const match = ROUTE_ACCESS.find(
     (r) => pathname === r.prefix || pathname.startsWith(r.prefix + "/"),
   );
-  if (!match) return true; // ismeretlen útvonal — ne blokkoljunk
+  if (!match) {
+    // Fail-closed: ismeretlen útvonal alapból TILTOTT.
+    // Csak az ROUTE_ACCESS-ben explicit felvett route-ok elérhetők.
+    if (typeof console !== "undefined") {
+      console.warn(
+        `[permissions] Ismeretlen útvonal blokkolva (${role}): ${pathname}`,
+      );
+    }
+    return false;
+  }
   return match.roles.includes(role);
 }
