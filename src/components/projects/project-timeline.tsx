@@ -1,6 +1,8 @@
-import { History, FileText, BellRing, ListChecks, Mail, Phone, Calendar, FolderOpen, Briefcase, StickyNote } from "lucide-react";
+import { History, FileText, BellRing, ListChecks, Mail, Phone, Calendar, FolderOpen, Briefcase, StickyNote, Pencil, Trash2 } from "lucide-react";
 import { EmptyState } from "@/components/page-header";
 import { formatDateTime } from "@/lib/format";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProjectActivity, type ActivityEntry } from "@/lib/activity-log";
 
 type Ev = {
   at: string;
@@ -10,7 +12,9 @@ type Ev = {
     | "followup" | "followup_done"
     | "task" | "task_done"
     | "email" | "call" | "meeting"
-    | "document" | "note";
+    | "document" | "document_deleted"
+    | "note"
+    | "audit_create" | "audit_update" | "audit_delete";
   title: string;
   detail?: string;
 };
@@ -28,14 +32,26 @@ const META: Record<Ev["kind"], { label: string; icon: any; tone: string }> = {
   call:           { label: "Hívás",                icon: Phone,      tone: "text-cyan-500" },
   meeting:        { label: "Találkozó",            icon: Calendar,   tone: "text-violet-500" },
   document:       { label: "Dokumentum feltöltve", icon: FolderOpen, tone: "text-slate-500" },
+  document_deleted:{label: "Dokumentum törölve",   icon: FolderOpen, tone: "text-destructive" },
   note:           { label: "Jegyzet",              icon: StickyNote, tone: "text-slate-500" },
+  audit_create:   { label: "Létrehozás",           icon: Briefcase,  tone: "text-emerald-500" },
+  audit_update:   { label: "Módosítás",            icon: Pencil,     tone: "text-amber-500" },
+  audit_delete:   { label: "Törlés",               icon: Trash2,     tone: "text-destructive" },
 };
 
 export function ProjectTimeline(props: {
   project?: any | null;
+  projectId?: string;
   quotes?: any[]; followups?: any[]; tasks?: any[];
   emails?: any[]; calls?: any[]; meetings?: any[]; documents?: any[]; notes?: any[];
 }) {
+  const projectId = props.projectId ?? props.project?.id;
+  const audit = useQuery({
+    queryKey: ["activity_log", "project", projectId],
+    enabled: !!projectId,
+    queryFn: () => fetchProjectActivity(projectId as string),
+  });
+
   const events: Ev[] = [];
 
   if (props.project) {
@@ -75,6 +91,11 @@ export function ProjectTimeline(props: {
     if (r.created_at) events.push({ at: r.created_at, kind: "note", title: (r.note ?? "").slice(0, 80) || "Jegyzet" });
   }
 
+  // activity_log alapú audit események — ha a tábla létezik és van bejegyzés.
+  for (const a of audit.data ?? []) {
+    events.push(mapAudit(a));
+  }
+
   events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   if (events.length === 0) {
@@ -101,4 +122,29 @@ export function ProjectTimeline(props: {
       })}
     </ol>
   );
+}
+
+const ENTITY_LABEL: Record<string, string> = {
+  projects: "Projekt", quotes: "Ajánlat", leads: "Lead",
+  companies: "Cég", contacts: "Kapcsolattartó", tasks: "Feladat",
+  followups: "Follow-up", emails: "Email", phone_calls: "Hívás",
+  meetings: "Találkozó", project_documents: "Dokumentum",
+  project_notes: "Jegyzet",
+};
+
+function mapAudit(a: ActivityEntry): Ev {
+  const kind: Ev["kind"] =
+    a.action === "create" ? "audit_create" :
+    a.action === "delete" ? "audit_delete" : "audit_update";
+  const entity = ENTITY_LABEL[a.entity_type] ?? a.entity_type;
+  const p = a.payload ?? {};
+  const summary =
+    (p as any).title ?? (p as any).name ?? (p as any).subject ??
+    (p as any).status ?? "—";
+  return {
+    at: a.created_at,
+    kind,
+    title: `${entity}: ${summary}`,
+    detail: (p as any).status ?? undefined,
+  };
 }

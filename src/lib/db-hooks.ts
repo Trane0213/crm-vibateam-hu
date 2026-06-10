@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logActivity } from "@/lib/activity-log";
 
 /** Supabase / PostgREST / R2 hibák emberi nyelvű (magyar) üzenetté formálása. */
 export function humanizeSupabaseError(e: any): string {
@@ -124,6 +125,7 @@ export function useUpsert(table: string) {
       if (id) {
         const { error } = await supabase.from(table).update(payload).eq("id", id);
         if (error) throw error;
+        logActivity(table, "update", id as string, summarize(payload));
         return id as string;
       }
       const { data, error } = await supabase
@@ -132,6 +134,7 @@ export function useUpsert(table: string) {
         .select("id")
         .single();
       if (error) throw error;
+      logActivity(table, "create", data.id as string, summarize(payload));
       return data.id as string;
     },
     onSuccess: () => {
@@ -149,6 +152,7 @@ export function useDelete(table: string) {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from(table).delete().eq("id", id);
       if (error) throw error;
+      logActivity(table, "delete", id);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [table] });
@@ -157,6 +161,18 @@ export function useDelete(table: string) {
     onError: (e: any) =>
       toast.error("Törlési hiba", { description: humanizeSupabaseError(e) }),
   });
+}
+
+/** Csak a fontos / üzleti mezőket emeli ki a payloadból a naplónak. */
+function summarize(payload: Record<string, any>): Record<string, any> {
+  const keep = [
+    "title", "name", "subject", "status", "amount", "total_amount",
+    "due_date", "meeting_date", "project_id", "company_id", "contact_id",
+    "lead_id", "quote_id", "version", "from_email", "to_email", "completed",
+  ];
+  const out: Record<string, any> = {};
+  for (const k of keep) if (k in payload) out[k] = payload[k];
+  return out;
 }
 
 export function useCount(
