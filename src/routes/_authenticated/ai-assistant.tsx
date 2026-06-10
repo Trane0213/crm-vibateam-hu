@@ -92,7 +92,7 @@ function AiAssistantPage() {
   const active = useMemo(() => threads.find((t) => t.id === activeId) ?? null, [threads, activeId]);
 
   // Beszélgetés váltáskor állítsuk be az agentet a thread agentjére.
-  useEffect(() => { if (active) setAgent(active.agent); /* eslint-disable-next-line */ }, [activeId]);
+  useEffect(() => { if (active?.agent) setAgent(active.agent); /* eslint-disable-next-line */ }, [activeId]);
 
   function newThread(initial?: string, agentId: AgentId = agent): Thread {
     const t: Thread = { id: uid(), title: initial?.slice(0, 60) || "Új beszélgetés", agent: agentId, updatedAt: Date.now(), messages: [] };
