@@ -1,22 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle } from "lucide-react";
+import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle, Search, TrendingUp, Hammer, Phone, AlertOctagon, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/page-header";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { aiComplete } from "@/lib/ai/ai.functions";
 import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
+import type { AgentId } from "@/lib/ai/agents";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantPage,
 });
 
 type Msg = { id: string; role: "user" | "assistant"; content: string; at: number };
-type Thread = { id: string; title: string; updatedAt: number; messages: Msg[] };
+type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
 
 const STORAGE_KEY = "viba.ai.threads.v1";
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -34,19 +36,46 @@ function saveThreads(threads: Thread[]) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(threads)); } catch { /* ignore */ }
 }
 
-const QUICK_ACTIONS: { id: string; label: string; icon: any; prompt: string }[] = [
-  { id: "today",     label: "Mai teendők",        icon: CalendarCheck, prompt: "Sorold fel a mai teendőket: ma esedékes feladatok és follow-upok. Csoportosítsd projekt szerint." },
-  { id: "overdue",   label: "Lejárt follow-upok", icon: BellRing,      prompt: "Mutasd a lejárt (esedékességi határidőt túllépett, nem lezárt) follow-upokat. Sorold prioritás szerint, jelöld a napok számát." },
-  { id: "projects",  label: "Aktív projektek",    icon: Briefcase,     prompt: "Mely projektek aktívak jelenleg? Adj rövid státusz-összefoglalót projektenként (ajánlat-érték, következő follow-up, nyitott feladatok)." },
-  { id: "quotes",    label: "Nyitott ajánlatok",  icon: FileText,      prompt: "Listázd a nyitott (még nem megnyert / elveszett) ajánlatokat. Add meg az összértéket, és a 3 legnagyobb ajánlatot emeld ki." },
-  { id: "urgent",    label: "Sürgős feladatok",   icon: AlertTriangle, prompt: "Mely feladatok sürgősek (lejárt vagy ma esedékes, magas prioritás)? Készíts cselekvési listát." },
-];
+type QuickAction = { id: string; label: string; icon: any; prompt: string };
+
+const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
+  crm: [
+    { id: "search-company", label: "Cég keresés",        icon: Search,        prompt: "Listázd a CRM-ben lévő cégeket, és minden céghez mondd meg: hány kapcsolattartó, hány projekt, hány ajánlat tartozik hozzá." },
+    { id: "project-overview", label: "Projekt áttekintés", icon: Briefcase,     prompt: "Adj projekt-áttekintést: minden projektnél a cég neve, a kapcsolattartó, az ajánlatok száma és a legutóbbi tevékenység." },
+    { id: "docs",          label: "Dokumentumok",        icon: ClipboardList, prompt: "Mely projektekhez tartozik dokumentum, és melyikhez nem? Adj listát mindkét csoportról." },
+    { id: "contacts",      label: "Kapcsolattartók",     icon: MessageSquare, prompt: "Listázd a kapcsolattartókat cég szerint csoportosítva. Emeld ki, ahol nincs telefonszám vagy e-mail." },
+  ],
+  sales: [
+    { id: "daily",         label: "Napi sales riport",   icon: TrendingUp,    prompt: "Készítsd el a mai napi értékesítési riportot a sablon szerint." },
+    { id: "open-quotes",   label: "Nyitott ajánlatok",   icon: FileText,      prompt: "Listázd a nyitott ajánlatokat érték szerint csökkenő sorrendben. Jelöld, melyik mióta nyitott." },
+    { id: "overdue-fu",    label: "Lejárt follow-up",    icon: BellRing,      prompt: "Mutasd a lejárt follow-upokat prioritás szerint, hány napja lejárt jelöléssel." },
+    { id: "call-today",    label: "Kit hívjak ma?",      icon: Phone,         prompt: "Kinek kell ma telefonálni? Adj max 5 fős prioritás-listát indoklással." },
+    { id: "stalled",       label: "Elakadt ajánlatok",   icon: AlertTriangle, prompt: "Mely ajánlatok állnak régóta mozdulatlanul (>14 nap)? Adj listát értékkel." },
+  ],
+  pm: [
+    { id: "daily-pm",      label: "Napi PM riport",      icon: Hammer,        prompt: "Készítsd el a mai napi projektvezetői riportot a sablon szerint." },
+    { id: "today-tasks",   label: "Mai feladatok",       icon: CalendarCheck, prompt: "Sorold fel a ma esedékes és lejárt feladatokat projekt szerint csoportosítva." },
+    { id: "deadlines",     label: "Közelgő határidők",   icon: BellRing,      prompt: "Mely projekteknek vannak 7 napon belüli határidős feladatai? Adj projekt + dátum listát." },
+    { id: "missing-docs",  label: "Hiányzó dokumentáció", icon: ClipboardList, prompt: "Mely aktív projekteknek nincs egyetlen dokumentumuk sem? Adj listát." },
+    { id: "risks",         label: "Kockázatos projektek", icon: AlertOctagon,  prompt: "Mely projektek kockázatosak (lejárt feladat, nincs follow-up, nincs dokumentum)? Indoklással." },
+  ],
+};
+
+const AGENT_META: Record<AgentId, { name: string; tagline: string; icon: any }> = {
+  crm:   { name: "CRM Agent",   tagline: "Belső céges tudásközpont — keres és összegez.",        icon: Search },
+  sales: { name: "Sales Agent", tagline: "Értékesítési asszisztens — bevétel és pipeline.",     icon: TrendingUp },
+  pm:    { name: "PM Agent",    tagline: "Projektvezető asszisztens — határidők és kockázatok.", icon: Hammer },
+};
 
 function AiAssistantPage() {
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads());
   const [activeId, setActiveId] = useState<string | null>(() => {
     const all = loadThreads();
     return all[0]?.id ?? null;
+  });
+  const [agent, setAgent] = useState<AgentId>(() => {
+    const all = loadThreads();
+    return (all[0]?.agent as AgentId) ?? "crm";
   });
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -62,10 +91,14 @@ function AiAssistantPage() {
 
   const active = useMemo(() => threads.find((t) => t.id === activeId) ?? null, [threads, activeId]);
 
-  function newThread(initial?: string): Thread {
-    const t: Thread = { id: uid(), title: initial?.slice(0, 60) || "Új beszélgetés", updatedAt: Date.now(), messages: [] };
+  // Beszélgetés váltáskor állítsuk be az agentet a thread agentjére.
+  useEffect(() => { if (active) setAgent(active.agent); /* eslint-disable-next-line */ }, [activeId]);
+
+  function newThread(initial?: string, agentId: AgentId = agent): Thread {
+    const t: Thread = { id: uid(), title: initial?.slice(0, 60) || "Új beszélgetés", agent: agentId, updatedAt: Date.now(), messages: [] };
     setThreads((prev) => [t, ...prev]);
     setActiveId(t.id);
+    setAgent(agentId);
     return t;
   }
 
@@ -81,7 +114,8 @@ function AiAssistantPage() {
     const question = text.trim();
     if (!question || busy) return;
     let thread = active;
-    if (!thread) thread = newThread(question);
+    if (!thread) thread = newThread(question, agent);
+    const usedAgent: AgentId = thread.agent ?? agent;
     const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now() };
     // Optimistic update
     setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
@@ -97,7 +131,7 @@ function AiAssistantPage() {
       const context = serializeSnapshot(snapshot);
       const history = (thread.messages ?? []).slice(-10).map((m) => ({ role: m.role, content: m.content }));
       const messages = [
-        { role: "system" as const, content: SYSTEM_PROMPTS.crm },
+        { role: "system" as const, content: SYSTEM_PROMPTS[usedAgent] },
         { role: "system" as const, content: `[CRM KONTEXTUS — ${new Date().toLocaleString("hu-HU")}]\n${context}` },
         ...history,
         { role: "user" as const, content: question },
@@ -120,17 +154,47 @@ function AiAssistantPage() {
     }
   }
 
+  const meta = AGENT_META[agent];
+  const quickActions = QUICK_ACTIONS[agent];
   return (
     <div className="flex flex-col">
       <PageHeader
         title="AI Asszisztens"
-        description="Kérdezz a CRM adataidról — cégek, kapcsolatok, leadek, projektek, ajánlatok, follow-upok, feladatok, dokumentumok."
+        description="Három agent, ugyanaz a CRM adat — különböző szemszögből. Csak olvasás: az agentek nem hoznak létre és nem módosítanak adatot."
         actions={
-          <Button size="sm" variant="outline" onClick={() => newThread()}>
+          <Button size="sm" variant="outline" onClick={() => newThread(undefined, agent)}>
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Új beszélgetés
           </Button>
         }
       />
+      {/* Agent választó */}
+      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-6 py-3">
+        {(Object.keys(AGENT_META) as AgentId[]).map((a) => {
+          const m = AGENT_META[a];
+          const Icon = m.icon;
+          const isActive = agent === a;
+          return (
+            <button
+              key={a}
+              onClick={() => {
+                setAgent(a);
+                if (active && active.messages.length === 0) {
+                  setThreads((prev) => prev.map((t) => t.id === active.id ? { ...t, agent: a } : t));
+                } else {
+                  setActiveId(null);
+                }
+              }}
+              className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition ${isActive ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-accent"}`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span className="font-medium">{m.name}</span>
+            </button>
+          );
+        })}
+        <Badge variant="outline" className="ml-auto text-[10px] font-normal">Csak olvasás</Badge>
+      </div>
+      <div className="border-b bg-background px-6 py-2 text-xs text-muted-foreground">{meta.tagline}</div>
+
       <div className="grid gap-4 p-6 lg:grid-cols-[260px_1fr] min-h-[calc(100vh-12rem)]">
         {/* Beszélgetés lista */}
         <Card className="h-full">
@@ -145,6 +209,7 @@ function AiAssistantPage() {
                     <button onClick={() => setActiveId(t.id)} className="flex flex-1 items-center gap-2 truncate text-left">
                       <MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate">{t.title}</span>
+                      <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {AGENT_META[t.agent]?.name?.split(" ")[0] ?? "CRM"}</span>
                     </button>
                     <button onClick={() => deleteThread(t.id)} className="opacity-0 transition group-hover:opacity-100" title="Törlés">
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
@@ -162,7 +227,7 @@ function AiAssistantPage() {
             <ScrollArea className="h-full">
               <div ref={scrollRef} className="space-y-3 p-4">
                 {!active || active.messages.length === 0 ? (
-                  <EmptyChat onPick={ask} disabled={busy} />
+                  <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
                 ) : (
                   active.messages.map((m) => <Bubble key={m.id} msg={m} />)
                 )}
@@ -178,7 +243,7 @@ function AiAssistantPage() {
           {/* Composer */}
           <div className="border-t p-3">
             <div className="mb-2 flex flex-wrap gap-1.5">
-              {QUICK_ACTIONS.map((q) => (
+              {quickActions.map((q) => (
                 <Button key={q.id} size="sm" variant="outline" disabled={busy} onClick={() => ask(q.prompt)}>
                   <q.icon className="mr-1.5 h-3.5 w-3.5" /> {q.label}
                 </Button>
@@ -192,7 +257,7 @@ function AiAssistantPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input); }
                 }}
-                placeholder="Kérdezz a CRM adatokról… (Enter = küldés, Shift+Enter = új sor)"
+                placeholder={`Kérdezz a(z) ${meta.name}-tól… (Enter = küldés, Shift+Enter = új sor)`}
                 rows={2}
                 disabled={busy}
                 className="resize-none"
@@ -228,25 +293,31 @@ function Bubble({ msg }: { msg: Msg }) {
   );
 }
 
-function EmptyChat({ onPick, disabled }: { onPick: (p: string) => void; disabled: boolean }) {
+function EmptyChat({ onPick, disabled, agent, meta, actions }: {
+  onPick: (p: string) => void; disabled: boolean; agent: AgentId;
+  meta: { name: string; tagline: string; icon: any };
+  actions: QuickAction[];
+}) {
+  const Icon = meta.icon;
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 py-12 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Bot className="h-6 w-6" />
+        <Icon className="h-6 w-6" />
       </div>
       <div>
-        <h3 className="text-sm font-semibold">CRM Asszisztens</h3>
+        <h3 className="text-sm font-semibold">{meta.name}</h3>
         <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground">
-          Tegyél fel kérdést, vagy indíts egy gyors művelettel. Az asszisztens a saját jogosultságoddal látja az adatokat.
+          {meta.tagline} A saját jogosultságoddal lát adatokat. Csak olvas — nem hoz létre és nem módosít.
         </p>
       </div>
       <div className="grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">
-        {QUICK_ACTIONS.map((q) => (
+        {actions.map((q) => (
           <Button key={q.id} variant="outline" size="sm" disabled={disabled} onClick={() => onPick(q.prompt)} className="justify-start">
             <q.icon className="mr-2 h-3.5 w-3.5" /> {q.label}
           </Button>
         ))}
       </div>
+      <p className="text-[10px] text-muted-foreground">Agent: {agent.toUpperCase()}</p>
     </div>
   );
 }
