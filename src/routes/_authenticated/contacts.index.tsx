@@ -1,13 +1,48 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { UserPlus, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { PageHeader, EmptyState } from "@/components/page-header";
+import { UserPlus } from "lucide-react";
+import {
+  ResourcePage,
+  fmtDate,
+  useLookup,
+} from "@/components/resource/resource-page";
+
+function ContactsPage() {
+  const companyLabel = useLookup("companies", "name");
+  return (
+    <ResourcePage
+      title="Kapcsolattartók"
+      description="Cégekhez tartozó kapcsolattartók."
+      icon={UserPlus}
+      table="contacts"
+      fields={[
+        { name: "name", label: "Név", type: "text", required: true },
+        {
+          name: "company_id",
+          label: "Cég",
+          type: "ref",
+          ref: { table: "companies", labelColumn: "name" },
+        },
+        { name: "position", label: "Beosztás", type: "text" },
+        { name: "email", label: "E-mail", type: "text" },
+        { name: "phone", label: "Telefon", type: "text" },
+      ]}
+      columns={[
+        { key: "name", label: "Név", className: "font-medium" },
+        { key: "position", label: "Beosztás" },
+        { key: "company", label: "Cég", render: (r) => companyLabel(r.company_id) },
+        { key: "email", label: "E-mail" },
+        { key: "phone", label: "Telefon" },
+        {
+          key: "created_at",
+          label: "Létrehozva",
+          className: "text-muted-foreground",
+          render: (r) => fmtDate(r.created_at),
+        },
+      ]}
+    />
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/contacts/")({
-  component: () => (
-    <div className="flex flex-col">
-      <PageHeader title="Kapcsolattartók" actions={<Button size="sm" disabled><Plus className="mr-1 h-4 w-4" />Új kapcsolat</Button>} />
-      <div className="p-6"><EmptyState icon={UserPlus} title="Még nincs kapcsolattartó" description="TODO: backend — contacts tábla." /></div>
-    </div>
-  ),
+  component: ContactsPage,
 });
