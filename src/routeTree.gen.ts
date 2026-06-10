@@ -9,38 +9,400 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
+import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
+import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedAiSalesRouteImport } from './routes/_authenticated/ai-sales'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
+import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
+import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
+import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
+import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
+import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
+import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
+import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
+import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
+import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
+import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
+import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authenticated/emails.$threadId'
+import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
+import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
+  id: '/meetings',
+  path: '/meetings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFollowupsRoute = AuthenticatedFollowupsRouteImport.update({
+  id: '/followups',
+  path: '/followups',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
+  id: '/calls',
+  path: '/calls',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAiSalesRoute = AuthenticatedAiSalesRouteImport.update({
+  id: '/ai-sales',
+  path: '/ai-sales',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedQuotesIndexRoute =
+  AuthenticatedQuotesIndexRouteImport.update({
+    id: '/quotes/',
+    path: '/quotes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjectsIndexRoute =
+  AuthenticatedProjectsIndexRouteImport.update({
+    id: '/projects/',
+    path: '/projects/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
+  id: '/leads/',
+  path: '/leads/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEmailsIndexRoute =
+  AuthenticatedEmailsIndexRouteImport.update({
+    id: '/emails/',
+    path: '/emails/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsIndexRoute =
+  AuthenticatedContactsIndexRouteImport.update({
+    id: '/contacts/',
+    path: '/contacts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCompaniesIndexRoute =
+  AuthenticatedCompaniesIndexRouteImport.update({
+    id: '/companies/',
+    path: '/companies/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsUsersRoute =
+  AuthenticatedSettingsUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsStorageRoute =
+  AuthenticatedSettingsStorageRouteImport.update({
+    id: '/storage',
+    path: '/storage',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsRolesRoute =
+  AuthenticatedSettingsRolesRouteImport.update({
+    id: '/roles',
+    path: '/roles',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsOpenaiRoute =
+  AuthenticatedSettingsOpenaiRouteImport.update({
+    id: '/openai',
+    path: '/openai',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsGmailRoute =
+  AuthenticatedSettingsGmailRouteImport.update({
+    id: '/gmail',
+    path: '/gmail',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedQuotesIdRoute = AuthenticatedQuotesIdRouteImport.update({
+  id: '/quotes/$id',
+  path: '/quotes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
+  id: '/projects/$id',
+  path: '/projects/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
+  id: '/leads/$id',
+  path: '/leads/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEmailsThreadIdRoute =
+  AuthenticatedEmailsThreadIdRouteImport.update({
+    id: '/emails/$threadId',
+    path: '/emails/$threadId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
+  id: '/contacts/$id',
+  path: '/contacts/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCompaniesIdRoute =
+  AuthenticatedCompaniesIdRouteImport.update({
+    id: '/companies/$id',
+    path: '/companies/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/ai-sales': typeof AuthenticatedAiSalesRoute
+  '/calls': typeof AuthenticatedCallsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/documents': typeof AuthenticatedDocumentsRoute
+  '/followups': typeof AuthenticatedFollowupsRoute
+  '/meetings': typeof AuthenticatedMeetingsRoute
+  '/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/tasks': typeof AuthenticatedTasksRoute
+  '/companies/$id': typeof AuthenticatedCompaniesIdRoute
+  '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
+  '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/projects/$id': typeof AuthenticatedProjectsIdRoute
+  '/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
+  '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/settings/roles': typeof AuthenticatedSettingsRolesRoute
+  '/settings/storage': typeof AuthenticatedSettingsStorageRoute
+  '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/companies/': typeof AuthenticatedCompaniesIndexRoute
+  '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/emails/': typeof AuthenticatedEmailsIndexRoute
+  '/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/quotes/': typeof AuthenticatedQuotesIndexRoute
+  '/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/ai-sales': typeof AuthenticatedAiSalesRoute
+  '/calls': typeof AuthenticatedCallsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/documents': typeof AuthenticatedDocumentsRoute
+  '/followups': typeof AuthenticatedFollowupsRoute
+  '/meetings': typeof AuthenticatedMeetingsRoute
+  '/tasks': typeof AuthenticatedTasksRoute
+  '/companies/$id': typeof AuthenticatedCompaniesIdRoute
+  '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
+  '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/projects/$id': typeof AuthenticatedProjectsIdRoute
+  '/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
+  '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/settings/roles': typeof AuthenticatedSettingsRolesRoute
+  '/settings/storage': typeof AuthenticatedSettingsStorageRoute
+  '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/companies': typeof AuthenticatedCompaniesIndexRoute
+  '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/emails': typeof AuthenticatedEmailsIndexRoute
+  '/leads': typeof AuthenticatedLeadsIndexRoute
+  '/projects': typeof AuthenticatedProjectsIndexRoute
+  '/quotes': typeof AuthenticatedQuotesIndexRoute
+  '/settings': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/ai-sales': typeof AuthenticatedAiSalesRoute
+  '/_authenticated/calls': typeof AuthenticatedCallsRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
+  '/_authenticated/followups': typeof AuthenticatedFollowupsRoute
+  '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/companies/$id': typeof AuthenticatedCompaniesIdRoute
+  '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/_authenticated/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
+  '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
+  '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
+  '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
+  '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
+  '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
+  '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
+  '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
+  '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
+  '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
+  '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/ai-sales'
+    | '/calls'
+    | '/dashboard'
+    | '/documents'
+    | '/followups'
+    | '/meetings'
+    | '/settings'
+    | '/tasks'
+    | '/companies/$id'
+    | '/contacts/$id'
+    | '/emails/$threadId'
+    | '/leads/$id'
+    | '/projects/$id'
+    | '/quotes/$id'
+    | '/settings/gmail'
+    | '/settings/openai'
+    | '/settings/roles'
+    | '/settings/storage'
+    | '/settings/users'
+    | '/companies/'
+    | '/contacts/'
+    | '/emails/'
+    | '/leads/'
+    | '/projects/'
+    | '/quotes/'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/ai-sales'
+    | '/calls'
+    | '/dashboard'
+    | '/documents'
+    | '/followups'
+    | '/meetings'
+    | '/tasks'
+    | '/companies/$id'
+    | '/contacts/$id'
+    | '/emails/$threadId'
+    | '/leads/$id'
+    | '/projects/$id'
+    | '/quotes/$id'
+    | '/settings/gmail'
+    | '/settings/openai'
+    | '/settings/roles'
+    | '/settings/storage'
+    | '/settings/users'
+    | '/companies'
+    | '/contacts'
+    | '/emails'
+    | '/leads'
+    | '/projects'
+    | '/quotes'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/ai-sales'
+    | '/_authenticated/calls'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/documents'
+    | '/_authenticated/followups'
+    | '/_authenticated/meetings'
+    | '/_authenticated/settings'
+    | '/_authenticated/tasks'
+    | '/_authenticated/companies/$id'
+    | '/_authenticated/contacts/$id'
+    | '/_authenticated/emails/$threadId'
+    | '/_authenticated/leads/$id'
+    | '/_authenticated/projects/$id'
+    | '/_authenticated/quotes/$id'
+    | '/_authenticated/settings/gmail'
+    | '/_authenticated/settings/openai'
+    | '/_authenticated/settings/roles'
+    | '/_authenticated/settings/storage'
+    | '/_authenticated/settings/users'
+    | '/_authenticated/companies/'
+    | '/_authenticated/contacts/'
+    | '/_authenticated/emails/'
+    | '/_authenticated/leads/'
+    | '/_authenticated/projects/'
+    | '/_authenticated/quotes/'
+    | '/_authenticated/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +410,267 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meetings': {
+      id: '/_authenticated/meetings'
+      path: '/meetings'
+      fullPath: '/meetings'
+      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/followups': {
+      id: '/_authenticated/followups'
+      path: '/followups'
+      fullPath: '/followups'
+      preLoaderRoute: typeof AuthenticatedFollowupsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/documents': {
+      id: '/_authenticated/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/calls': {
+      id: '/_authenticated/calls'
+      path: '/calls'
+      fullPath: '/calls'
+      preLoaderRoute: typeof AuthenticatedCallsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ai-sales': {
+      id: '/_authenticated/ai-sales'
+      path: '/ai-sales'
+      fullPath: '/ai-sales'
+      preLoaderRoute: typeof AuthenticatedAiSalesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/quotes/': {
+      id: '/_authenticated/quotes/'
+      path: '/quotes'
+      fullPath: '/quotes/'
+      preLoaderRoute: typeof AuthenticatedQuotesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projects/': {
+      id: '/_authenticated/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof AuthenticatedProjectsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leads/': {
+      id: '/_authenticated/leads/'
+      path: '/leads'
+      fullPath: '/leads/'
+      preLoaderRoute: typeof AuthenticatedLeadsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails/': {
+      id: '/_authenticated/emails/'
+      path: '/emails'
+      fullPath: '/emails/'
+      preLoaderRoute: typeof AuthenticatedEmailsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts/': {
+      id: '/_authenticated/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/companies/': {
+      id: '/_authenticated/companies/'
+      path: '/companies'
+      fullPath: '/companies/'
+      preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/users': {
+      id: '/_authenticated/settings/users'
+      path: '/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AuthenticatedSettingsUsersRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/storage': {
+      id: '/_authenticated/settings/storage'
+      path: '/storage'
+      fullPath: '/settings/storage'
+      preLoaderRoute: typeof AuthenticatedSettingsStorageRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/roles': {
+      id: '/_authenticated/settings/roles'
+      path: '/roles'
+      fullPath: '/settings/roles'
+      preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/openai': {
+      id: '/_authenticated/settings/openai'
+      path: '/openai'
+      fullPath: '/settings/openai'
+      preLoaderRoute: typeof AuthenticatedSettingsOpenaiRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/gmail': {
+      id: '/_authenticated/settings/gmail'
+      path: '/gmail'
+      fullPath: '/settings/gmail'
+      preLoaderRoute: typeof AuthenticatedSettingsGmailRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/quotes/$id': {
+      id: '/_authenticated/quotes/$id'
+      path: '/quotes/$id'
+      fullPath: '/quotes/$id'
+      preLoaderRoute: typeof AuthenticatedQuotesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projects/$id': {
+      id: '/_authenticated/projects/$id'
+      path: '/projects/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leads/$id': {
+      id: '/_authenticated/leads/$id'
+      path: '/leads/$id'
+      fullPath: '/leads/$id'
+      preLoaderRoute: typeof AuthenticatedLeadsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails/$threadId': {
+      id: '/_authenticated/emails/$threadId'
+      path: '/emails/$threadId'
+      fullPath: '/emails/$threadId'
+      preLoaderRoute: typeof AuthenticatedEmailsThreadIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts/$id': {
+      id: '/_authenticated/contacts/$id'
+      path: '/contacts/$id'
+      fullPath: '/contacts/$id'
+      preLoaderRoute: typeof AuthenticatedContactsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/companies/$id': {
+      id: '/_authenticated/companies/$id'
+      path: '/companies/$id'
+      fullPath: '/companies/$id'
+      preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedSettingsRouteChildren {
+  AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
+  AuthenticatedSettingsOpenaiRoute: typeof AuthenticatedSettingsOpenaiRoute
+  AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
+  AuthenticatedSettingsStorageRoute: typeof AuthenticatedSettingsStorageRoute
+  AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
+  AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
+}
+
+const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
+  AuthenticatedSettingsGmailRoute: AuthenticatedSettingsGmailRoute,
+  AuthenticatedSettingsOpenaiRoute: AuthenticatedSettingsOpenaiRoute,
+  AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
+  AuthenticatedSettingsStorageRoute: AuthenticatedSettingsStorageRoute,
+  AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
+  AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
+}
+
+const AuthenticatedSettingsRouteWithChildren =
+  AuthenticatedSettingsRoute._addFileChildren(
+    AuthenticatedSettingsRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAiSalesRoute: typeof AuthenticatedAiSalesRoute
+  AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
+  AuthenticatedFollowupsRoute: typeof AuthenticatedFollowupsRoute
+  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedCompaniesIdRoute: typeof AuthenticatedCompaniesIdRoute
+  AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
+  AuthenticatedEmailsThreadIdRoute: typeof AuthenticatedEmailsThreadIdRoute
+  AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
+  AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
+  AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
+  AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
+  AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedEmailsIndexRoute: typeof AuthenticatedEmailsIndexRoute
+  AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
+  AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
+  AuthenticatedQuotesIndexRoute: typeof AuthenticatedQuotesIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAiSalesRoute: AuthenticatedAiSalesRoute,
+  AuthenticatedCallsRoute: AuthenticatedCallsRoute,
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
+  AuthenticatedFollowupsRoute: AuthenticatedFollowupsRoute,
+  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedCompaniesIdRoute: AuthenticatedCompaniesIdRoute,
+  AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
+  AuthenticatedEmailsThreadIdRoute: AuthenticatedEmailsThreadIdRoute,
+  AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
+  AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
+  AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
+  AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
+  AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedEmailsIndexRoute: AuthenticatedEmailsIndexRoute,
+  AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
+  AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
+  AuthenticatedQuotesIndexRoute: AuthenticatedQuotesIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
