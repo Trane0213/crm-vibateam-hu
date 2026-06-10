@@ -9,6 +9,8 @@ import { formatHuf } from "@/lib/format";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime, useLookup } from "@/components/resource/resource-page";
+import { DocumentManager } from "@/components/documents/document-manager";
+import { ProjectTimeline } from "@/components/projects/project-timeline";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -212,11 +214,7 @@ function ProjectDetail() {
             ]} empty="Nincs találkozó." />
           </TabsContent>
           <TabsContent value="docs" className="mt-4">
-            <RelationList rows={docs.data} columns={[
-              { label: "Fájl", get: (r) => r.file_name ?? r.name ?? "—" },
-              { label: "Kategória", get: (r) => r.category ?? "—" },
-              { label: "Feltöltve", get: (r) => fmtDateTime(r.created_at) },
-            ]} empty="Nincs dokumentum. (R2 feltöltés a következő fázisban.)" />
+            <DocumentManager projectId={id} />
           </TabsContent>
           <TabsContent value="contacts" className="mt-4">
             <EmptyState icon={UserPlus} title="Projekthez kötött kapcsolattartók" description="A cégen keresztül érhetők el — lásd Ügyfél kártya." />
@@ -228,7 +226,15 @@ function ProjectDetail() {
             ]} empty="Nincs jegyzet." />
           </TabsContent>
           <TabsContent value="timeline" className="mt-4">
-            <Timeline emails={emails.data ?? []} calls={calls.data ?? []} meetings={meetings.data ?? []} followups={followups.data ?? []} />
+            <ProjectTimeline
+              quotes={quotes.data ?? []}
+              followups={followups.data ?? []}
+              tasks={tasks.data ?? []}
+              emails={emails.data ?? []}
+              calls={calls.data ?? []}
+              meetings={meetings.data ?? []}
+              documents={docs.data ?? []}
+            />
           </TabsContent>
         </Tabs>
       </div>
