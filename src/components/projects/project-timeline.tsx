@@ -34,21 +34,21 @@ export function ProjectTimeline(props: {
   }
   for (const r of props.followups ?? []) {
     if (r.created_at) events.push({ at: r.created_at, kind: "followup", title: r.followup_type ?? "Follow-up", detail: r.result ?? undefined });
-    if (r.completed && (r.completed_at ?? r.updated_at)) events.push({ at: r.completed_at ?? r.updated_at, kind: "followup_done", title: r.followup_type ?? "Follow-up", detail: r.result ?? undefined });
+    if (r.completed && r.due_date) events.push({ at: r.due_date, kind: "followup_done", title: r.followup_type ?? "Follow-up", detail: r.result ?? undefined });
   }
   for (const r of props.tasks ?? []) {
     if (r.created_at) events.push({ at: r.created_at, kind: "task", title: r.title ?? r.description ?? "Feladat" });
-    if ((r.completed ?? r.done) && (r.completed_at ?? r.updated_at)) events.push({ at: r.completed_at ?? r.updated_at, kind: "task_done", title: r.title ?? r.description ?? "Feladat" });
+    if (r.status === "done" && r.due_date) events.push({ at: r.due_date, kind: "task_done", title: r.title ?? r.description ?? "Feladat" });
   }
   for (const r of props.emails ?? []) {
-    if (r.created_at) events.push({ at: r.created_at, kind: "email", title: r.subject ?? "(tárgy nélkül)", detail: r.from_address ?? r.direction });
+    if (r.created_at) events.push({ at: r.created_at, kind: "email", title: r.summary ?? "(összefoglaló nélkül)", detail: r.from_email ?? undefined });
   }
   for (const r of props.calls ?? []) {
-    if (r.created_at) events.push({ at: r.created_at, kind: "call", title: r.phone_number ?? "Hívás", detail: r.direction });
+    if (r.created_at) events.push({ at: r.created_at, kind: "call", title: r.summary ?? r.call_type ?? "Hívás", detail: [r.direction, r.outcome].filter(Boolean).join(" · ") || undefined });
   }
   for (const r of props.meetings ?? []) {
-    const at = r.start_at ?? r.created_at;
-    if (at) events.push({ at, kind: "meeting", title: r.title ?? "Találkozó", detail: r.location ?? undefined });
+    const at = r.meeting_date ?? r.created_at;
+    if (at) events.push({ at, kind: "meeting", title: r.title ?? "Találkozó", detail: r.location ?? r.summary ?? undefined });
   }
   for (const r of props.documents ?? []) {
     if (r.created_at) events.push({ at: r.created_at, kind: "document", title: r.name ?? "Dokumentum", detail: r.document_type ?? undefined });
