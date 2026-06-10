@@ -14,6 +14,8 @@ import { formatHuf } from "@/lib/format";
 import { useCount, useAggregateSum, useList } from "@/lib/db-hooks";
 import { summarizeFollowups, BUCKET_LABEL, BUCKET_TONE, type FollowupBucket } from "@/lib/followup-alerts";
 import { fmtDateTime } from "@/components/resource/resource-page";
+import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
+import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -66,6 +68,22 @@ function Dashboard() {
       <PageHeader
         title="Irányítópult"
         description="Ajánlatkövetés, follow-upok és napi teendők — valós idejű adatok."
+        actions={
+          <AiSummaryDialog
+            title="AI napi összefoglaló"
+            description="Az AI a CRM aktuális ajánlatai, follow-upjai, projektjei és feladatai alapján készít napi vezetői összefoglalót."
+            triggerLabel="AI napi összefoglaló"
+            loadContext={async () => serializeSnapshot(await loadCrmSnapshot())}
+            prompt={[
+              "Készíts napi vezetői összefoglalót az alábbi szerkezetben:",
+              "1) AJÁNLATOK: nyitott ajánlatok száma, összérték, kiemelt (legnagyobb 2-3) ajánlat státusza.",
+              "2) FOLLOW-UPOK: hány lejárt, hány ma esedékes, sorold fel a legsürgősebb 3-at.",
+              "3) PROJEKTEK: hány aktív, és mely projekteken kell ma haladni.",
+              "4) FELADATOK: ma esedékes és lejárt feladatok rövid listája.",
+              "A végén 2 mondatos vezetői fókusz: mire koncentráljon ma a csapat.",
+            ].join(" ")}
+          />
+        }
       />
       <div className="grid gap-4 p-6 lg:grid-cols-4">
         <Kpi

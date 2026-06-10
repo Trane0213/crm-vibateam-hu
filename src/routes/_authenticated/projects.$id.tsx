@@ -19,6 +19,8 @@ import { fmtDate, fmtDateTime, useLookup } from "@/components/resource/resource-
 import { DocumentManager } from "@/components/documents/document-manager";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { toast } from "sonner";
+import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
+import { loadProjectSnapshot, serializeProject } from "@/lib/ai/crm-context";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -94,6 +96,22 @@ function ProjectDetail() {
           <div className="flex items-center gap-2">
             {project.status && <Badge variant="secondary">{String(project.status)}</Badge>}
             <Badge variant="outline">{formatHuf(totalQuoteValue)}</Badge>
+            <AiSummaryDialog
+              title={`Projekt összefoglaló: ${project.title ?? project.name ?? ""}`}
+              description="Az AI a projekt aktuális adataiból készít üzleti összefoglalót."
+              triggerLabel="AI Összefoglaló"
+              loadContext={async () => serializeProject(await loadProjectSnapshot(id))}
+              prompt={[
+                "Készíts üzleti összefoglalót a megadott projektről.",
+                "Térj ki az alábbiakra, csak ami adatból kiderül:",
+                "1) Projekt állapot (státusz, határidő, cég).",
+                "2) Ajánlatok (darab, összérték, legutóbbi státusz).",
+                "3) Nyitott feladatok (mennyi, mi a legsürgősebb).",
+                "4) Dokumentumok (van-e, mennyi).",
+                "5) Follow-upok (van-e lejárt, mikor a következő).",
+                "Zárj 2–3 mondatos vezetői üzenettel: hol áll a projekt és mi a legfontosabb teendő.",
+              ].join(" ")}
+            />
           </div>
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
