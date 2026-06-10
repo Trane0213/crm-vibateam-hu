@@ -1,4 +1,4 @@
-import { Plus, Briefcase, FileText, ListChecks, Sparkles } from "lucide-react";
+import { Plus, Briefcase, FileText, ListChecks, Sparkles, BellRing, FolderOpen } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +19,10 @@ export function QuickAddMenu() {
   const items = [
     { key: "project", label: "Új projekt",   icon: Briefcase,  to: "/projects" },
     { key: "quote",   label: "Új ajánlat",   icon: FileText,   to: "/quotes" },
+    { key: "followup",label: "Új follow-up", icon: BellRing,   to: "/followups" },
     { key: "task",    label: "Új feladat",   icon: ListChecks, to: "/tasks" },
     { key: "lead",    label: "Új lead",      icon: Sparkles,   to: "/leads" },
+    { key: "doc",     label: "Új dokumentum",icon: FolderOpen, to: "/documents" },
   ].filter((i) => canAccessRoute(role, i.to));
 
   if (items.length === 0) return null;
