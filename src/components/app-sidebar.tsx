@@ -14,6 +14,9 @@ import {
   Bot,
   Settings,
   UserPlus,
+  Search,
+  TrendingUp,
+  Hammer,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +37,14 @@ type Item = { title: string; url: string; icon: React.ComponentType<{ className?
 
 const home: Item[] = [
   { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
+];
+
+type AiItem = Item & { search?: Record<string, string> };
+
+const aiAgents: AiItem[] = [
+  { title: "CRM Asszisztens",   url: "/ai-assistant", icon: Search,     search: { agent: "crm" },   highlight: true },
+  { title: "Sales Asszisztens", url: "/ai-assistant", icon: TrendingUp, search: { agent: "sales" }, highlight: true },
+  { title: "PM Asszisztens",    url: "/ai-assistant", icon: Hammer,     search: { agent: "pm" },    highlight: true },
 ];
 
 const sales: Item[] = [
@@ -59,17 +70,16 @@ const comms: Item[] = [
   { title: "Találkozók", url: "/meetings", icon: Calendar },
 ];
 
-const ai: Item[] = [
-  { title: "CRM Asszisztens", url: "/ai-assistant", icon: Bot, highlight: true },
-];
-
 const sys: Item[] = [{ title: "Beállítások", url: "/settings", icon: Settings }];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const isActive = (url: string) => pathname === url || pathname.startsWith(url + "/");
+  const isAiActive = (agent: string) =>
+    pathname.startsWith("/ai-assistant") && new URLSearchParams(searchStr ?? "").get("agent") === agent;
   const { role } = usePermissions();
   const visible = (items: Item[]) => items.filter((i) => canAccessRoute(role, i.url));
 
@@ -98,6 +108,37 @@ export function AppSidebar() {
     </SidebarGroup>
   );
 
+  const renderAiGroup = () => {
+    const items = aiAgents.filter((i) => canAccessRoute(role, i.url));
+    if (items.length === 0) return null;
+    return (
+      <SidebarGroup className={!collapsed ? "mt-1 rounded-md border border-primary/30 bg-primary/5 py-1" : ""}>
+        {!collapsed && (
+          <SidebarGroupLabel className="text-primary">
+            <Bot className="mr-1.5 inline h-3 w-3" /> AI Asszisztensek
+          </SidebarGroupLabel>
+        )}
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {items.map((item) => {
+              const agent = item.search?.agent ?? "crm";
+              return (
+                <SidebarMenuItem key={agent}>
+                  <SidebarMenuButton asChild isActive={isAiActive(agent)} tooltip={item.title}>
+                    <Link to={item.url} search={{ agent } as any} className="flex items-center gap-2">
+                      <item.icon className="h-4 w-4 shrink-0 text-primary" />
+                      {!collapsed && <span className="font-medium">{item.title}</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    );
+  };
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
@@ -115,11 +156,11 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="gap-1">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
+        {renderAiGroup()}
         {visible(sales).length > 0 && renderGroup("Értékesítés", visible(sales))}
         {visible(projects).length > 0 && renderGroup("Projektek", visible(projects))}
-        {visible(contacts).length > 0 && renderGroup("Kapcsolatok", visible(contacts))}
+        {visible(contacts).length > 0 && renderGroup("Ügyfelek", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
-        {visible(ai).length > 0 && renderGroup("AI", visible(ai))}
         {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
       </SidebarContent>
     </Sidebar>
