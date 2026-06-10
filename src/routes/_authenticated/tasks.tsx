@@ -38,7 +38,10 @@ function TasksPage() {
   return (
     <ResourcePage
       title="Feladatok"
-      description="Napi teendők és felelősök."
+      description="Napi teendők, határidők, felelősök."
+      emptyTitle="Itt kezelheted a napi feladatokat."
+      emptyDescription={`A „Új feladat” gombbal vehetsz fel teendőt — köthető projekthez, felelőshöz és határidőhöz.`}
+      newButtonLabel="Új feladat"
       icon={ListChecks}
       table="tasks"
       order="due_date"
