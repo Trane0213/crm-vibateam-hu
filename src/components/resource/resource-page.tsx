@@ -87,6 +87,9 @@ export function ResourcePage({
   order,
   ascending,
   filter,
+  emptyTitle,
+  emptyDescription,
+  newButtonLabel = "Új",
 }: {
   title: string;
   description?: string;
@@ -97,6 +100,9 @@ export function ResourcePage({
   order?: string;
   ascending?: boolean;
   filter?: (rows: any[]) => any[];
+  emptyTitle?: string;
+  emptyDescription?: string;
+  newButtonLabel?: string;
 }) {
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
@@ -105,6 +111,22 @@ export function ResourcePage({
   const [editing, setEditing] = useState<any | null>(null);
 
   const rows = filter && data ? filter(data) : (data ?? []);
+
+  // Globális „+ Új" gomb (QuickAddMenu) ?new=1-gyel ide navigálva — azonnal
+  // megnyitjuk a létrehozó dialógust, és tisztítjuk az URL-t.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "1") {
+      setEditing(null);
+      setOpen(true);
+      params.delete("new");
+      const q = params.toString();
+      const url = window.location.pathname + (q ? `?${q}` : "") + window.location.hash;
+      window.history.replaceState({}, "", url);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col">
@@ -120,7 +142,7 @@ export function ResourcePage({
             }}
           >
             <Plus className="mr-1 h-4 w-4" />
-            Új
+            {newButtonLabel}
           </Button>
         }
       />
@@ -135,8 +157,11 @@ export function ResourcePage({
         ) : rows.length === 0 ? (
           <EmptyState
             icon={Icon}
-            title="Még nincs rekord"
-            description='Kattints az „Új" gombra a hozzáadáshoz.'
+            title={emptyTitle ?? "Itt jelennek meg a rekordok."}
+            description={
+              emptyDescription ??
+              `Kattints a jobb felső sarokban a „${newButtonLabel}" gombra az első hozzáadáshoz.`
+            }
           />
         ) : (
           <div className="rounded-md border bg-card">
