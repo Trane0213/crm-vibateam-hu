@@ -23,6 +23,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
 import { Route as AuthenticatedAiSalesRouteImport } from './routes/_authenticated/ai-sales'
+import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
@@ -116,6 +117,12 @@ const AuthenticatedAiSalesRoute = AuthenticatedAiSalesRouteImport.update({
   path: '/ai-sales',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAiAssistantRoute =
+  AuthenticatedAiAssistantRouteImport.update({
+    id: '/ai-assistant',
+    path: '/ai-assistant',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -253,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-sales': typeof AuthenticatedAiSalesRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -291,6 +299,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-sales': typeof AuthenticatedAiSalesRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -330,6 +339,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/_authenticated/ai-sales': typeof AuthenticatedAiSalesRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -370,6 +380,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/ai-assistant'
     | '/ai-sales'
     | '/calls'
     | '/dashboard'
@@ -408,6 +419,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/ai-assistant'
     | '/ai-sales'
     | '/calls'
     | '/dashboard'
@@ -446,6 +458,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/_authenticated/ai-assistant'
     | '/_authenticated/ai-sales'
     | '/_authenticated/calls'
     | '/_authenticated/dashboard'
@@ -589,6 +602,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-sales'
       fullPath: '/ai-sales'
       preLoaderRoute: typeof AuthenticatedAiSalesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ai-assistant': {
+      id: '/_authenticated/ai-assistant'
+      path: '/ai-assistant'
+      fullPath: '/ai-assistant'
+      preLoaderRoute: typeof AuthenticatedAiAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/': {
@@ -786,6 +806,7 @@ const AuthenticatedSettingsRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
   AuthenticatedAiSalesRoute: typeof AuthenticatedAiSalesRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -809,6 +830,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
   AuthenticatedAiSalesRoute: AuthenticatedAiSalesRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
