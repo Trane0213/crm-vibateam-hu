@@ -8,7 +8,10 @@ function MeetingsPage() {
   return (
     <ResourcePage
       title="Találkozók"
-      description="Helyszíni felmérés, prezentáció, szerződéskötés."
+      description="Itt kezelheted a helyszíni egyeztetéseket és személyes találkozókat."
+      emptyTitle="Itt kezelheted a helyszíni egyeztetéseket."
+      emptyDescription={`Még nincs rögzített találkozó. A „Új találkozó” gombbal vehetsz fel helyszíni felmérést, prezentációt vagy szerződéskötést.`}
+      newButtonLabel="Új találkozó"
       icon={Calendar}
       table="meetings"
       order="meeting_date"
