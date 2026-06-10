@@ -1,293 +1,145 @@
+# Fejlesztési terv – 5 prioritás
 
-# VIBA CRM V1 — Frissített terv
+## Felmérés: jelenlegi séma (PostgREST szondázás)
 
-A módosítások beépítve. Implementáció **csak** a Supabase bekötés és a séma export után kezdődik.
+A meglévő séma kulcselemei (nem teljes lista, csak a fejlesztéshez érintett):
 
----
+- `users_profile`: `id, auth_user_id, email, full_name, phone, role_id, active, created_at`
+- `roles`: `id, name, description, created_at`
+- `permissions`: `id, code, description, created_at`
+- `role_permissions`: `id, role_id, permission_id`
+- `emails`: `id, from_email, to_email, body, thread_id, created_at` (nagyon minimális)
+- `email_threads`: `id, subject, project_id, company_id, created_at`
+- `companies, contacts, leads, projects, quotes, followups, tasks` – léteznek és van rajtuk `created_at`, `due_date`, `project_id`, `company_id`, stb.
+- Nincs `user_roles` (több-szerepkör) tábla — egy user = egy `role_id` a `users_profile`-on.
+- Nincs `user_integrations` / `user_settings` / hasonló tábla, ahova a Gmail OAuth tokent tehetnénk.
 
-## 0. Prerequisite — Supabase bekötés (változatlan, blokkoló)
+A jelenleg bejelentkezett tulajdonosnak **nincs sora** a `users_profile`-ban — emiatt az előző körben a `uploaded_by` FK megbukott. P5-ben ezt rendezzük (auto-create profil).
 
-- `SUPABASE_URL` = `https://uepqejecsiuhodegbcff.supabase.co`
-- `SUPABASE_PUBLISHABLE_KEY` (frontend, anon)
-- `SUPABASE_SERVICE_ROLE_KEY` (secret, csak szerver)
-- Séma export SQL-ek lefuttatása → oszlopnevek visszaküldése
+## NYITOTT KÉRDÉS – Gmail token tárolása
 
----
+A választott modell: **per-user OAuth + csak élő lekérés**. Ehhez minden CRM-felhasználóra el kell menteni egy connection API kulcsot (`lovack_…`), különben minden alkalommal újra kell engedélyezni a Gmailt.
 
-## 1. Vezérlő elv — „Excel-kiváltó ajánlatkövetés"
+Nincs erre alkalmas meglévő mező/tábla. Két opció:
 
-A CRM elsődleges célja a jelenlegi Excel-alapú ajánlatkövetés kiváltása. Ez **minden képernyőn vizuálisan dominál**:
+- **A. Egy új oszlop a `users_profile`-on:** `gmail_connection_key text` (nullable). Additív, nem bontja meg a sémát. Csak egy oszlop.
+- **B. Csak böngésző-localStorage** a per-user kulcsra. Nincs séma-változás, de minden új böngésző / inkognitó / kijelentkezés után újra kell OAuth-olni, és gépek közt nem szinkronizál.
 
-**Globális „ajánlat-pulzus" sáv** (header alatt, minden authentikált oldalon):
-```
-[ 12 nyitott ajánlat ] [ 5 lejárt follow-up ] [ 8 ma esedékes ] [ 3 új lead ]
-```
-Kattintható chip-ek, közvetlen szűrt nézetre ugranak.
+A terv az **A opcióval** számol (1 db ALTER TABLE ADD COLUMN), mert ez teszi napi használatra alkalmassá a rendszert. Ha ezt nem engedélyezed, a Gmail integráció B-ben működik korlátozottan.
 
-**Minden lista/adatlap fejléce kötelezően mutatja:**
-- Ajánlat státusz (badge, színkódolt)
-- Következő follow-up dátum (lejárt = piros, ma = narancs, jövő = szürke)
-- Lead/projekt státusz
-- „Következő teendő" sor (legközelebbi nyitott task vagy follow-up)
+## Munkafolyamat
 
-**Dashboard 4 fő blokkja (sorrend = prioritás):**
-1. **Ajánlat-tölcsér** (quotes pipeline: készül → kiküldve → tárgyalás → megnyert/elveszett, értékkel HUF)
-2. **Follow-up dashboard** (lejárt / ma / 7 napon belül — Excel-szerű táblázat, inline „kész" gombbal)
-3. **Lead státuszok kanban-mini**
-4. **Következő teendők** (személyre szabott napi lista)
+A 4 prioritás közül **P4 (audit) tisztán riport, P2/P3 csak frontend a meglévő táblákon**. Ezek párhuzamosan haladhatnak. P1 (Gmail) a leghosszabb. P5 függ P4-től.
 
 ---
 
-## 2. Projektek = a rendszer központja
+## P1 – Gmail integráció (per-user OAuth, élő lekérés)
 
-A `projects` tábla a központi hub. **Minden más entitás projekthez kapcsolódik** (vagy közvetlenül, vagy az ügyfél/cég-en keresztül).
+**Backend (server fn-ek):**
+- `src/integrations/lovable/appUserConnector.ts` + `appUserConnectorClient.ts` — sablon szerinti helpers.
+- `src/lib/gmail.functions.ts`:
+  - `startGmailConnect({targetOrigin})` → `authorizeAppUserOAuth({connectorId:"google", scopes:["gmail.readonly","gmail.send","gmail.modify"]})`.
+  - `saveGmailConnection({connectionAPIKey, gmailEmail})` → `users_profile.gmail_connection_key` mentés (A opció).
+  - `getMyGmailConnection()` → `{connected: bool, email}`.
+  - `disconnectGmail()` → nullra állítja.
+  - `gmailListMessages({q, labelIds, maxResults, pageToken})` → `callAsAppUser("/gmail/v1/users/me/messages")` + minden hit-re `messages/{id}?format=metadata`.
+  - `gmailGetMessage({id, format})`.
+  - `gmailSendMessage({to, subject, body, cc?, bcc?, threadId?})` → base64url RFC2822 build, `messages/send`.
+  - `gmailListThreadsForContact({email, maxResults})` → query `from:email OR to:email`.
 
-### Projekt adatlap (`/projects/$id`) struktúra
+**Felismerés és kapcsolás (read-only join):**
+- `gmailEnrichMessage(msg)` szerver-side helper: `from`/`to` email-ekből contact + company lookup (`contacts.email` + `companies.name` domain-illesztés).
+- `gmailLinkToProject({messageId, projectId})` — a meglévő `email_threads` táblába insert/update (subject + project_id), és/vagy `emails` insertálás minimális mezőkkel. *Nem szinkronizáljuk a teljes inbox-ot*, csak akkor írunk be, ha a user explicit „kapcsold ehhez a projekthez" gombot nyom.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ HEADER: cég | cím | pipeline lépés | felelős | érték (HUF)  │
-│ KIEMELT: aktív ajánlat státusz | következő follow-up | nyitott feladatok száma │
-├─────────────────────────────────────────────────────────────┤
-│ Tabok:                                                       │
-│  Áttekintés | Ajánlatok | Follow-up | Feladatok | Emailek   │
-│  Hívások | Találkozók | Dokumentumok | Kapcsolattartók |    │
-│  Jegyzetek | Idővonal                                        │
-└─────────────────────────────────────────────────────────────┘
-```
+**Frontend:**
+- `src/components/integrations/gmail-connect-card.tsx` — „Gmail csatlakoztatás" gomb + popup flow.
+- Új gomb a Beállítások oldalon: csatlakoztatás / lecsatlakoztatás / állapot.
+- `src/routes/_authenticated/emails.index.tsx` átírás: élő Gmail lista (inbox + sent), bal sáv: thread lista, jobb: kiválasztott message preview. Tab: „Bejövő / Kimenő / Mind".
+- Felismerés UI: minden message mellett badge a felismert contact / company / project. Egyetlen kattintással "Projekthez kapcsolás" (project select).
+- Kimenő email composer modal (To, Subject, Body) + reply-to-thread.
+- **Projekt idővonal**: `project-timeline.tsx` kibővítése egy live Gmail forrással — ha a usernek van Gmail kapcsolata, lekér `q:from:<contact.email> OR to:<contact.email>` query-vel az adott projekt kapcsolattartóira, és beolvasztja a timeline-ba. (Ha nincs Gmail kapcsolat, eddigi `emails` táblából működik.)
 
-**Áttekintés tab** = mini-dashboard a projekthez:
-- Ajánlat-állapot kártya (összes quote státusszal, értékkel)
-- Aktív follow-up-ok
-- Következő 3 teendő
-- Utolsó 3 kommunikáció (email/hívás/találkozó vegyesen, idővonalon)
-
-**Idővonal tab**: kronológikus, szűrhető (email + hívás + találkozó + feladat + ajánlat-esemény + follow-up esemény) — egy helyen az egész projekt-történet.
-
-### Adat-kapcsolatok (feltételezett FK-k, séma exportból véglegesítendő)
-```
-companies ──┬─→ projects ──┬─→ quotes ──→ quote_items
-            │              ├─→ tasks
-            │              ├─→ followups ──→ followup_events
-            │              ├─→ emails ──→ email_threads
-            │              ├─→ phone_calls
-            │              ├─→ meetings
-            │              ├─→ project_documents
-            │              └─→ project_notes
-            └─→ contacts ──→ (referenced by all above)
-```
-
-Ha valamelyik FK hiányzik a sémából → `TODO: backend missing — projekt FK hiányzik` komment, NEM táblamódosítás.
+**Limit:** Gmail API rate-limit miatt cache-elés `useQuery` staleTime: 60s, message details lazy.
 
 ---
 
-## 3. Sales Agent V1 — esemény-vezérelt architektúra (chat csak az egyik felület)
+## P2 – Dashboard KPI rendszer
 
-**Cél:** a chat UI az MVP felület, de az architektúra eleve felkészül arra, hogy az ágens **eseményekre** reagáljon (új email érkezett → lead-jelölt javaslat), nem csak felhasználói promptra.
+`src/routes/_authenticated/dashboard.tsx` újraírás az alábbi KPI-okra (vezetői nézet, kártyák + 2 chart). Minden lekérdezés a meglévő táblákra megy (`quotes, projects, followups, tasks, leads`).
 
-### Réteges felépítés
+KPI kártyák:
+1. Nyitott ajánlatok darabszáma — `quotes` count `status` ∉ {won, lost}
+2. Nyitott ajánlatok összértéke — `sum(total_amount)` ugyanazzal a szűréssel
+3. Aktív projektek — `projects` count `status` ∉ {completed, lost}
+4. Lejárt follow-upok — `followups` count `completed=false AND due_date < now`
+5. Mai feladatok — `tasks` count `status != done AND due_date today`
+6. Közelgő follow-upok (7 nap) — `followups` `completed=false AND due_date BETWEEN now AND now+7d`
+7. Új leadek 7 nap — `leads` count `created_at >= now-7d`
+8. Új leadek 30 nap — ugyanaz 30 nappal
+9. Ajánlat → Megnyert konverzió — `won / (won + lost)` az utolsó 90 napra
+10. Projekt státusz megoszlás — donut chart `projects.status` szerint csoportosítva (recharts)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ FELÜLET RÉTEG (UI surfaces — V1-ben csak chat aktív)        │
-│  • /ai-sales chat                                            │
-│  • [PLACEHOLDER] email-érkezés trigger panel                 │
-│  • [PLACEHOLDER] javaslat-inbox (agent_activity feed)        │
-├─────────────────────────────────────────────────────────────┤
-│ AGENT ORCHESTRATION (lib/ai/agent/)                          │
-│  • runAgent({ trigger, context, tools }) — egységes entry    │
-│  • trigger típusok: "chat" | "email.received" | "schedule"   │
-│  • V1: csak "chat" implementált, a többi stub                │
-├─────────────────────────────────────────────────────────────┤
-│ TOOL RÉTEG (lib/ai/tools/) — definiáltak, de stub handler    │
-│  • search_crm(query)                                         │
-│  • find_company_by_domain(email)        ← email→cég match    │
-│  • find_contact_by_email(email)         ← email→kapcsolat    │
-│  • create_lead_from_email(emailId)      ← lead generálás     │
-│  • get_project_history(projectId)                            │
-│  • suggest_followup(projectId|quoteId)  ← follow-up javaslat │
-│  • summarize_lead(leadId)                                    │
-├─────────────────────────────────────────────────────────────┤
-│ LLM PROVIDER (lib/ai/providers/openai.functions.ts)          │
-│  • OpenAI client (server-only, OPENAI_API_KEY secret)        │
-│  • V1: send → toast „hamarosan", de a függvény-szignatúra él │
-├─────────────────────────────────────────────────────────────┤
-│ PERZISZTENCIA (meglévő táblák, NEM hozok újat)              │
-│  • agents              — agent definíció                     │
-│  • agent_tasks         — futási feladatok (trigger payload)  │
-│  • agent_activity      — események/javaslatok feed-je        │
-│  • agent_memories      — RAG / kontextus                     │
-│  • knowledge_documents + knowledge_chunks — tudásbázis       │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### V1-ben mit látunk
-- **`/ai-sales`** chat felület (üzenetek + input, send disabled vagy „hamarosan" toast)
-- **Tool definíciók kódban léteznek** (TypeScript signature + Zod schema), handler `throw new Error("not implemented")` + UI badge
-- **Javaslat-feed komponens placeholder** a dashboardon: „Az AI Értékesítő itt fog javaslatokat tenni"
-- **Email adatlapon** „Lead generálás AI-jal" gomb (disabled, tooltip: hamarosan)
-
-Így amikor a 2. fázisban bekapcsoljuk az OpenAI-t, **csak a handler-eket kell kitölteni**, az UI és az adat-folyam már a helyén van.
+Új komponens: `src/components/dashboard/kpi-card.tsx` + meglévő `recharts` használata.
 
 ---
 
-## 4. Dokumentumtár — Cloudflare R2 architektúra (NEM Supabase Storage)
+## P3 – Follow-up automatizmusok
 
-### Tervezett flow (V1: UI + szerver fn váz, R2 hívás disabled)
+Tisztán frontend, OpenAI nélkül.
 
-```
-[Browser] ──1── POST /server-fn: requestUploadUrl({fileName, projectId})
-                                    │
-                                    ↓
-[Server fn] ──2── R2 presigned PUT URL (S3 API, AWS SDK v3)
-                                    │
-                                    ↓
-[Browser] ──3── PUT file → R2 közvetlenül (nem megy szerveren át)
-                                    │
-                                    ↓
-[Browser] ──4── POST /server-fn: confirmUpload({key, projectId, kategória})
-                                    │
-                                    ↓
-[Server fn] ──5── INSERT project_documents (r2_key, kategória, project_id)
-```
+`src/lib/followup-alerts.ts`:
+- `bucketFollowup(followup)` → `'overdue' | 'due-3d' | 'due-7d' | 'due-14d' | 'due-30d' | 'future'` a `due_date`–`now` diff alapján.
+- `useFollowupAlerts()` hook — `useQuery` a `followups` táblán, kategorizálva.
 
-### Modul-struktúra
-```
-src/lib/integrations/r2/
-├── client.server.ts         — S3-kompatibilis kliens (R2 endpoint)
-├── presign.functions.ts     — requestUploadUrl, requestDownloadUrl
-├── documents.functions.ts   — confirmUpload, deleteDocument, listByProject
-└── types.ts                 — DocumentCategory enum (ajánlat|szerződés|felmérőlap|fotó|terv|egyéb)
-```
+Jelzések:
+- **Dashboard**: új panel „Follow-up figyelmeztetések" 4 sávval (3/7/14/30 nap), kattintható → szűrt Follow-up listára.
+- **Projekt adatlap** (`projects.$id.tsx`): a meglévő followup szekcióhoz színes badge (overdue=destructive, 3d=warning, 7d/14d/30d=secondary skála).
+- **Follow-up lista** (`followups.tsx`): fent szűrő chips „Lejárt / 3 napon belül / 7 / 14 / 30 / Jövő", + sorszínezés a bucket szerint.
 
-### Secret slot-ok (V1-ben üresek, UI „nincs konfigurálva")
-- `R2_ACCOUNT_ID`
-- `R2_ACCESS_KEY_ID`
-- `R2_SECRET_ACCESS_KEY`
-- `R2_BUCKET`
-- `R2_PUBLIC_URL` (opcionális, ha publikus letöltés kell)
-
-### Séma feltételezés
-A `project_documents` táblának szüksége van: `r2_key` (text), `file_name`, `mime_type`, `size_bytes`, `category`, `project_id`, `company_id` (nullable), `uploaded_by`. Ha hiányzik → `TODO: backend missing — r2_key mező` komment + UI fallback.
-
-### V1-ben mit látunk
-- `/documents` lista (üres state, vagy meglévő rekordok metaadattal)
-- Upload zóna **disabled**, tooltip „R2 konfiguráció szükséges"
-- Beállítások → Tárhely oldalon: kapcsolat-állapot kártya (4 env var jelenléte → zöld/piros)
-- Kategória szűrők működnek (ajánlat | szerződés | felmérőlap | fotó | terv | egyéb)
-
-**Supabase Storage NEM kerül használatba**, sehol.
+A meglévő Agent kód nem törlődik; a sávok pusztán a `due_date` alapján számolnak.
 
 ---
 
-## 5. Frissített oldalszerkezet
+## P4 – Jogosultsági audit (csak riport)
 
-```
-src/routes/
-├── __root.tsx
-├── index.tsx                            → redirect /dashboard
-├── auth.tsx
-└── _authenticated/
-    ├── route.tsx                        — auth gate + globális ajánlat-pulzus sáv
-    ├── dashboard.tsx                    — Ajánlat-tölcsér + Follow-up + Lead-kanban + Teendők
-    │
-    ├── projects.tsx                     — RENDSZER KÖZPONTJA
-    ├── projects.index.tsx               — pipeline kanban (default) + lista toggle
-    ├── projects.$id.tsx                 — adatlap (11 tab)
-    │
-    ├── quotes.index.tsx                 — összes ajánlat (Excel-helyettesítő nézet)
-    ├── quotes.$id.tsx                   — ajánlat + tételek
-    │
-    ├── followups.index.tsx              — lejárt/ma/jövő kiemelve
-    │
-    ├── leads.index.tsx / leads.$id.tsx
-    ├── companies.index.tsx / companies.$id.tsx
-    ├── contacts.index.tsx / contacts.$id.tsx
-    ├── tasks.index.tsx
-    │
-    ├── emails.index.tsx / emails.$threadId.tsx
-    ├── calls.index.tsx
-    ├── meetings.index.tsx / meetings.calendar.tsx
-    │
-    ├── documents.index.tsx              — R2-ready UI
-    │
-    ├── ai-sales.tsx                     — chat + (jövőben) javaslat-feed
-    │
-    └── settings/
-        ├── settings.tsx (layout)
-        ├── settings.index.tsx
-        ├── settings.gmail.tsx           — OAuth előkészítés
-        ├── settings.openai.tsx          — kulcs állapot
-        ├── settings.storage.tsx         — R2 állapot (4 secret)
-        ├── settings.users.tsx
-        └── settings.roles.tsx
-```
+Új oldal: `src/routes/_authenticated/settings.permissions-audit.tsx`. **Nem módosít semmit**, csak listáz:
 
-Szerver fn modulok:
-```
-src/lib/
-├── crm/
-│   ├── projects.functions.ts            ← központi, gazdag projection
-│   ├── quotes.functions.ts              ← kiemelt
-│   ├── followups.functions.ts           ← kiemelt
-│   ├── leads, companies, contacts, tasks, emails, calls, meetings .functions.ts
-├── ai/
-│   ├── agent/
-│   │   ├── orchestrator.functions.ts    — runAgent entry
-│   │   └── triggers.ts                  — chat | email.received | schedule
-│   ├── tools/
-│   │   ├── search-crm.ts
-│   │   ├── find-company.ts
-│   │   ├── find-contact.ts
-│   │   ├── create-lead-from-email.ts
-│   │   ├── suggest-followup.ts
-│   │   └── index.ts                     — tool registry
-│   └── providers/
-│       └── openai.server.ts
-├── integrations/
-│   ├── gmail/                           — OAuth előkészítés
-│   │   ├── oauth.functions.ts
-│   │   └── client.server.ts
-│   └── r2/                              — fent részletezve
-└── auth/permissions.ts
-```
+1. **Szerepkörök**: `roles` táblából + hány usernek van adott szerepköre (`users_profile.role_id` count).
+2. **Permission mátrix**: `permissions` × `roles` cella, `role_permissions` alapján kipipálva.
+3. **RLS állapot**: a meglévő `settings.audit.tsx` által végrehajtott olvas/ír teszt eredménye táblánként + szerepkörönként (a `users_profile.role_id` szűréssel a bejelentkezett user szerepkörén belül teszt). „Mely táblákhoz nincs RLS / mely szerepkörök férnek hozzá".
+4. **Hiányosságok riport**:
+   - Listázza azokat a táblákat, ahol az írás engedélyezve van, de RLS nincs aktív (potenciális adatszivárgás).
+   - Listázza az auth uid-okat, akiknek nincs `users_profile` rekord (mint a jelenlegi tulajdonos).
+   - Listázza azokat a permission `code`-okat, amelyek egyetlen role-hoz sincsenek hozzárendelve („árva permission").
+   - Listázza azokat a role-okat, amelyek minden permission-t tartalmaznak (tulajdonos-szerű).
+
+Nem ír át se policy-t, se role_permissions-t.
 
 ---
 
-## 6. Design hangsúlyok (Excel-replacement érzés)
+## P5 – Felhasználókezelés befejezése (függ P4-től)
 
-- **Sűrű adattáblák** TanStack Table-lel, sticky header, inline szerkesztés (státusz, follow-up dátum, felelős)
-- **Színkódolt státusz-rendszer** — Excel-felhasználó azonnal érti: zöld = megnyert/kész, piros = lejárt/elveszett, narancs = ma esedékes, kék = folyamatban
-- **Számszerű KPI-k mindenhol** (HUF, db, %), nem dekoratív hero-blokkok
-- **Globális ajánlat-pulzus sáv** (1. pont) — minden képernyőn
-- shadcn sidebar (kollabálható) + vékony header + ⌘K command palette (projektre/ajánlatra/cégre gyors ugrás)
-- Light + dark mode, magyar UI (`hu-HU`, `HUF`)
+A meglévő `settings.users.tsx` / `settings.tsx` TODO-jainak lezárása.
 
----
+**Profil auto-create:** `useEnsureProfile()` hook a `_authenticated` layoutban (vagy a settings oldalon): ha az auth.uid-ra nincs `users_profile`, létrehoz egyet `{auth_user_id, email, full_name=email_metadata, role_id=default 'Tulajdonos' vagy null}`. Ez megoldja az előző körben tapasztalt FK hibát.
 
-## 7. Implementációs sorrend (Fázis 2 — jóváhagyás után)
+**Felhasználó-lista oldal** (`settings.users.tsx`):
+- Tábla: email, név, telefon, szerepkör, állapot (active), létrehozva.
+- Csak `Tulajdonos` szerepkörűek látják (P4 audit + `has_role` helper).
+- Akciók sorra:
+  - **Szerepkör módosítás**: select a `roles` táblából → `update users_profile set role_id = ?`.
+  - **Deaktiválás / Aktiválás**: toggle `active = false/true`. (Csak az adatbázis bejegyzést módosítja, az auth user marad — magyarázat a UI-on.)
+  - **Új szerepkör kiosztása** új userhez: a Supabase Auth Admin invitre nincs jogosultság (service role kell), így a flow: a tulajdonos beír egy emailt, és a rendszer betesz egy „pending invite" sort a `users_profile`-ba `auth_user_id=null`, ami később az első Google/email loginnál összepárosul (egyszerű email-match). **Megjegyzés:** ha a tulajdonos azt szeretné, hogy a meghívó email is menjen, az egy következő kör — most csak a profil-előkészítés van.
 
-1. Supabase kliens + types generálás
-2. AppShell + sidebar + globális ajánlat-pulzus sáv + téma + i18n
-3. Auth + `_authenticated` gate
-4. **Projektek** modul (központ): index kanban + adatlap 11 tabbal
-5. **Ajánlatok** (`quotes` + `quote_items`) — Excel-helyettesítő nézet
-6. **Follow-up** dashboard + projekt-tabi nézet
-7. Dashboard (ajánlat-tölcsér + follow-up + lead + teendők)
-8. Leadek, Cégek, Kapcsolattartók
-9. Feladatok
-10. Emailek (read-only, Gmail placeholder)
-11. Hívások + Találkozók (lista + naptár)
-12. Dokumentumok (R2 architektúra, upload disabled)
-13. AI Sales Agent (chat shell + tool registry + orchestrator váz)
-14. Beállítások (Gmail / OpenAI / R2 / Users / Roles)
+## Technikai megjegyzések
 
----
+- Gmail kérések minden esetben szerver-oldali `createServerFn` + `callAsAppUser` keresztül mennek, a connection api_key sose kerül a böngészőbe.
+- A `useServerFn` + `useQuery` pattern minden új hook-ban (loader nem auth-protected fn-t nem hív).
+- A `humanizeSupabaseError()` mindenhol kezeli a hibákat; toast 10s.
+- Nincs új tábla. Egy darab additív oszlop (`users_profile.gmail_connection_key`) ha A opciót választod.
 
-## Nyitott kérdések jóváhagyás előtt
+## Kérlek erősítsd meg
 
-1. **Bekötés**: kézi `SUPABASE_URL` + publishable key secret-be — rendben?
-2. **Séma export**: futtatod és visszaküldöd? Enélkül oszlopnév-szinten csak feltételezek.
-3. **Brand színek**: VIBA-TEAM hex paletta van, vagy javasoljak (acélkék + meleg narancs akcent)?
-4. **Auth provider**: email/jelszó elég, vagy Google sign-in is?
-5. **Globális ajánlat-pulzus sáv**: rendben minden képernyő tetején, vagy csak dashboardon?
+1. **A vagy B** Gmail token tárolásra?
+2. Mehet a végrehajtás ebben a sorrendben: **P4 audit → P5 profil auto-create → P2 dashboard → P3 follow-up → P1 Gmail** (legkisebbtől a legnagyobbig, így minden lépés után tesztelhető)?
+3. Bármelyik prioritás kihagyandó/halasztandó?
