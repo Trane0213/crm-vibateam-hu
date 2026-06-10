@@ -51,7 +51,7 @@ export function ProjectTimeline(props: {
     if (at) events.push({ at, kind: "meeting", title: r.title ?? "Találkozó", detail: r.location ?? undefined });
   }
   for (const r of props.documents ?? []) {
-    if (r.created_at) events.push({ at: r.created_at, kind: "document", title: r.file_name ?? r.name ?? "Dokumentum", detail: r.category ?? undefined });
+    if (r.created_at) events.push({ at: r.created_at, kind: "document", title: r.name ?? "Dokumentum", detail: r.document_type ?? undefined });
   }
 
   events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
