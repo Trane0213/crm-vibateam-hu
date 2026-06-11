@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -38,7 +38,7 @@ function LeadsPage() {
       fields={[
         {
           name: "company_id",
-          label: "Cég",
+          label: "Ügyfél",
           type: "ref",
           ref: { table: "companies", labelColumn: "name" },
         },
@@ -55,7 +55,22 @@ function LeadsPage() {
       ]}
       columns={[
         { key: "summary", label: "Összefoglaló", className: "font-medium max-w-[300px] truncate" },
-        { key: "company", label: "Cég", render: (r) => companyLabel(r.company_id) },
+        {
+          key: "company",
+          label: "Ügyfél",
+          render: (r) =>
+            r.company_id ? (
+              <Link
+                to="/customers/$id"
+                params={{ id: r.company_id }}
+                className="text-primary hover:underline"
+              >
+                {companyLabel(r.company_id)}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            ),
+        },
         { key: "contact", label: "Kapcsolattartó", render: (r) => contactLabel(r.contact_id) },
         { key: "source", label: "Forrás" },
         { key: "project_type", label: "Típus" },

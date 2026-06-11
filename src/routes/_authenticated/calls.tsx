@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Phone } from "lucide-react";
 import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/resource-page";
 
@@ -40,7 +40,7 @@ function CallsPage() {
         { name: "call_type", label: "Típus", type: "select", options: CALL_TYPE },
         { name: "outcome", label: "Eredmény", type: "select", options: OUTCOME },
         { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" } },
-        { name: "company_id", label: "Cég", type: "ref", ref: { table: "companies", labelColumn: "name" } },
+        { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
         { name: "contact_id", label: "Kapcsolattartó", type: "ref", ref: { table: "contacts", labelColumn: "name" } },
         { name: "summary", label: "Összefoglaló", type: "textarea" },
       ]}
@@ -50,7 +50,18 @@ function CallsPage() {
         { key: "call_type", label: "Típus" },
         { key: "outcome", label: "Eredmény" },
         { key: "contact", label: "Kapcsolattartó", render: (r) => contactLabel(r.contact_id) },
-        { key: "company", label: "Cég", render: (r) => companyLabel(r.company_id) },
+        {
+          key: "company",
+          label: "Ügyfél",
+          render: (r) =>
+            r.company_id ? (
+              <Link to="/customers/$id" params={{ id: r.company_id }} className="text-primary hover:underline">
+                {companyLabel(r.company_id)}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            ),
+        },
         { key: "project", label: "Projekt", render: (r) => projectLabel(r.project_id) },
         { key: "summary", label: "Összefoglaló", className: "text-muted-foreground max-w-[280px] truncate" },
       ]}

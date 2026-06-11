@@ -27,7 +27,7 @@ function ProjectsPage() {
         { name: "title", label: "Projekt megnevezése", type: "text", required: true },
         {
           name: "company_id",
-          label: "Ügyfél (cég)",
+          label: "Ügyfél",
           type: "ref",
           ref: { table: "companies", labelColumn: "name" },
         },
@@ -64,7 +64,22 @@ function ProjectsPage() {
             </Link>
           ),
         },
-        { key: "company", label: "Ügyfél", render: (r) => companyLabel(r.company_id) },
+        {
+          key: "company",
+          label: "Ügyfél",
+          render: (r) =>
+            r.company_id ? (
+              <Link
+                to="/customers/$id"
+                params={{ id: r.company_id }}
+                className="text-primary hover:underline"
+              >
+                {companyLabel(r.company_id)}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            ),
+        },
         {
           key: "status",
           label: "Státusz",

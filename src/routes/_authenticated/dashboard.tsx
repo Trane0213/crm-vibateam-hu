@@ -21,6 +21,7 @@ import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
+import { CustomerKpiWidgets } from "@/components/dashboard/customer-kpi-widgets";
 import { PROJECT_STATUS, PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -234,6 +235,10 @@ function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <SectionLabel title="Ügyfelek · egységes nézet" tone="primary" />
+      <CustomerKpiWidgets />
+
       <div className="grid gap-4 px-6 pb-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">

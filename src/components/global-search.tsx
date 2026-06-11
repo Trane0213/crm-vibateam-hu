@@ -12,11 +12,11 @@ type Hit = {
   id: string;
   label: string;
   sub?: string;
-  type: "companies" | "contacts" | "projects" | "leads" | "quotes" | "emails";
+  type: "customers" | "contacts" | "projects" | "leads" | "quotes" | "emails";
 };
 
 const TYPE_LABEL: Record<Hit["type"], string> = {
-  companies: "Cég", contacts: "Kapcsolattartó", projects: "Projekt",
+  customers: "Ügyfél", contacts: "Kapcsolattartó", projects: "Projekt",
   leads: "Lead", quotes: "Ajánlat", emails: "Email",
 };
 
@@ -54,7 +54,7 @@ export function GlobalSearch() {
         supabase.from("emails").select("id,subject,summary,from_email,thread_id").or(`subject.ilike.${like},summary.ilike.${like},from_email.ilike.${like}`).limit(5),
       ]);
       const out: Hit[] = [];
-      (co.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "companies", label: r.name ?? "—", sub: r.city ?? undefined }));
+      (co.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "customers", label: r.name ?? "—", sub: r.city ?? undefined }));
       (ct.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "contacts", label: r.name ?? "—", sub: r.email ?? undefined }));
       (pr.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "projects", label: r.title ?? "—", sub: r.status ?? undefined }));
       (ld.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "leads", label: r.description?.slice(0, 60) ?? r.source ?? "Lead", sub: r.status ?? undefined }));
@@ -66,7 +66,7 @@ export function GlobalSearch() {
 
   const grouped = useMemo(() => {
     const g: Record<Hit["type"], Hit[]> = {
-      companies: [], contacts: [], projects: [], leads: [], quotes: [], emails: [],
+      customers: [], contacts: [], projects: [], leads: [], quotes: [], emails: [],
     };
     (data ?? []).forEach((h) => g[h.type].push(h));
     return g;
@@ -85,7 +85,7 @@ export function GlobalSearch() {
       navigate({ to: "/emails" });
       return;
     }
-    if (h.type === "companies")  navigate({ to: "/companies/$id", params: { id: h.id } });
+    if (h.type === "customers")  navigate({ to: "/customers/$id", params: { id: h.id } });
     if (h.type === "contacts")   navigate({ to: "/contacts/$id",  params: { id: h.id } });
     if (h.type === "projects")   navigate({ to: "/projects/$id",  params: { id: h.id } });
     if (h.type === "leads")      navigate({ to: "/leads/$id",     params: { id: h.id } });
@@ -100,7 +100,7 @@ export function GlobalSearch() {
         <kbd className="hidden md:inline-flex h-5 items-center rounded border bg-muted px-1.5 text-[10px] font-mono text-muted-foreground">⌘K</kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Cégek, projektek, kapcsolatok, ajánlatok, emailek…" value={q} onValueChange={setQ} />
+        <CommandInput placeholder="Ügyfelek, projektek, kapcsolatok, ajánlatok, emailek…" value={q} onValueChange={setQ} />
         <CommandList>
           {!enabled && <CommandEmpty>Írj legalább 2 karaktert.</CommandEmpty>}
           {enabled && !isFetching && (data ?? []).length === 0 && <CommandEmpty>Nincs találat.</CommandEmpty>}
