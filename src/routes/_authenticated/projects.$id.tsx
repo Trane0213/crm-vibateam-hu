@@ -283,12 +283,7 @@ function ProjectDetail() {
             ]} empty="Nincs feladat ehhez a projekthez." />
           </TabsContent>
           <TabsContent value="emails" className="mt-4">
-            <RelationList rows={emailThreads.data} columns={[
-              { label: "Tárgy", get: (r) => r.subject ?? "(nincs tárgy)" },
-              { label: "Résztvevők", get: (r) => (r.participants ?? []).join(", ") || "—" },
-              { label: "Utolsó üzenet", get: (r) => fmtDateTime(r.last_message_at ?? r.updated_at ?? r.created_at) },
-            ]} link={(r) => ({ to: "/emails/$threadId", params: { threadId: r.id } })}
-              empty="Nincs email-szál ehhez a projekthez. A levelező nézetből rendelheted hozzá a projekthez." />
+            <ProjectEmailAttach projectId={id} />
           </TabsContent>
           <TabsContent value="docs" className="mt-4">
             <DocumentManager projectId={id} />
@@ -305,7 +300,12 @@ function ProjectDetail() {
               quotes={quotes.data ?? []}
               followups={followups.data ?? []}
               tasks={tasks.data ?? []}
-              emails={[]}
+              emails={(emailThreads.data ?? []).map((t: any) => ({
+                id: t.id,
+                created_at: t.last_message_at ?? t.updated_at ?? t.created_at,
+                summary: t.subject ?? "(nincs tárgy)",
+                from_email: (t.participants ?? [])[0] ?? null,
+              }))}
               calls={calls.data ?? []}
               meetings={meetings.data ?? []}
               documents={docs.data ?? []}
