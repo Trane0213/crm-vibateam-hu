@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
 import { EmailComposer } from "@/components/emails/email-composer";
+import { EmailThreadProjectPicker } from "@/components/emails/email-thread-project-picker";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   component: EmailThread,
@@ -229,11 +230,11 @@ function EmailThread() {
   if (crm.data?.project)
     crmRows.push({ icon: Briefcase, label: "Projekt", value: crm.data.project.name, to: "/projects/$id", params: { id: crm.data.project.id } });
 
-  const hasCrm = crmRows.length > 0;
-  const maxW = hasCrm ? "max-w-[1520px]" : "max-w-[1280px]";
-  const gridCols = hasCrm
-    ? "grid-cols-1 lg:grid-cols-[minmax(1200px,1fr)_280px]"
-    : "grid-cols-1";
+  // A projekt-választó mindig megjelenik a jobb sidebarban — még akkor is,
+  // ha más CRM kapcsolat (cég, lead) nincs.
+  const showSidebar = true;
+  const maxW = "max-w-[1520px]";
+  const gridCols = "grid-cols-1 lg:grid-cols-[minmax(1200px,1fr)_280px]";
 
   return (
     <div className="flex flex-col">
@@ -287,8 +288,9 @@ function EmailThread() {
         </div>
 
         {/* Jobb sidebar: CRM kártyák — csak ha van kapcsolat */}
-        {hasCrm && (
+        {showSidebar && (
           <aside className="space-y-3 lg:sticky lg:top-4 self-start w-full lg:w-[280px]">
+            <EmailThreadProjectPicker threadId={threadId} />
             {crmRows.map((r) => {
               const Icon = r.icon;
               const body = (

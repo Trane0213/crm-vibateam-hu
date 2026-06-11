@@ -5,6 +5,7 @@ import {
   fmtDate,
   useLookup,
 } from "@/components/resource/resource-page";
+import { PersonalContactDialog } from "@/components/projects/personal-contact-dialog";
 
 function ContactsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -17,6 +18,7 @@ function ContactsPage() {
       newButtonLabel="Új kapcsolattartó"
       icon={UserPlus}
       table="contacts"
+      extraActions={<PersonalContactDialog />}
       fields={[
         { name: "name", label: "Név", type: "text", required: true },
         {
