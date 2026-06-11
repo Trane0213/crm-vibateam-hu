@@ -106,22 +106,24 @@ export async function fetchUserEmail(accessToken: string): Promise<string> {
 export async function getValidAccessToken(userId: string): Promise<{ accessToken: string; email: string }> {
   const admin = getAdminClient();
   const { data, error } = await admin
-    .from("gmail_accounts")
-    .select("email,refresh_token,access_token,expires_at")
-    .eq("user_id", userId)
+    .from("users_profile")
+    .select("gmail_email,gmail_refresh_token,gmail_access_token,gmail_expires_at")
+    .eq("auth_user_id", userId)
     .maybeSingle();
-  if (error) throw new Error(`gmail_accounts lekeres: ${error.message}`);
-  if (!data) throw new Error("Nincs csatlakoztatott Gmail-fiok.");
-
-  const exp = data.expires_at ? new Date(data.expires_at).getTime() : 0;
-  if (data.access_token && exp - Date.now() > 60_000) {
-    return { accessToken: data.access_token, email: data.email };
+  if (error) throw new Error(`users_profile lekeres: ${error.message}`);
+  if (!data || !data.gmail_refresh_token || !data.gmail_email) {
+    throw new Error("Nincs csatlakoztatott Gmail-fiok.");
   }
-  const t = await refreshAccessToken(data.refresh_token);
+
+  const exp = data.gmail_expires_at ? new Date(data.gmail_expires_at).getTime() : 0;
+  if (data.gmail_access_token && exp - Date.now() > 60_000) {
+    return { accessToken: data.gmail_access_token, email: data.gmail_email };
+  }
+  const t = await refreshAccessToken(data.gmail_refresh_token);
   const newExp = new Date(Date.now() + (t.expires_in - 30) * 1000).toISOString();
   await admin
-    .from("gmail_accounts")
-    .update({ access_token: t.access_token, expires_at: newExp })
-    .eq("user_id", userId);
-  return { accessToken: t.access_token, email: data.email };
+    .from("users_profile")
+    .update({ gmail_access_token: t.access_token, gmail_expires_at: newExp })
+    .eq("auth_user_id", userId);
+  return { accessToken: t.access_token, email: data.gmail_email };
 }
