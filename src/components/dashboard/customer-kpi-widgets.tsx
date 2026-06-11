@@ -8,20 +8,20 @@ import { fmtDateTime } from "@/components/resource/resource-page";
 
 type KpiRow = {
   customer_id: string;
-  customer_name: string | null;
   total_projects: number;
   active_projects: number;
   open_quotes: number;
   overdue_followups: number;
   last_activity_at: string | null;
+  customer_name?: string | null;
 };
 
 type ActivityRow = {
   customer_id: string;
-  customer_name: string | null;
   event_type: string;
-  event_title: string | null;
-  occurred_at: string;
+  title: string | null;
+  event_date: string;
+  customer_name?: string | null;
 };
 
 export function CustomerKpiWidgets() {
@@ -30,7 +30,7 @@ export function CustomerKpiWidgets() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customer_kpi_v")
-        .select("customer_id,customer_name,total_projects,active_projects,open_quotes,overdue_followups,last_activity_at");
+        .select("customer_id,total_projects,active_projects,open_quotes,overdue_followups,last_activity_at");
       if (error) throw error;
       return (data ?? []) as KpiRow[];
     },
@@ -41,15 +41,27 @@ export function CustomerKpiWidgets() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customer_activity_v")
-        .select("customer_id,customer_name,event_type,event_title,occurred_at")
-        .order("occurred_at", { ascending: false })
+        .select("customer_id,event_type,title,event_date")
+        .order("event_date", { ascending: false })
         .limit(10);
       if (error) throw error;
       return (data ?? []) as ActivityRow[];
     },
   });
 
-  const rows = kpi.data ?? [];
+  const namesQ = useQuery({
+    queryKey: ["dashboard", "customer_names"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id,name");
+      if (error) throw error;
+      const m = new Map<string, string>();
+      for (const r of data ?? []) m.set((r as any).id, (r as any).name ?? "—");
+      return m;
+    },
+  });
+  const nameOf = (id: string) => namesQ.data?.get(id) ?? "—";
+
+  const rows = (kpi.data ?? []).map((r) => ({ ...r, customer_name: nameOf(r.customer_id) }));
   const topActive = [...rows]
     .sort((a, b) => (b.active_projects - a.active_projects) || (b.open_quotes - a.open_quotes))
     .filter((r) => r.active_projects > 0 || r.open_quotes > 0)
@@ -111,12 +123,12 @@ export function CustomerKpiWidgets() {
                 <li key={`${a.customer_id}-${i}`} className="flex items-center justify-between gap-3">
                   <span className="min-w-0 flex-1 truncate">
                     <Link to="/customers/$id" params={{ id: a.customer_id }} className="text-primary hover:underline">
-                      {a.customer_name ?? "—"}
+                      {nameOf(a.customer_id)}
                     </Link>
                     <span className="text-muted-foreground"> · {a.event_type}</span>
-                    {a.event_title && <span className="text-muted-foreground"> — {a.event_title}</span>}
+                    {a.title && <span className="text-muted-foreground"> — {a.title}</span>}
                   </span>
-                  <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{fmtDateTime(a.occurred_at)}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{fmtDateTime(a.event_date)}</span>
                 </li>
               ))}
             </ul>
