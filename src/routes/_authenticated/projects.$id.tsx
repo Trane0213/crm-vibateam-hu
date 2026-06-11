@@ -23,6 +23,7 @@ import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
 import { loadProjectSnapshot, serializeProject } from "@/lib/ai/crm-context";
 import { ProjectStatusSelect } from "@/components/projects/project-status-select";
 import { ProjectContactsPanel } from "@/components/projects/project-contacts-panel";
+import { ProjectEmailAttach } from "@/components/projects/project-email-attach";
 import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
@@ -80,12 +81,18 @@ function ProjectDetail() {
   );
   const openFollowups = (followups.data ?? []).filter((r) => !r.completed);
   const nextFollowup = openFollowups[0]?.due_date as string | undefined;
+  const openTasksCount = (tasks.data ?? []).filter((t: any) => t.status !== "done").length;
   const lastComm = (() => {
     const dates: number[] = [];
     for (const e of calls.data ?? []) if (e.created_at) dates.push(new Date(e.created_at).getTime());
     for (const e of meetings.data ?? []) if (e.meeting_date) dates.push(new Date(e.meeting_date).getTime());
     if (!dates.length) return null;
     return new Date(Math.max(...dates)).toISOString();
+  })();
+  const primaryContact = (() => {
+    const list = (projectContacts.data ?? []) as any[];
+    const primary = list.find((c) => c.is_primary) ?? list[0];
+    return primary?.contact ?? null;
   })();
 
   if (isLoading) {
@@ -135,12 +142,18 @@ function ProjectDetail() {
         <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Mini label="Ajánlatok" value={`${quotes.data?.length ?? 0} db`} tone="primary" />
           <Mini label="Köv. follow-up" value={nextFollowup ? fmtDateTime(nextFollowup) : "—"} tone={nextFollowup && new Date(nextFollowup) < new Date() ? "danger" : "warning"} />
-          <Mini label="Hívás / találkozó" value={`${(calls.data?.length ?? 0)} / ${(meetings.data?.length ?? 0)}`} tone="info" />
-          <Mini label="Utolsó kommunikáció" value={lastComm ? fmtDate(lastComm) : "—"} />
+          <Mini label="Nyitott feladat / follow-up" value={`${openTasksCount} / ${openFollowups.length}`} tone="info" />
+          <Mini label="Utolsó aktivitás" value={lastComm ? fmtDate(lastComm) : "—"} />
         </div>
         {company.data && (
           <div className="mt-2 text-xs text-muted-foreground">
             Cégtípus: <span className="font-medium">{COMPANY_TYPE_LABEL[company.data.company_type as string] ?? company.data.company_type ?? "—"}</span>
+            {project.project_type && (
+              <> · Projekt típus: <span className="font-medium">{String(project.project_type)}</span></>
+            )}
+            {primaryContact && (
+              <> · Fő kapcsolattartó: <Link to="/contacts/$id" params={{ id: primaryContact.id }} className="font-medium text-primary hover:underline">{primaryContact.name ?? "—"}</Link></>
+            )}
           </div>
         )}
       </div>
