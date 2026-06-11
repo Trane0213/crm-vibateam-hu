@@ -6,7 +6,7 @@ import { fmtDateTime } from "@/components/resource/resource-page";
 import { EmailBody } from "@/components/emails/email-body";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
@@ -32,13 +32,13 @@ function attachmentIcon(mime: string | null | undefined) {
   return Paperclip;
 }
 
-function AddrList({ label, items }: { label: string; items: string[] | null | undefined }) {
+function AddrList({ label, items, showEmpty = false }: { label: string; items: string[] | null | undefined; showEmpty?: boolean }) {
   const list = (items ?? []).filter(Boolean);
-  if (list.length === 0) return null;
+  if (list.length === 0 && !showEmpty) return null;
   return (
     <div className="flex gap-2 text-xs">
-      <span className="uppercase tracking-wider text-muted-foreground shrink-0 w-12">{label}</span>
-      <span className="min-w-0 break-words text-foreground/80">{list.join(", ")}</span>
+      <span className="uppercase tracking-wider text-muted-foreground shrink-0 w-14">{label}</span>
+      <span className="min-w-0 break-words text-foreground/80">{list.length ? list.join(", ") : "—"}</span>
     </div>
   );
 }
@@ -88,9 +88,7 @@ function EmailThread() {
     const m = new Map<string, any[]>();
     for (const a of attachments.data ?? []) {
       const arr = m.get(a.email_id) ?? [];
-      // Inline képek a body-ban jelennek meg, a Gmail-szerű attachment panelben
-      // csak a "valódi" mellékleteket mutatjuk.
-      if (!a.inline) arr.push(a);
+      arr.push(a);
       m.set(a.email_id, arr);
     }
     return m;
@@ -135,6 +133,20 @@ function EmailThread() {
       return out;
     },
   });
+
+  // Debug — felhasználói kérésre
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log("[email-detail] threadId=", threadId, {
+      emails: (emails.data ?? []).length,
+      attachments: (attachments.data ?? []).length,
+      company_id: companyId,
+      contact_id: contactId,
+      lead_id: leadId,
+      project_id: projectId,
+      thread: thread.data,
+    });
+  }, [threadId, emails.data, attachments.data, companyId, contactId, leadId, projectId, thread.data]);
 
   const handleDownload = async (key: string, filename: string) => {
     try {
@@ -191,11 +203,15 @@ function EmailThread() {
         </div>
       </div>
       <div className="px-6 py-6 mx-auto w-full max-w-[900px] space-y-4">
-        {crmRows.length > 0 && (
-          <section className="rounded-lg border bg-card">
-            <div className="border-b px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-              CRM kapcsolat
+        <section className="rounded-lg border bg-card">
+          <div className="border-b px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+            CRM kapcsolat
+          </div>
+          {crmRows.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-muted-foreground">
+              Ehhez a szálhoz még nincs cég, kapcsolattartó, lead vagy projekt hozzárendelve.
             </div>
+          ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
               {crmRows.map((r) => {
                 const Icon = r.icon;
@@ -217,8 +233,8 @@ function EmailThread() {
                 );
               })}
             </div>
-          </section>
-        )}
+          )}
+        </section>
 
         {emails.isLoading ? (
           <p className="text-sm text-muted-foreground">Betöltés…</p>
@@ -243,6 +259,7 @@ function EmailThread() {
                     <AddrList
                       label="Címzett"
                       items={(e.to_emails && e.to_emails.length > 0) ? e.to_emails : (e.to_email ? [e.to_email] : [])}
+                      showEmpty
                     />
                     <AddrList label="Másolat" items={e.cc_emails} />
                     <AddrList label="Titkos" items={e.bcc_emails} />
@@ -251,12 +268,14 @@ function EmailThread() {
                 <div className="px-4 py-4">
                   <EmailBody body={e.body} />
                 </div>
-                {(attByEmail.get(e.id) ?? []).length > 0 && (
-                  <div className="border-t bg-muted/20 px-4 py-3">
-                    <div className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-                      <Paperclip className="h-3.5 w-3.5" />
-                      {(attByEmail.get(e.id) ?? []).length} csatolmány
-                    </div>
+                <div className="border-t bg-muted/20 px-4 py-3">
+                  <div className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                    <Paperclip className="h-3.5 w-3.5" />
+                    {(attByEmail.get(e.id) ?? []).length} csatolmány
+                  </div>
+                  {(attByEmail.get(e.id) ?? []).length === 0 ? (
+                    <div className="text-xs text-muted-foreground">Nincs csatolmány ehhez az üzenethez.</div>
+                  ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {(attByEmail.get(e.id) ?? []).map((a: any) => {
                         const Icon = attachmentIcon(a.mime_type);
@@ -283,8 +302,8 @@ function EmailThread() {
                         );
                       })}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </li>
             ))}
           </ol>
