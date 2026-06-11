@@ -9,7 +9,7 @@ import {
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/components/resource/resource-page";
-import { ACTIVE_PROJECT_STATUSES, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
   component: CustomersIndex,
