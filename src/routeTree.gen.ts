@@ -45,6 +45,7 @@ import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './rou
 import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
+import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
 import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
@@ -250,6 +251,12 @@ const AuthenticatedSettingsAuditRoute =
     path: '/audit',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSalesResearchRoute =
+  AuthenticatedSalesResearchRouteImport.update({
+    id: '/sales/research',
+    path: '/sales/research',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedQuotesIdRoute = AuthenticatedQuotesIdRouteImport.update({
   id: '/quotes/$id',
   path: '/quotes/$id',
@@ -321,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/sales/research': typeof AuthenticatedSalesResearchRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
@@ -366,6 +374,7 @@ export interface FileRoutesByTo {
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/sales/research': typeof AuthenticatedSalesResearchRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
@@ -414,6 +423,7 @@ export interface FileRoutesById {
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/_authenticated/sales/research': typeof AuthenticatedSalesResearchRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
@@ -462,6 +472,7 @@ export interface FileRouteTypes {
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
+    | '/sales/research'
     | '/settings/audit'
     | '/settings/gmail'
     | '/settings/openai'
@@ -507,6 +518,7 @@ export interface FileRouteTypes {
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
+    | '/sales/research'
     | '/settings/audit'
     | '/settings/gmail'
     | '/settings/openai'
@@ -554,6 +566,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leads/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/quotes/$id'
+    | '/_authenticated/sales/research'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/gmail'
     | '/_authenticated/settings/openai'
@@ -849,6 +862,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/sales/research': {
+      id: '/_authenticated/sales/research'
+      path: '/sales/research'
+      fullPath: '/sales/research'
+      preLoaderRoute: typeof AuthenticatedSalesResearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/quotes/$id': {
       id: '/_authenticated/quotes/$id'
       path: '/quotes/$id'
@@ -962,6 +982,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
+  AuthenticatedSalesResearchRoute: typeof AuthenticatedSalesResearchRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -988,6 +1009,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
+  AuthenticatedSalesResearchRoute: AuthenticatedSalesResearchRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
