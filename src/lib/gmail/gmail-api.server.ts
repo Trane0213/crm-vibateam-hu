@@ -318,3 +318,56 @@ export function extractBody(m: GmailMessage): string {
   };
   return find(m.payload, "text/html") ?? find(m.payload, "text/plain") ?? m.snippet ?? "";
 }
+
+/**
+ * Async body extractor — ha a Gmail nem inline-olta a HTML body-t (nagy üzenet),
+ * `body.attachmentId` formaban adja vissza. Ezt itt letöltjük az attachments
+ * API-val, dekódoljuk, és visszaadjuk az EREDETI HTML-t teljes egészében.
+ */
+async function findPartAsync(
+  part: any,
+  mime: string,
+  accessToken: string,
+  messageId: string,
+): Promise<string | null> {
+  if (!part) return null;
+  if (part.mimeType === mime) {
+    if (part.body?.data) return decodeBase64Url(part.body.data);
+    if (part.body?.attachmentId) {
+      try {
+        const att = await getAttachment(accessToken, messageId, part.body.attachmentId);
+        if (att?.data) return decodeBase64Url(att.data);
+      } catch {
+        return null;
+      }
+    }
+  }
+  if (part.parts) {
+    for (const p of part.parts) {
+      const r = await findPartAsync(p, mime, accessToken, messageId);
+      if (r) return r;
+    }
+  }
+  return null;
+}
+
+export async function extractHtmlBodyAsync(m: GmailMessage, accessToken: string): Promise<string | null> {
+  if (!m.id) return null;
+  return findPartAsync(m.payload, "text/html", accessToken, m.id);
+}
+
+export async function extractTextBodyAsync(m: GmailMessage, accessToken: string): Promise<string | null> {
+  if (!m.id) return null;
+  return findPartAsync(m.payload, "text/plain", accessToken, m.id);
+}
+
+export async function extractBestBodyAsync(
+  m: GmailMessage,
+  accessToken: string,
+): Promise<{ body: string; isHtml: boolean }> {
+  const html = await extractHtmlBodyAsync(m, accessToken);
+  if (html) return { body: html, isHtml: true };
+  const text = await extractTextBodyAsync(m, accessToken);
+  if (text) return { body: text, isHtml: false };
+  return { body: m.snippet ?? "", isHtml: false };
+}
