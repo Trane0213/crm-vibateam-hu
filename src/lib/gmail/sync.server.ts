@@ -139,8 +139,8 @@ export async function syncInbox(
     return inserted.id;
   }
 
-  // Backfillnél időkorlát, hogy egy run ne menjen tovább kb. 4 percnél.
-  const deadline = Date.now() + (opts.backfill ? 4 * 60 * 1000 : 60 * 1000);
+  // Cloudflare Worker / gateway timeout miatt egy run max ~45 mp lehet backfillnél.
+  const deadline = Date.now() + (opts.backfill ? 45 * 1000 : 25 * 1000);
 
   // R2 modul lazy import (csak server).
   const { presignR2Url } = await import("@/lib/r2.server");
