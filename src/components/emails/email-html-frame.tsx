@@ -95,7 +95,7 @@ export function EmailHtmlFrame({
     if (body) body.insertAdjacentHTML("beforeend", resizer);
 
     return "<!doctype html>" + doc.documentElement.outerHTML;
-  }, [html, inlineByCid, showRemoteImages, onHasRemoteImages]);
+  }, [html, inlineByCid, showRemoteImages]);
 
   useEffect(() => {
     function onMsg(ev: MessageEvent) {
