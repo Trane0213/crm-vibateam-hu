@@ -94,7 +94,7 @@ export function EmailBody({ body }: { body: string | null | undefined }) {
   if (isHtml) {
     return (
       <div
-        className="email-html prose prose-sm max-w-none break-words text-sm text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:break-all [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words"
+        className="email-html max-w-none break-words text-sm leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:break-all [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_p]:my-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:my-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     );
