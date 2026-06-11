@@ -76,11 +76,28 @@ function EmailThread() {
     queryKey: ["email_attachments", emailIds.join(",")],
     enabled: emailIds.length > 0,
     queryFn: async () => {
+      // eslint-disable-next-line no-console
+      console.log("[email-detail] attachments query INPUT", {
+        threadId,
+        emailIds,
+        count: emailIds.length,
+      });
       const { data, error } = await supabase
         .from("email_attachments")
         .select("id,email_id,filename,mime_type,size_bytes,r2_key,inline")
         .in("email_id", emailIds);
-      if (error) throw error;
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[email-detail] attachments query ERROR", error);
+        throw error;
+      }
+      // eslint-disable-next-line no-console
+      console.log("[email-detail] attachments query RESULT", {
+        threadId,
+        emailIds,
+        rowCount: (data ?? []).length,
+        rows: data,
+      });
       return data ?? [];
     },
   });
