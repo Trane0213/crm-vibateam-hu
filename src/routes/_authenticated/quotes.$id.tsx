@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Briefcase, BellRing } from "lucide-react";
+import { FileText, Briefcase, BellRing, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/page-header";
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/quotes/$id")({
 function QuoteDetail() {
   const { id } = Route.useParams();
   const projectLabel = useLookup("projects", "title");
+  const companyLabel = useLookup("companies", "name");
   const q = useQuery({
     queryKey: ["quotes", "detail", id],
     queryFn: async () => {
@@ -25,6 +26,19 @@ function QuoteDetail() {
     },
   });
   const followups = useListWhere<any>("followups", "quote_id", id, { order: "due_date", ascending: true });
+  const project = useQuery({
+    queryKey: ["quotes", "detail", id, "project"],
+    enabled: !!q.data?.project_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id,company_id")
+        .eq("id", q.data!.project_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
 
   if (q.isLoading) return <div className="p-6 text-sm text-muted-foreground">Ajánlat betöltése…</div>;
   if (q.error || !q.data) {
@@ -40,6 +54,20 @@ function QuoteDetail() {
           {quote.status && <Badge variant="secondary" className="ml-2">{quote.status}</Badge>}
         </h1>
         <div className="mt-1 text-sm text-muted-foreground">
+          {project.data?.company_id && (
+            <>
+              Ügyfél:{" "}
+              <Link
+                to="/customers/$id"
+                params={{ id: project.data.company_id }}
+                className="text-primary hover:underline"
+              >
+                <Building2 className="mr-1 inline h-3.5 w-3.5" />
+                {companyLabel(project.data.company_id)}
+              </Link>
+              {" · "}
+            </>
+          )}
           Projekt:{" "}
           {quote.project_id ? (
             <Link to="/projects/$id" params={{ id: quote.project_id }} className="text-primary hover:underline">
