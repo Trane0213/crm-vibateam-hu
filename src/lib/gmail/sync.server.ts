@@ -296,14 +296,6 @@ export async function syncInbox(
         } else {
           result.inserted++;
           await saveAttachments(inserted.id, it.id, m);
-          // szál last_message_at + participants frissítés
-          const participants = Array.from(
-            new Set([
-              ...(fromAddr ? [fromAddr.toLowerCase()] : []),
-              ...toList, ...ccList,
-            ]),
-          );
-          await admin.rpc("noop"); // no-op holder removed below
         }
       } catch (e: any) {
         console.error("[gmail/sync] message error", { id: it.id, error: e?.message ?? e });
