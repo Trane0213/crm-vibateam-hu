@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Mail, CheckCircle2, LogOut, RefreshCw } from "lucide-react";
+import { Mail, CheckCircle2, LogOut, RefreshCw, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +27,7 @@ async function fetchStatus() {
 export function GmailConnectCard() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const [busy, setBusy] = useState<null | "connect" | "sync" | "disconnect">(null);
+  const [busy, setBusy] = useState<null | "connect" | "sync" | "backfill" | "disconnect">(null);
 
   const status = useQuery({
     queryKey: ["gmail", "status", user?.id],
@@ -56,14 +56,48 @@ export function GmailConnectCard() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Sync hiba");
       const errs: string[] = j.errors ?? [];
-      toast.success(`Szinkron kész: ${j.inserted} új, ${j.skipped} kihagyva, ${errs.length} hiba`, {
+      toast.success(`Szinkron kész: ${j.inserted} új, ${j.skipped} kihagyva, ${j.attachments ?? 0} csatolmány, ${errs.length} hiba`, {
         description: errs.length ? errs.slice(0, 3).join(" | ") : undefined,
       });
       if (errs.length) console.error("[gmail/sync] errors", errs);
       qc.invalidateQueries({ queryKey: ["gmail"] });
       qc.invalidateQueries({ queryKey: ["resource", "emails"] });
+      qc.invalidateQueries({ queryKey: ["emails"] });
     } catch (e: any) {
       toast.error("Sync", { description: e?.message ?? String(e) });
+    } finally { setBusy(null); }
+  };
+
+  const handleBackfill = async () => {
+    setBusy("backfill");
+    try {
+      // Egy futás ~4 perces ablakot dolgoz fel; ha "done: false", a UI újraindítja.
+      let total = { inserted: 0, skipped: 0, attachments: 0, errors: 0, runs: 0 };
+      let done = false;
+      while (!done) {
+        const r = await authedFetch("/api/gmail/sync", {
+          method: "POST",
+          body: JSON.stringify({ backfill: true, max: 5000 }),
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error ?? "Backfill hiba");
+        total.inserted += j.inserted ?? 0;
+        total.skipped += j.skipped ?? 0;
+        total.attachments += j.attachments ?? 0;
+        total.errors += (j.errors ?? []).length;
+        total.runs++;
+        done = !!j.done;
+        if (!done) toast.message(`Backfill folyamatban — eddig ${total.inserted} új, ${total.attachments} csatolmány…`);
+        // Védő-korlát: max 30 batch (≈ 150k üzenet) egy munkamenetben.
+        if (total.runs >= 30) break;
+      }
+      toast.success(
+        `Teljes szinkron kész: ${total.inserted} új, ${total.skipped} kihagyva, ${total.attachments} csatolmány, ${total.errors} hiba (${total.runs} kör).`,
+      );
+      qc.invalidateQueries({ queryKey: ["gmail"] });
+      qc.invalidateQueries({ queryKey: ["emails"] });
+    } catch (e: any) {
+      toast.error("Backfill", { description: e?.message ?? String(e) });
     } finally { setBusy(null); }
   };
 
@@ -115,6 +149,10 @@ export function GmailConnectCard() {
               <Button onClick={handleSync} disabled={busy !== null}>
                 <RefreshCw className={`mr-1.5 h-4 w-4 ${busy === "sync" ? "animate-spin" : ""}`} />
                 {busy === "sync" ? "Szinkronizálás…" : "Szinkron most"}
+              </Button>
+              <Button variant="outline" onClick={handleBackfill} disabled={busy !== null}>
+                <History className={`mr-1.5 h-4 w-4 ${busy === "backfill" ? "animate-spin" : ""}`} />
+                {busy === "backfill" ? "Teljes előzmény…" : "Teljes előzmény szinkronizálása"}
               </Button>
               <Button variant="outline" onClick={handleDisconnect} disabled={busy !== null}>
                 <LogOut className="mr-1.5 h-4 w-4" />
