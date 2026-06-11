@@ -13,6 +13,7 @@ import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import type { AgentId } from "@/lib/ai/agents";
 import { getToolDefsForAgent, runTool } from "@/lib/ai/tools";
+import { AgentResponse } from "@/components/ai/agent-response";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantPage,
@@ -63,9 +64,9 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
 };
 
 const AGENT_META: Record<AgentId, { name: string; tagline: string; icon: any }> = {
-  crm:   { name: "CRM Agent",   tagline: "Belső céges tudásközpont — keres és összegez.",        icon: Search },
-  sales: { name: "Sales Agent", tagline: "Értékesítési asszisztens — bevétel és pipeline.",     icon: TrendingUp },
-  pm:    { name: "PM Agent",    tagline: "Projektvezető asszisztens — határidők és kockázatok.", icon: Hammer },
+  crm:   { name: "Marven – CRM Navigátor", tagline: "Segít eligibálni a CRM-ben — megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat.", icon: Search },
+  sales: { name: "Eladási Segítő",          tagline: "Az értékesítésben segít — megmondja kit kell ma hívni, mely ajánlatok állnak, mely leadek aktívak.", icon: TrendingUp },
+  pm:    { name: "Projektsegítő",           tagline: "A projektek vezetésében segít — határidők, mai feladatok, veszélyes projektek, hiányzó dokumentumok.", icon: Hammer },
 };
 
 function AiAssistantPage() {
@@ -232,7 +233,7 @@ function AiAssistantPage() {
       </div>
       <div className="border-b bg-background px-6 py-2 text-xs text-muted-foreground">{meta.tagline}</div>
 
-      <div className="grid gap-4 p-6 lg:grid-cols-[260px_1fr] min-h-[calc(100vh-12rem)]">
+      <div className="grid gap-4 p-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] min-h-[calc(100vh-12rem)]">
         {/* Beszélgetés lista */}
         <Card className="h-full">
           <CardContent className="p-2">
@@ -259,10 +260,10 @@ function AiAssistantPage() {
         </Card>
 
         {/* Chat panel */}
-        <Card className="flex h-full flex-col">
+        <Card className="flex h-full flex-col min-w-0">
           <div className="flex-1 min-h-[400px]">
             <ScrollArea className="h-full">
-              <div ref={scrollRef} className="space-y-3 p-4">
+              <div ref={scrollRef} className="mx-auto w-full max-w-[1100px] space-y-4 p-6">
                 {!active || active.messages.length === 0 ? (
                   <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
                 ) : (
@@ -278,7 +279,8 @@ function AiAssistantPage() {
             </ScrollArea>
           </div>
           {/* Composer */}
-          <div className="border-t p-3">
+          <div className="border-t bg-muted/20 p-3">
+            <div className="mx-auto w-full max-w-[1100px]">
             <div className="mb-2 flex flex-wrap gap-1.5">
               {quickActions.map((q) => (
                 <Button key={q.id} size="sm" variant="outline" disabled={busy} onClick={() => ask(q.prompt)}>
@@ -303,6 +305,7 @@ function AiAssistantPage() {
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>
+            </div>
           </div>
         </Card>
       </div>
@@ -312,18 +315,21 @@ function AiAssistantPage() {
 
 function Bubble({ msg }: { msg: Msg }) {
   const isUser = msg.role === "user";
-  return (
-    <div className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
-      {!isUser && (
-        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Bot className="h-3.5 w-3.5" />
+  if (!isUser) {
+    return (
+      <div className="flex gap-3">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Bot className="h-4 w-4" />
         </div>
-      )}
-      <div
-        className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed ${
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted"
-        }`}
-      >
+        <div className="min-w-0 flex-1">
+          <AgentResponse text={msg.content} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex justify-end gap-2">
+      <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed text-primary-foreground">
         {msg.content}
       </div>
     </div>

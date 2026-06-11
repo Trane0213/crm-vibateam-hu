@@ -90,10 +90,9 @@ function Dashboard() {
       {/* HERO — FOLLOW-UP FÓKUSZ */}
       <div className="px-6 pt-4">
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Follow-up fókusz · az utánkövetés pénz</div>
-          <Link to="/followups" className="text-xs text-primary hover:underline">Mind →</Link>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">Mai teendők · amit ma muszáj megcsinálni</div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <HeroStat
             to="/followups"
             tone="danger"
@@ -108,15 +107,23 @@ function Dashboard() {
             icon={BellRing}
             label="Ma esedékes"
             value={todayFollowups.data ?? 0}
-            sub="ma kell megcsinálni"
+            sub="follow-up — ma kell"
           />
           <HeroStat
-            to="/followups"
+            to="/tasks"
+            tone="danger"
+            icon={AlertTriangle}
+            label="Lejárt feladat"
+            value={overdueTasks.data ?? 0}
+            sub="határidőn túl"
+          />
+          <HeroStat
+            to="/tasks"
             tone="info"
-            icon={CalendarClock}
-            label="Holnapi"
-            value={tomorrowFollowups.data ?? 0}
-            sub="előre tervezhető"
+            icon={ListChecks}
+            label="Ma esedékes feladat"
+            value={todayTasks.data ?? 0}
+            sub="mai határidős"
           />
         </div>
       </div>
