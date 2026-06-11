@@ -17,6 +17,7 @@ import {
   Search,
   TrendingUp,
   Hammer,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -60,6 +61,7 @@ const projects: Item[] = [
 ];
 
 const contacts: Item[] = [
+  { title: "Ügyfelek", url: "/customers", icon: Users, highlight: true },
   { title: "Cégek", url: "/companies", icon: Building2 },
   { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
 ];

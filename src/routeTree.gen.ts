@@ -29,6 +29,7 @@ import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
 import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
+import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
@@ -156,6 +157,12 @@ const AuthenticatedEmailsIndexRoute =
   AuthenticatedEmailsIndexRouteImport.update({
     id: '/emails/',
     path: '/emails/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCustomersIndexRoute =
+  AuthenticatedCustomersIndexRouteImport.update({
+    id: '/customers/',
+    path: '/customers/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedContactsIndexRoute =
@@ -329,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/customers/': typeof AuthenticatedCustomersIndexRoute
   '/emails/': typeof AuthenticatedEmailsIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
@@ -373,6 +381,7 @@ export interface FileRoutesByTo {
   '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/customers': typeof AuthenticatedCustomersIndexRoute
   '/emails': typeof AuthenticatedEmailsIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
@@ -420,6 +429,7 @@ export interface FileRoutesById {
   '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
   '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/api/gmail/sync'
     | '/companies/'
     | '/contacts/'
+    | '/customers/'
     | '/emails/'
     | '/leads/'
     | '/projects/'
@@ -511,6 +522,7 @@ export interface FileRouteTypes {
     | '/api/gmail/sync'
     | '/companies'
     | '/contacts'
+    | '/customers'
     | '/emails'
     | '/leads'
     | '/projects'
@@ -557,6 +569,7 @@ export interface FileRouteTypes {
     | '/api/gmail/sync'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/customers/'
     | '/_authenticated/emails/'
     | '/_authenticated/leads/'
     | '/_authenticated/projects/'
@@ -722,6 +735,13 @@ declare module '@tanstack/react-router' {
       path: '/emails'
       fullPath: '/emails/'
       preLoaderRoute: typeof AuthenticatedEmailsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customers/': {
+      id: '/_authenticated/customers/'
+      path: '/customers'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/': {
@@ -944,6 +964,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
   AuthenticatedEmailsIndexRoute: typeof AuthenticatedEmailsIndexRoute
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
@@ -969,6 +990,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
   AuthenticatedEmailsIndexRoute: AuthenticatedEmailsIndexRoute,
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,

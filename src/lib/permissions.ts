@@ -35,6 +35,7 @@ export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/tasks", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/companies", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/contacts", roles: ["owner", "project_manager", "sales", "marketing"] },
+  { prefix: "/customers", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/emails", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/calls", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/meetings", roles: ["owner", "project_manager", "sales"] },
