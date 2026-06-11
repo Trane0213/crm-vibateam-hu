@@ -315,18 +315,21 @@ function AiAssistantPage() {
 
 function Bubble({ msg }: { msg: Msg }) {
   const isUser = msg.role === "user";
-  return (
-    <div className={`flex gap-2 ${isUser ? "justify-end" : "justify-start"}`}>
-      {!isUser && (
-        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Bot className="h-3.5 w-3.5" />
+  if (!isUser) {
+    return (
+      <div className="flex gap-3">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Bot className="h-4 w-4" />
         </div>
-      )}
-      <div
-        className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed ${
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted"
-        }`}
-      >
+        <div className="min-w-0 flex-1">
+          <AgentResponse text={msg.content} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex justify-end gap-2">
+      <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed text-primary-foreground">
         {msg.content}
       </div>
     </div>
