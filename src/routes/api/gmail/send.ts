@@ -27,21 +27,35 @@ export const Route = createFileRoute("/api/gmail/send")({
           });
           const sent = await sendMessage(accessToken, raw, body.threadId);
           const admin = getAdminClient();
+          // email_threads upsert gmail_thread_id alapján
+          let threadDbId: string;
+          const { data: foundThread } = await admin
+            .from("email_threads")
+            .select("id")
+            .eq("gmail_thread_id", sent.threadId)
+            .maybeSingle();
+          if (foundThread?.id) {
+            threadDbId = foundThread.id;
+          } else {
+            const { data: ins, error: insErr } = await admin
+              .from("email_threads")
+              .insert({
+                gmail_thread_id: sent.threadId,
+                subject: body.subject,
+                project_id: body.project_id ?? null,
+              })
+              .select("id")
+              .single();
+            if (insErr || !ins) throw new Error(`email_threads insert: ${insErr?.message ?? "unknown"}`);
+            threadDbId = ins.id;
+          }
           await admin.from("emails").insert({
             gmail_message_id: sent.id,
-            gmail_thread_id: sent.threadId,
-            thread_id: sent.threadId,
-            gmail_label_ids: sent.labelIds ?? [],
-            direction: "out",
-            subject: body.subject,
-            summary: body.body?.slice(0, 200) ?? null,
-            body: body.body ?? null,
+            thread_id: threadDbId,
             from_email: email,
             to_email: body.to,
-            sent_at: new Date().toISOString(),
-            owner_user_id: userId,
-            project_id: body.project_id ?? null,
-            contact_id: body.contact_id ?? null,
+            body: body.body ?? null,
+            summary: body.body?.slice(0, 200) ?? null,
           });
           return Response.json({ ok: true, id: sent.id, threadId: sent.threadId });
         } catch (e: any) {
