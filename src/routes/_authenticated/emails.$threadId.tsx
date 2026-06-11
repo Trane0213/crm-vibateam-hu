@@ -146,6 +146,17 @@ function EmailThread() {
       project_id: projectId,
       thread: thread.data,
     });
+    for (const e of (emails.data ?? [])) {
+      // eslint-disable-next-line no-console
+      console.log("[email-detail] message", e.id, {
+        to_email: e.to_email,
+        to_emails: e.to_emails,
+        cc_emails: e.cc_emails,
+        bcc_emails: e.bcc_emails,
+        from_email: e.from_email,
+        project_id: e.project_id,
+      });
+    }
   }, [threadId, emails.data, attachments.data, companyId, contactId, leadId, projectId, thread.data]);
 
   const handleDownload = async (key: string, filename: string) => {
