@@ -7,7 +7,7 @@ import {
   listMessages,
   getMessage,
   headerOf,
-  extractBody,
+  extractBestBodyAsync,
   listAttachmentParts,
   getAttachment,
   parseAddressList,
@@ -218,6 +218,22 @@ export async function syncInbox(
         try {
           const m = await getMessage(accessToken, it.id, "full");
           await saveAttachments(knownId, it.id, m);
+          // body backfill: ha a tárolt body nem HTML, próbáljuk lecserélni az eredeti HTML-re
+          try {
+            const { data: existingRow } = await admin
+              .from("emails")
+              .select("body")
+              .eq("id", knownId)
+              .maybeSingle();
+            const cur = String((existingRow as any)?.body ?? "");
+            const looksHtml = /<\s*(html|body|div|table|p|a|img|h[1-6]|td|tr|span|font|style|head)\b/i.test(cur.slice(0, 2000));
+            if (!looksHtml) {
+              const { body: freshBody, isHtml } = await extractBestBodyAsync(m, accessToken);
+              if (isHtml && freshBody && freshBody !== cur) {
+                await admin.from("emails").update({ body: freshBody }).eq("id", knownId);
+              }
+            }
+          } catch {}
           // szál hozzáférés biztosítása a futó user-re (idempotens)
           if (m.threadId) {
             const { data: tr } = await admin
@@ -244,7 +260,7 @@ export async function syncInbox(
         const bccRaw = headerOf(m, "Bcc");
         const subjectHdr = headerOf(m, "Subject");
         const subject = subjectHdr && subjectHdr.trim().length > 0 ? subjectHdr : null;
-        const body = extractBody(m);
+        const { body } = await extractBestBodyAsync(m, accessToken);
         const toList = parseAddressList(toRaw);
         const ccList = parseAddressList(ccRaw);
         const bccList = parseAddressList(bccRaw);

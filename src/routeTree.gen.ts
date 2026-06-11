@@ -34,6 +34,7 @@ import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authe
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
 import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
+import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
 import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
@@ -183,6 +184,11 @@ const ApiGmailSendRoute = ApiGmailSendRouteImport.update({
   path: '/api/gmail/send',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGmailRefreshBodyRoute = ApiGmailRefreshBodyRouteImport.update({
+  id: '/api/gmail/refresh-body',
+  path: '/api/gmail/refresh-body',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGmailDisconnectRoute = ApiGmailDisconnectRouteImport.update({
   id: '/api/gmail/disconnect',
   path: '/api/gmail/disconnect',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
+  '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
@@ -351,6 +358,7 @@ export interface FileRoutesByTo {
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
+  '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
+  '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/settings/storage'
     | '/settings/users'
     | '/api/gmail/disconnect'
+    | '/api/gmail/refresh-body'
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
     | '/settings/storage'
     | '/settings/users'
     | '/api/gmail/disconnect'
+    | '/api/gmail/refresh-body'
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
     | '/api/gmail/disconnect'
+    | '/api/gmail/refresh-body'
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
@@ -549,6 +561,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiR2UploadRoute: typeof ApiR2UploadRoute
   ApiGmailDisconnectRoute: typeof ApiGmailDisconnectRoute
+  ApiGmailRefreshBodyRoute: typeof ApiGmailRefreshBodyRoute
   ApiGmailSendRoute: typeof ApiGmailSendRoute
   ApiGmailStatusRoute: typeof ApiGmailStatusRoute
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
@@ -731,6 +744,13 @@ declare module '@tanstack/react-router' {
       path: '/api/gmail/send'
       fullPath: '/api/gmail/send'
       preLoaderRoute: typeof ApiGmailSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gmail/refresh-body': {
+      id: '/api/gmail/refresh-body'
+      path: '/api/gmail/refresh-body'
+      fullPath: '/api/gmail/refresh-body'
+      preLoaderRoute: typeof ApiGmailRefreshBodyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/gmail/disconnect': {
@@ -944,6 +964,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   ApiR2UploadRoute: ApiR2UploadRoute,
   ApiGmailDisconnectRoute: ApiGmailDisconnectRoute,
+  ApiGmailRefreshBodyRoute: ApiGmailRefreshBodyRoute,
   ApiGmailSendRoute: ApiGmailSendRoute,
   ApiGmailStatusRoute: ApiGmailStatusRoute,
   ApiGmailSyncRoute: ApiGmailSyncRoute,
