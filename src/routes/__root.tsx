@@ -81,11 +81,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "VIBA CRM — Belső vállalatirányítás" },
       { name: "description", content: "VIBA-TEAM Kft belső CRM és ajánlatkövető rendszer." },
       { name: "author", content: "VIBA-TEAM Kft" },
-      { property: "og:title", content: "VIBA CRM" },
-      { property: "og:description", content: "Belső CRM és ajánlatkövető rendszer." },
+      { property: "og:title", content: "VIBA CRM — Belső vállalatirányítás" },
+      { property: "og:description", content: "VIBA-TEAM Kft belső CRM és ajánlatkövető rendszer." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "VIBA CRM — Belső vállalatirányítás" },
+      { name: "twitter:description", content: "VIBA-TEAM Kft belső CRM és ajánlatkövető rendszer." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2e3c78f3-0e5b-4843-86d2-c39822c34941/id-preview-4ad65ec7--c28aaa72-1357-49f9-a9b5-5ba88a13e08f.lovable.app-1781165376436.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/2e3c78f3-0e5b-4843-86d2-c39822c34941/id-preview-4ad65ec7--c28aaa72-1357-49f9-a9b5-5ba88a13e08f.lovable.app-1781165376436.png" },
     ],
     links: [
       {
