@@ -110,7 +110,7 @@ function EmailThread() {
     enabled: !!(companyId || contactId || leadId || projectId),
     queryFn: async () => {
       const out: { company?: any; contact?: any; lead?: any; project?: any } = {};
-      const tasks: Promise<any>[] = [];
+      const tasks: Array<PromiseLike<any>> = [];
       if (companyId)
         tasks.push(
           supabase.from("companies").select("id,name").eq("id", companyId).maybeSingle()
