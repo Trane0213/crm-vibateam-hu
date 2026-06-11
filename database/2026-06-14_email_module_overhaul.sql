@@ -54,14 +54,7 @@ CREATE INDEX IF NOT EXISTS idx_email_thread_access_mailbox ON public.email_threa
 GRANT SELECT ON public.email_thread_access TO authenticated;
 GRANT ALL    ON public.email_thread_access TO service_role;
 
-ALTER TABLE public.email_thread_access ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "eta_select_self" ON public.email_thread_access;
-CREATE POLICY "eta_select_self"
-  ON public.email_thread_access FOR SELECT TO authenticated
-  USING (user_id = auth.uid() OR public.is_email_admin(auth.uid()));
-
--- 4) Jogosultság helper függvények ---------------------------
+-- 4) Jogosultság helper függvények (a policy-k előtt kell létezniük) -
 CREATE OR REPLACE FUNCTION public.is_email_admin(_user_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
@@ -85,6 +78,12 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.is_email_admin(uuid)          TO authenticated;
 GRANT EXECUTE ON FUNCTION public.can_access_email_thread(uuid,uuid) TO authenticated;
+
+ALTER TABLE public.email_thread_access ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "eta_select_self" ON public.email_thread_access;
+CREATE POLICY "eta_select_self"
+  ON public.email_thread_access FOR SELECT TO authenticated
+  USING (user_id = auth.uid() OR public.is_email_admin(auth.uid()));
 
 -- 5) RLS frissítés – per-user szigorítás ---------------------
 ALTER TABLE public.emails        ENABLE ROW LEVEL SECURITY;
