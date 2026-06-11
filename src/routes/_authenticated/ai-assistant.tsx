@@ -13,6 +13,7 @@ import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import type { AgentId } from "@/lib/ai/agents";
 import { getToolDefsForAgent, runTool } from "@/lib/ai/tools";
+import { AgentResponse } from "@/components/ai/agent-response";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantPage,
@@ -63,9 +64,9 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
 };
 
 const AGENT_META: Record<AgentId, { name: string; tagline: string; icon: any }> = {
-  crm:   { name: "CRM Agent",   tagline: "Belső céges tudásközpont — keres és összegez.",        icon: Search },
-  sales: { name: "Sales Agent", tagline: "Értékesítési asszisztens — bevétel és pipeline.",     icon: TrendingUp },
-  pm:    { name: "PM Agent",    tagline: "Projektvezető asszisztens — határidők és kockázatok.", icon: Hammer },
+  crm:   { name: "Marven – CRM Navigátor", tagline: "Segít eligibálni a CRM-ben — megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat.", icon: Search },
+  sales: { name: "Eladási Segítő",          tagline: "Az értékesítésben segít — megmondja kit kell ma hívni, mely ajánlatok állnak, mely leadek aktívak.", icon: TrendingUp },
+  pm:    { name: "Projektsegítő",           tagline: "A projektek vezetésében segít — határidők, mai feladatok, veszélyes projektek, hiányzó dokumentumok.", icon: Hammer },
 };
 
 function AiAssistantPage() {
