@@ -231,6 +231,392 @@ async function email_thread_read({ thread_id }: { thread_id: string }) {
 }
 
 // ============================================================
+// NAVIGÁCIÓ + KERESÉS (Sprint 3 / Fázis A)
+// ============================================================
+
+/** Egyszerű fuzzy score: substring match + szóhatáron jobb. */
+function fuzzyScore(needle: string, hay: string): number {
+  const n = needle.trim().toLowerCase();
+  const h = (hay ?? "").toLowerCase();
+  if (!n || !h) return 0;
+  if (h === n) return 1;
+  if (h.startsWith(n)) return 0.9;
+  const idx = h.indexOf(n);
+  if (idx >= 0) {
+    const wordBoundary = idx === 0 || /\s/.test(h[idx - 1]);
+    return wordBoundary ? 0.8 : 0.6;
+  }
+  // szavanként
+  const tokens = n.split(/\s+/);
+  let hits = 0;
+  for (const t of tokens) if (t && h.includes(t)) hits++;
+  return tokens.length ? (hits / tokens.length) * 0.5 : 0;
+}
+
+type EntityKind = "customer" | "company" | "project" | "quote" | "lead" | "contact";
+
+async function find_entity({ entity_type, query }: { entity_type: EntityKind; query: string }) {
+  if (!entity_type || !query?.trim()) return { error: "entity_type és query kötelező" };
+  const q = query.trim();
+
+  // Customer = companies (Sprint 2 döntés szerint).
+  const table = entity_type === "customer" ? "companies" : entity_type === "company" ? "companies" : `${entity_type}s`;
+  const { data, error } = await supabase.from(table as any).select("*").limit(500);
+  if (error) return { error: error.message };
+  const rows = (data as Row[]) ?? [];
+
+  // Mező-választás entitás szerint
+  const nameOf = (r: Row): string => {
+    switch (entity_type) {
+      case "customer":
+      case "company": return r.name ?? "";
+      case "project": return r.title ?? r.name ?? "";
+      case "quote":   return [r.title, r.version != null ? `v${r.version}` : ""].filter(Boolean).join(" ");
+      case "lead":    return r.summary ?? r.name ?? r.source ?? "";
+      case "contact": return r.name ?? r.full_name ?? r.email ?? "";
+    }
+  };
+  const routeOf = (id: string): { to: string; params?: Record<string, string> } => {
+    switch (entity_type) {
+      case "customer":
+      case "company": return { to: "/customers/$id", params: { id } };
+      case "project": return { to: "/projects/$id", params: { id } };
+      case "quote":   return { to: "/quotes/$id", params: { id } };
+      case "lead":    return { to: "/leads/$id", params: { id } };
+      case "contact": return { to: "/contacts/$id", params: { id } };
+    }
+  };
+
+  const scored = rows
+    .map((r) => ({ id: r.id, label: nameOf(r), score: fuzzyScore(q, nameOf(r)), row: r }))
+    .filter((x) => x.score > 0.35)
+    .sort((a, b) => b.score - a.score);
+
+  const top = scored.slice(0, 8).map((x) => ({ id: x.id, label: x.label, score: Number(x.score.toFixed(2)), ...routeOf(x.id) }));
+
+  // Egyértelmű találat: csak akkor auto-navigate, ha a legjobb >= 0.8 és érdemben jobb a másodiknál (>= 0.2 különbség), vagy egyetlen találat van
+  const best = scored[0];
+  const second = scored[1];
+  const isUnique =
+    best && (scored.length === 1 || (best.score >= 0.8 && (!second || best.score - second.score >= 0.2)));
+
+  if (isUnique) {
+    const route = routeOf(best.id);
+    return {
+      __navigate: { to: route.to, params: route.params, label: best.label },
+      summary: `Megnyitottam: ${best.label}`,
+      match: { id: best.id, label: best.label, score: Number(best.score.toFixed(2)) },
+    };
+  }
+  return {
+    matches: top,
+    summary: top.length
+      ? `Több találat van „${q}" keresésre. Kérlek, válaszd ki a megfelelőt a listából.`
+      : `Nincs találat „${q}" keresésre a(z) ${entity_type} körben.`,
+  };
+}
+
+async function open_route({ route, label }: { route: string; label?: string }) {
+  // Statikus listák — engedélyezett route-ok (whitelist).
+  const ALLOWED = new Set([
+    "/dashboard",
+    "/customers", "/companies", "/contacts",
+    "/leads", "/projects", "/quotes",
+    "/followups", "/tasks", "/meetings", "/calls",
+    "/emails", "/documents",
+    "/ai-assistant",
+  ]);
+  if (!route || !ALLOWED.has(route)) return { error: `Nem engedélyezett route: ${route}` };
+  return {
+    __navigate: { to: route, label: label ?? route },
+    summary: `Megnyitottam: ${label ?? route}`,
+  };
+}
+
+// ============================================================
+// NAPI HÍVÁSLISTA — pontozó algoritmus
+// ============================================================
+
+async function daily_call_list(_args: Record<string, never> = {}) {
+  const [followups, quotes, leads, kpiRes, companies] = await Promise.all([
+    fetchAll("followups", { limit: 500 }),
+    fetchAll("quotes", { limit: 500 }),
+    fetchAll("leads", { limit: 200 }),
+    supabase.from("customer_kpi_v" as any).select("*").limit(1000),
+    fetchAll("companies", { limit: 500 }),
+  ]);
+  const now = new Date();
+  const kpi: Row[] = (kpiRes.data as Row[]) ?? [];
+  const kpiById = new Map(kpi.map((k) => [k.customer_id ?? k.id, k]));
+  const compById = new Map(companies.map((c) => [c.id, c]));
+
+  type Reason = { kind: string; weight: number; detail: string };
+  type ScoreRow = { customer_id: string; name: string; score: number; reasons: Reason[] };
+  const scores = new Map<string, ScoreRow>();
+
+  const bump = (customer_id: string, reason: Reason) => {
+    if (!customer_id) return;
+    const name = (compById.get(customer_id) as Row | undefined)?.name ?? "Ismeretlen ügyfél";
+    const cur: ScoreRow = scores.get(customer_id) ?? { customer_id, name, score: 0, reasons: [] };
+    cur.score += reason.weight;
+    cur.reasons.push(reason);
+    scores.set(customer_id, cur);
+  };
+
+  // Lejárt follow-upok → súly 30 + napok
+  for (const f of followups) {
+    if (f.completed || !f.due_date) continue;
+    const due = new Date(f.due_date);
+    if (due >= now) continue;
+    const days = daysBetween(now, due);
+    const cid = f.company_id;
+    if (!cid) continue;
+    bump(cid, { kind: "overdue_followup", weight: 30 + Math.min(days, 30), detail: `${days} napja lejárt follow-up` });
+  }
+
+  // Nyitott ajánlatok → súly 15 + ajánlat kora (max 30 nap)
+  const openStatus = (s: any) => !["won", "lost", "accepted", "rejected", "cancelled"].includes(String(s));
+  for (const q of quotes) {
+    if (!openStatus(q.status)) continue;
+    const ref = q.updated_at ?? q.created_at;
+    if (!ref) continue;
+    const age = Math.min(daysBetween(now, new Date(ref)), 30);
+    // Project → company
+    // (gyors keresés project táblából költséges — quote-on már szokott lenni company_id ha létezik)
+    const cid = q.company_id;
+    if (!cid) continue;
+    bump(cid, { kind: "open_quote", weight: 15 + age, detail: `nyitott ajánlat (${age} napos)` });
+  }
+
+  // KPI: lejárt follow-up + nyitott ajánlat overdue ügyfeleknek (fallback)
+  for (const k of kpi) {
+    const cid = k.customer_id ?? k.id;
+    if (!cid) continue;
+    const overdue = Number(k.overdue_followups ?? 0);
+    if (overdue > 0 && !scores.has(cid)) {
+      bump(cid, { kind: "overdue_followup_kpi", weight: 25, detail: `${overdue} lejárt follow-up (KPI)` });
+    }
+    const open = Number(k.open_quotes ?? 0);
+    if (open > 0 && !scores.has(cid)) {
+      bump(cid, { kind: "open_quotes_kpi", weight: 10 + open * 2, detail: `${open} nyitott ajánlat` });
+    }
+    const last = k.last_activity_at ? new Date(k.last_activity_at) : null;
+    if (last) {
+      const idle = daysBetween(now, last);
+      if (idle > 30) bump(cid, { kind: "stale_activity", weight: Math.min(idle / 5, 20), detail: `${idle} napja nem volt aktivitás` });
+    }
+  }
+
+  // Új leadek → 12 pont, ha 7 napon belüliek
+  for (const l of leads) {
+    if (!l.company_id || !l.created_at) continue;
+    const age = daysBetween(now, new Date(l.created_at));
+    if (age <= 7 && !["lost", "converted"].includes(String(l.status))) {
+      bump(l.company_id, { kind: "fresh_lead", weight: 12, detail: `friss lead (${age} napos)` });
+    }
+  }
+
+  const list = Array.from(scores.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+    .map((s) => ({
+      customer_id: s.customer_id,
+      name: s.name,
+      score: Math.round(s.score),
+      reasons: s.reasons.map((r) => r.detail),
+      route: { to: "/customers/$id", params: { id: s.customer_id } },
+    }));
+
+  return {
+    generated_at: now.toISOString(),
+    total: list.length,
+    call_list: list,
+    note: "Pontozás: lejárt follow-up (30+), nyitott ajánlat (15+kor), inaktivitás (max 20), friss lead (12).",
+  };
+}
+
+// ============================================================
+// FOLLOW-UP ASSZISZTENS — nyitott ajánlatokra javaslat
+// ============================================================
+
+async function quote_followup_assistant(_args: Record<string, never> = {}) {
+  const [quotes, followups, companies, activityRes] = await Promise.all([
+    fetchAll("quotes", { limit: 200 }),
+    fetchAll("followups", { limit: 500 }),
+    fetchAll("companies", { limit: 500 }),
+    supabase.from("customer_activity_v" as any).select("customer_id, occurred_at, kind").order("occurred_at", { ascending: false }).limit(2000),
+  ]);
+  const now = new Date();
+  const compById = new Map(companies.map((c) => [c.id, c]));
+  const activities: Row[] = (activityRes.data as Row[]) ?? [];
+  const lastActivityByCustomer = new Map<string, Date>();
+  for (const a of activities) {
+    const cid = a.customer_id;
+    if (!cid || !a.occurred_at) continue;
+    if (!lastActivityByCustomer.has(cid)) lastActivityByCustomer.set(cid, new Date(a.occurred_at));
+  }
+
+  const openStatus = (s: any) => !["won", "lost", "accepted", "rejected", "cancelled"].includes(String(s));
+  const open = quotes.filter((q) => openStatus(q.status));
+
+  const items = open.map((q) => {
+    const sentRef = q.created_at ? new Date(q.created_at) : null;
+    const daysSinceSent = sentRef ? daysBetween(now, sentRef) : null;
+    const cid = q.company_id;
+    const last = cid ? lastActivityByCustomer.get(cid) : null;
+    const daysSinceLast = last ? daysBetween(now, last) : null;
+
+    // Van-e válasz / aktivitás az ajánlat után?
+    const hadReplyAfterQuote = sentRef && last ? last > sentRef : false;
+
+    // Van-e már nyitott follow-up erre az ajánlatra?
+    const hasOpenFollowup = followups.some(
+      (f) => !f.completed && f.quote_id === q.id,
+    );
+
+    // Javaslat típus
+    let suggestion: "call" | "email" | "task" | "wait" = "wait";
+    let reason = "—";
+    if (hasOpenFollowup) {
+      suggestion = "wait";
+      reason = "Már van nyitott follow-up erre az ajánlatra.";
+    } else if (daysSinceSent != null && daysSinceSent >= 14 && !hadReplyAfterQuote) {
+      suggestion = "call";
+      reason = `${daysSinceSent} napja küldve, nem érkezett válasz → telefonhívás javasolt.`;
+    } else if (daysSinceSent != null && daysSinceSent >= 7 && !hadReplyAfterQuote) {
+      suggestion = "email";
+      reason = `${daysSinceSent} napja küldve → udvarias emlékeztető e-mail.`;
+    } else if (daysSinceSent != null && daysSinceSent >= 3) {
+      suggestion = "task";
+      reason = `${daysSinceSent} napja küldve → emlékeztető feladat ${Math.max(1, 7 - daysSinceSent)} nap múlvára.`;
+    } else {
+      suggestion = "wait";
+      reason = "Friss ajánlat — még várjunk a megrendelő válaszára.";
+    }
+
+    return {
+      quote_id: q.id,
+      title: q.title ?? `Ajánlat #${String(q.id).slice(0, 6)}`,
+      version: q.version,
+      total_amount: q.total_amount,
+      status: q.status,
+      company_id: cid,
+      company_name: cid ? compById.get(cid)?.name ?? null : null,
+      days_since_sent: daysSinceSent,
+      days_since_last_activity: daysSinceLast,
+      had_reply_after_quote: hadReplyAfterQuote,
+      has_open_followup: hasOpenFollowup,
+      suggestion,
+      reason,
+    };
+  });
+
+  // Rangsor: legrégebbi, válasz nélküli ajánlat felülre
+  items.sort((a, b) => (b.days_since_sent ?? 0) - (a.days_since_sent ?? 0));
+
+  return {
+    generated_at: now.toISOString(),
+    open_quotes: items.length,
+    items: items.slice(0, 15),
+  };
+}
+
+// ============================================================
+// OPERÁTOR PROPOSAL TOOLOK — NEM hajtják végre, csak javasolnak
+// ============================================================
+
+function nowPlus(hoursOrIso: string | number): string {
+  if (typeof hoursOrIso === "string") return new Date(hoursOrIso).toISOString();
+  return new Date(Date.now() + hoursOrIso * 3600_000).toISOString();
+}
+
+async function propose_create_followup(args: {
+  due_date?: string;
+  followup_type?: "call" | "email" | "meeting" | "other";
+  result?: string;
+  project_id?: string;
+  contact_id?: string;
+  company_id?: string;
+  quote_id?: string;
+}) {
+  if (!args.due_date) return { error: "due_date kötelező (ISO formátum vagy 'YYYY-MM-DD HH:mm')." };
+  const proposal = {
+    kind: "create_followup" as const,
+    due_date: nowPlus(args.due_date),
+    followup_type: args.followup_type ?? "call",
+    result: args.result ?? null,
+    project_id: args.project_id ?? null,
+    contact_id: args.contact_id ?? null,
+    company_id: args.company_id ?? null,
+    quote_id: args.quote_id ?? null,
+  };
+  return { __proposal: proposal, summary: "Készítettem egy follow-up javaslatot. Kérlek hagyd jóvá a felületen." };
+}
+
+async function propose_create_task(args: {
+  title?: string;
+  description?: string;
+  project_id?: string;
+  due_date?: string;
+  priority?: string;
+  status?: string;
+}) {
+  if (!args.title?.trim()) return { error: "title kötelező." };
+  const proposal = {
+    kind: "create_task" as const,
+    title: args.title.trim(),
+    description: args.description ?? null,
+    project_id: args.project_id ?? null,
+    due_date: args.due_date ? nowPlus(args.due_date) : null,
+    status: args.status ?? "todo",
+    priority: args.priority ?? "normal",
+  };
+  return { __proposal: proposal, summary: "Készítettem egy feladat javaslatot. Kérlek hagyd jóvá a felületen." };
+}
+
+async function propose_create_contact(args: {
+  name?: string;
+  email?: string;
+  phone?: string;
+  company_id?: string;
+  role?: string;
+  notes?: string;
+}) {
+  if (!args.name?.trim()) return { error: "name kötelező." };
+  const proposal = {
+    kind: "create_contact" as const,
+    name: args.name.trim(),
+    email: args.email ?? null,
+    phone: args.phone ?? null,
+    company_id: args.company_id ?? null,
+    role: args.role ?? null,
+    notes: args.notes ?? null,
+  };
+  return { __proposal: proposal, summary: "Készítettem egy kapcsolattartó javaslatot. Kérlek hagyd jóvá." };
+}
+
+async function propose_create_lead(args: {
+  summary?: string;
+  source?: string;
+  project_type?: string;
+  status?: string;
+  company_id?: string;
+  contact_id?: string;
+}) {
+  if (!args.summary?.trim()) return { error: "summary kötelező." };
+  const proposal = {
+    kind: "create_lead" as const,
+    summary: args.summary.trim(),
+    source: args.source ?? null,
+    project_type: args.project_type ?? null,
+    status: args.status ?? "new",
+    company_id: args.company_id ?? null,
+    contact_id: args.contact_id ?? null,
+  };
+  return { __proposal: proposal, summary: "Készítettem egy lead javaslatot. Kérlek hagyd jóvá." };
+}
+
+// ============================================================
 // PICK HELPERS — token-takarékos kimenet
 // ============================================================
 const pickProject = (r: Row) => ({ id: r.id, title: r.title ?? r.name, status: r.status, address: r.address, company_id: r.company_id, deadline: r.deadline, created_at: r.created_at });
@@ -292,12 +678,53 @@ const TOOLS: Record<string, ToolEntry> = {
     def: { type: "function", function: { name: "email_thread_read", description: "Egy email szál összes üzenete időrendben (subject, feladó, címzett, body). CSAK OLVAS.", parameters: { type: "object", properties: { thread_id: { type: "string", description: "thread_id a CRM emails táblából (vagy Gmail threadId)." } }, required: ["thread_id"] } } },
     run: email_thread_read,
   },
+  // NAVIGÁCIÓ
+  find_entity: {
+    def: { type: "function", function: { name: "find_entity", description: "Megkeres egy entitást név/cím alapján és (ha egyértelmű találat van) MEGNYITJA a megfelelő CRM oldalt. Használd, ha a user azt mondja 'nyisd meg X-et', 'mutasd Y-t', vagy 'keresd meg Z-t'.", parameters: { type: "object", properties: { entity_type: { type: "string", enum: ["customer", "company", "project", "quote", "lead", "contact"], description: "Milyen entitást keresünk. 'customer' és 'company' ugyanaz (companies tábla)." }, query: { type: "string", description: "Szabad szöveges keresés (cég név, projekt cím, lead összefoglaló stb.)." } }, required: ["entity_type", "query"] } } },
+    run: find_entity,
+  },
+  open_route: {
+    def: { type: "function", function: { name: "open_route", description: "Megnyit egy listanézetet a CRM-ben (pl. /followups, /quotes, /leads). Használd, ha a user általános listát kér (pl. 'mutasd a lejárt follow-upokat' → /followups).", parameters: { type: "object", properties: { route: { type: "string", enum: ["/dashboard", "/customers", "/companies", "/contacts", "/leads", "/projects", "/quotes", "/followups", "/tasks", "/meetings", "/calls", "/emails", "/documents", "/ai-assistant"] }, label: { type: "string", description: "Felhasználónak megjelenő rövid címke" } }, required: ["route"] } } },
+    run: open_route,
+  },
+  // SALES — napi munka
+  daily_call_list: {
+    def: { type: "function", function: { name: "daily_call_list", description: "Prioritás szerint rangsorolt ügyféllista, kit kell ma hívni. Pontozás: lejárt follow-up, nyitott ajánlat, inaktivitás, friss lead.", parameters: { type: "object", properties: {} } } },
+    run: daily_call_list,
+  },
+  quote_followup_assistant: {
+    def: { type: "function", function: { name: "quote_followup_assistant", description: "Nyitott ajánlatokra javasol konkrét follow-up típust (call/email/task/wait) annak alapján, mennyi ideje küldtük és volt-e válasz.", parameters: { type: "object", properties: {} } } },
+    run: quote_followup_assistant,
+  },
+  // SALES — operátor (PROPOSAL, jóváhagyás kell)
+  propose_create_followup: {
+    def: { type: "function", function: { name: "propose_create_followup", description: "Follow-up rekord JAVASLATA. NEM hozza létre — jóváhagyás után a felület inserteli. Esedékesség ISO dátum vagy óraszám (pl. '2026-06-19T09:00' vagy óra-eltolás).", parameters: { type: "object", properties: { due_date: { type: "string", description: "Esedékesség, ISO formátumban (pl. 2026-06-19T09:00:00). KÖTELEZŐ." }, followup_type: { type: "string", enum: ["call", "email", "meeting", "other"] }, result: { type: "string", description: "Megjegyzés / cél" }, project_id: { type: "string" }, contact_id: { type: "string" }, company_id: { type: "string" }, quote_id: { type: "string" } }, required: ["due_date"] } } },
+    run: propose_create_followup,
+  },
+  propose_create_task: {
+    def: { type: "function", function: { name: "propose_create_task", description: "Feladat (task) rekord JAVASLATA. NEM hozza létre — jóváhagyás után az insert történik.", parameters: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, project_id: { type: "string" }, due_date: { type: "string", description: "ISO határidő" }, priority: { type: "string" }, status: { type: "string" } }, required: ["title"] } } },
+    run: propose_create_task,
+  },
+  propose_create_contact: {
+    def: { type: "function", function: { name: "propose_create_contact", description: "Új kapcsolattartó JAVASLATA. Jóváhagyás után jön létre.", parameters: { type: "object", properties: { name: { type: "string" }, email: { type: "string" }, phone: { type: "string" }, company_id: { type: "string" }, role: { type: "string" }, notes: { type: "string" } }, required: ["name"] } } },
+    run: propose_create_contact,
+  },
+  propose_create_lead: {
+    def: { type: "function", function: { name: "propose_create_lead", description: "Új lead JAVASLATA. Jóváhagyás után jön létre.", parameters: { type: "object", properties: { summary: { type: "string" }, source: { type: "string" }, project_type: { type: "string" }, status: { type: "string" }, company_id: { type: "string" }, contact_id: { type: "string" } }, required: ["summary"] } } },
+    run: propose_create_lead,
+  },
 };
 
 export const AGENT_TOOL_NAMES: Record<AgentId, string[]> = {
-  crm:   ["project_summary", "company_summary", "contact_summary", "email_thread_read"],
-  sales: ["create_followup_suggestion", "lead_priority_report", "quote_risk_report", "project_summary", "company_summary", "email_thread_read"],
-  pm:    ["project_risk_report", "deadline_report", "missing_documents_report", "project_summary", "email_thread_read"],
+  crm:   ["find_entity", "open_route", "project_summary", "company_summary", "contact_summary", "email_thread_read"],
+  sales: [
+    "find_entity", "open_route",
+    "daily_call_list", "quote_followup_assistant",
+    "create_followup_suggestion", "lead_priority_report", "quote_risk_report",
+    "propose_create_followup", "propose_create_task", "propose_create_contact", "propose_create_lead",
+    "project_summary", "company_summary", "email_thread_read",
+  ],
+  pm:    ["find_entity", "open_route", "project_risk_report", "deadline_report", "missing_documents_report", "propose_create_task", "project_summary", "email_thread_read"],
 };
 
 export function getToolDefsForAgent(agent: AgentId): AiToolDef[] {
