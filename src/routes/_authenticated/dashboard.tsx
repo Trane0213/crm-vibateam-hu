@@ -21,6 +21,7 @@ import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
+import { PROJECT_STATUS, PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -55,6 +56,7 @@ function Dashboard() {
   const upcomingFollowups = useList<any>("followups", { order: "due_date", ascending: true });
   const upcomingTasks = useList<any>("tasks", { order: "due_date", ascending: true });
   const allLeads = useList<any>("leads");
+  const allProjects = useList<any>("projects");
 
   const fuList = (upcomingFollowups.data ?? [])
     .filter((f: any) => !f.completed && f.due_date)
@@ -68,6 +70,13 @@ function Dashboard() {
     const s = l.status ?? "—";
     leadStatusCounts[s] = (leadStatusCounts[s] ?? 0) + 1;
   }
+
+  const projectStatusCounts: Record<string, number> = {};
+  for (const p of allProjects.data ?? []) {
+    const s = (p.status as string) ?? "uj_megkereses";
+    projectStatusCounts[s] = (projectStatusCounts[s] ?? 0) + 1;
+  }
+  const activeProjectsTotal = ACTIVE_PROJECT_STATUSES.reduce((a, s) => a + (projectStatusCounts[s] ?? 0), 0);
 
   const fuBuckets = summarizeFollowups((upcomingFollowups.data ?? []) as any[]);
   const wonTotal = (wonQuotes.data ?? 0) + (lostQuotes.data ?? 0);
@@ -180,9 +189,30 @@ function Dashboard() {
       {/* PROJEKT */}
       <SectionLabel tone="primary" title="Projekt · kivitelezés" />
       <div className="grid gap-3 px-6 lg:grid-cols-3">
-        <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjects.data ?? "—"} sub="folyamatban" />
+        <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjectsTotal} sub={`${PROJECT_STATUS_LABEL["kivitelezes"]}: ${projectStatusCounts["kivitelezes"] ?? 0}`} />
         <Kpi icon={ListChecks} tone="warning" label="Ma esedékes feladat" value={todayTasks.data ?? "—"} sub="mai határidős" />
         <Kpi icon={BellRing} tone="warning" label="Közelgő follow-up (7 nap)" value={fuBuckets["due-3d"] + fuBuckets["due-7d"]} sub="ezen a héten" />
+      </div>
+
+      {/* PROJEKT STÁTUSZ BONTÁS */}
+      <div className="px-6 pt-4">
+        <SectionLabel title="Projektek státusz szerint" />
+        <Card>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+              {PROJECT_STATUS.map((s) => (
+                <Link
+                  key={s.value}
+                  to="/projects"
+                  className={`rounded-md border px-3 py-2 transition hover:opacity-80 ${PROJECT_STATUS_TONE[s.value] ?? ""}`}
+                >
+                  <div className="text-[10px] uppercase tracking-wider opacity-80">{s.label}</div>
+                  <div className="text-2xl font-semibold tabular-nums">{projectStatusCounts[s.value] ?? 0}</div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="px-6 pb-4">

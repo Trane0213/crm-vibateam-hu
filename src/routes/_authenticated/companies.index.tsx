@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { ResourcePage, fmtDate } from "@/components/resource/resource-page";
+import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
   component: () => (
@@ -18,12 +19,7 @@ export const Route = createFileRoute("/_authenticated/companies/")({
           name: "company_type",
           label: "Típus",
           type: "select",
-          options: [
-            { value: "ugyfel", label: "Ügyfél" },
-            { value: "alvallalkozo", label: "Alvállalkozó" },
-            { value: "beszallito", label: "Beszállító" },
-            { value: "potencialis", label: "Potenciális" },
-          ],
+          options: COMPANY_TYPE.map((c) => ({ value: c.value, label: c.label })),
         },
         { name: "tax_number", label: "Adószám", type: "text" },
         { name: "website", label: "Weboldal", type: "text", placeholder: "https://" },
@@ -31,7 +27,11 @@ export const Route = createFileRoute("/_authenticated/companies/")({
       ]}
       columns={[
         { key: "name", label: "Cégnév", className: "font-medium" },
-        { key: "company_type", label: "Típus" },
+        {
+          key: "company_type",
+          label: "Típus",
+          render: (r) => COMPANY_TYPE_LABEL[r.company_type] ?? r.company_type ?? "—",
+        },
         { key: "tax_number", label: "Adószám" },
         { key: "website", label: "Weboldal" },
         {

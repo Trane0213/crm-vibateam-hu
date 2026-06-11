@@ -6,26 +6,11 @@ import {
   fmtDate,
   useLookup,
 } from "@/components/resource/resource-page";
-
-const PROJECT_STATUS = [
-  { value: "lead", label: "Lead" },
-  { value: "quoting", label: "Ajánlat alatt" },
-  { value: "negotiation", label: "Tárgyalás" },
-  { value: "won", label: "Megnyert" },
-  { value: "in_progress", label: "Folyamatban" },
-  { value: "completed", label: "Befejezve" },
-  { value: "lost", label: "Elveszett" },
-];
-
-const STATUS_TONE: Record<string, string> = {
-  lead: "bg-[color:var(--status-info)]/15 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
-  quoting: "bg-primary/10 text-primary border-primary/30",
-  negotiation: "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
-  won: "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
-  in_progress: "bg-primary/10 text-primary border-primary/30",
-  completed: "bg-muted text-muted-foreground border-border",
-  lost: "bg-destructive/10 text-destructive border-destructive/30",
-};
+import {
+  PROJECT_STATUS,
+  PROJECT_STATUS_LABEL,
+  PROJECT_STATUS_TONE,
+} from "@/lib/viba-constants";
 
 function ProjectsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -52,7 +37,13 @@ function ProjectsPage() {
           type: "ref",
           ref: { table: "leads", labelColumn: "summary" },
         },
-        { name: "status", label: "Státusz", type: "select", options: PROJECT_STATUS, required: true },
+        {
+          name: "status",
+          label: "Státusz",
+          type: "select",
+          options: PROJECT_STATUS.map((s) => ({ value: s.value, label: s.label })),
+          required: true,
+        },
         { name: "address", label: "Helyszín / cím", type: "text" },
         { name: "start_date", label: "Kezdés", type: "date" },
         { name: "deadline", label: "Határidő", type: "date" },
@@ -78,8 +69,8 @@ function ProjectsPage() {
           key: "status",
           label: "Státusz",
           render: (r) => (
-            <Badge variant="outline" className={STATUS_TONE[r.status] ?? ""}>
-              {PROJECT_STATUS.find((o) => o.value === r.status)?.label ?? r.status ?? "—"}
+            <Badge variant="outline" className={PROJECT_STATUS_TONE[r.status] ?? ""}>
+              {PROJECT_STATUS_LABEL[r.status] ?? r.status ?? "—"}
             </Badge>
           ),
         },
