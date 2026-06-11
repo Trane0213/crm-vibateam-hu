@@ -77,14 +77,24 @@ export function EmailHtmlFrame({
     const el = ref.current;
     if (!el) return;
     let ro: ResizeObserver | null = null;
+    let rafId: number | null = null;
+    let lastH = 0;
     const measure = () => {
-      const doc = el.contentDocument;
-      if (!doc) return;
-      const h = Math.max(
-        doc.body?.scrollHeight ?? 0,
-        doc.documentElement?.scrollHeight ?? 0,
-      );
-      if (h > 0) setHeight(Math.min(Math.max(h + 8, 80), 50000));
+      if (rafId != null) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const doc = el.contentDocument;
+        if (!doc) return;
+        const h = Math.max(
+          doc.body?.scrollHeight ?? 0,
+          doc.documentElement?.scrollHeight ?? 0,
+        );
+        const next = Math.min(Math.max(h + 8, 80), 50000);
+        if (h > 0 && Math.abs(next - lastH) > 1) {
+          lastH = next;
+          setHeight(next);
+        }
+      });
     };
     const onLoad = () => {
       measure();
@@ -109,6 +119,7 @@ export function EmailHtmlFrame({
     return () => {
       el.removeEventListener("load", onLoad);
       ro?.disconnect();
+      if (rafId != null) cancelAnimationFrame(rafId);
       clearTimeout(t1);
       clearTimeout(t2);
     };

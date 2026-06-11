@@ -11,7 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { toast } from "sonner";
 
-export function EmailThreadProjectPicker({ threadId }: { threadId: string }) {
+export function EmailThreadProjectPicker({
+  threadId,
+  variant = "card",
+}: {
+  threadId: string;
+  variant?: "card" | "chip";
+}) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -77,6 +83,46 @@ export function EmailThreadProjectPicker({ threadId }: { threadId: string }) {
   });
 
   const cur = current.data;
+
+  if (variant === "chip") {
+    const label = cur ? ((cur as any).title ?? (cur as any).name ?? "—") : null;
+    return (
+      <div className="flex items-center gap-1">
+        {cur ? (
+          <>
+            <Link
+              to="/projects/$id"
+              params={{ id: (cur as any).id }}
+              className="inline-flex items-center gap-1 max-w-[260px] rounded-md bg-primary/10 px-2 py-1 text-[12px] font-medium text-primary hover:bg-primary/15"
+              title={label ?? undefined}
+            >
+              <Briefcase className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{label}</span>
+            </Link>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px] text-muted-foreground">Csere</Button>
+              </DialogTrigger>
+              <PickerBody q={q} setQ={setQ} filtered={filtered} loading={projects.isLoading} onPick={(id) => setProject.mutate(id)} />
+            </Dialog>
+            <Button size="sm" variant="ghost" className="h-7 px-1.5 text-[11px] text-muted-foreground hover:text-destructive" onClick={() => setProject.mutate(null)} title="Leválasztás">
+              <Unlink className="h-3.5 w-3.5" />
+            </Button>
+          </>
+        ) : (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline" className="h-7 text-[12px]">
+                <Link2 className="mr-1.5 h-3.5 w-3.5" />
+                Projekthez rendelés
+              </Button>
+            </DialogTrigger>
+            <PickerBody q={q} setQ={setQ} filtered={filtered} loading={projects.isLoading} onPick={(id) => setProject.mutate(id)} />
+          </Dialog>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border bg-card p-3">

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Mail, ChevronLeft, Paperclip, Download, Reply, Building2, User, Briefcase, Target,
-  FileText, Image as ImageIcon, FileSpreadsheet, FileArchive, ChevronDown, ChevronUp,
+  ChevronLeft, Reply, Building2, User, Briefcase, Target,
+  ChevronDown, ChevronUp, Mail, ImageOff,
 } from "lucide-react";
 import { EmptyState } from "@/components/page-header";
 import { useListWhere } from "@/lib/db-hooks";
@@ -16,30 +16,37 @@ import { r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
 import { EmailComposer } from "@/components/emails/email-composer";
 import { EmailThreadProjectPicker } from "@/components/emails/email-thread-project-picker";
+import { AttachmentGrid } from "@/components/emails/attachment-grid";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   component: EmailThread,
 });
 
-function fmtBytes(n: number | null | undefined): string {
-  if (!n || n <= 0) return "";
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
-  return `${(n / 1024 / 1024).toFixed(1)} MB`;
-}
-
-function attachmentIcon(mime: string | null | undefined) {
-  const m = (mime ?? "").toLowerCase();
-  if (m.startsWith("image/")) return ImageIcon;
-  if (m.includes("sheet") || m.includes("excel") || m.includes("csv")) return FileSpreadsheet;
-  if (m.includes("zip") || m.includes("rar") || m.includes("compressed") || m.includes("tar")) return FileArchive;
-  if (m.includes("pdf") || m.startsWith("text/") || m.includes("word") || m.includes("document")) return FileText;
-  return Paperclip;
-}
-
 function looksLikeHtml(s: string): boolean {
   const head = (s ?? "").slice(0, 2000);
   return /<\s*(html|body|div|p|a|table|span|br|img|h[1-6]|ul|ol|li|strong|em|style|meta|head|tbody|tr|td|font)\b/i.test(head);
+}
+
+/** Leválasztja az utolsó idézett blokkot (gmail_quote vagy hosszú blockquote). */
+function splitQuotedHtml(html: string): { main: string; quoted: string | null } {
+  if (typeof window === "undefined") return { main: html, quoted: null };
+  try {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    let quoted: Element | null = doc.querySelector(".gmail_quote, blockquote.gmail_quote");
+    if (!quoted) {
+      const bqs = doc.querySelectorAll("blockquote");
+      if (bqs.length > 0) {
+        const last = bqs[bqs.length - 1];
+        if ((last.textContent ?? "").length > 200) quoted = last;
+      }
+    }
+    if (!quoted) return { main: html, quoted: null };
+    const quotedHtml = quoted.outerHTML;
+    quoted.remove();
+    return { main: doc.documentElement.outerHTML, quoted: quotedHtml };
+  } catch {
+    return { main: html, quoted: null };
+  }
 }
 
 function AddrRow({ label, items }: { label: string; items: string[] }) {
@@ -52,6 +59,14 @@ function AddrRow({ label, items }: { label: string; items: string[] }) {
   );
 }
 
+function parseName(addr: string | null | undefined): { name: string; email: string } {
+  const s = (addr ?? "").trim();
+  if (!s) return { name: "", email: "" };
+  const m = s.match(/^\s*"?([^"<]+?)"?\s*<([^>]+)>\s*$/);
+  if (m) return { name: m[1].trim(), email: m[2].trim() };
+  return { name: "", email: s };
+}
+
 function initials(s: string): string {
   const t = (s ?? "").trim();
   if (!t) return "?";
@@ -59,6 +74,13 @@ function initials(s: string): string {
   const base = at > 0 ? t.slice(0, at) : t;
   const parts = base.split(/[.\s_-]+/).filter(Boolean);
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
+function avatarHue(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const hues = [210, 260, 330, 20, 140, 180, 300, 40, 90, 240];
+  return hues[h % hues.length];
 }
 
 function EmailThread() {
@@ -103,7 +125,6 @@ function EmailThread() {
     },
   });
 
-  // Csak nem-inline → attachment panel. Inline → cid map a body-hoz.
   const realAttByEmail = useMemo(() => {
     const m = new Map<string, any[]>();
     for (const a of attachments.data ?? []) {
@@ -126,8 +147,6 @@ function EmailThread() {
     return m;
   }, [attachments.data]);
 
-  // Presign URL minden megjelenítendő (kép-előnézet + inline) attachmenthez.
-  // Kép előnézetek: nem-inline image/*. Inline: bármi (cid map).
   const previewKeys = useMemo(() => {
     const keys = new Set<string>();
     for (const a of attachments.data ?? []) {
@@ -157,9 +176,9 @@ function EmailThread() {
       if (u) m.set(k, u);
     });
     return m;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [previewKeys, presigns.map((p) => p.data).join("|")]);
 
-  // CRM kapcsolat: thread-szintű company/contact/lead + bármelyik email project_id-ja
   const companyId = thread.data?.company_id ?? null;
   const contactId = thread.data?.contact_id ?? null;
   const leadId = thread.data?.lead_id ?? null;
@@ -175,25 +194,13 @@ function EmailThread() {
       const out: { company?: any; contact?: any; lead?: any; project?: any } = {};
       const tasks: Array<PromiseLike<any>> = [];
       if (companyId)
-        tasks.push(
-          supabase.from("companies").select("id,name").eq("id", companyId).maybeSingle()
-            .then((r) => { out.company = r.data; }),
-        );
+        tasks.push(supabase.from("companies").select("id,name").eq("id", companyId).maybeSingle().then((r) => { out.company = r.data; }));
       if (contactId)
-        tasks.push(
-          supabase.from("contacts").select("id,full_name,email").eq("id", contactId).maybeSingle()
-            .then((r) => { out.contact = r.data; }),
-        );
+        tasks.push(supabase.from("contacts").select("id,full_name,email").eq("id", contactId).maybeSingle().then((r) => { out.contact = r.data; }));
       if (leadId)
-        tasks.push(
-          supabase.from("leads").select("id,title").eq("id", leadId).maybeSingle()
-            .then((r) => { out.lead = r.data; }),
-        );
+        tasks.push(supabase.from("leads").select("id,title").eq("id", leadId).maybeSingle().then((r) => { out.lead = r.data; }));
       if (projectId)
-        tasks.push(
-          supabase.from("projects").select("id,name").eq("id", projectId).maybeSingle()
-            .then((r) => { out.project = r.data; }),
-        );
+        tasks.push(supabase.from("projects").select("id,name,title").eq("id", projectId).maybeSingle().then((r) => { out.project = r.data; }));
       await Promise.all(tasks);
       return out;
     },
@@ -228,37 +235,35 @@ function EmailThread() {
   if (crm.data?.lead)
     crmRows.push({ icon: Target, label: "Lead", value: crm.data.lead.title ?? "Lead", to: "/leads/$id", params: { id: crm.data.lead.id } });
   if (crm.data?.project)
-    crmRows.push({ icon: Briefcase, label: "Projekt", value: crm.data.project.name, to: "/projects/$id", params: { id: crm.data.project.id } });
-
-  // A projekt-választó mindig megjelenik a jobb sidebarban — még akkor is,
-  // ha más CRM kapcsolat (cég, lead) nincs.
-  const showSidebar = true;
-  const maxW = "max-w-[1520px]";
-  const gridCols = "grid-cols-1 lg:grid-cols-[minmax(1200px,1fr)_280px]";
+    crmRows.push({ icon: Briefcase, label: "Projekt", value: (crm.data.project as any).title ?? (crm.data.project as any).name, to: "/projects/$id", params: { id: crm.data.project.id } });
 
   return (
     <div className="flex flex-col">
-      <div className="border-b bg-background px-4 py-3">
-        <div className={`mx-auto w-full ${maxW} flex items-center justify-between gap-3`}>
-          <Link to="/emails" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-            <ChevronLeft className="h-3.5 w-3.5" /> Vissza
+      {/* Header bar: vissza · tárgy · projekt chip · válasz */}
+      <div className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur px-4 py-2">
+        <div className="mx-auto w-full max-w-[1400px] flex items-center gap-3">
+          <Link to="/emails" className="text-muted-foreground hover:text-foreground inline-flex items-center shrink-0" title="Vissza">
+            <ChevronLeft className="h-5 w-5" />
           </Link>
+          <h1 className="min-w-0 flex-1 truncate text-[15px] font-medium text-foreground">{subject}</h1>
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <EmailThreadProjectPicker threadId={threadId} variant="chip" />
+          </div>
           {visibleEmails.length > 0 && (
-            <Button size="sm" onClick={() => setReplyOpen(true)}>
+            <Button size="sm" onClick={() => setReplyOpen(true)} className="shrink-0">
               <Reply className="mr-1.5 h-4 w-4" /> Válasz
             </Button>
           )}
         </div>
+        {/* mobil: project chip külön sorban */}
+        <div className="sm:hidden mt-2">
+          <EmailThreadProjectPicker threadId={threadId} variant="chip" />
+        </div>
       </div>
 
-      <div className={`mx-auto w-full ${maxW} px-4 py-5 grid ${gridCols} gap-5`}>
-        {/* Bal oldal: email olvasó */}
-        <div className="min-w-0 space-y-4">
-          <h1 className="text-[22px] font-normal text-foreground/90 flex items-start gap-2 break-words">
-            <Mail className="h-5 w-5 mt-1.5 text-muted-foreground shrink-0" />
-            <span className="min-w-0 break-words">{subject}</span>
-          </h1>
-
+      <div className="mx-auto w-full max-w-[1400px] px-3 py-3 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-4">
+        {/* Bal: email olvasó */}
+        <div className="min-w-0 space-y-2">
           {emails.isLoading ? (
             <p className="text-sm text-muted-foreground">Betöltés…</p>
           ) : visibleEmails.length === 0 ? (
@@ -268,7 +273,7 @@ function EmailThread() {
               description="Ehhez a szálhoz nincs jogosultságod, vagy üres."
             />
           ) : (
-            <ol className="space-y-3">
+            <ol className="space-y-2">
               {visibleEmails.map((e: any, idx: number) => {
                 const isLast = idx === visibleEmails.length - 1;
                 return (
@@ -287,19 +292,22 @@ function EmailThread() {
           )}
         </div>
 
-        {/* Jobb sidebar: CRM kártyák — csak ha van kapcsolat */}
-        {showSidebar && (
-          <aside className="space-y-3 lg:sticky lg:top-4 self-start w-full lg:w-[280px]">
-            <EmailThreadProjectPicker threadId={threadId} />
-            {crmRows.map((r) => {
+        {/* Sidebar: CRM kapcsolatok */}
+        <aside className="space-y-2 lg:sticky lg:top-16 self-start w-full">
+          {crmRows.length === 0 ? (
+            <div className="rounded-lg border bg-card p-3 text-xs text-muted-foreground">
+              Nincs CRM-kapcsolat ehhez a szálhoz.
+            </div>
+          ) : (
+            crmRows.map((r) => {
               const Icon = r.icon;
               const body = (
-                <div className="p-3">
-                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                <div className="p-2.5">
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
                     <Icon className="h-3 w-3" />
                     {r.label}
                   </div>
-                  <div className="text-sm font-medium truncate">{r.value}</div>
+                  <div className="text-[13px] font-medium truncate">{r.value}</div>
                 </div>
               );
               return r.to ? (
@@ -314,9 +322,9 @@ function EmailThread() {
               ) : (
                 <div key={r.label} className="rounded-lg border bg-card">{body}</div>
               );
-            })}
-          </aside>
-        )}
+            })
+          )}
+        </aside>
       </div>
 
       {visibleEmails.length > 0 && (
@@ -349,14 +357,18 @@ function MessageCard({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [showRemote, setShowRemote] = useState(false);
+  const [showQuoted, setShowQuoted] = useState(false);
 
   const toItems: string[] = (e.to_emails && e.to_emails.length > 0)
     ? e.to_emails
     : (e.to_email ? [e.to_email] : []);
   const cc: string[] = e.cc_emails ?? [];
   const bcc: string[] = e.bcc_emails ?? [];
-  const from: string = e.from_email ?? "—";
+  const fromRaw: string = e.from_email ?? "—";
+  const fromParsed = parseName(fromRaw);
+  const fromDisplay = fromParsed.name || fromParsed.email || "—";
   const date = fmtDateTime(e.internal_date ?? e.created_at);
+  const hue = avatarHue(fromParsed.email || fromDisplay);
 
   const inlineByCid = useMemo(() => {
     const m = new Map<string, string>();
@@ -370,13 +382,9 @@ function MessageCard({
 
   const body: string = e.body ?? "";
 
-  // Ha a tárolt body nem HTML, de Gmailből származik, töltsük le az eredeti HTML
-  // body-t (Gmail nagy üzeneteknél attachmentId-vel adja, nem inline). Egyszer fut.
   const [refreshedBody, setRefreshedBody] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  useEffect(() => {
-    setRefreshedBody(null);
-  }, [e.id]);
+  useEffect(() => { setRefreshedBody(null); }, [e.id]);
   useEffect(() => {
     if (refreshedBody !== null || refreshing) return;
     if (!e.gmail_message_id) return;
@@ -394,11 +402,7 @@ function MessageCard({
           body: JSON.stringify({ emailId: e.id }),
         });
         const j = r.ok ? await r.json().catch(() => null) : null;
-        if (!cancelled) {
-          // Mindenképp állítsuk be (akár fallback üres stringre is),
-          // hogy ne fusson végtelen ciklusban a refetch.
-          setRefreshedBody(String(j?.body ?? body ?? ""));
-        }
+        if (!cancelled) setRefreshedBody(String(j?.body ?? body ?? ""));
       } catch { /* ignore */ }
       finally { if (!cancelled) setRefreshing(false); }
     })();
@@ -407,35 +411,56 @@ function MessageCard({
 
   const effectiveBody = refreshedBody ?? body;
   const isHtml = looksLikeHtml(effectiveBody);
+
+  // Idézett rész leválasztása (HTML útvonalon — a plain text path-ot az EmailBody intézi)
+  const { mainHtml, quotedHtml } = useMemo(() => {
+    if (!isHtml) return { mainHtml: effectiveBody, quotedHtml: null as string | null };
+    const { main, quoted } = splitQuotedHtml(effectiveBody);
+    return { mainHtml: main, quotedHtml: quoted };
+  }, [isHtml, effectiveBody]);
+
   const hasRemote = useMemo(
-    () => isHtml && /<img\b[^>]*\bsrc\s*=\s*["']https?:\/\//i.test(effectiveBody),
-    [isHtml, effectiveBody],
+    () => isHtml && /<img\b[^>]*\bsrc\s*=\s*["']https?:\/\//i.test(mainHtml),
+    [isHtml, mainHtml],
   );
 
   return (
     <li className="rounded-lg border bg-card shadow-sm overflow-hidden">
-      {/* Gmail-szerű header: összecsukva 1 sor, kinyitva részletek */}
+      {/* Header */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-muted/30 transition-colors"
+        className="w-full text-left px-3 py-2 flex items-start gap-2.5 hover:bg-muted/30 transition-colors"
       >
-        <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold shrink-0">
-          {initials(from)}
+        <div
+          className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0"
+          style={{
+            backgroundColor: `hsl(${hue} 70% 92%)`,
+            color: `hsl(${hue} 55% 30%)`,
+          }}
+        >
+          {initials(fromParsed.name || fromParsed.email || "?")}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
-            <div className="min-w-0 text-sm font-medium truncate">{from}</div>
-            <time className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">{date}</time>
+            <div className="min-w-0 text-[13px] font-semibold truncate">
+              {fromDisplay}
+              {fromParsed.name && (
+                <span className="ml-1.5 font-normal text-muted-foreground text-[12px]">
+                  &lt;{fromParsed.email}&gt;
+                </span>
+              )}
+            </div>
+            <time className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">{date}</time>
           </div>
           {open ? (
-            <div className="mt-1.5 space-y-0.5">
+            <div className="mt-1 space-y-0.5">
               <AddrRow label="Címzett" items={toItems} />
               <AddrRow label="Másolat" items={cc} />
               <AddrRow label="Titkos" items={bcc} />
             </div>
           ) : (
-            <div className="text-xs text-muted-foreground truncate">
+            <div className="text-[12px] text-muted-foreground truncate">
               címzett: {toItems.join(", ") || "—"}
             </div>
           )}
@@ -447,69 +472,69 @@ function MessageCard({
 
       {open && (
         <>
-          {/* Csatolmány panel a body FELETT, Gmail stílusban */}
-          {realAttachments.length > 0 && (
-            <div className="border-t bg-muted/10 px-4 py-2">
-              <div className="mb-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <Paperclip className="h-3 w-3" />
-                {realAttachments.length} csatolmány
-              </div>
-              <ul className="divide-y divide-border/60 rounded-md border bg-background">
-                {realAttachments.map((a) => {
-                  const Icon = attachmentIcon(a.mime_type);
-                  return (
-                    <li
-                      key={a.id}
-                      className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-muted/40 transition-colors"
-                    >
-                      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="min-w-0 flex-1 truncate text-[13px]">{a.filename}</span>
-                      <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums">
-                        {fmtBytes(a.size_bytes)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => onDownload(a.r2_key, a.filename)}
-                        className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
-                        title="Letöltés"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-
           {/* Body */}
           <div className="border-t">
             {isHtml && hasRemote && !showRemote && (
-              <div className="flex items-center justify-between gap-2 border-b bg-muted/40 px-4 py-2 text-xs">
-                <span className="text-muted-foreground">Külső képek letiltva (adatvédelem).</span>
+              <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-3 py-1.5 text-[12px] dark:bg-amber-950/40 dark:border-amber-900">
+                <span className="inline-flex items-center gap-1.5 text-amber-900 dark:text-amber-200">
+                  <ImageOff className="h-3.5 w-3.5" />
+                  Külső képek le vannak tiltva (adatvédelem).
+                </span>
                 <button
                   type="button"
                   onClick={() => setShowRemote(true)}
-                  className="font-medium text-primary hover:underline"
+                  className="font-medium text-amber-900 hover:underline dark:text-amber-100"
                 >
                   Képek megjelenítése
                 </button>
               </div>
             )}
-            <div className="px-4 py-4 w-full" style={{ maxHeight: "none", overflow: "visible" }}>
+            <div className="px-3 py-3">
               {refreshing && !isHtml ? (
                 <div className="text-sm text-muted-foreground italic">Eredeti HTML betöltése…</div>
               ) : isHtml ? (
-                <EmailHtmlFrame
-                  html={effectiveBody}
-                  inlineByCid={inlineByCid}
-                  showRemoteImages={showRemote}
-                />
+                <>
+                  <EmailHtmlFrame
+                    html={mainHtml}
+                    inlineByCid={inlineByCid}
+                    showRemoteImages={showRemote}
+                  />
+                  {quotedHtml && (
+                    <div className="mt-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowQuoted((v) => !v)}
+                        className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded border bg-muted/30 px-1.5 py-0.5 leading-none"
+                        title={showQuoted ? "Előzmény elrejtése" : "Előzmény mutatása"}
+                      >
+                        ···
+                      </button>
+                      {showQuoted && (
+                        <div className="mt-2 border-l-2 border-muted pl-2">
+                          <EmailHtmlFrame
+                            html={quotedHtml}
+                            inlineByCid={inlineByCid}
+                            showRemoteImages={showRemote}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               ) : (
                 <EmailBody body={effectiveBody} inlineByCid={inlineByCid} />
               )}
             </div>
           </div>
+
+          {/* Csatolmányok a body ALATT, Gmail-szerű kártyák + lightbox */}
+          {realAttachments.length > 0 && (
+            <AttachmentGrid
+              attachments={realAttachments}
+              urlByKey={urlByKey}
+              onDownload={onDownload}
+            />
+          )}
         </>
       )}
     </li>
