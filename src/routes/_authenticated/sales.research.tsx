@@ -93,8 +93,9 @@ function ResearchPage() {
     const r = rows[idx];
     if (!r) return;
     try {
-      // 1. Cég: keresés név alapján (case-insensitive), különben létrehozás.
+      // 0. DUPLIKÁCIÓ ELLENŐRZÉS — cég név vagy contact email alapján.
       let company_id: string | null = null;
+      let dupReason: string | null = null;
       const { data: existing } = await supabase
         .from("companies")
         .select("id")
@@ -103,7 +104,52 @@ function ResearchPage() {
         .maybeSingle();
       if (existing?.id) {
         company_id = existing.id;
-      } else {
+        dupReason = "cég név egyezés";
+      } else if (r.email) {
+        const { data: existContact } = await supabase
+          .from("contacts")
+          .select("id, company_id")
+          .ilike("email", r.email)
+          .not("company_id", "is", null)
+          .limit(1)
+          .maybeSingle();
+        if (existContact?.company_id) {
+          company_id = existContact.company_id as string;
+          dupReason = "kapcsolattartó email egyezés";
+        }
+      }
+
+      // Ha a cég már létezik, nézzük meg, van-e nyitott lead.
+      if (company_id) {
+        const { data: openLead } = await supabase
+          .from("leads")
+          .select("id, status")
+          .eq("company_id", company_id)
+          .not("status", "in", "(won,lost,archived,closed)")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (openLead?.id) {
+          const lead_id = openLead.id as string;
+          setRows((prev) =>
+            prev.map((row, i) =>
+              i === idx ? { ...row, _matched: true, _lead_id: lead_id } : row,
+            ),
+          );
+          toast.info("Már szerepel a CRM-ben", {
+            description: `${r.company_name} (${dupReason ?? "egyezés"}) — meglévő lead megnyitása.`,
+            action: {
+              label: "Megnyitás",
+              onClick: () => navigate({ to: "/leads/$id", params: { id: lead_id } }),
+            },
+          });
+          navigate({ to: "/leads/$id", params: { id: lead_id } });
+          return;
+        }
+      }
+
+      // 1. Cég létrehozása, ha még nincs.
+      if (!company_id) {
         const noteLines = [
           r.city ? `Település: ${r.city}` : null,
           r.phone ? `Telefon: ${r.phone}` : null,
