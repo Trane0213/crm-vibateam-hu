@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
+import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/companies/$id")({
   component: CompanyDetail,
@@ -40,7 +41,7 @@ function CompanyDetail() {
         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Cég</div>
         <h1 className="mt-1 text-xl font-semibold flex items-center gap-2">
           {c.name}
-          {c.company_type && <Badge variant="secondary">{c.company_type}</Badge>}
+          {c.company_type && <Badge variant="secondary">{COMPANY_TYPE_LABEL[c.company_type] ?? c.company_type}</Badge>}
         </h1>
         <div className="mt-1 text-sm text-muted-foreground flex flex-wrap gap-3">
           {c.tax_number && <span>Adószám: {c.tax_number}</span>}
@@ -62,7 +63,7 @@ function CompanyDetail() {
               <CardHeader><CardTitle className="text-sm">Alapadatok</CardTitle></CardHeader>
               <CardContent className="space-y-1.5 text-sm">
                 <Row label="Cégnév" value={c.name} />
-                <Row label="Típus" value={c.company_type ?? "—"} />
+                <Row label="Típus" value={COMPANY_TYPE_LABEL[c.company_type] ?? c.company_type ?? "—"} />
                 <Row label="Adószám" value={c.tax_number ?? "—"} />
                 <Row label="Weboldal" value={c.website ?? "—"} />
                 <Row label="Létrejött" value={fmtDate(c.created_at)} />
