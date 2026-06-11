@@ -69,9 +69,13 @@ export async function syncInbox(userId: string, opts: { max?: number } = {}): Pr
       const { error } = await admin.from("emails").insert(row);
       if (error) {
         if (String(error.message).toLowerCase().includes("duplicate")) result.skipped++;
-        else result.errors.push(`${it.id}: ${error.message}`);
+        else {
+          console.error("[gmail/sync] emails insert error", { id: it.id, error });
+          result.errors.push(`${it.id}: ${error.message}`);
+        }
       } else result.inserted++;
     } catch (e: any) {
+      console.error("[gmail/sync] message error", { id: it.id, error: e?.message ?? e, stack: e?.stack });
       result.errors.push(`${it.id}: ${e?.message ?? String(e)}`);
     }
   }
