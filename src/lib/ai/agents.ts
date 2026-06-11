@@ -48,12 +48,12 @@ export type AgentDefinition = {
 export const AGENTS: Record<AgentId, AgentDefinition> = {
   crm: {
     id: "crm",
-    name: "CRM Asszisztens",
-    role: "Általános CRM asszisztens — keres, összegez, riportol.",
+    name: "Marven – CRM Navigátor",
+    role: "Segít eligibálni a rendszerben — megkeresi az adatokat, megmutatja hol vannak.",
     description:
-      "Cégek, kapcsolattartók, leadek, projektek, ajánlatok, follow-upok, " +
-      "feladatok és kommunikáció (email/hívás/találkozó) olvasása, " +
-      "kereshetőség, gyors összesítések, riportok.",
+      "Ha nem tudod hol keress valamit a CRM-ben, kérdezd Marvent. " +
+      "Megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat, " +
+      "és gyorsan összegzi, mi tartozik egymáshoz.",
     capabilities: {
       companies: ["read"],
       contacts: ["read"],
@@ -71,11 +71,11 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
   },
   sales: {
     id: "sales",
-    name: "Értékesítő Agent",
-    role: "Értékesítési ciklus támogatása — lead → ajánlat → megnyert/elveszett.",
+    name: "Eladási Segítő",
+    role: "Az értékesítésben segít — leadek, ajánlatok, follow-upok.",
     description:
-      "Új leadek minősítése, ajánlat-állapotok követése, follow-up javaslatok, " +
-      "értékesítési pipeline elemzése.",
+      "Megmondja kit kell ma hívni, mely ajánlatok állnak régóta, " +
+      "mely leadekkel érdemes foglalkozni, és napi értékesítési riportot készít.",
     capabilities: {
       companies: ["read"],
       contacts: ["read"],
@@ -90,11 +90,11 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
   },
   pm: {
     id: "pm",
-    name: "Projektvezető Agent",
-    role: "Projekt-végrehajtás támogatása — határidők, feladatok, dokumentáció.",
+    name: "Projektsegítő",
+    role: "A projektek vezetésében segít — határidők, feladatok, kockázatok.",
     description:
-      "Projektek státusza, kapcsolódó feladatok, határidők, dokumentumok, " +
-      "jegyzetek kezelése. Időbeli kockázatok jelzése.",
+      "Megmutatja mely projektek vannak veszélyben, mi a mai feladat, " +
+      "milyen határidő közeleg, és melyik projektnél hiányzik dokumentum.",
     capabilities: {
       companies: ["read"],
       contacts: ["read"],
