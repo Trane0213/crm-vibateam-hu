@@ -400,9 +400,12 @@ function MessageCard({
           headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
           body: JSON.stringify({ emailId: e.id }),
         });
-        if (!r.ok) return;
-        const j = await r.json();
-        if (!cancelled && j?.body) setRefreshedBody(String(j.body));
+        const j = r.ok ? await r.json().catch(() => null) : null;
+        if (!cancelled) {
+          // Mindenképp állítsuk be (akár fallback üres stringre is),
+          // hogy ne fusson végtelen ciklusban a refetch.
+          setRefreshedBody(String(j?.body ?? body ?? ""));
+        }
       } catch { /* ignore */ }
       finally { if (!cancelled) setRefreshing(false); }
     })();
