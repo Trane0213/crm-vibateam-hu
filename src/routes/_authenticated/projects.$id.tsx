@@ -21,6 +21,9 @@ import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { toast } from "sonner";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
 import { loadProjectSnapshot, serializeProject } from "@/lib/ai/crm-context";
+import { ProjectStatusSelect } from "@/components/projects/project-status-select";
+import { ProjectContactsPanel } from "@/components/projects/project-contacts-panel";
+import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -49,11 +52,26 @@ function ProjectDetail() {
   const docs = useListWhere<any>("project_documents", "project_id", id, { order: "created_at", ascending: false });
   const notes = useListWhere<any>("project_notes", "project_id", id, { order: "created_at", ascending: false });
   const tasks = useListWhere<any>("tasks", "project_id", id, { order: "due_date", ascending: true });
-  const emails = useListWhere<any>("emails", "project_id", id, { order: "created_at", ascending: false });
-  const projectContacts = useListWhere<any>("contacts", "company_id", project?.company_id, {
-    order: "name",
-    ascending: true,
+  const emailThreads = useListWhere<any>("email_threads", "project_id", id, { order: "last_message_at", ascending: false });
+  const projectContacts = useQuery({
+    queryKey: ["project_contacts", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_contacts")
+        .select("id, role, contact:contacts(id,name,email,phone,position)")
+        .eq("project_id", id);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const company = useQuery({
+    queryKey: ["company", project?.company_id],
     enabled: !!project?.company_id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id,name,company_type").eq("id", project!.company_id).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
   });
 
   const totalQuoteValue = (quotes.data ?? []).reduce(
@@ -94,7 +112,7 @@ function ProjectDetail() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {project.status && <Badge variant="secondary">{String(project.status)}</Badge>}
+            <ProjectStatusSelect projectId={id} value={project.status} />
             <Badge variant="outline">{formatHuf(totalQuoteValue)}</Badge>
             <AiSummaryDialog
               title={`Projekt összefoglaló: ${project.title ?? project.name ?? ""}`}
@@ -120,6 +138,11 @@ function ProjectDetail() {
           <Mini label="Hívás / találkozó" value={`${(calls.data?.length ?? 0)} / ${(meetings.data?.length ?? 0)}`} tone="info" />
           <Mini label="Utolsó kommunikáció" value={lastComm ? fmtDate(lastComm) : "—"} />
         </div>
+        {company.data && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Cégtípus: <span className="font-medium">{COMPANY_TYPE_LABEL[company.data.company_type as string] ?? company.data.company_type ?? "—"}</span>
+          </div>
+        )}
       </div>
 
       {/* TABS */}
@@ -132,7 +155,7 @@ function ProjectDetail() {
             <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="tasks"><ListChecks className="mr-1.5 h-3.5 w-3.5" />Feladatok ({tasks.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({emails.data?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({emailThreads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({projectContacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="notes"><StickyNote className="mr-1.5 h-3.5 w-3.5" />Jegyzetek ({notes.data?.length ?? 0})</TabsTrigger>
@@ -183,10 +206,14 @@ function ProjectDetail() {
               <CardContent>
                 {(projectContacts.data ?? []).length === 0 ? <EmptyState icon={UserPlus} title="Nincs kapcsolattartó" /> : (
                   <ul className="space-y-1.5 text-sm">
-                    {(projectContacts.data ?? []).slice(0, 5).map((c) => (
+                    {(projectContacts.data ?? []).slice(0, 5).map((c: any) => (
                       <li key={c.id} className="flex justify-between gap-2">
-                        <Link to="/contacts/$id" params={{ id: c.id }} className="truncate text-primary hover:underline">{c.name ?? "—"}</Link>
-                        <span className="text-muted-foreground">{c.position ?? c.email ?? c.phone ?? ""}</span>
+                        {c.contact ? (
+                          <Link to="/contacts/$id" params={{ id: c.contact.id }} className="truncate text-primary hover:underline">
+                            {c.contact.name ?? "—"}
+                          </Link>
+                        ) : <span>—</span>}
+                        <span className="text-muted-foreground">{c.role ? PROJECT_CONTACT_ROLE_LABEL[c.role] ?? c.role : (c.contact?.email ?? "")}</span>
                       </li>
                     ))}
                   </ul>
@@ -243,29 +270,18 @@ function ProjectDetail() {
             ]} empty="Nincs feladat ehhez a projekthez." />
           </TabsContent>
           <TabsContent value="emails" className="mt-4">
-            <RelationList rows={emails.data} columns={[
-              { label: "Tárgy", get: (r) => r.subject ?? r.summary ?? "(nincs tárgy)" },
-              { label: "Feladó", get: (r) => r.from_email ?? "—" },
-              { label: "Címzett", get: (r) => r.to_email ?? "—" },
-              { label: "Időpont", get: (r) => fmtDateTime(r.created_at) },
-            ]} link={(r) => r.thread_id ? { to: "/emails/$threadId", params: { threadId: r.thread_id } } : undefined as any}
-              empty="Nincs email ehhez a projekthez." />
+            <RelationList rows={emailThreads.data} columns={[
+              { label: "Tárgy", get: (r) => r.subject ?? "(nincs tárgy)" },
+              { label: "Résztvevők", get: (r) => (r.participants ?? []).join(", ") || "—" },
+              { label: "Utolsó üzenet", get: (r) => fmtDateTime(r.last_message_at ?? r.updated_at ?? r.created_at) },
+            ]} link={(r) => ({ to: "/emails/$threadId", params: { threadId: r.id } })}
+              empty="Nincs email-szál ehhez a projekthez. A levelező nézetből rendelheted hozzá a projekthez." />
           </TabsContent>
           <TabsContent value="docs" className="mt-4">
             <DocumentManager projectId={id} />
           </TabsContent>
           <TabsContent value="contacts" className="mt-4">
-            <RelationList
-              rows={projectContacts.data}
-              columns={[
-                { label: "Név", get: (r) => r.name ?? "—" },
-                { label: "Beosztás", get: (r) => r.position ?? "—" },
-                { label: "E-mail", get: (r) => r.email ?? "—" },
-                { label: "Telefon", get: (r) => r.phone ?? "—" },
-              ]}
-              link={(r) => ({ to: "/contacts/$id", params: { id: r.id } })}
-              empty={project?.company_id ? "Ehhez a céghez még nincs kapcsolattartó." : "A projekthez nincs cég rendelve."}
-            />
+            <ProjectContactsPanel projectId={id} companyId={project.company_id} />
           </TabsContent>
           <TabsContent value="notes" className="mt-4">
             <ProjectNotes projectId={id} notes={notes.data ?? []} />
@@ -276,7 +292,7 @@ function ProjectDetail() {
               quotes={quotes.data ?? []}
               followups={followups.data ?? []}
               tasks={tasks.data ?? []}
-              emails={emails.data ?? []}
+              emails={[]}
               calls={calls.data ?? []}
               meetings={meetings.data ?? []}
               documents={docs.data ?? []}
