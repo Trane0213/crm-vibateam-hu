@@ -163,16 +163,16 @@ function ProjectDetail() {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
+            <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolatok ({projectContacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Follow-up ({openFollowups.length})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({emailThreads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="tasks"><ListChecks className="mr-1.5 h-3.5 w-3.5" />Feladatok ({tasks.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({emailThreads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({projectContacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="notes"><StickyNote className="mr-1.5 h-3.5 w-3.5" />Jegyzetek ({notes.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
+            <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Napló</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">

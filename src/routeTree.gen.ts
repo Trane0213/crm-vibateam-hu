@@ -48,6 +48,7 @@ import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
 import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authenticated/emails.$threadId'
+import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
@@ -263,6 +264,12 @@ const AuthenticatedEmailsThreadIdRoute =
     path: '/emails/$threadId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCustomersIdRoute =
+  AuthenticatedCustomersIdRouteImport.update({
+    id: '/customers/$id',
+    path: '/customers/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
   id: '/contacts/$id',
   path: '/contacts/$id',
@@ -302,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -345,6 +353,7 @@ export interface FileRoutesByTo {
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -391,6 +400,7 @@ export interface FileRoutesById {
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/_authenticated/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
+  '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/_authenticated/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/api/r2-upload'
     | '/companies/$id'
     | '/contacts/$id'
+    | '/customers/$id'
     | '/emails/$threadId'
     | '/leads/$id'
     | '/projects/$id'
@@ -480,6 +491,7 @@ export interface FileRouteTypes {
     | '/api/r2-upload'
     | '/companies/$id'
     | '/contacts/$id'
+    | '/customers/$id'
     | '/emails/$threadId'
     | '/leads/$id'
     | '/projects/$id'
@@ -525,6 +537,7 @@ export interface FileRouteTypes {
     | '/api/r2-upload'
     | '/_authenticated/companies/$id'
     | '/_authenticated/contacts/$id'
+    | '/_authenticated/customers/$id'
     | '/_authenticated/emails/$threadId'
     | '/_authenticated/leads/$id'
     | '/_authenticated/projects/$id'
@@ -844,6 +857,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEmailsThreadIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/customers/$id': {
+      id: '/_authenticated/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/customers/$id'
+      preLoaderRoute: typeof AuthenticatedCustomersIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contacts/$id': {
       id: '/_authenticated/contacts/$id'
       path: '/contacts/$id'
@@ -917,6 +937,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedCompaniesIdRoute: typeof AuthenticatedCompaniesIdRoute
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
+  AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
   AuthenticatedEmailsThreadIdRoute: typeof AuthenticatedEmailsThreadIdRoute
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
@@ -941,6 +962,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedCompaniesIdRoute: AuthenticatedCompaniesIdRoute,
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
+  AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
   AuthenticatedEmailsThreadIdRoute: AuthenticatedEmailsThreadIdRoute,
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
