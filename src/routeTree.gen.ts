@@ -28,6 +28,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
+import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
@@ -149,6 +150,12 @@ const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
   path: '/leads/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEmailsIndexRoute =
+  AuthenticatedEmailsIndexRouteImport.update({
+    id: '/emails/',
+    path: '/emails/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContactsIndexRoute =
   AuthenticatedContactsIndexRouteImport.update({
     id: '/contacts/',
@@ -307,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/emails/': typeof AuthenticatedEmailsIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
@@ -348,6 +356,7 @@ export interface FileRoutesByTo {
   '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
+  '/emails': typeof AuthenticatedEmailsIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/quotes': typeof AuthenticatedQuotesIndexRoute
@@ -392,6 +401,7 @@ export interface FileRoutesById {
   '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
+  '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/api/gmail/sync'
     | '/companies/'
     | '/contacts/'
+    | '/emails/'
     | '/leads/'
     | '/projects/'
     | '/quotes/'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/gmail/sync'
     | '/companies'
     | '/contacts'
+    | '/emails'
     | '/leads'
     | '/projects'
     | '/quotes'
@@ -520,6 +532,7 @@ export interface FileRouteTypes {
     | '/api/gmail/sync'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
+    | '/_authenticated/emails/'
     | '/_authenticated/leads/'
     | '/_authenticated/projects/'
     | '/_authenticated/quotes/'
@@ -676,6 +689,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/leads/'
       preLoaderRoute: typeof AuthenticatedLeadsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails/': {
+      id: '/_authenticated/emails/'
+      path: '/emails'
+      fullPath: '/emails/'
+      preLoaderRoute: typeof AuthenticatedEmailsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts/': {
@@ -883,6 +903,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
+  AuthenticatedEmailsIndexRoute: typeof AuthenticatedEmailsIndexRoute
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedQuotesIndexRoute: typeof AuthenticatedQuotesIndexRoute
@@ -906,6 +927,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
+  AuthenticatedEmailsIndexRoute: AuthenticatedEmailsIndexRoute,
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedQuotesIndexRoute: AuthenticatedQuotesIndexRoute,
@@ -931,13 +953,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
