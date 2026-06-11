@@ -90,6 +90,7 @@ export function ResourcePage({
   emptyTitle,
   emptyDescription,
   newButtonLabel = "Új",
+  extraActions,
 }: {
   title: string;
   description?: string;
@@ -103,6 +104,7 @@ export function ResourcePage({
   emptyTitle?: string;
   emptyDescription?: string;
   newButtonLabel?: string;
+  extraActions?: React.ReactNode;
 }) {
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
@@ -134,16 +136,19 @@ export function ResourcePage({
         title={title}
         description={description}
         actions={
-          <Button
-            size="sm"
-            onClick={() => {
-              setEditing(null);
-              setOpen(true);
-            }}
-          >
-            <Plus className="mr-1 h-4 w-4" />
-            {newButtonLabel}
-          </Button>
+          <div className="flex items-center gap-2">
+            {extraActions}
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {newButtonLabel}
+            </Button>
+          </div>
         }
       />
       <div className="p-6">
