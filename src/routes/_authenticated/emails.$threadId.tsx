@@ -356,7 +356,6 @@ function MessageCard({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [showRemote, setShowRemote] = useState(false);
-  const [hasRemote, setHasRemote] = useState(false);
 
   const toItems: string[] = (e.to_emails && e.to_emails.length > 0)
     ? e.to_emails
@@ -378,6 +377,10 @@ function MessageCard({
 
   const body: string = e.body ?? "";
   const isHtml = looksLikeHtml(body);
+  const hasRemote = useMemo(
+    () => isHtml && /<img\b[^>]*\bsrc\s*=\s*["']https?:\/\//i.test(body),
+    [isHtml, body],
+  );
 
   return (
     <li className="rounded-lg border bg-card shadow-sm overflow-hidden">
@@ -483,7 +486,6 @@ function MessageCard({
                   html={body}
                   inlineByCid={inlineByCid}
                   showRemoteImages={showRemote}
-                  onHasRemoteImages={setHasRemote}
                 />
               ) : (
                 <EmailBody body={body} inlineByCid={inlineByCid} />
