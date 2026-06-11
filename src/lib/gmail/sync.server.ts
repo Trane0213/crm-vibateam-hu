@@ -270,7 +270,6 @@ export async function syncInbox(
           to_emails: toList,
           cc_emails: ccList,
           bcc_emails: bccList,
-          subject,
           body: body || null,
           summary: m.snippet ?? null,
           snippet: m.snippet ?? null,
