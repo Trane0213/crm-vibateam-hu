@@ -1,17 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Building2, Briefcase, UserPlus, Phone, Calendar, Sparkles } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/page-header";
-import { supabase } from "@/integrations/supabase/client";
-import { useListWhere } from "@/lib/db-hooks";
-import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
-import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
+// A cég adatlap egyesítve van az egységes Ügyfél adatlapba: /customers/$id
 export const Route = createFileRoute("/_authenticated/companies/$id")({
-  component: CompanyDetail,
+  beforeLoad: ({ params }) => {
+    throw redirect({ to: "/customers/$id", params: { id: params.id } });
+  },
 });
 
 function CompanyDetail() {
