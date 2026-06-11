@@ -10,7 +10,7 @@ import { EmailBody } from "@/components/emails/email-body";
 import { EmailHtmlFrame } from "@/components/emails/email-html-frame";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
@@ -376,10 +376,44 @@ function MessageCard({
   }, [inlineAttachments, urlByKey]);
 
   const body: string = e.body ?? "";
-  const isHtml = looksLikeHtml(body);
+
+  // Ha a tárolt body nem HTML, de Gmailből származik, töltsük le az eredeti HTML
+  // body-t (Gmail nagy üzeneteknél attachmentId-vel adja, nem inline). Egyszer fut.
+  const [refreshedBody, setRefreshedBody] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  useEffect(() => {
+    setRefreshedBody(null);
+  }, [e.id]);
+  useEffect(() => {
+    if (refreshedBody !== null || refreshing) return;
+    if (!e.gmail_message_id) return;
+    if (looksLikeHtml(body)) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        setRefreshing(true);
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token;
+        if (!token) return;
+        const r = await fetch("/api/gmail/refresh-body", {
+          method: "POST",
+          headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+          body: JSON.stringify({ emailId: e.id }),
+        });
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!cancelled && j?.body) setRefreshedBody(String(j.body));
+      } catch { /* ignore */ }
+      finally { if (!cancelled) setRefreshing(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [e.id, e.gmail_message_id, body, refreshedBody, refreshing]);
+
+  const effectiveBody = refreshedBody ?? body;
+  const isHtml = looksLikeHtml(effectiveBody);
   const hasRemote = useMemo(
-    () => isHtml && /<img\b[^>]*\bsrc\s*=\s*["']https?:\/\//i.test(body),
-    [isHtml, body],
+    () => isHtml && /<img\b[^>]*\bsrc\s*=\s*["']https?:\/\//i.test(effectiveBody),
+    [isHtml, effectiveBody],
   );
 
   return (
@@ -481,14 +515,16 @@ function MessageCard({
               </div>
             )}
             <div className="px-4 py-4">
-              {isHtml ? (
+              {refreshing && !isHtml ? (
+                <div className="text-sm text-muted-foreground italic">Eredeti HTML betöltése…</div>
+              ) : isHtml ? (
                 <EmailHtmlFrame
-                  html={body}
+                  html={effectiveBody}
                   inlineByCid={inlineByCid}
                   showRemoteImages={showRemote}
                 />
               ) : (
-                <EmailBody body={body} inlineByCid={inlineByCid} />
+                <EmailBody body={effectiveBody} inlineByCid={inlineByCid} />
               )}
             </div>
           </div>
