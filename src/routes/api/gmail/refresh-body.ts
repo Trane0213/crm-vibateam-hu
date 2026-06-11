@@ -31,21 +31,38 @@ export const Route = createFileRoute("/api/gmail/refresh-body")({
           if (!acc) return Response.json({ error: "Nincs jogosultság" }, { status: 403 });
 
           if (!row.gmail_message_id) {
-            return Response.json({ body: row.body ?? "", isHtml: false, updated: false });
+            return Response.json({ body: row.body ?? "", isHtml: false, updated: false, fallback: true });
           }
 
-          const { getValidAccessToken } = await import("@/lib/gmail/oauth.server");
-          const { accessToken } = await getValidAccessToken(row.owner_user_id);
-          const { getMessage, extractBestBodyAsync } = await import("@/lib/gmail/gmail-api.server");
-          const m = await getMessage(accessToken, row.gmail_message_id, "full");
-          const { body: fresh, isHtml } = await extractBestBodyAsync(m, accessToken);
-          if (fresh && fresh !== row.body) {
-            await admin.from("emails").update({ body: fresh }).eq("id", emailId);
+          try {
+            const { getValidAccessToken } = await import("@/lib/gmail/oauth.server");
+            const { accessToken } = await getValidAccessToken(row.owner_user_id ?? userId);
+            const { getMessage, extractBestBodyAsync } = await import("@/lib/gmail/gmail-api.server");
+            const m = await getMessage(accessToken, row.gmail_message_id, "full");
+            const { body: fresh, isHtml } = await extractBestBodyAsync(m, accessToken);
+            if (fresh && fresh !== row.body) {
+              await admin.from("emails").update({ body: fresh }).eq("id", emailId);
+            }
+            return Response.json({ body: fresh, isHtml, updated: fresh !== row.body });
+          } catch (inner: any) {
+            console.error("[refresh-body] gmail fetch failed", {
+              emailId,
+              owner: row.owner_user_id,
+              gmail_message_id: row.gmail_message_id,
+              message: inner?.message ?? String(inner),
+            });
+            return Response.json(
+              { body: row.body ?? "", isHtml: false, updated: false, fallback: true, error: inner?.message ?? String(inner) },
+              { status: 200 },
+            );
           }
-          return Response.json({ body: fresh, isHtml, updated: fresh !== row.body });
         } catch (e: any) {
           if (e instanceof Response) return e;
-          return Response.json({ error: e?.message ?? String(e) }, { status: 500 });
+          console.error("[refresh-body] handler error", e?.message ?? String(e));
+          return Response.json(
+            { body: "", isHtml: false, updated: false, fallback: true, error: e?.message ?? String(e) },
+            { status: 200 },
+          );
         }
       },
     },
