@@ -31,6 +31,8 @@ export async function syncInbox(userId: string, opts: { max?: number } = {}): Pr
   // gmail_thread_id -> email_threads.id (uuid) cache a futás során
   const threadCache = new Map<string, string>();
   async function ensureThread(gmailThreadId: string, subject: string | null): Promise<string> {
+    // email_threads.subject NOT NULL -> uresnel placeholder
+    const safeSubject = subject && subject.trim().length > 0 ? subject : "(nincs tárgy)";
     const cached = threadCache.get(gmailThreadId);
     if (cached) return cached;
     const { data: found } = await admin
@@ -41,7 +43,7 @@ export async function syncInbox(userId: string, opts: { max?: number } = {}): Pr
     if (found?.id) { threadCache.set(gmailThreadId, found.id); return found.id; }
     const { data: inserted, error: insErr } = await admin
       .from("email_threads")
-      .insert({ gmail_thread_id: gmailThreadId, subject })
+      .insert({ gmail_thread_id: gmailThreadId, subject: safeSubject })
       .select("id")
       .single();
     if (insErr || !inserted) throw new Error(`email_threads insert: ${insErr?.message ?? "unknown"}`);
@@ -55,7 +57,8 @@ export async function syncInbox(userId: string, opts: { max?: number } = {}): Pr
       const m = await getMessage(accessToken, it.id, "full");
       const from = headerOf(m, "From");
       const to = headerOf(m, "To");
-      const subject = headerOf(m, "Subject") || null;
+      const subjectHdr = headerOf(m, "Subject");
+      const subject = subjectHdr && subjectHdr.trim().length > 0 ? subjectHdr : null;
       const body = extractBody(m);
       const threadDbId = await ensureThread(m.threadId, subject);
       const row = {
