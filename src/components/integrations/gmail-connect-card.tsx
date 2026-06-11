@@ -55,7 +55,11 @@ export function GmailConnectCard() {
       const r = await authedFetch("/api/gmail/sync", { method: "POST", body: JSON.stringify({ max: 25 }) });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Sync hiba");
-      toast.success(`Szinkron kész: ${j.inserted} új, ${j.skipped} kihagyva, ${j.errors?.length ?? 0} hiba`);
+      const errs: string[] = j.errors ?? [];
+      toast.success(`Szinkron kész: ${j.inserted} új, ${j.skipped} kihagyva, ${errs.length} hiba`, {
+        description: errs.length ? errs.slice(0, 3).join(" | ") : undefined,
+      });
+      if (errs.length) console.error("[gmail/sync] errors", errs);
       qc.invalidateQueries({ queryKey: ["gmail"] });
       qc.invalidateQueries({ queryKey: ["resource", "emails"] });
     } catch (e: any) {
