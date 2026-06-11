@@ -7,6 +7,7 @@ import {
   useLookup,
 } from "@/components/resource/resource-page";
 import { formatHuf } from "@/lib/format";
+import { useList } from "@/lib/db-hooks";
 
 const QUOTE_STATUS = [
   { value: "draft", label: "Készül" },
@@ -26,6 +27,11 @@ const STATUS_TONE: Record<string, string> = {
 
 function QuotesPage() {
   const projectLabel = useLookup("projects", "title");
+  const companyLabel = useLookup("companies", "name");
+  const projectsList = useList<any>("projects");
+  const projectToCompany = new Map<string, string | null>(
+    (projectsList.data ?? []).map((p: any) => [p.id, p.company_id ?? null]),
+  );
   return (
     <ResourcePage
       title="Ajánlatok"
@@ -64,6 +70,20 @@ function QuotesPage() {
             ) : (
               "—"
             ),
+        },
+        {
+          key: "customer",
+          label: "Ügyfél",
+          render: (r) => {
+            const cid = r.project_id ? projectToCompany.get(r.project_id) : null;
+            return cid ? (
+              <Link to="/customers/$id" params={{ id: cid }} className="text-primary hover:underline">
+                {companyLabel(cid)}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            );
+          },
         },
         { key: "version", label: "Verzió", className: "tabular-nums" },
         {

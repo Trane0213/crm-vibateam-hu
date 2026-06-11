@@ -53,6 +53,8 @@ function CustomersIndex() {
         ...c,
         projectCount: total,
         activeCount: active,
+        openQuotes: k?.open_quotes ?? 0,
+        overdueFollowups: k?.overdue_followups ?? 0,
         lastActivity: k?.last_activity_at ?? null,
         status,
       };
@@ -78,6 +80,8 @@ function CustomersIndex() {
                   <TableHead>Ügyfél</TableHead>
                   <TableHead>Típus</TableHead>
                   <TableHead className="text-right">Projektek</TableHead>
+                  <TableHead className="text-right">Nyitott ajánlat</TableHead>
+                  <TableHead className="text-right">Lejárt follow-up</TableHead>
                   <TableHead>Utolsó aktivitás</TableHead>
                   <TableHead>Státusz</TableHead>
                 </TableRow>
@@ -105,6 +109,20 @@ function CustomersIndex() {
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {r.activeCount} / {r.projectCount}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {r.openQuotes > 0 ? (
+                          <span className="text-primary font-medium">{r.openQuotes}</span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {r.overdueFollowups > 0 ? (
+                          <span className="text-destructive font-semibold">{r.overdueFollowups}</span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {r.lastActivity ? fmtDate(r.lastActivity) : "—"}
