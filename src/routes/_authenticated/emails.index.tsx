@@ -22,7 +22,6 @@ type EmailRow = {
   body: string | null;
   summary: string | null;
   snippet: string | null;
-  subject: string | null;
   created_at: string;
   internal_date: string | null;
   is_outbound: boolean | null;
@@ -70,7 +69,7 @@ function EmailsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("emails")
-        .select("id,thread_id,from_email,to_email,to_emails,body,summary,snippet,subject,created_at,internal_date,is_outbound,gmail_label_ids")
+        .select("id,thread_id,from_email,to_email,to_emails,body,summary,snippet,created_at,internal_date,is_outbound,gmail_label_ids")
         .order("internal_date", { ascending: false, nullsFirst: false })
         .limit(2000);
       if (error) throw error;
@@ -278,7 +277,7 @@ function EmailsPage() {
                   <Mail className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <div className="truncate font-medium">{g.last.subject?.trim() || g.subject}</div>
+                      <div className="truncate font-medium">{g.subject}</div>
                       <time className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                         {fmtDateTime(ts)}
                       </time>
