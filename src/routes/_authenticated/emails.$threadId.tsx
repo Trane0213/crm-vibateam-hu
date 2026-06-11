@@ -259,9 +259,12 @@ function EmailThread() {
           <ol className="space-y-4">
             {visibleEmails.map((e: any) => (
               <li key={e.id} className="rounded-lg border bg-card shadow-sm">
-                <header className="border-b px-4 py-3 space-y-1.5">
+                <div className="border-b px-4 py-3 space-y-1.5 bg-muted/30">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <div className="min-w-0 text-sm font-medium truncate">{e.from_email ?? "—"}</div>
+                    <div className="min-w-0 text-sm font-medium truncate">
+                      <span className="uppercase tracking-wider text-muted-foreground text-[10px] mr-2">Feladó</span>
+                      {e.from_email ?? "—"}
+                    </div>
                     <time className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
                       {fmtDateTime(e.internal_date ?? e.created_at)}
                     </time>
@@ -272,10 +275,10 @@ function EmailThread() {
                       items={(e.to_emails && e.to_emails.length > 0) ? e.to_emails : (e.to_email ? [e.to_email] : [])}
                       showEmpty
                     />
-                    <AddrList label="Másolat" items={e.cc_emails} />
-                    <AddrList label="Titkos" items={e.bcc_emails} />
+                    <AddrList label="Másolat" items={e.cc_emails} showEmpty />
+                    <AddrList label="Titkos" items={e.bcc_emails} showEmpty />
                   </div>
-                </header>
+                </div>
                 <div className="px-4 py-4">
                   <EmailBody body={e.body} />
                 </div>
