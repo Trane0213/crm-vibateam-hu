@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import DOMPurify from "dompurify";
 
 /** Detects HTML by looking for an HTML tag near the start. */
@@ -57,14 +57,17 @@ function renderPlainText(text: string) {
 }
 
 /** Sanitize + post-process HTML: open links in new tab, shorten visible link text. */
-function sanitizeHtml(html: string): string {
+function sanitizeHtml(
+  html: string,
+  opts: { showRemoteImages: boolean; inlineByCid?: Map<string, string> } = { showRemoteImages: false },
+): { html: string; hasRemoteImages: boolean; quotedHtml: string | null } {
   const clean = DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form", "input", "button", "meta", "link"],
     FORBID_ATTR: ["onerror", "onclick", "onload", "onmouseover", "style"],
     ALLOW_DATA_ATTR: false,
   });
-  if (typeof window === "undefined") return clean;
+  if (typeof window === "undefined") return { html: clean, hasRemoteImages: false, quotedHtml: null };
   const doc = new DOMParser().parseFromString(clean, "text/html");
   doc.querySelectorAll("a").forEach((a) => {
     a.setAttribute("target", "_blank");
@@ -76,27 +79,108 @@ function sanitizeHtml(html: string): string {
       a.setAttribute("title", href);
     }
   });
+  let hasRemoteImages = false;
   doc.querySelectorAll("img").forEach((img) => {
     img.setAttribute("loading", "lazy");
     img.setAttribute("referrerpolicy", "no-referrer");
+    const src = img.getAttribute("src") ?? "";
+    // cid: inline képek -> presigned R2 URL
+    if (src.startsWith("cid:") && opts.inlineByCid) {
+      const cid = src.slice(4).replace(/[<>]/g, "");
+      const repl = opts.inlineByCid.get(cid);
+      if (repl) img.setAttribute("src", repl);
+      return;
+    }
+    if (/^https?:\/\//i.test(src)) {
+      hasRemoteImages = true;
+      if (!opts.showRemoteImages) {
+        img.setAttribute("data-remote-src", src);
+        img.setAttribute("src", "data:image/svg+xml;utf8," + encodeURIComponent(
+          `<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>`,
+        ));
+        img.setAttribute("alt", img.getAttribute("alt") ?? "kép letiltva");
+        img.setAttribute("title", "Külső kép – kattints a Képek megjelenítése gombra");
+      }
+    }
   });
-  return doc.body.innerHTML;
+  // Idézett rész (Gmail) leválasztása
+  let quotedHtml: string | null = null;
+  const quoted = doc.querySelector(".gmail_quote, blockquote.gmail_quote");
+  if (quoted) {
+    quotedHtml = quoted.outerHTML;
+    quoted.remove();
+  } else {
+    // Outlook/egyéb: dátum-bevezetős idézet leválasztása az utolsó blockquote-ról
+    const bqs = doc.querySelectorAll("blockquote");
+    if (bqs.length > 0) {
+      const last = bqs[bqs.length - 1];
+      if ((last.textContent ?? "").length > 200) {
+        quotedHtml = last.outerHTML;
+        last.remove();
+      }
+    }
+  }
+  return { html: doc.body.innerHTML, hasRemoteImages, quotedHtml };
 }
 
-export function EmailBody({ body }: { body: string | null | undefined }) {
+export function EmailBody({
+  body,
+  inlineByCid,
+}: {
+  body: string | null | undefined;
+  inlineByCid?: Map<string, string>;
+}) {
   const text = body ?? "";
   const isHtml = useMemo(() => looksLikeHtml(text), [text]);
-  const html = useMemo(() => (isHtml ? sanitizeHtml(text) : ""), [isHtml, text]);
+  const [showImages, setShowImages] = useState(false);
+  const [showQuoted, setShowQuoted] = useState(false);
+
+  const processed = useMemo(
+    () => (isHtml ? sanitizeHtml(text, { showRemoteImages: showImages, inlineByCid }) : null),
+    [isHtml, text, showImages, inlineByCid],
+  );
 
   if (!text.trim()) {
     return <div className="text-sm text-muted-foreground italic">(üres üzenet)</div>;
   }
-  if (isHtml) {
+  if (isHtml && processed) {
     return (
-      <div
-        className="email-html max-w-none break-words text-sm leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:break-all [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_p]:my-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:my-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <div className="space-y-2">
+        {processed.hasRemoteImages && !showImages && (
+          <div className="flex items-center justify-between rounded-md border bg-muted/40 px-3 py-2 text-xs">
+            <span className="text-muted-foreground">Külső képek letiltva (adatvédelem).</span>
+            <button
+              type="button"
+              onClick={() => setShowImages(true)}
+              className="font-medium text-primary hover:underline"
+            >
+              Képek megjelenítése
+            </button>
+          </div>
+        )}
+        <div
+          className="email-html max-w-none break-words text-sm leading-relaxed text-foreground/90 [&_a]:text-primary [&_a]:underline [&_a]:break-all [&_img]:max-w-full [&_img]:h-auto [&_table]:max-w-full [&_table]:block [&_table]:overflow-x-auto [&_pre]:whitespace-pre-wrap [&_pre]:break-words [&_p]:my-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h1]:my-2 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:text-muted-foreground"
+          dangerouslySetInnerHTML={{ __html: processed.html }}
+        />
+        {processed.quotedHtml && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowQuoted((v) => !v)}
+              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-0.5"
+              title="Előzmény"
+            >
+              ··· {showQuoted ? "Előzmény elrejtése" : "Előzmény mutatása"}
+            </button>
+            {showQuoted && (
+              <div
+                className="email-html mt-2 border-l-2 pl-3 text-xs text-muted-foreground [&_a]:text-primary [&_a]:underline [&_img]:max-w-full"
+                dangerouslySetInnerHTML={{ __html: processed.quotedHtml }}
+              />
+            )}
+          </div>
+        )}
+      </div>
     );
   }
   return renderPlainText(text);
