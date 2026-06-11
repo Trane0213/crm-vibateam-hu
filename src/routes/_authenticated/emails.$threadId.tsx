@@ -6,7 +6,6 @@ import { fmtDateTime } from "@/components/resource/resource-page";
 import { EmailBody } from "@/components/emails/email-body";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { usePermissions } from "@/hooks/use-permissions";
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { r2PresignDownload } from "@/lib/r2.functions";
@@ -19,8 +18,6 @@ export const Route = createFileRoute("/_authenticated/emails/$threadId")({
 
 function EmailThread() {
   const { threadId } = Route.useParams();
-  const { role } = usePermissions();
-  const isOwner = role === "owner";
   const [replyOpen, setReplyOpen] = useState(false);
   const emails = useListWhere<any>("emails", "thread_id", threadId, {
     order: "created_at",
@@ -119,9 +116,7 @@ function EmailThread() {
           <EmptyState
             icon={Mail}
             title="Nincs megjeleníthető üzenet"
-            description={
-              !isOwner ? "Ehhez a szálhoz nincs jogosultságod." : undefined
-            }
+            description="Ehhez a szálhoz nincs jogosultságod, vagy üres."
           />
         ) : (
           <ol className="space-y-4 max-w-3xl">
