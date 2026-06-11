@@ -42,9 +42,9 @@ const home: Item[] = [
 type AiItem = Item & { search?: Record<string, string> };
 
 const aiAgents: AiItem[] = [
-  { title: "CRM Asszisztens",   url: "/ai-assistant", icon: Search,     search: { agent: "crm" },   highlight: true },
-  { title: "Sales Asszisztens", url: "/ai-assistant", icon: TrendingUp, search: { agent: "sales" }, highlight: true },
-  { title: "PM Asszisztens",    url: "/ai-assistant", icon: Hammer,     search: { agent: "pm" },    highlight: true },
+  { title: "Marven – CRM Navigátor", url: "/ai-assistant", icon: Search,     search: { agent: "crm" },   highlight: true },
+  { title: "Eladási Segítő",          url: "/ai-assistant", icon: TrendingUp, search: { agent: "sales" }, highlight: true },
+  { title: "Projektsegítő",           url: "/ai-assistant", icon: Hammer,     search: { agent: "pm" },    highlight: true },
 ];
 
 const sales: Item[] = [
