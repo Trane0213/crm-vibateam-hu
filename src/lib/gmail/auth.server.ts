@@ -19,8 +19,8 @@ export async function getAuthedUserId(request: Request): Promise<string> {
 }
 
 function stateSecret(): string {
-  const s = process.env.GMAIL_STATE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!s) throw new Error("GMAIL_STATE_SECRET vagy SUPABASE_SERVICE_ROLE_KEY szukseges.");
+  const s = process.env.GMAIL_STATE_SECRET || process.env.GMAIL_SUPABASE_SERVICE_KEY;
+  if (!s) throw new Error("GMAIL_STATE_SECRET vagy GMAIL_SUPABASE_SERVICE_KEY szukseges.");
   return s;
 }
 
