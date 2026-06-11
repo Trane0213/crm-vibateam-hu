@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Mail, ChevronLeft, Paperclip, Download } from "lucide-react";
+import { Mail, ChevronLeft, Paperclip, Download, Reply } from "lucide-react";
 import { EmptyState } from "@/components/page-header";
 import { useListWhere } from "@/lib/db-hooks";
 import { fmtDateTime } from "@/components/resource/resource-page";
@@ -7,10 +7,11 @@ import { EmailBody } from "@/components/emails/email-body";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
+import { EmailComposer } from "@/components/emails/email-composer";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   component: EmailThread,
@@ -18,12 +19,9 @@ export const Route = createFileRoute("/_authenticated/emails/$threadId")({
 
 function EmailThread() {
   const { threadId } = Route.useParams();
-  const { profile, role } = usePermissions();
+  const { role } = usePermissions();
   const isOwner = role === "owner";
-  const myMailbox = ((profile as any)?.gmail_email ?? (profile as any)?.email ?? "")
-    .toString()
-    .trim()
-    .toLowerCase();
+  const [replyOpen, setReplyOpen] = useState(false);
   const emails = useListWhere<any>("emails", "thread_id", threadId, {
     order: "created_at",
     ascending: true,
@@ -88,16 +86,11 @@ function EmailThread() {
     }
   };
 
-  const visibleEmails = useMemo(() => {
-    const list = emails.data ?? [];
-    if (isOwner) return list;
-    if (!myMailbox) return [];
-    return list.filter((e: any) => {
-      const f = (e.from_email ?? "").toLowerCase();
-      const t = (e.to_email ?? "").toLowerCase();
-      return f === myMailbox || t === myMailbox || f.includes(myMailbox) || t.includes(myMailbox);
-    });
-  }, [emails.data, isOwner, myMailbox]);
+  // RLS szűr szerver oldalon; ha a user nem hozzáférő, a lista üres.
+  const visibleEmails = emails.data ?? [];
+  const last: any = visibleEmails[visibleEmails.length - 1];
+  const defaultReplyTo = last?.from_email ?? "";
+  const replySubject = subject?.startsWith("Re:") ? subject : `Re: ${subject}`;
 
   return (
     <div className="flex flex-col">
@@ -110,8 +103,13 @@ function EmailThread() {
           <Mail className="h-5 w-5 text-primary shrink-0" />
           <span className="min-w-0 break-words">{subject}</span>
         </h1>
-        <div className="mt-1 text-sm text-muted-foreground">
-          {visibleEmails.length} üzenet a szálban
+        <div className="mt-1 flex items-center justify-between gap-3">
+          <div className="text-sm text-muted-foreground">{visibleEmails.length} üzenet a szálban</div>
+          {visibleEmails.length > 0 && (
+            <Button size="sm" onClick={() => setReplyOpen(true)}>
+              <Reply className="mr-1.5 h-4 w-4" /> Válasz
+            </Button>
+          )}
         </div>
       </div>
       <div className="p-6">
@@ -177,6 +175,15 @@ function EmailThread() {
           </ol>
         )}
       </div>
+      {visibleEmails.length > 0 && (
+        <EmailComposer
+          open={replyOpen}
+          onOpenChange={setReplyOpen}
+          defaultTo={defaultReplyTo}
+          defaultSubject={replySubject}
+          threadId={threadId}
+        />
+      )}
     </div>
   );
 }
