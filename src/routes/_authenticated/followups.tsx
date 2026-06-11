@@ -62,7 +62,7 @@ function FollowupsPage() {
         },
         {
           name: "company_id",
-          label: "Cég",
+          label: "Ügyfél",
           type: "ref",
           ref: { table: "companies", labelColumn: "name" },
         },

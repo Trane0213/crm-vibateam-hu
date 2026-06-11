@@ -1,4 +1,4 @@
-import { Plus, Briefcase, FileText, ListChecks, Sparkles, BellRing, FolderOpen } from "lucide-react";
+import { Plus, Briefcase, FileText, ListChecks, Sparkles, BellRing, FolderOpen, Users, UserPlus } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,8 @@ export function QuickAddMenu() {
   const { role } = usePermissions();
 
   const items = [
+    { key: "customer", label: "Új ügyfél",   icon: Users,      to: "/customers", primary: true },
+    { key: "contact", label: "Új kapcsolattartó", icon: UserPlus, to: "/contacts" },
     { key: "project", label: "Új projekt",   icon: Briefcase,  to: "/projects" },
     { key: "quote",   label: "Új ajánlat",   icon: FileText,   to: "/quotes" },
     { key: "followup",label: "Új follow-up", icon: BellRing,   to: "/followups" },
@@ -42,7 +44,7 @@ export function QuickAddMenu() {
           <DropdownMenuItem
             key={i.key}
             onSelect={() => navigate({ to: i.to, search: { new: 1 } as any })}
-            className="cursor-pointer"
+            className={`cursor-pointer ${(i as any).primary ? "font-medium" : ""}`}
           >
             <i.icon className="mr-2 h-4 w-4" />
             {i.label}

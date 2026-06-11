@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Calendar } from "lucide-react";
 import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/resource-page";
 
@@ -21,7 +21,7 @@ function MeetingsPage() {
         { name: "meeting_date", label: "Időpont", type: "datetime", required: true },
         { name: "location", label: "Helyszín", type: "text" },
         { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" } },
-        { name: "company_id", label: "Cég", type: "ref", ref: { table: "companies", labelColumn: "name" } },
+        { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
         { name: "summary", label: "Összefoglaló / jegyzet", type: "textarea" },
       ]}
       columns={[
@@ -29,7 +29,18 @@ function MeetingsPage() {
         { key: "title", label: "Megnevezés" },
         { key: "location", label: "Helyszín", className: "text-muted-foreground" },
         { key: "project", label: "Projekt", render: (r) => projectLabel(r.project_id) },
-        { key: "company", label: "Cég", render: (r) => companyLabel(r.company_id) },
+        {
+          key: "company",
+          label: "Ügyfél",
+          render: (r) =>
+            r.company_id ? (
+              <Link to="/customers/$id" params={{ id: r.company_id }} className="text-primary hover:underline">
+                {companyLabel(r.company_id)}
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            ),
+        },
         { key: "summary", label: "Jegyzet", className: "text-muted-foreground max-w-[260px] truncate" },
       ]}
     />
