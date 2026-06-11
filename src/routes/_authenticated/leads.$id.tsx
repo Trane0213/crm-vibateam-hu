@@ -50,7 +50,7 @@ function LeadDetail() {
           <CardContent className="space-y-1.5 text-sm">
             <Row label="Cég">
               {lead.company_id ? (
-                <Link to="/companies/$id" params={{ id: lead.company_id }} className="text-primary hover:underline">
+                <Link to="/customers/$id" params={{ id: lead.company_id }} className="text-primary hover:underline">
                   {companyLabel(lead.company_id)}
                 </Link>
               ) : "—"}
