@@ -2,10 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Mail } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/resource-page";
+import { emailPreview } from "@/components/emails/email-body";
 
 function EmailsPage() {
   const projectLabel = useLookup("projects", "title");
   const contactLabel = useLookup("contacts", "name");
+  const threadSubject = useLookup("email_threads", "subject");
   return (
     <ResourcePage
       title="Emailek"
@@ -18,7 +20,6 @@ function EmailsPage() {
       order="created_at"
       ascending={false}
       fields={[
-        { name: "subject", label: "Tárgy", type: "text" },
         { name: "from_email", label: "Feladó", type: "text" },
         { name: "to_email", label: "Címzett", type: "text" },
         {
@@ -41,14 +42,26 @@ function EmailsPage() {
         {
           key: "subject",
           label: "Tárgy",
-          className: "font-medium max-w-[360px] truncate",
+          className: "font-medium max-w-[320px]",
           render: (r) => {
-            const label = r.subject ?? r.summary ?? "(nincs tárgy)";
+            const rawSubject = threadSubject(r.thread_id);
+            const subject = rawSubject && rawSubject !== "—" && rawSubject !== "(nincs tárgy)"
+              ? rawSubject
+              : "(nincs tárgy)";
+            const preview = emailPreview(r.body, r.summary, 80);
+            const inner = (
+              <div className="min-w-0">
+                <div className="truncate font-medium">{subject}</div>
+                {preview && (
+                  <div className="truncate text-xs font-normal text-muted-foreground">{preview}</div>
+                )}
+              </div>
+            );
             return r.thread_id ? (
-              <Link to="/emails/$threadId" params={{ threadId: r.thread_id }} className="text-primary hover:underline">
-                {label}
+              <Link to="/emails/$threadId" params={{ threadId: r.thread_id }} className="block text-primary hover:underline">
+                {inner}
               </Link>
-            ) : label;
+            ) : inner;
           },
         },
         { key: "from_email", label: "Feladó", className: "text-muted-foreground" },

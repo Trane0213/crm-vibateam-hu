@@ -111,19 +111,17 @@ function decodeBase64Url(data: string): string {
 }
 
 export function extractBody(m: GmailMessage): string {
-  const walk = (part: any): string | null => {
+  // Preferaljuk a HTML reszt (a UI-ban formazva jelenitjuk meg), kulonben plain text, kulonben snippet.
+  const find = (part: any, mime: string): string | null => {
     if (!part) return null;
-    if (part.mimeType === "text/plain" && part.body?.data) return decodeBase64Url(part.body.data);
+    if (part.mimeType === mime && part.body?.data) return decodeBase64Url(part.body.data);
     if (part.parts) {
       for (const p of part.parts) {
-        const t = walk(p);
+        const t = find(p, mime);
         if (t) return t;
       }
     }
-    if (part.mimeType === "text/html" && part.body?.data) {
-      return decodeBase64Url(part.body.data).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-    }
     return null;
   };
-  return walk(m.payload) ?? m.snippet ?? "";
+  return find(m.payload, "text/html") ?? find(m.payload, "text/plain") ?? m.snippet ?? "";
 }
