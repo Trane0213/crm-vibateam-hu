@@ -67,46 +67,52 @@ export function EmailHtmlFrame({
     if (head) head.insertAdjacentHTML("beforeend", baseStyle);
     else doc.documentElement.insertAdjacentHTML("afterbegin", `<head>${baseStyle}</head>`);
 
-    // Magasság-jelentő script (iframe -> parent)
-    const resizer = `
-      <script>
-        (function(){
-          function send(){
-            var h = Math.max(
-              document.body ? document.body.scrollHeight : 0,
-              document.documentElement ? document.documentElement.scrollHeight : 0
-            );
-            parent.postMessage({__emailFrame:true, h:h}, '*');
-          }
-          window.addEventListener('load', send);
-          window.addEventListener('resize', send);
-          var ro = new ResizeObserver(send);
-          if(document.body) ro.observe(document.body);
-          document.querySelectorAll('img').forEach(function(i){
-            if(!i.complete) i.addEventListener('load', send);
-            i.addEventListener('error', send);
-          });
-          setTimeout(send, 100);
-          setTimeout(send, 600);
-          setTimeout(send, 1500);
-        })();
-      <\/script>`;
-    const body = doc.querySelector("body");
-    if (body) body.insertAdjacentHTML("beforeend", resizer);
-
     return "<!doctype html>" + doc.documentElement.outerHTML;
   }, [html, inlineByCid, showRemoteImages]);
 
+  // A sandbox NEM tartalmaz allow-scripts (biztonság), így a magasságot
+  // a parent oldalról mérjük. Az iframe same-origin (srcDoc), így a
+  // contentDocument elérhető.
   useEffect(() => {
-    function onMsg(ev: MessageEvent) {
-      const data: any = ev.data;
-      if (data && data.__emailFrame && typeof data.h === "number") {
-        setHeight(Math.min(Math.max(data.h + 8, 80), 20000));
+    const el = ref.current;
+    if (!el) return;
+    let ro: ResizeObserver | null = null;
+    const measure = () => {
+      const doc = el.contentDocument;
+      if (!doc) return;
+      const h = Math.max(
+        doc.body?.scrollHeight ?? 0,
+        doc.documentElement?.scrollHeight ?? 0,
+      );
+      if (h > 0) setHeight(Math.min(Math.max(h + 8, 80), 50000));
+    };
+    const onLoad = () => {
+      measure();
+      const doc = el.contentDocument;
+      if (!doc) return;
+      if ("ResizeObserver" in window && doc.body) {
+        ro = new ResizeObserver(measure);
+        ro.observe(doc.body);
       }
-    }
-    window.addEventListener("message", onMsg);
-    return () => window.removeEventListener("message", onMsg);
-  }, []);
+      doc.querySelectorAll("img").forEach((img) => {
+        if (!(img as HTMLImageElement).complete) {
+          img.addEventListener("load", measure);
+          img.addEventListener("error", measure);
+        }
+      });
+    };
+    el.addEventListener("load", onLoad);
+    // Első mérés, ha már betöltődött
+    if (el.contentDocument?.readyState === "complete") onLoad();
+    const t1 = setTimeout(measure, 300);
+    const t2 = setTimeout(measure, 1200);
+    return () => {
+      el.removeEventListener("load", onLoad);
+      ro?.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [srcDoc]);
 
   return (
     <iframe
@@ -114,7 +120,15 @@ export function EmailHtmlFrame({
       title="email"
       srcDoc={srcDoc}
       sandbox="allow-same-origin allow-popups"
-      style={{ width: "100%", height, border: 0, display: "block", background: "transparent" }}
+      scrolling="no"
+      style={{
+        width: "100%",
+        height,
+        border: 0,
+        display: "block",
+        background: "transparent",
+        overflow: "hidden",
+      }}
     />
   );
 }
