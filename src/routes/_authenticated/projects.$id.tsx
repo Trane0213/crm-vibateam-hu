@@ -112,16 +112,23 @@ function ProjectDetail() {
       <div className="border-b bg-background px-6 py-4">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Projekt</div>
-            <h1 className="mt-1 text-xl font-semibold">{project.title ?? project.name ?? `#${id.slice(0, 8)}`}</h1>
-            <div className="mt-1 text-sm text-muted-foreground">
-              {project.company_id ? (
-                <Link to="/customers/$id" params={{ id: project.company_id }} className="text-primary hover:underline">
-                  {companyLabel(project.company_id)}
-                </Link>
-              ) : "—"}
-              {project.address ? ` · ${project.address}` : ""}
-            </div>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Ügyfél</div>
+            {project.company_id ? (
+              <Link
+                to="/customers/$id"
+                params={{ id: project.company_id }}
+                className="text-lg font-semibold text-primary hover:underline"
+              >
+                {companyLabel(project.company_id)}
+              </Link>
+            ) : (
+              <div className="text-lg font-semibold text-muted-foreground">— (nincs ügyfél)</div>
+            )}
+            <div className="mt-2 text-[11px] uppercase tracking-wider text-muted-foreground">Projekt</div>
+            <h1 className="text-xl font-semibold">{project.title ?? project.name ?? `#${id.slice(0, 8)}`}</h1>
+            {project.address && (
+              <div className="mt-1 text-sm text-muted-foreground">{project.address}</div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <ProjectStatusSelect projectId={id} value={project.status} />
