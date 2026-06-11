@@ -155,9 +155,9 @@ function CustomerDetail() {
         {/* Vezetői összefoglaló */}
         <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
           <Mini label="Típus"            value={isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[c.company_type] ?? "Cég")} />
-          <Mini label="Projekt"          value={`${activeProjects.length} / ${projects.data?.length ?? 0}`} hint="aktív / összes" />
-          <Mini label="Nyitott ajánlat"  value={String(openQuotes.length)} tone={openQuotes.length > 0 ? "primary" : undefined} />
-          <Mini label="Lejárt follow-up" value={String(overdueFollowups.length)} tone={overdueFollowups.length > 0 ? "danger" : undefined} />
+          <Mini label="Projekt"          value={`${activeProjects} / ${totalProjects}`} hint="aktív / összes" />
+          <Mini label="Nyitott ajánlat"  value={String(openQuotesCount)} tone={openQuotesCount > 0 ? "primary" : undefined} />
+          <Mini label="Lejárt follow-up" value={String(overdueCount)} tone={overdueCount > 0 ? "danger" : undefined} />
           <Mini label="Utolsó aktivitás" value={lastActivityAt ? fmtDate(lastActivityAt) : "—"} />
           <Mini label="Státusz"          value={customerStatus} tone={customerStatus === "Aktív" ? "success" : undefined} />
         </div>
