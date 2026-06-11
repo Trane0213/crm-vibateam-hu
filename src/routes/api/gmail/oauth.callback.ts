@@ -34,14 +34,16 @@ export const Route = createFileRoute("/api/gmail/oauth/callback")({
           const email = await fetchUserEmail(tokens.access_token);
           const expiresAt = new Date(Date.now() + (tokens.expires_in - 30) * 1000).toISOString();
           const admin = getAdminClient();
-          const { error: upErr } = await admin.from("gmail_accounts").upsert({
-            user_id: userId,
-            email,
-            refresh_token: tokens.refresh_token,
-            access_token: tokens.access_token,
-            expires_at: expiresAt,
-            scope: tokens.scope,
-          });
+          const { error: upErr } = await admin
+            .from("users_profile")
+            .update({
+              gmail_email: email,
+              gmail_refresh_token: tokens.refresh_token,
+              gmail_access_token: tokens.access_token,
+              gmail_expires_at: expiresAt,
+              gmail_scope: tokens.scope,
+            })
+            .eq("auth_user_id", userId);
           if (upErr) return htmlResult(false, `DB hiba: ${upErr.message}`);
           return htmlResult(true, `Sikeres csatlakozás: ${email}`);
         } catch (e: any) {

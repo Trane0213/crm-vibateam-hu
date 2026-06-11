@@ -9,7 +9,17 @@ export const Route = createFileRoute("/api/gmail/disconnect")({
         try {
           const userId = await getAuthedUserId(request);
           const admin = getAdminClient();
-          await admin.from("gmail_accounts").delete().eq("user_id", userId);
+          await admin
+            .from("users_profile")
+            .update({
+              gmail_email: null,
+              gmail_refresh_token: null,
+              gmail_access_token: null,
+              gmail_expires_at: null,
+              gmail_scope: null,
+              gmail_last_sync_at: null,
+            })
+            .eq("auth_user_id", userId);
           return Response.json({ ok: true });
         } catch (e: any) {
           if (e instanceof Response) return e;
