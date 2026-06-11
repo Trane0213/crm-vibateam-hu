@@ -218,6 +218,18 @@ async function missing_documents_report(_args: Record<string, never> = {}) {
   };
 }
 
+async function email_thread_read({ thread_id }: { thread_id: string }) {
+  if (!thread_id) return { error: "thread_id kötelező" };
+  const { data, error } = await supabase
+    .from("emails")
+    .select("id,subject,from_email,to_email,direction,sent_at,created_at,body,summary")
+    .eq("thread_id", thread_id)
+    .order("sent_at", { ascending: true, nullsFirst: true })
+    .limit(50);
+  if (error) return { error: error.message };
+  return { thread_id, count: data?.length ?? 0, messages: data ?? [] };
+}
+
 // ============================================================
 // PICK HELPERS — token-takarékos kimenet
 // ============================================================
@@ -275,12 +287,17 @@ const TOOLS: Record<string, ToolEntry> = {
     def: { type: "function", function: { name: "missing_documents_report", description: "Mely aktív projekteknek nincs dokumentumuk. CSAK OLVAS.", parameters: { type: "object", properties: {} } } },
     run: missing_documents_report,
   },
+  // EMAIL (Gmail-szinkronból)
+  email_thread_read: {
+    def: { type: "function", function: { name: "email_thread_read", description: "Egy email szál összes üzenete időrendben (subject, feladó, címzett, body). CSAK OLVAS.", parameters: { type: "object", properties: { thread_id: { type: "string", description: "thread_id a CRM emails táblából (vagy Gmail threadId)." } }, required: ["thread_id"] } } },
+    run: email_thread_read,
+  },
 };
 
 export const AGENT_TOOL_NAMES: Record<AgentId, string[]> = {
-  crm:   ["project_summary", "company_summary", "contact_summary"],
-  sales: ["create_followup_suggestion", "lead_priority_report", "quote_risk_report", "project_summary", "company_summary"],
-  pm:    ["project_risk_report", "deadline_report", "missing_documents_report", "project_summary"],
+  crm:   ["project_summary", "company_summary", "contact_summary", "email_thread_read"],
+  sales: ["create_followup_suggestion", "lead_priority_report", "quote_risk_report", "project_summary", "company_summary", "email_thread_read"],
+  pm:    ["project_risk_report", "deadline_report", "missing_documents_report", "project_summary", "email_thread_read"],
 };
 
 export function getToolDefsForAgent(agent: AgentId): AiToolDef[] {
