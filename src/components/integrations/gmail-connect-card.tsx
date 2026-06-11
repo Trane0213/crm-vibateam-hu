@@ -79,8 +79,19 @@ export function GmailConnectCard() {
           method: "POST",
           body: JSON.stringify({ backfill: true, max: 5000 }),
         });
-        const j = await r.json();
-        if (!r.ok) throw new Error(j.error ?? "Backfill hiba");
+        const txt = await r.text();
+        let j: any = {};
+        try { j = txt ? JSON.parse(txt) : {}; } catch { j = { error: txt }; }
+        if (!r.ok) {
+          // 504/502 gateway timeout esetén nem dobunk, csak újra próbáljuk a következő körrel.
+          if (r.status === 504 || r.status === 502) {
+            total.runs++;
+            toast.message(`Időtúllépés (${r.status}) — folytatás következő körrel… (eddig ${total.inserted} új)`);
+            if (total.runs >= 30) break;
+            continue;
+          }
+          throw new Error(j.error ?? `Backfill hiba (${r.status})`);
+        }
         total.inserted += j.inserted ?? 0;
         total.skipped += j.skipped ?? 0;
         total.attachments += j.attachments ?? 0;
