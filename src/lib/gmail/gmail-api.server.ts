@@ -61,6 +61,48 @@ export function getProfile(accessToken: string) {
   );
 }
 
+export type GmailAttachment = { data: string; size: number };
+export function getAttachment(accessToken: string, messageId: string, attachmentId: string) {
+  return call<GmailAttachment>(
+    accessToken,
+    `/messages/${messageId}/attachments/${attachmentId}`,
+  );
+}
+
+/** Csatolmány részek bejárása rekurzívan. Inline + valódi csatolmány is. */
+export type GmailAttachmentPart = {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  inline: boolean;
+  contentId: string | null;
+};
+export function listAttachmentParts(m: GmailMessage): GmailAttachmentPart[] {
+  const out: GmailAttachmentPart[] = [];
+  const walk = (part: any) => {
+    if (!part) return;
+    const att = part.body?.attachmentId as string | undefined;
+    const fname = (part.filename as string | undefined) ?? "";
+    if (att && (fname || part.mimeType?.startsWith("image/"))) {
+      const headers: { name: string; value: string }[] = part.headers ?? [];
+      const disp = headers.find((h) => h.name?.toLowerCase() === "content-disposition")?.value ?? "";
+      const cid = headers.find((h) => h.name?.toLowerCase() === "content-id")?.value ?? "";
+      out.push({
+        attachmentId: att,
+        filename: fname || `attachment-${out.length + 1}`,
+        mimeType: part.mimeType ?? "application/octet-stream",
+        size: Number(part.body?.size ?? 0),
+        inline: /inline/i.test(disp),
+        contentId: cid ? cid.replace(/[<>]/g, "") : null,
+      });
+    }
+    if (part.parts) for (const p of part.parts) walk(p);
+  };
+  walk(m.payload);
+  return out;
+}
+
 export function sendMessage(accessToken: string, raw: string, threadId?: string) {
   return call<{ id: string; threadId: string; labelIds?: string[] }>(accessToken, "/messages/send", {
     method: "POST",
