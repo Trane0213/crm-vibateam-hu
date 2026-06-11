@@ -31,8 +31,10 @@ import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
-import { Route as ApiGmailStartRouteImport } from './routes/api/gmail/start'
-import { Route as ApiGmailProxyRouteImport } from './routes/api/gmail/proxy'
+import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
+import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
+import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
+import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -47,6 +49,8 @@ import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authenticated/emails.$threadId'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
+import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
+import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -164,14 +168,24 @@ const AuthenticatedCompaniesIndexRoute =
     path: '/companies/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiGmailStartRoute = ApiGmailStartRouteImport.update({
-  id: '/api/gmail/start',
-  path: '/api/gmail/start',
+const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
+  id: '/api/gmail/sync',
+  path: '/api/gmail/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGmailProxyRoute = ApiGmailProxyRouteImport.update({
-  id: '/api/gmail/proxy',
-  path: '/api/gmail/proxy',
+const ApiGmailStatusRoute = ApiGmailStatusRouteImport.update({
+  id: '/api/gmail/status',
+  path: '/api/gmail/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailSendRoute = ApiGmailSendRouteImport.update({
+  id: '/api/gmail/send',
+  path: '/api/gmail/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailDisconnectRoute = ApiGmailDisconnectRouteImport.update({
+  id: '/api/gmail/disconnect',
+  path: '/api/gmail/disconnect',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsUsersRoute =
@@ -254,6 +268,16 @@ const AuthenticatedCompaniesIdRoute =
     path: '/companies/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
+  id: '/api/gmail/oauth/start',
+  path: '/api/gmail/oauth/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailOauthCallbackRoute = ApiGmailOauthCallbackRouteImport.update({
+  id: '/api/gmail/oauth/callback',
+  path: '/api/gmail/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -284,8 +308,10 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
-  '/api/gmail/proxy': typeof ApiGmailProxyRoute
-  '/api/gmail/start': typeof ApiGmailStartRoute
+  '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
+  '/api/gmail/send': typeof ApiGmailSendRoute
+  '/api/gmail/status': typeof ApiGmailStatusRoute
+  '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/emails/': typeof AuthenticatedEmailsIndexRoute
@@ -293,6 +319,8 @@ export interface FileRoutesByFullPath {
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
+  '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -322,8 +350,10 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
-  '/api/gmail/proxy': typeof ApiGmailProxyRoute
-  '/api/gmail/start': typeof ApiGmailStartRoute
+  '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
+  '/api/gmail/send': typeof ApiGmailSendRoute
+  '/api/gmail/status': typeof ApiGmailStatusRoute
+  '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/emails': typeof AuthenticatedEmailsIndexRoute
@@ -331,6 +361,8 @@ export interface FileRoutesByTo {
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/quotes': typeof AuthenticatedQuotesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
+  '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -363,8 +395,10 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
-  '/api/gmail/proxy': typeof ApiGmailProxyRoute
-  '/api/gmail/start': typeof ApiGmailStartRoute
+  '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
+  '/api/gmail/send': typeof ApiGmailSendRoute
+  '/api/gmail/status': typeof ApiGmailStatusRoute
+  '/api/gmail/sync': typeof ApiGmailSyncRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
@@ -372,6 +406,8 @@ export interface FileRoutesById {
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
+  '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -404,8 +440,10 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
-    | '/api/gmail/proxy'
-    | '/api/gmail/start'
+    | '/api/gmail/disconnect'
+    | '/api/gmail/send'
+    | '/api/gmail/status'
+    | '/api/gmail/sync'
     | '/companies/'
     | '/contacts/'
     | '/emails/'
@@ -413,6 +451,8 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/quotes/'
     | '/settings/'
+    | '/api/gmail/oauth/callback'
+    | '/api/gmail/oauth/start'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -442,8 +482,10 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
-    | '/api/gmail/proxy'
-    | '/api/gmail/start'
+    | '/api/gmail/disconnect'
+    | '/api/gmail/send'
+    | '/api/gmail/status'
+    | '/api/gmail/sync'
     | '/companies'
     | '/contacts'
     | '/emails'
@@ -451,6 +493,8 @@ export interface FileRouteTypes {
     | '/projects'
     | '/quotes'
     | '/settings'
+    | '/api/gmail/oauth/callback'
+    | '/api/gmail/oauth/start'
   id:
     | '__root__'
     | '/'
@@ -482,8 +526,10 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
-    | '/api/gmail/proxy'
-    | '/api/gmail/start'
+    | '/api/gmail/disconnect'
+    | '/api/gmail/send'
+    | '/api/gmail/status'
+    | '/api/gmail/sync'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
     | '/_authenticated/emails/'
@@ -491,6 +537,8 @@ export interface FileRouteTypes {
     | '/_authenticated/projects/'
     | '/_authenticated/quotes/'
     | '/_authenticated/settings/'
+    | '/api/gmail/oauth/callback'
+    | '/api/gmail/oauth/start'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -500,8 +548,12 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ApiR2UploadRoute: typeof ApiR2UploadRoute
-  ApiGmailProxyRoute: typeof ApiGmailProxyRoute
-  ApiGmailStartRoute: typeof ApiGmailStartRoute
+  ApiGmailDisconnectRoute: typeof ApiGmailDisconnectRoute
+  ApiGmailSendRoute: typeof ApiGmailSendRoute
+  ApiGmailStatusRoute: typeof ApiGmailStatusRoute
+  ApiGmailSyncRoute: typeof ApiGmailSyncRoute
+  ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
+  ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -660,18 +712,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/gmail/start': {
-      id: '/api/gmail/start'
-      path: '/api/gmail/start'
-      fullPath: '/api/gmail/start'
-      preLoaderRoute: typeof ApiGmailStartRouteImport
+    '/api/gmail/sync': {
+      id: '/api/gmail/sync'
+      path: '/api/gmail/sync'
+      fullPath: '/api/gmail/sync'
+      preLoaderRoute: typeof ApiGmailSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/gmail/proxy': {
-      id: '/api/gmail/proxy'
-      path: '/api/gmail/proxy'
-      fullPath: '/api/gmail/proxy'
-      preLoaderRoute: typeof ApiGmailProxyRouteImport
+    '/api/gmail/status': {
+      id: '/api/gmail/status'
+      path: '/api/gmail/status'
+      fullPath: '/api/gmail/status'
+      preLoaderRoute: typeof ApiGmailStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gmail/send': {
+      id: '/api/gmail/send'
+      path: '/api/gmail/send'
+      fullPath: '/api/gmail/send'
+      preLoaderRoute: typeof ApiGmailSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gmail/disconnect': {
+      id: '/api/gmail/disconnect'
+      path: '/api/gmail/disconnect'
+      fullPath: '/api/gmail/disconnect'
+      preLoaderRoute: typeof ApiGmailDisconnectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings/users': {
@@ -772,6 +838,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/gmail/oauth/start': {
+      id: '/api/gmail/oauth/start'
+      path: '/api/gmail/oauth/start'
+      fullPath: '/api/gmail/oauth/start'
+      preLoaderRoute: typeof ApiGmailOauthStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/gmail/oauth/callback': {
+      id: '/api/gmail/oauth/callback'
+      path: '/api/gmail/oauth/callback'
+      fullPath: '/api/gmail/oauth/callback'
+      preLoaderRoute: typeof ApiGmailOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -863,9 +943,23 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ApiR2UploadRoute: ApiR2UploadRoute,
-  ApiGmailProxyRoute: ApiGmailProxyRoute,
-  ApiGmailStartRoute: ApiGmailStartRoute,
+  ApiGmailDisconnectRoute: ApiGmailDisconnectRoute,
+  ApiGmailSendRoute: ApiGmailSendRoute,
+  ApiGmailStatusRoute: ApiGmailStatusRoute,
+  ApiGmailSyncRoute: ApiGmailSyncRoute,
+  ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
+  ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
