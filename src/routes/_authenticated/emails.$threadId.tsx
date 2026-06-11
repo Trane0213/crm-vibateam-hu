@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Mail, ChevronLeft } from "lucide-react";
+import { Mail, ChevronLeft, Paperclip, Download } from "lucide-react";
 import { EmptyState } from "@/components/page-header";
 import { useListWhere } from "@/lib/db-hooks";
 import { fmtDateTime } from "@/components/resource/resource-page";
@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { r2PresignDownload } from "@/lib/r2.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   component: EmailThread,
@@ -41,6 +44,49 @@ function EmailThread() {
   const subject = thread.data?.subject && thread.data.subject !== "(nincs tárgy)"
     ? thread.data.subject
     : "(nincs tárgy)";
+
+  const emailIds = useMemo(
+    () => (emails.data ?? []).map((e: any) => e.id as string),
+    [emails.data],
+  );
+
+  const attachments = useQuery({
+    queryKey: ["email_attachments", emailIds.join(",")],
+    enabled: emailIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_attachments")
+        .select("id,email_id,filename,mime_type,size_bytes,r2_key,inline")
+        .in("email_id", emailIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const attByEmail = useMemo(() => {
+    const m = new Map<string, any[]>();
+    for (const a of attachments.data ?? []) {
+      const arr = m.get(a.email_id) ?? [];
+      arr.push(a);
+      m.set(a.email_id, arr);
+    }
+    return m;
+  }, [attachments.data]);
+
+  const handleDownload = async (key: string, filename: string) => {
+    try {
+      const { url } = await r2PresignDownload({ data: { key } });
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.target = "_blank";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e: any) {
+      toast.error("Letöltés sikertelen", { description: e?.message ?? String(e) });
+    }
+  };
 
   const visibleEmails = useMemo(() => {
     const list = emails.data ?? [];
@@ -98,6 +144,34 @@ function EmailThread() {
                 <div className="px-4 py-4">
                   <EmailBody body={e.body} />
                 </div>
+                {(attByEmail.get(e.id) ?? []).length > 0 && (
+                  <div className="border-t bg-muted/20 px-4 py-3">
+                    <div className="mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                      <Paperclip className="h-3.5 w-3.5" />
+                      Csatolmányok ({(attByEmail.get(e.id) ?? []).length})
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(attByEmail.get(e.id) ?? []).map((a: any) => (
+                        <Button
+                          key={a.id}
+                          variant="outline"
+                          size="sm"
+                          className="gap-1.5 max-w-[280px]"
+                          onClick={() => handleDownload(a.r2_key, a.filename)}
+                          title={`${a.filename}${a.size_bytes ? ` · ${Math.round(a.size_bytes / 1024)} KB` : ""}`}
+                        >
+                          <Download className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{a.filename}</span>
+                          {a.size_bytes ? (
+                            <span className="text-xs text-muted-foreground shrink-0">
+                              {Math.round(a.size_bytes / 1024)} KB
+                            </span>
+                          ) : null}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ol>
