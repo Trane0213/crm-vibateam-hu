@@ -41,7 +41,7 @@ export const Route = createFileRoute("/api/gmail/send")({
               .from("email_threads")
               .insert({
                 gmail_thread_id: sent.threadId,
-                subject: body.subject,
+                subject: body.subject && body.subject.trim().length > 0 ? body.subject : "(nincs tárgy)",
                 project_id: body.project_id ?? null,
               })
               .select("id")
