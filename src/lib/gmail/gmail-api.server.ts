@@ -142,6 +142,157 @@ export function buildRawEmail(opts: {
   return toBase64Url(lines.join("\r\n"));
 }
 
+/**
+ * Teljes MIME üzenet összeállítása HTML + plain text + csatolmányokkal.
+ * Csatolmányok base64-kódolt buffer-ek a hívótól.
+ */
+export function buildRawMimeMessage(opts: {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  cc?: string;
+  bcc?: string;
+  inReplyTo?: string;
+  references?: string;
+  attachments?: { filename: string; mimeType: string; content: Buffer }[];
+}): string {
+  const boundaryMixed = "mixed_" + Math.random().toString(36).slice(2);
+  const boundaryAlt = "alt_" + Math.random().toString(36).slice(2);
+  const subjectEnc = encodeHeader(opts.subject);
+  const headers = [
+    `From: ${opts.from}`,
+    `To: ${opts.to}`,
+    opts.cc ? `Cc: ${opts.cc}` : "",
+    opts.bcc ? `Bcc: ${opts.bcc}` : "",
+    `Subject: ${subjectEnc}`,
+    opts.inReplyTo ? `In-Reply-To: ${opts.inReplyTo}` : "",
+    opts.references ? `References: ${opts.references}` : "",
+    "MIME-Version: 1.0",
+  ].filter(Boolean);
+
+  const textPart = (opts.text ?? htmlToText(opts.html)).replace(/\r?\n/g, "\r\n");
+
+  const altBody = [
+    `--${boundaryAlt}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    Buffer.from(textPart, "utf8").toString("base64").replace(/(.{76})/g, "$1\r\n"),
+    "",
+    `--${boundaryAlt}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: base64",
+    "",
+    Buffer.from(opts.html, "utf8").toString("base64").replace(/(.{76})/g, "$1\r\n"),
+    "",
+    `--${boundaryAlt}--`,
+  ].join("\r\n");
+
+  const hasAtt = (opts.attachments?.length ?? 0) > 0;
+
+  let body: string;
+  if (!hasAtt) {
+    headers.push(`Content-Type: multipart/alternative; boundary="${boundaryAlt}"`);
+    body = altBody;
+  } else {
+    headers.push(`Content-Type: multipart/mixed; boundary="${boundaryMixed}"`);
+    const parts: string[] = [
+      `--${boundaryMixed}`,
+      `Content-Type: multipart/alternative; boundary="${boundaryAlt}"`,
+      "",
+      altBody,
+      "",
+    ];
+    for (const a of opts.attachments!) {
+      parts.push(
+        `--${boundaryMixed}`,
+        `Content-Type: ${a.mimeType}; name="${encodeHeader(a.filename)}"`,
+        `Content-Disposition: attachment; filename="${encodeHeader(a.filename)}"`,
+        "Content-Transfer-Encoding: base64",
+        "",
+        a.content.toString("base64").replace(/(.{76})/g, "$1\r\n"),
+        "",
+      );
+    }
+    parts.push(`--${boundaryMixed}--`);
+    body = parts.join("\r\n");
+  }
+
+  const raw = headers.join("\r\n") + "\r\n\r\n" + body;
+  return Buffer.from(raw, "utf8")
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+function encodeHeader(s: string): string {
+  // RFC 2047: csak akkor encode-oljuk, ha nem-ASCII van benne.
+  // eslint-disable-next-line no-control-regex
+  if (/^[\x00-\x7F]*$/.test(s)) return s;
+  return "=?UTF-8?B?" + Buffer.from(s, "utf8").toString("base64") + "?=";
+}
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/** Több címzett RFC-822 értékből kinyert email lista (alacsony betűs). */
+export function parseAddressList(raw: string): string[] {
+  if (!raw) return [];
+  // Egyszerű split vesszővel, figyelve a <...> tartalomra.
+  const items: string[] = [];
+  let depth = 0;
+  let buf = "";
+  for (const ch of raw) {
+    if (ch === "<") depth++;
+    if (ch === ">") depth = Math.max(0, depth - 1);
+    if (ch === "," && depth === 0) { items.push(buf); buf = ""; continue; }
+    buf += ch;
+  }
+  if (buf.trim()) items.push(buf);
+  const out: string[] = [];
+  for (const it of items) {
+    const m = it.match(/<([^>]+)>/);
+    const v = (m ? m[1] : it).trim().toLowerCase();
+    if (v && /.@./.test(v)) out.push(v);
+  }
+  return Array.from(new Set(out));
+}
+
+/** HTML body kinyerés (ha van), külön plain text-től. */
+export function extractBodies(m: GmailMessage): { html: string | null; text: string | null } {
+  const find = (part: any, mime: string): string | null => {
+    if (!part) return null;
+    if (part.mimeType === mime && part.body?.data) {
+      const pad = part.body.data.length % 4 === 0 ? "" : "=".repeat(4 - (part.body.data.length % 4));
+      return Buffer.from(part.body.data.replace(/-/g, "+").replace(/_/g, "/") + pad, "base64").toString("utf8");
+    }
+    if (part.parts) {
+      for (const p of part.parts) {
+        const t = find(p, mime);
+        if (t) return t;
+      }
+    }
+    return null;
+  };
+  return { html: find(m.payload, "text/html"), text: find(m.payload, "text/plain") };
+}
+
 export function headerOf(m: GmailMessage, name: string): string {
   const h = m.payload?.headers?.find((x) => x.name?.toLowerCase() === name.toLowerCase());
   return h?.value ?? "";

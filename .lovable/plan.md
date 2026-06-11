@@ -1,145 +1,83 @@
-# Fejlesztési terv – 5 prioritás
 
-## Felmérés: jelenlegi séma (PostgREST szondázás)
+# Email modul javítási terv
 
-A meglévő séma kulcselemei (nem teljes lista, csak a fejlesztéshez érintett):
+Mielőtt belevágok ~8-10 fájl + 1 migráció átírásába, kérek megerősítést a hatókörre és néhány döntésre. A jelenlegi rendszer áttekintése után az alábbiakat találtam, és így javasolom megoldani.
 
-- `users_profile`: `id, auth_user_id, email, full_name, phone, role_id, active, created_at`
-- `roles`: `id, name, description, created_at`
-- `permissions`: `id, code, description, created_at`
-- `role_permissions`: `id, role_id, permission_id`
-- `emails`: `id, from_email, to_email, body, thread_id, created_at` (nagyon minimális)
-- `email_threads`: `id, subject, project_id, company_id, created_at`
-- `companies, contacts, leads, projects, quotes, followups, tasks` – léteznek és van rajtuk `created_at`, `due_date`, `project_id`, `company_id`, stb.
-- Nincs `user_roles` (több-szerepkör) tábla — egy user = egy `role_id` a `users_profile`-on.
-- Nincs `user_integrations` / `user_settings` / hasonló tábla, ahova a Gmail OAuth tokent tehetnénk.
+## Jelenlegi állapot (amit a kódban látok)
 
-A jelenleg bejelentkezett tulajdonosnak **nincs sora** a `users_profile`-ban — emiatt az előző körben a `uploaded_by` FK megbukott. P5-ben ezt rendezzük (auto-create profil).
+- `emails` tábla: `gmail_message_id`, `thread_id` (uuid → `email_threads`), `from_email`, `to_email`, `body`, `summary`. **Nincs**: `subject`, `cc`, `bcc`, `is_outbound`, `internal_date`, `snippet`, `headers`, `company_id`, `contact_id`, `project_id`, `lead_id`.
+- `email_threads`: `gmail_thread_id`, `subject`, `project_id`. Nincs `last_message_at`, `participants`, `company_id`.
+- `email_attachments` létezik (R2 kulccsal). A `sync.server.ts` menti is, de a `emails.$threadId.tsx` lekérdezést újra kell néznem hogy miért nem látszanak.
+- Composer: csak egy minimál `/api/gmail/send` van, To/Subject/Body — nincs CC/BCC, nincs HTML editor, nincs attachment upload.
+- Jogosultság: csak a UI szűr `from_email`/`to_email` ↔ `users_profile.gmail_email` alapján; kliens oldali, megkerülhető.
+- HTML render: DOMPurify alap, de képek/quoted-reply/Gmail-szerű nézet nincs finomhangolva.
+- Backfill: már lapoz `pageToken`-nel, max 5000/batch + 4 perc deadline — ez működhet, csak ellenőrzés kell.
 
-## NYITOTT KÉRDÉS – Gmail token tárolása
+## Tervezett változások
 
-A választott modell: **per-user OAuth + csak élő lekérés**. Ehhez minden CRM-felhasználóra el kell menteni egy connection API kulcsot (`lovack_…`), különben minden alkalommal újra kell engedélyezni a Gmailt.
+### 1. Migráció — `database/2026-06-13_email_module_overhaul.sql`
 
-Nincs erre alkalmas meglévő mező/tábla. Két opció:
+**emails** új oszlopok:
+- `subject text`
+- `cc_emails text[]`, `bcc_emails text[]`, `to_emails text[]` (több címzett)
+- `is_outbound boolean default false`
+- `internal_date timestamptz` (Gmail `internalDate`-ből)
+- `snippet text` (külön a `summary`-tól)
+- `gmail_label_ids text[]` (INBOX/SENT/UNREAD/CATEGORY_*)
+- `company_id uuid`, `contact_id uuid`, `lead_id uuid` (FK, nullable)
+- Indexek: `(internal_date desc)`, `(from_email)`, GIN `to_emails`, `(thread_id)`, `(company_id)`, `(contact_id)`, `(lead_id)`
 
-- **A. Egy új oszlop a `users_profile`-on:** `gmail_connection_key text` (nullable). Additív, nem bontja meg a sémát. Csak egy oszlop.
-- **B. Csak böngésző-localStorage** a per-user kulcsra. Nincs séma-változás, de minden új böngésző / inkognitó / kijelentkezés után újra kell OAuth-olni, és gépek közt nem szinkronizál.
+**email_threads** új oszlopok:
+- `last_message_at timestamptz`
+- `participants text[]` (uniq email-ek a szálban)
+- `company_id uuid`, `contact_id uuid`, `lead_id uuid` FK
+- `owner_user_id uuid` (melyik user mailbox-ához tartozik — szerver oldali jogosultság alap)
+- Index: `(last_message_at desc)`, `(owner_user_id)`
 
-A terv az **A opcióval** számol (1 db ALTER TABLE ADD COLUMN), mert ez teszi napi használatra alkalmassá a rendszert. Ha ezt nem engedélyezed, a Gmail integráció B-ben működik korlátozottan.
+**Új tábla — `email_thread_access`** (per-mailbox szerver oldali szűréshez):
+- `thread_id uuid FK email_threads`, `user_id uuid` (auth user), `mailbox_email text`, PK `(thread_id, user_id)`
+- Index `(user_id)`
+- RLS: csak a saját sorát olvashatja a user, illetve `has_role(uid,'owner')` mindent
 
-## Munkafolyamat
+**emails RLS frissítés**: SELECT csak akkor, ha a user owner, VAGY a thread-hez tartozik `email_thread_access` sor. (Ezzel megszűnik a kliens szűrés.)
 
-A 4 prioritás közül **P4 (audit) tisztán riport, P2/P3 csak frontend a meglévő táblákon**. Ezek párhuzamosan haladhatnak. P1 (Gmail) a leghosszabb. P5 függ P4-től.
+GRANTS minden új táblára.
 
----
+### 2. Sync (`src/lib/gmail/sync.server.ts`)
+- Mentse: `subject`, `cc_emails`, `bcc_emails`, `to_emails` (több cím parse), `is_outbound` (a `SENT` label vagy `from == mailbox_email`), `internal_date`, `snippet`, `gmail_label_ids`.
+- `email_threads.last_message_at`, `participants` upsert.
+- `email_thread_access` insert a sync-elt user-re.
+- Auto-CRM matching: a `from_email` és `to_emails` alapján keressünk `contacts.email`, `companies.domain`, `leads.email` egyezést; ha van, töltsük `company_id`/`contact_id`/`lead_id`-t az `emails` ÉS thread-en.
 
-## P1 – Gmail integráció (per-user OAuth, élő lekérés)
+### 3. Composer — új `/_authenticated/emails.compose.tsx` + dialog komponens
+- To/Cc/Bcc tag-input, Subject, HTML editor (**TipTap** — már nem függőség, hozzáadom; alternatíva: egyszerű `contenteditable`).
+- Csatolmány upload → R2-be (presigned PUT, már létezik a `r2.server`).
+- `/api/gmail/send` átírás: multipart MIME (alternative text+html + attachment parts), `threadId`/`In-Reply-To` támogatás, mentés `emails`-be `is_outbound=true`, `gmail_label_ids=['SENT']`, attachments rekordok.
 
-**Backend (server fn-ek):**
-- `src/integrations/lovable/appUserConnector.ts` + `appUserConnectorClient.ts` — sablon szerinti helpers.
-- `src/lib/gmail.functions.ts`:
-  - `startGmailConnect({targetOrigin})` → `authorizeAppUserOAuth({connectorId:"google", scopes:["gmail.readonly","gmail.send","gmail.modify"]})`.
-  - `saveGmailConnection({connectionAPIKey, gmailEmail})` → `users_profile.gmail_connection_key` mentés (A opció).
-  - `getMyGmailConnection()` → `{connected: bool, email}`.
-  - `disconnectGmail()` → nullra állítja.
-  - `gmailListMessages({q, labelIds, maxResults, pageToken})` → `callAsAppUser("/gmail/v1/users/me/messages")` + minden hit-re `messages/{id}?format=metadata`.
-  - `gmailGetMessage({id, format})`.
-  - `gmailSendMessage({to, subject, body, cc?, bcc?, threadId?})` → base64url RFC2822 build, `messages/send`.
-  - `gmailListThreadsForContact({email, maxResults})` → query `from:email OR to:email`.
+### 4. HTML render (`email-body.tsx`)
+- Gmail-szerű: idézett részek (`<blockquote class="gmail_quote">`) becsukható, képek `cid:` referencia → inline attachment URL csere (presigned R2), külső képeknél "Képek megjelenítése" gomb (privacy).
+- Táblázatok scroll konténerben, max-width.
 
-**Felismerés és kapcsolás (read-only join):**
-- `gmailEnrichMessage(msg)` szerver-side helper: `from`/`to` email-ekből contact + company lookup (`contacts.email` + `companies.name` domain-illesztés).
-- `gmailLinkToProject({messageId, projectId})` — a meglévő `email_threads` táblába insert/update (subject + project_id), és/vagy `emails` insertálás minimális mezőkkel. *Nem szinkronizáljuk a teljes inbox-ot*, csak akkor írunk be, ha a user explicit „kapcsold ehhez a projekthez" gombot nyom.
+### 5. Thread nézet (`emails.$threadId.tsx`)
+- Szerver-oldali jogosultság: hívjon szerver fn-t ami `email_thread_access` alapján ellenőriz; tiltottnál 403.
+- Csatolmány lista fix (a jelenlegi lekérdezés debug).
+- Válasz gomb → composer dialóg threadId-vel + In-Reply-To/References header.
 
-**Frontend:**
-- `src/components/integrations/gmail-connect-card.tsx` — „Gmail csatlakoztatás" gomb + popup flow.
-- Új gomb a Beállítások oldalon: csatlakoztatás / lecsatlakoztatás / állapot.
-- `src/routes/_authenticated/emails.index.tsx` átírás: élő Gmail lista (inbox + sent), bal sáv: thread lista, jobb: kiválasztott message preview. Tab: „Bejövő / Kimenő / Mind".
-- Felismerés UI: minden message mellett badge a felismert contact / company / project. Egyetlen kattintással "Projekthez kapcsolás" (project select).
-- Kimenő email composer modal (To, Subject, Body) + reply-to-thread.
-- **Projekt idővonal**: `project-timeline.tsx` kibővítése egy live Gmail forrással — ha a usernek van Gmail kapcsolata, lekér `q:from:<contact.email> OR to:<contact.email>` query-vel az adott projekt kapcsolattartóira, és beolvasztja a timeline-ba. (Ha nincs Gmail kapcsolat, eddigi `emails` táblából működik.)
+### 6. Lista (`emails.index.tsx`)
+- 5 fül: Beérkezett (INBOX label & !SENT), Elküldött (SENT label), Válaszra vár (utolsó msg külső), Automatikus (CATEGORY_PROMOTIONS/UPDATES/SOCIAL/FORUMS vagy `list-unsubscribe` header), Mind.
+- Szerver-szűrés `email_thread_access` join-nal.
 
-**Limit:** Gmail API rate-limit miatt cache-elés `useQuery` staleTime: 60s, message details lazy.
+### 7. Backfill ellenőrzés
+- Marad a jelenlegi 5000/batch + folytatás gomb logika; csak loggolás bővítés.
 
----
+### 8. Riport
+- A futás végén markdown összefoglaló a chatben: létrehozott táblák/oszlopok/FK/indexek + még nyitott pontok.
 
-## P2 – Dashboard KPI rendszer
+## Tisztázandó kérdések, mielőtt nekiállok
 
-`src/routes/_authenticated/dashboard.tsx` újraírás az alábbi KPI-okra (vezetői nézet, kártyák + 2 chart). Minden lekérdezés a meglévő táblákra megy (`quotes, projects, followups, tasks, leads`).
+1. **HTML editor**: Beépítsek **TipTap**-et (új dep, ~200kB), vagy maradjon egyszerű contenteditable + Markdown→HTML? TipTap a Gmail-szerű élményhez közelebb.
+2. **Több címzett oszlop**: oké az `emails.to_emails text[]` bevezetése **a meglévő `to_email text` mező MEGTARTÁSA mellett** (visszafelé kompat), vagy migráljuk át teljesen?
+3. **`email_thread_access`** tábla: szerver oldali jogosultság ezzel az új táblával — ez volt korábban elutasítva ("ne hozz létre mailbox_access táblát"). Most viszont kéred a szerver oldali szigorítást. Jól értem hogy **most már jöhet** ez a tábla (más néven, de funkcionálisan ugyanaz)?
+4. **Külső képek auto-load** alapból be vagy ki? (Gmail alapból kérdez.) Javaslat: **ki**, gombbal lehet megjeleníteni.
 
-KPI kártyák:
-1. Nyitott ajánlatok darabszáma — `quotes` count `status` ∉ {won, lost}
-2. Nyitott ajánlatok összértéke — `sum(total_amount)` ugyanazzal a szűréssel
-3. Aktív projektek — `projects` count `status` ∉ {completed, lost}
-4. Lejárt follow-upok — `followups` count `completed=false AND due_date < now`
-5. Mai feladatok — `tasks` count `status != done AND due_date today`
-6. Közelgő follow-upok (7 nap) — `followups` `completed=false AND due_date BETWEEN now AND now+7d`
-7. Új leadek 7 nap — `leads` count `created_at >= now-7d`
-8. Új leadek 30 nap — ugyanaz 30 nappal
-9. Ajánlat → Megnyert konverzió — `won / (won + lost)` az utolsó 90 napra
-10. Projekt státusz megoszlás — donut chart `projects.status` szerint csoportosítva (recharts)
-
-Új komponens: `src/components/dashboard/kpi-card.tsx` + meglévő `recharts` használata.
-
----
-
-## P3 – Follow-up automatizmusok
-
-Tisztán frontend, OpenAI nélkül.
-
-`src/lib/followup-alerts.ts`:
-- `bucketFollowup(followup)` → `'overdue' | 'due-3d' | 'due-7d' | 'due-14d' | 'due-30d' | 'future'` a `due_date`–`now` diff alapján.
-- `useFollowupAlerts()` hook — `useQuery` a `followups` táblán, kategorizálva.
-
-Jelzések:
-- **Dashboard**: új panel „Follow-up figyelmeztetések" 4 sávval (3/7/14/30 nap), kattintható → szűrt Follow-up listára.
-- **Projekt adatlap** (`projects.$id.tsx`): a meglévő followup szekcióhoz színes badge (overdue=destructive, 3d=warning, 7d/14d/30d=secondary skála).
-- **Follow-up lista** (`followups.tsx`): fent szűrő chips „Lejárt / 3 napon belül / 7 / 14 / 30 / Jövő", + sorszínezés a bucket szerint.
-
-A meglévő Agent kód nem törlődik; a sávok pusztán a `due_date` alapján számolnak.
-
----
-
-## P4 – Jogosultsági audit (csak riport)
-
-Új oldal: `src/routes/_authenticated/settings.permissions-audit.tsx`. **Nem módosít semmit**, csak listáz:
-
-1. **Szerepkörök**: `roles` táblából + hány usernek van adott szerepköre (`users_profile.role_id` count).
-2. **Permission mátrix**: `permissions` × `roles` cella, `role_permissions` alapján kipipálva.
-3. **RLS állapot**: a meglévő `settings.audit.tsx` által végrehajtott olvas/ír teszt eredménye táblánként + szerepkörönként (a `users_profile.role_id` szűréssel a bejelentkezett user szerepkörén belül teszt). „Mely táblákhoz nincs RLS / mely szerepkörök férnek hozzá".
-4. **Hiányosságok riport**:
-   - Listázza azokat a táblákat, ahol az írás engedélyezve van, de RLS nincs aktív (potenciális adatszivárgás).
-   - Listázza az auth uid-okat, akiknek nincs `users_profile` rekord (mint a jelenlegi tulajdonos).
-   - Listázza azokat a permission `code`-okat, amelyek egyetlen role-hoz sincsenek hozzárendelve („árva permission").
-   - Listázza azokat a role-okat, amelyek minden permission-t tartalmaznak (tulajdonos-szerű).
-
-Nem ír át se policy-t, se role_permissions-t.
-
----
-
-## P5 – Felhasználókezelés befejezése (függ P4-től)
-
-A meglévő `settings.users.tsx` / `settings.tsx` TODO-jainak lezárása.
-
-**Profil auto-create:** `useEnsureProfile()` hook a `_authenticated` layoutban (vagy a settings oldalon): ha az auth.uid-ra nincs `users_profile`, létrehoz egyet `{auth_user_id, email, full_name=email_metadata, role_id=default 'Tulajdonos' vagy null}`. Ez megoldja az előző körben tapasztalt FK hibát.
-
-**Felhasználó-lista oldal** (`settings.users.tsx`):
-- Tábla: email, név, telefon, szerepkör, állapot (active), létrehozva.
-- Csak `Tulajdonos` szerepkörűek látják (P4 audit + `has_role` helper).
-- Akciók sorra:
-  - **Szerepkör módosítás**: select a `roles` táblából → `update users_profile set role_id = ?`.
-  - **Deaktiválás / Aktiválás**: toggle `active = false/true`. (Csak az adatbázis bejegyzést módosítja, az auth user marad — magyarázat a UI-on.)
-  - **Új szerepkör kiosztása** új userhez: a Supabase Auth Admin invitre nincs jogosultság (service role kell), így a flow: a tulajdonos beír egy emailt, és a rendszer betesz egy „pending invite" sort a `users_profile`-ba `auth_user_id=null`, ami később az első Google/email loginnál összepárosul (egyszerű email-match). **Megjegyzés:** ha a tulajdonos azt szeretné, hogy a meghívó email is menjen, az egy következő kör — most csak a profil-előkészítés van.
-
-## Technikai megjegyzések
-
-- Gmail kérések minden esetben szerver-oldali `createServerFn` + `callAsAppUser` keresztül mennek, a connection api_key sose kerül a böngészőbe.
-- A `useServerFn` + `useQuery` pattern minden új hook-ban (loader nem auth-protected fn-t nem hív).
-- A `humanizeSupabaseError()` mindenhol kezeli a hibákat; toast 10s.
-- Nincs új tábla. Egy darab additív oszlop (`users_profile.gmail_connection_key`) ha A opciót választod.
-
-## Kérlek erősítsd meg
-
-1. **A vagy B** Gmail token tárolásra?
-2. Mehet a végrehajtás ebben a sorrendben: **P4 audit → P5 profil auto-create → P2 dashboard → P3 follow-up → P1 Gmail** (legkisebbtől a legnagyobbig, így minden lépés után tesztelhető)?
-3. Bármelyik prioritás kihagyandó/halasztandó?
+Ha a 4 kérdésre rábólintasz (vagy korrigálsz), nekiállok az implementációnak és a végén megkapod a teljes riportot.
