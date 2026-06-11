@@ -351,12 +351,13 @@ async function daily_call_list(_args: Record<string, never> = {}) {
   const compById = new Map(companies.map((c) => [c.id, c]));
 
   type Reason = { kind: string; weight: number; detail: string };
-  const scores = new Map<string, { customer_id: string; name: string; score: number; reasons: Reason[] }>();
+  type ScoreRow = { customer_id: string; name: string; score: number; reasons: Reason[] };
+  const scores = new Map<string, ScoreRow>();
 
   const bump = (customer_id: string, reason: Reason) => {
     if (!customer_id) return;
-    const name = compById.get(customer_id)?.name ?? "Ismeretlen ügyfél";
-    const cur = scores.get(customer_id) ?? { customer_id, name, score: 0, reasons: [] };
+    const name = (compById.get(customer_id) as Row | undefined)?.name ?? "Ismeretlen ügyfél";
+    const cur: ScoreRow = scores.get(customer_id) ?? { customer_id, name, score: 0, reasons: [] };
     cur.score += reason.weight;
     cur.reasons.push(reason);
     scores.set(customer_id, cur);
