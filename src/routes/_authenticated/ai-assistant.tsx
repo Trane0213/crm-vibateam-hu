@@ -233,7 +233,7 @@ function AiAssistantPage() {
       </div>
       <div className="border-b bg-background px-6 py-2 text-xs text-muted-foreground">{meta.tagline}</div>
 
-      <div className="grid gap-4 p-6 lg:grid-cols-[260px_1fr] min-h-[calc(100vh-12rem)]">
+      <div className="grid gap-4 p-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] min-h-[calc(100vh-12rem)]">
         {/* Beszélgetés lista */}
         <Card className="h-full">
           <CardContent className="p-2">
@@ -260,10 +260,10 @@ function AiAssistantPage() {
         </Card>
 
         {/* Chat panel */}
-        <Card className="flex h-full flex-col">
+        <Card className="flex h-full flex-col min-w-0">
           <div className="flex-1 min-h-[400px]">
             <ScrollArea className="h-full">
-              <div ref={scrollRef} className="space-y-3 p-4">
+              <div ref={scrollRef} className="mx-auto w-full max-w-[1100px] space-y-4 p-6">
                 {!active || active.messages.length === 0 ? (
                   <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
                 ) : (
@@ -279,7 +279,8 @@ function AiAssistantPage() {
             </ScrollArea>
           </div>
           {/* Composer */}
-          <div className="border-t p-3">
+          <div className="border-t bg-muted/20 p-3">
+            <div className="mx-auto w-full max-w-[1100px]">
             <div className="mb-2 flex flex-wrap gap-1.5">
               {quickActions.map((q) => (
                 <Button key={q.id} size="sm" variant="outline" disabled={busy} onClick={() => ask(q.prompt)}>
@@ -303,6 +304,7 @@ function AiAssistantPage() {
               <Button size="icon" onClick={() => ask(input)} disabled={busy || !input.trim()}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
+            </div>
             </div>
           </div>
         </Card>
