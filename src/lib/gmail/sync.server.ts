@@ -14,30 +14,6 @@ function parseAddr(raw: string): string | null {
   return (m ? m[1] : raw).trim() || null;
 }
 
-function toEmailRow(userId: string, m: GmailMessage, ownerEmail: string) {
-  const from = headerOf(m, "From");
-  const to = headerOf(m, "To");
-  const subject = headerOf(m, "Subject");
-  const body = extractBody(m);
-  const sentAt = m.internalDate ? new Date(Number(m.internalDate)).toISOString() : null;
-  const direction = parseAddr(from)?.toLowerCase() === ownerEmail.toLowerCase() ? "out" : "in";
-  return {
-    gmail_message_id: m.id,
-    gmail_thread_id: m.threadId,
-    thread_id: m.threadId,
-    gmail_label_ids: m.labelIds ?? [],
-    gmail_history_id: m.historyId ? Number(m.historyId) : null,
-    direction,
-    subject: subject || null,
-    summary: m.snippet ?? null,
-    body: body || null,
-    from_email: parseAddr(from),
-    to_email: parseAddr(to),
-    sent_at: sentAt,
-    owner_user_id: userId,
-  };
-}
-
 export async function syncInbox(userId: string, opts: { max?: number } = {}): Promise<SyncResult> {
   const { accessToken, email } = await getValidAccessToken(userId);
   const admin = getAdminClient();
@@ -52,11 +28,44 @@ export async function syncInbox(userId: string, opts: { max?: number } = {}): Pr
   const { data: existing } = await admin.from("emails").select("gmail_message_id").in("gmail_message_id", ids);
   const have = new Set((existing ?? []).map((r: any) => r.gmail_message_id));
 
+  // gmail_thread_id -> email_threads.id (uuid) cache a futás során
+  const threadCache = new Map<string, string>();
+  async function ensureThread(gmailThreadId: string, subject: string | null): Promise<string> {
+    const cached = threadCache.get(gmailThreadId);
+    if (cached) return cached;
+    const { data: found } = await admin
+      .from("email_threads")
+      .select("id")
+      .eq("gmail_thread_id", gmailThreadId)
+      .maybeSingle();
+    if (found?.id) { threadCache.set(gmailThreadId, found.id); return found.id; }
+    const { data: inserted, error: insErr } = await admin
+      .from("email_threads")
+      .insert({ gmail_thread_id: gmailThreadId, subject })
+      .select("id")
+      .single();
+    if (insErr || !inserted) throw new Error(`email_threads insert: ${insErr?.message ?? "unknown"}`);
+    threadCache.set(gmailThreadId, inserted.id);
+    return inserted.id;
+  }
+
   for (const it of items) {
     if (have.has(it.id)) { result.skipped++; continue; }
     try {
       const m = await getMessage(accessToken, it.id, "full");
-      const row = toEmailRow(userId, m, email);
+      const from = headerOf(m, "From");
+      const to = headerOf(m, "To");
+      const subject = headerOf(m, "Subject") || null;
+      const body = extractBody(m);
+      const threadDbId = await ensureThread(m.threadId, subject);
+      const row = {
+        gmail_message_id: m.id,
+        thread_id: threadDbId,
+        from_email: parseAddr(from),
+        to_email: parseAddr(to),
+        body: body || null,
+        summary: m.snippet ?? null,
+      };
       const { error } = await admin.from("emails").insert(row);
       if (error) {
         if (String(error.message).toLowerCase().includes("duplicate")) result.skipped++;
@@ -67,6 +76,10 @@ export async function syncInbox(userId: string, opts: { max?: number } = {}): Pr
     }
   }
 
-  await admin.from("gmail_accounts").update({ last_sync_at: new Date().toISOString() }).eq("user_id", userId);
+  await admin
+    .from("users_profile")
+    .update({ gmail_last_sync_at: new Date().toISOString() })
+    .eq("auth_user_id", userId);
+  void email;
   return result;
 }
