@@ -229,10 +229,16 @@ function EmailThread() {
   if (crm.data?.project)
     crmRows.push({ icon: Briefcase, label: "Projekt", value: crm.data.project.name, to: "/projects/$id", params: { id: crm.data.project.id } });
 
+  const hasCrm = crmRows.length > 0;
+  const maxW = hasCrm ? "max-w-[1520px]" : "max-w-[1280px]";
+  const gridCols = hasCrm
+    ? "grid-cols-1 lg:grid-cols-[minmax(1200px,1fr)_280px]"
+    : "grid-cols-1";
+
   return (
     <div className="flex flex-col">
       <div className="border-b bg-background px-4 py-3">
-        <div className="mx-auto w-full max-w-[1200px] flex items-center justify-between gap-3">
+        <div className={`mx-auto w-full ${maxW} flex items-center justify-between gap-3`}>
           <Link to="/emails" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
             <ChevronLeft className="h-3.5 w-3.5" /> Vissza
           </Link>
@@ -244,7 +250,7 @@ function EmailThread() {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-5 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-5">
+      <div className={`mx-auto w-full ${maxW} px-4 py-5 grid ${gridCols} gap-5`}>
         {/* Bal oldal: email olvasó */}
         <div className="min-w-0 space-y-4">
           <h1 className="text-[22px] font-normal text-foreground/90 flex items-start gap-2 break-words">
@@ -280,50 +286,35 @@ function EmailThread() {
           )}
         </div>
 
-        {/* Jobb sidebar: CRM */}
-        <aside className="space-y-4 lg:sticky lg:top-4 self-start">
-          <section className="rounded-lg border bg-card">
-            <div className="border-b px-3 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-              CRM kapcsolat
-            </div>
-            {crmRows.length === 0 ? (
-              <div className="px-3 py-3 text-xs text-muted-foreground">
-                Nincs cég / kapcsolattartó / lead / projekt hozzárendelve.
-              </div>
-            ) : (
-              <div className="p-2 space-y-1">
-                {crmRows.map((r) => {
-                  const Icon = r.icon;
-                  const body = (
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div className="min-w-0">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{r.label}</div>
-                        <div className="text-sm font-medium truncate">{r.value}</div>
-                      </div>
-                    </div>
-                  );
-                  return r.to ? (
-                    <Link key={r.label} to={r.to} params={r.params as any} className="block rounded-md px-2 py-1.5 hover:bg-muted/60 transition-colors">
-                      {body}
-                    </Link>
-                  ) : (
-                    <div key={r.label} className="rounded-md px-2 py-1.5">{body}</div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          <section className="rounded-lg border bg-card">
-            <div className="border-b px-3 py-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-              Szál
-            </div>
-            <div className="px-3 py-2 text-xs text-muted-foreground">
-              {visibleEmails.length} üzenet
-            </div>
-          </section>
-        </aside>
+        {/* Jobb sidebar: CRM kártyák — csak ha van kapcsolat */}
+        {hasCrm && (
+          <aside className="space-y-3 lg:sticky lg:top-4 self-start w-full lg:w-[280px]">
+            {crmRows.map((r) => {
+              const Icon = r.icon;
+              const body = (
+                <div className="p-3">
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">
+                    <Icon className="h-3 w-3" />
+                    {r.label}
+                  </div>
+                  <div className="text-sm font-medium truncate">{r.value}</div>
+                </div>
+              );
+              return r.to ? (
+                <Link
+                  key={r.label}
+                  to={r.to}
+                  params={r.params as any}
+                  className="block rounded-lg border bg-card hover:border-primary/40 hover:shadow-sm transition"
+                >
+                  {body}
+                </Link>
+              ) : (
+                <div key={r.label} className="rounded-lg border bg-card">{body}</div>
+              );
+            })}
+          </aside>
+        )}
       </div>
 
       {visibleEmails.length > 0 && (
