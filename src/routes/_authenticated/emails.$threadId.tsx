@@ -447,50 +447,36 @@ function MessageCard({
         <>
           {/* Csatolmány panel a body FELETT, Gmail stílusban */}
           {realAttachments.length > 0 && (
-            <div className="border-t bg-muted/20 px-4 py-3">
-              <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Paperclip className="h-3.5 w-3.5" />
+            <div className="border-t bg-muted/10 px-4 py-2">
+              <div className="mb-1.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Paperclip className="h-3 w-3" />
                 {realAttachments.length} csatolmány
               </div>
-              <div className="flex flex-wrap gap-2">
+              <ul className="divide-y divide-border/60 rounded-md border bg-background">
                 {realAttachments.map((a) => {
-                  const isImg = (a.mime_type ?? "").toLowerCase().startsWith("image/");
-                  const previewUrl = isImg && a.r2_key ? urlByKey.get(a.r2_key) : undefined;
                   const Icon = attachmentIcon(a.mime_type);
                   return (
-                    <div
+                    <li
                       key={a.id}
-                      className="group relative w-[220px] rounded-lg border bg-background overflow-hidden hover:border-primary/40 hover:shadow-sm transition"
-                      title={a.filename}
+                      className="flex items-center gap-2 px-2.5 py-1.5 hover:bg-muted/40 transition-colors"
                     >
-                      <div className="h-[120px] bg-muted/40 flex items-center justify-center overflow-hidden">
-                        {previewUrl ? (
-                          // eslint-disable-next-line jsx-a11y/alt-text
-                          <img src={previewUrl} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <Icon className="h-10 w-10 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="px-2.5 py-2 border-t flex items-center gap-2 min-w-0">
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-[12px] font-medium">{a.filename}</div>
-                          <div className="truncate text-[11px] text-muted-foreground">
-                            {fmtBytes(a.size_bytes)}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => onDownload(a.r2_key, a.filename)}
-                          className="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
-                          title="Letöltés"
-                        >
-                          <Download className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
+                      <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="min-w-0 flex-1 truncate text-[13px]">{a.filename}</span>
+                      <span className="shrink-0 text-[11px] text-muted-foreground tabular-nums">
+                        {fmtBytes(a.size_bytes)}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onDownload(a.r2_key, a.filename)}
+                        className="shrink-0 inline-flex items-center justify-center h-6 w-6 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                        title="Letöltés"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </div>
           )}
 
