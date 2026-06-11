@@ -33,23 +33,57 @@ function CustomersIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id,company_id,status,created_at,updated_at");
+        .select("id,company_id,status,created_at");
       if (error) throw error;
       return data ?? [];
     },
   });
 
+  // Utolsó aktivitáshoz a Detail oldallal megegyező forrásokat használjuk
+  const activity = useQuery({
+    queryKey: ["customers", "list", "activity"],
+    queryFn: async () => {
+      const [calls, meetings, threads, fups] = await Promise.all([
+        supabase.from("phone_calls").select("company_id,created_at"),
+        supabase.from("meetings").select("company_id,meeting_date"),
+        supabase.from("email_threads").select("company_id,last_message_at"),
+        supabase.from("followups").select("project_id,due_date"),
+      ]);
+      return {
+        calls: calls.data ?? [],
+        meetings: meetings.data ?? [],
+        threads: threads.data ?? [],
+        followups: fups.data ?? [],
+      };
+    },
+  });
+
   const rows = useMemo(() => {
     const byCo = new Map<string, { total: number; active: number; last: number }>();
+    const projectToCo = new Map<string, string>();
     for (const p of projects.data ?? []) {
       if (!p.company_id) continue;
+      projectToCo.set(p.id, p.company_id);
       const x = byCo.get(p.company_id) ?? { total: 0, active: 0, last: 0 };
       x.total += 1;
       if (ACTIVE_PROJECT_STATUSES.includes(p.status)) x.active += 1;
-      const ts = new Date(p.updated_at ?? p.created_at ?? 0).getTime();
+      const ts = new Date(p.created_at ?? 0).getTime();
       if (ts > x.last) x.last = ts;
       byCo.set(p.company_id, x);
     }
+    const bump = (coId: string | null | undefined, dateStr: string | null | undefined) => {
+      if (!coId || !dateStr) return;
+      const x = byCo.get(coId) ?? { total: 0, active: 0, last: 0 };
+      const ts = new Date(dateStr).getTime();
+      if (!Number.isFinite(ts)) return;
+      if (ts > x.last) x.last = ts;
+      byCo.set(coId, x);
+    };
+    for (const e of activity.data?.calls ?? [])    bump(e.company_id, e.created_at);
+    for (const e of activity.data?.meetings ?? []) bump(e.company_id, e.meeting_date);
+    for (const e of activity.data?.threads ?? [])  bump(e.company_id, e.last_message_at);
+    for (const f of activity.data?.followups ?? []) bump(projectToCo.get(f.project_id), f.due_date);
+
     return (companies.data ?? []).map((c: any) => {
       const s = byCo.get(c.id) ?? { total: 0, active: 0, last: 0 };
       const status = s.active > 0 ? "Aktív" : s.total > 0 ? "Korábbi" : "Új";
@@ -61,7 +95,7 @@ function CustomersIndex() {
         status,
       };
     });
-  }, [companies.data, projects.data]);
+  }, [companies.data, projects.data, activity.data]);
 
   return (
     <div className="flex flex-col">
