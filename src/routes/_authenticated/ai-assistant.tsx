@@ -52,11 +52,10 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: "contacts",      label: "Kapcsolattartók",     icon: MessageSquare, prompt: "Listázd a kapcsolattartókat cég szerint csoportosítva. Emeld ki, ahol nincs telefonszám vagy e-mail." },
   ],
   sales: [
-    { id: "daily",         label: "Napi sales riport",   icon: TrendingUp,    prompt: "Készítsd el a mai napi értékesítési riportot a sablon szerint." },
-    { id: "open-quotes",   label: "Nyitott ajánlatok",   icon: FileText,      prompt: "Listázd a nyitott ajánlatokat érték szerint csökkenő sorrendben. Jelöld, melyik mióta nyitott." },
-    { id: "overdue-fu",    label: "Lejárt follow-up",    icon: BellRing,      prompt: "Mutasd a lejárt follow-upokat prioritás szerint, hány napja lejárt jelöléssel." },
-    { id: "call-today",    label: "Kit hívjak ma?",      icon: Phone,         prompt: "Kinek kell ma telefonálni? Adj max 5 fős prioritás-listát indoklással." },
-    { id: "stalled",       label: "Elakadt ajánlatok",   icon: AlertTriangle, prompt: "Mely ajánlatok állnak régóta mozdulatlanul (>14 nap)? Adj listát értékkel." },
+    { id: "call-today",    label: "Kit hívjak ma?",       icon: Phone,         prompt: "Kit hívjak ma? Használd a daily_call_list toolt és prezentáld a top 5 ügyfelet indoklással." },
+    { id: "fu-suggest",    label: "Follow-up javaslatok", icon: BellRing,      prompt: "Mely ajánlatokra kell most follow-up? Használd a quote_followup_assistant toolt és add meg ajánlatonként a javasolt típust (call/email/task) az indoklással." },
+    { id: "open-quotes",   label: "Nyitott ajánlatok",    icon: FileText,      prompt: "Listázd a nyitott ajánlatokat érték szerint csökkenő sorrendben. Használd a quote_risk_report toolt. Jelöld, melyik mióta nyitott és mely ajánlatok elakadtak (>14 nap)." },
+    { id: "overdue-fu",    label: "Lejárt follow-upok",   icon: AlertTriangle, prompt: "Mutasd a lejárt follow-upokat prioritás szerint. Használd a daily_call_list toolt — az 'overdue_followup' indokkal szereplő ügyfeleket emeld ki, hány napja lejárt jelöléssel." },
   ],
   pm: [
     { id: "daily-pm",      label: "Napi PM riport",      icon: Hammer,        prompt: "Készítsd el a mai napi projektvezetői riportot a sablon szerint." },
