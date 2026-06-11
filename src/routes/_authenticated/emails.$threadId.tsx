@@ -6,6 +6,8 @@ import { fmtDateTime } from "@/components/resource/resource-page";
 import { EmailBody } from "@/components/emails/email-body";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useMemo } from "react";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   component: EmailThread,
@@ -13,6 +15,12 @@ export const Route = createFileRoute("/_authenticated/emails/$threadId")({
 
 function EmailThread() {
   const { threadId } = Route.useParams();
+  const { profile, role } = usePermissions();
+  const isOwner = role === "owner";
+  const myMailbox = ((profile as any)?.gmail_email ?? (profile as any)?.email ?? "")
+    .toString()
+    .trim()
+    .toLowerCase();
   const emails = useListWhere<any>("emails", "thread_id", threadId, {
     order: "created_at",
     ascending: true,
@@ -34,6 +42,17 @@ function EmailThread() {
     ? thread.data.subject
     : "(nincs tárgy)";
 
+  const visibleEmails = useMemo(() => {
+    const list = emails.data ?? [];
+    if (isOwner) return list;
+    if (!myMailbox) return [];
+    return list.filter((e: any) => {
+      const f = (e.from_email ?? "").toLowerCase();
+      const t = (e.to_email ?? "").toLowerCase();
+      return f === myMailbox || t === myMailbox || f.includes(myMailbox) || t.includes(myMailbox);
+    });
+  }, [emails.data, isOwner, myMailbox]);
+
   return (
     <div className="flex flex-col">
       <div className="border-b bg-background px-6 py-4">
@@ -46,17 +65,23 @@ function EmailThread() {
           <span className="min-w-0 break-words">{subject}</span>
         </h1>
         <div className="mt-1 text-sm text-muted-foreground">
-          {emails.data?.length ?? 0} üzenet a szálban
+          {visibleEmails.length} üzenet a szálban
         </div>
       </div>
       <div className="p-6">
         {emails.isLoading ? (
           <p className="text-sm text-muted-foreground">Betöltés…</p>
-        ) : (emails.data ?? []).length === 0 ? (
-          <EmptyState icon={Mail} title="Nincs üzenet ebben a szálban" />
+        ) : visibleEmails.length === 0 ? (
+          <EmptyState
+            icon={Mail}
+            title="Nincs megjeleníthető üzenet"
+            description={
+              !isOwner ? "Ehhez a szálhoz nincs jogosultságod." : undefined
+            }
+          />
         ) : (
           <ol className="space-y-4 max-w-3xl">
-            {(emails.data ?? []).map((e) => (
+            {visibleEmails.map((e: any) => (
               <li key={e.id} className="rounded-lg border bg-card shadow-sm">
                 <header className="flex flex-wrap items-baseline justify-between gap-3 border-b px-4 py-3">
                   <div className="min-w-0 text-sm">
