@@ -56,6 +56,7 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: "fu-suggest",    label: "Follow-up javaslatok", icon: BellRing,      prompt: "Mely ajánlatokra kell most follow-up? Használd a quote_followup_assistant toolt és add meg ajánlatonként a javasolt típust (call/email/task) az indoklással." },
     { id: "open-quotes",   label: "Nyitott ajánlatok",    icon: FileText,      prompt: "Listázd a nyitott ajánlatokat érték szerint csökkenő sorrendben. Használd a quote_risk_report toolt. Jelöld, melyik mióta nyitott és mely ajánlatok elakadtak (>14 nap)." },
     { id: "overdue-fu",    label: "Lejárt follow-upok",   icon: AlertTriangle, prompt: "Mutasd a lejárt follow-upokat prioritás szerint. Használd a daily_call_list toolt — az 'overdue_followup' indokkal szereplő ügyfeleket emeld ki, hány napja lejárt jelöléssel." },
+    { id: "marketing-leads", label: "Új marketing leadek", icon: TrendingUp,  prompt: "Listázd az új marketing leadeket. Használd a lead_priority_report toolt, és szűrd azokra a leadekre, ahol source = 'Marketing Agent' ÉS status = 'new'. Minden lead-hez add meg: cég neve, létrehozás dátuma (hány napja), elérhetőség (telefon/email a kapcsolattartóból), hogy a kolléga azonnal tudja hívni. Sorrend: legfrissebb először." },
   ],
   pm: [
     { id: "daily-pm",      label: "Napi PM riport",      icon: Hammer,        prompt: "Készítsd el a mai napi projektvezetői riportot a sablon szerint." },
