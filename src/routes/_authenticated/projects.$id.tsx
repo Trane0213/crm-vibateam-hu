@@ -115,7 +115,12 @@ function ProjectDetail() {
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Projekt</div>
             <h1 className="mt-1 text-xl font-semibold">{project.title ?? project.name ?? `#${id.slice(0, 8)}`}</h1>
             <div className="mt-1 text-sm text-muted-foreground">
-              {companyLabel(project.company_id)} {project.address ? `· ${project.address}` : ""}
+              {project.company_id ? (
+                <Link to="/customers/$id" params={{ id: project.company_id }} className="text-primary hover:underline">
+                  {companyLabel(project.company_id)}
+                </Link>
+              ) : "—"}
+              {project.address ? ` · ${project.address}` : ""}
             </div>
           </div>
           <div className="flex items-center gap-2">

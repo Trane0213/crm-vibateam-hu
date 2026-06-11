@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   Building2, User, Briefcase, UserPlus, Phone, Calendar, Sparkles,
   Mail, BellRing, FolderOpen, StickyNote, History, FileText,
@@ -7,11 +9,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
-import { useListWhere } from "@/lib/db-hooks";
+import { useListWhere, humanizeSupabaseError } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
-import { COMPANY_TYPE_LABEL, PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
+import { COMPANY_TYPE_LABEL, PROJECT_STATUS_LABEL, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
 import { formatHuf } from "@/lib/format";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 
@@ -87,7 +91,22 @@ function CustomerDetail() {
   const TypeIcon = isPersonal ? User : Building2;
   const primary = (contacts.data ?? [])[0] ?? null;
   const openFollowups = (followups.data ?? []).filter((f) => !f.completed);
+  const overdueFollowups = openFollowups.filter((f) => f.due_date && new Date(f.due_date) < new Date());
+  const activeProjects = (projects.data ?? []).filter((p) => ACTIVE_PROJECT_STATUSES.includes(p.status));
+  const openQuotes = (quotes.data ?? []).filter((q) => ["draft", "sent", "negotiation"].includes(q.status));
   const totalQuoteValue = (quotes.data ?? []).reduce((a, r) => a + (Number(r.total_amount) || 0), 0);
+  const lastActivityAt = (() => {
+    const dates: number[] = [];
+    for (const e of calls.data ?? [])    if (e.created_at)      dates.push(new Date(e.created_at).getTime());
+    for (const e of meetings.data ?? []) if (e.meeting_date)    dates.push(new Date(e.meeting_date).getTime());
+    for (const e of threads.data ?? [])  if (e.last_message_at) dates.push(new Date(e.last_message_at).getTime());
+    for (const e of followups.data ?? []) if (e.due_date)       dates.push(new Date(e.due_date).getTime());
+    if (!dates.length) return null;
+    return new Date(Math.max(...dates)).toISOString();
+  })();
+  const customerStatus = activeProjects.length > 0
+    ? "Aktív"
+    : (projects.data ?? []).length > 0 ? "Korábbi ügyfél" : "Új";
 
   return (
     <div className="flex flex-col">
@@ -101,6 +120,7 @@ function CustomerDetail() {
               <Badge variant={isPersonal ? "outline" : "secondary"}>
                 {isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[c.company_type] ?? "Cég")}
               </Badge>
+              <Badge variant="outline">{customerStatus}</Badge>
             </h1>
             <div className="mt-1 text-sm text-muted-foreground flex flex-wrap gap-3">
               {primary?.email   && <span>{primary.email}</span>}
@@ -109,15 +129,16 @@ function CustomerDetail() {
               {c.website        && <a href={c.website.startsWith("http") ? c.website : `https://${c.website}`} className="text-primary hover:underline" target="_blank" rel="noreferrer">{c.website}</a>}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline">{formatHuf(totalQuoteValue)}</Badge>
-            <Badge variant="outline">{projects.data?.length ?? 0} projekt</Badge>
-            {openFollowups.length > 0 && (
-              <Badge variant="outline" className="border-amber-500 text-amber-600">
-                {openFollowups.length} nyitott follow-up
-              </Badge>
-            )}
-          </div>
+          <Badge variant="outline" className="self-start">{formatHuf(totalQuoteValue)} összérték</Badge>
+        </div>
+        {/* Vezetői összefoglaló */}
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
+          <Mini label="Típus"            value={isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[c.company_type] ?? "Cég")} />
+          <Mini label="Projekt"          value={`${activeProjects.length} / ${projects.data?.length ?? 0}`} hint="aktív / összes" />
+          <Mini label="Nyitott ajánlat"  value={String(openQuotes.length)} tone={openQuotes.length > 0 ? "primary" : undefined} />
+          <Mini label="Lejárt follow-up" value={String(overdueFollowups.length)} tone={overdueFollowups.length > 0 ? "danger" : undefined} />
+          <Mini label="Utolsó aktivitás" value={lastActivityAt ? fmtDate(lastActivityAt) : "—"} />
+          <Mini label="Státusz"          value={customerStatus} tone={customerStatus === "Aktív" ? "success" : undefined} />
         </div>
       </div>
 
@@ -263,20 +284,32 @@ function CustomerDetail() {
             ]} empty="Nincs dokumentum." emptyIcon={FolderOpen} />
           </TabsContent>
           <TabsContent value="notes" className="mt-4">
-            {(notes.data ?? []).length === 0 ? <EmptyState icon={StickyNote} title="Nincs jegyzet" /> : (
-              <ul className="space-y-2">
-                {(notes.data ?? []).map((n) => (
-                  <li key={n.id} className="rounded-md border bg-card p-3 text-sm">
-                    <div className="text-xs text-muted-foreground mb-1">{fmtDateTime(n.created_at)}</div>
-                    <div className="whitespace-pre-wrap">{n.note}</div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <CustomerNotesEditor customerId={c.id} initial={c.notes ?? ""} />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Projekt szintű jegyzetek ({(notes.data ?? []).length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(notes.data ?? []).length === 0 ? <EmptyState icon={StickyNote} title="Nincs projekt jegyzet" /> : (
+                    <ul className="space-y-2">
+                      {(notes.data ?? []).map((n) => (
+                        <li key={n.id} className="rounded-md border bg-card p-3 text-sm">
+                          <div className="text-xs text-muted-foreground mb-1">{fmtDateTime(n.created_at)}</div>
+                          <div className="whitespace-pre-wrap">{n.note}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
           <TabsContent value="timeline" className="mt-4">
             <ProjectTimeline
               project={null}
+              projects={projects.data ?? []}
+              leads={leads.data ?? []}
               quotes={quotes.data ?? []}
               followups={followups.data ?? []}
               tasks={[]}
@@ -304,6 +337,64 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium text-right">{value}</span>
     </div>
+  );
+}
+
+function Mini({ label, value, hint, tone }: { label: string; value: string; hint?: string; tone?: "primary" | "danger" | "success" }) {
+  const toneCls =
+    tone === "danger"  ? "text-destructive" :
+    tone === "success" ? "text-emerald-600" :
+    tone === "primary" ? "text-primary"     : "";
+  return (
+    <div className="rounded-md border bg-card px-3 py-2">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-0.5 text-base font-semibold tabular-nums ${toneCls}`}>{value}</div>
+      {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
+    </div>
+  );
+}
+
+function CustomerNotesEditor({ customerId, initial }: { customerId: string; initial: string }) {
+  const qc = useQueryClient();
+  const [value, setValue] = useState(initial);
+  useEffect(() => { setValue(initial); }, [initial]);
+  const m = useMutation({
+    mutationFn: async (notes: string) => {
+      const { error } = await supabase.from("companies").update({ notes: notes || null }).eq("id", customerId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Ügyfél jegyzet mentve");
+      qc.invalidateQueries({ queryKey: ["customers", "detail", customerId] });
+    },
+    onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+  const dirty = value !== (initial ?? "");
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm flex items-center gap-2">
+          <StickyNote className="h-4 w-4" />
+          Ügyfél jegyzetek
+          <span className="ml-auto text-xs text-muted-foreground font-normal">preferenciák · fizetési tapasztalat · belső infó</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Pl. csak átutalással fizet, mindig délután hívható, korábban garanciális ügy volt..."
+          rows={10}
+          className="text-sm"
+        />
+        <div className="flex justify-end gap-2">
+          {dirty && <Button variant="ghost" size="sm" onClick={() => setValue(initial ?? "")}>Mégse</Button>}
+          <Button size="sm" disabled={!dirty || m.isPending} onClick={() => m.mutate(value)}>
+            {m.isPending ? "Mentés…" : "Mentés"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

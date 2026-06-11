@@ -14,6 +14,7 @@ type Ev = {
     | "email" | "call" | "meeting"
     | "document" | "document_deleted"
     | "note"
+    | "lead_created"
     | "audit_create" | "audit_update" | "audit_delete";
   title: string;
   detail?: string;
@@ -22,6 +23,7 @@ type Ev = {
 const META: Record<Ev["kind"], { label: string; icon: any; tone: string }> = {
   project_created:{ label: "Projekt létrehozva",   icon: Briefcase,  tone: "text-primary" },
   project_closed: { label: "Projekt lezárva",      icon: Briefcase,  tone: "text-emerald-500" },
+  lead_created:   { label: "Lead létrehozva",      icon: BellRing,   tone: "text-amber-500" },
   quote:          { label: "Ajánlat létrehozva",   icon: FileText,   tone: "text-primary" },
   quote_update:   { label: "Ajánlat módosítva",    icon: FileText,   tone: "text-primary" },
   followup:       { label: "Follow-up létrehozva", icon: BellRing,   tone: "text-amber-500" },
@@ -44,6 +46,7 @@ export function ProjectTimeline(props: {
   projectId?: string;
   quotes?: any[]; followups?: any[]; tasks?: any[];
   emails?: any[]; calls?: any[]; meetings?: any[]; documents?: any[]; notes?: any[];
+  leads?: any[]; projects?: any[];
 }) {
   const projectId = props.projectId ?? props.project?.id;
   const audit = useQuery({
@@ -60,6 +63,16 @@ export function ProjectTimeline(props: {
     if ((p.status === "completed" || p.status === "lost") && (p.closed_at ?? p.updated_at)) {
       events.push({ at: p.closed_at ?? p.updated_at, kind: "project_closed", title: p.title ?? "Projekt", detail: p.status });
     }
+  }
+
+  for (const p of props.projects ?? []) {
+    if (p.created_at) events.push({ at: p.created_at, kind: "project_created", title: p.title ?? "Projekt", detail: p.status ?? undefined });
+    if ((p.status === "lezart" || p.status === "elvesztett" || p.status === "completed" || p.status === "lost") && (p.closed_at ?? p.updated_at)) {
+      events.push({ at: p.closed_at ?? p.updated_at, kind: "project_closed", title: p.title ?? "Projekt", detail: p.status });
+    }
+  }
+  for (const l of props.leads ?? []) {
+    if (l.created_at) events.push({ at: l.created_at, kind: "lead_created", title: l.summary ?? `Lead #${String(l.id).slice(0,8)}`, detail: l.source ?? undefined });
   }
 
   for (const r of props.quotes ?? []) {

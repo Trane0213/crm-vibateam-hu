@@ -38,7 +38,7 @@ function ContactDetail() {
         <div className="mt-1 text-sm text-muted-foreground">
           {c.position ? `${c.position} · ` : ""}
           {c.company_id ? (
-            <Link to="/companies/$id" params={{ id: c.company_id }} className="text-primary hover:underline">
+            <Link to="/customers/$id" params={{ id: c.company_id }} className="text-primary hover:underline">
               <Building2 className="mr-1 inline h-3.5 w-3.5" />{companyLabel(c.company_id)}
             </Link>
           ) : ""}
