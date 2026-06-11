@@ -494,7 +494,7 @@ function MessageCard({
                 </button>
               </div>
             )}
-            <div className="px-4 py-4">
+            <div className="px-4 py-4 w-full" style={{ maxHeight: "none", overflow: "visible" }}>
               {refreshing && !isHtml ? (
                 <div className="text-sm text-muted-foreground italic">Eredeti HTML betöltése…</div>
               ) : isHtml ? (
