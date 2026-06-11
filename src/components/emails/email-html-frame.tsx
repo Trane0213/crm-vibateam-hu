@@ -11,12 +11,10 @@ export function EmailHtmlFrame({
   html,
   inlineByCid,
   showRemoteImages,
-  onHasRemoteImages,
 }: {
   html: string;
   inlineByCid?: Map<string, string>;
   showRemoteImages: boolean;
-  onHasRemoteImages?: (has: boolean) => void;
 }) {
   const ref = useRef<HTMLIFrameElement | null>(null);
   const [height, setHeight] = useState(120);
@@ -32,7 +30,6 @@ export function EmailHtmlFrame({
     });
     const doc = new DOMParser().parseFromString(clean, "text/html");
 
-    let hasRemote = false;
     doc.querySelectorAll("img").forEach((img) => {
       const src = img.getAttribute("src") ?? "";
       img.setAttribute("loading", "lazy");
@@ -44,7 +41,6 @@ export function EmailHtmlFrame({
         return;
       }
       if (/^https?:\/\//i.test(src)) {
-        hasRemote = true;
         if (!showRemoteImages) {
           img.setAttribute("data-remote-src", src);
           img.removeAttribute("src");
@@ -55,8 +51,6 @@ export function EmailHtmlFrame({
       a.setAttribute("target", "_blank");
       a.setAttribute("rel", "noopener noreferrer");
     });
-
-    if (onHasRemoteImages) queueMicrotask(() => onHasRemoteImages(hasRemote));
 
     // alap stílusok – nem írjuk felül az email stílusait, csak alapot adunk
     const baseStyle = `
