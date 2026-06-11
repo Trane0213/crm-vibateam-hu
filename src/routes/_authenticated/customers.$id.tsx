@@ -35,6 +35,20 @@ function CustomerDetail() {
     },
   });
 
+  // Egységes KPI forrás — ugyanaz, mint a Customer lista.
+  const kpi = useQuery({
+    queryKey: ["customers", "detail", id, "kpi"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customer_kpi_v")
+        .select("total_projects,active_projects,open_quotes,overdue_followups,last_activity_at")
+        .eq("customer_id", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
   const contacts  = useListWhere<any>("contacts",      "company_id", id, { order: "name",         ascending: true });
   const projects  = useListWhere<any>("projects",      "company_id", id, { order: "created_at",   ascending: false });
   const leads     = useListWhere<any>("leads",         "company_id", id, { order: "created_at",   ascending: false });
@@ -92,10 +106,17 @@ function CustomerDetail() {
   const primary = (contacts.data ?? [])[0] ?? null;
   const openFollowups = (followups.data ?? []).filter((f) => !f.completed);
   const overdueFollowups = openFollowups.filter((f) => f.due_date && new Date(f.due_date) < new Date());
-  const activeProjects = (projects.data ?? []).filter((p) => ACTIVE_PROJECT_STATUSES.includes(p.status));
-  const openQuotes = (quotes.data ?? []).filter((q) => ["draft", "sent", "negotiation"].includes(q.status));
+  // A tab-tartalmakhoz továbbra is kellenek a részletes listák,
+  // de a KPI számok a view-ból jönnek (egyetlen forrás).
+  const activeProjectList = (projects.data ?? []).filter((p) => ACTIVE_PROJECT_STATUSES.includes(p.status));
+  const totalProjects   = kpi.data?.total_projects    ?? projects.data?.length ?? 0;
+  const activeProjects  = kpi.data?.active_projects   ?? activeProjectList.length;
+  const openQuotesCount = kpi.data?.open_quotes       ?? (quotes.data ?? []).filter((q) => ["draft","sent","negotiation"].includes(q.status)).length;
+  const overdueCount    = kpi.data?.overdue_followups ?? overdueFollowups.length;
+  const lastActivityAtView = kpi.data?.last_activity_at ?? null;
   const totalQuoteValue = (quotes.data ?? []).reduce((a, r) => a + (Number(r.total_amount) || 0), 0);
   const lastActivityAt = (() => {
+    if (lastActivityAtView) return lastActivityAtView;
     const dates: number[] = [];
     for (const e of calls.data ?? [])    if (e.created_at)      dates.push(new Date(e.created_at).getTime());
     for (const e of meetings.data ?? []) if (e.meeting_date)    dates.push(new Date(e.meeting_date).getTime());
@@ -104,9 +125,9 @@ function CustomerDetail() {
     if (!dates.length) return null;
     return new Date(Math.max(...dates)).toISOString();
   })();
-  const customerStatus = activeProjects.length > 0
+  const customerStatus = activeProjects > 0
     ? "Aktív"
-    : (projects.data ?? []).length > 0 ? "Korábbi ügyfél" : "Új";
+    : totalProjects > 0 ? "Korábbi ügyfél" : "Új";
 
   return (
     <div className="flex flex-col">
@@ -134,9 +155,9 @@ function CustomerDetail() {
         {/* Vezetői összefoglaló */}
         <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
           <Mini label="Típus"            value={isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[c.company_type] ?? "Cég")} />
-          <Mini label="Projekt"          value={`${activeProjects.length} / ${projects.data?.length ?? 0}`} hint="aktív / összes" />
-          <Mini label="Nyitott ajánlat"  value={String(openQuotes.length)} tone={openQuotes.length > 0 ? "primary" : undefined} />
-          <Mini label="Lejárt follow-up" value={String(overdueFollowups.length)} tone={overdueFollowups.length > 0 ? "danger" : undefined} />
+          <Mini label="Projekt"          value={`${activeProjects} / ${totalProjects}`} hint="aktív / összes" />
+          <Mini label="Nyitott ajánlat"  value={String(openQuotesCount)} tone={openQuotesCount > 0 ? "primary" : undefined} />
+          <Mini label="Lejárt follow-up" value={String(overdueCount)} tone={overdueCount > 0 ? "danger" : undefined} />
           <Mini label="Utolsó aktivitás" value={lastActivityAt ? fmtDate(lastActivityAt) : "—"} />
           <Mini label="Státusz"          value={customerStatus} tone={customerStatus === "Aktív" ? "success" : undefined} />
         </div>
