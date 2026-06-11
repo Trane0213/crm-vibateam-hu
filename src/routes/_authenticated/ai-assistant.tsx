@@ -413,7 +413,7 @@ function AiAssistantPage() {
   );
 }
 
-function Bubble({ msg }: { msg: Msg }) {
+function Bubble({ msg, onApprove, onReject, onOpenNav }: { msg: Msg; onApprove?: () => void; onReject?: () => void; onOpenNav?: () => void }) {
   const isUser = msg.role === "user";
   if (!isUser) {
     return (
@@ -423,6 +423,17 @@ function Bubble({ msg }: { msg: Msg }) {
         </div>
         <div className="min-w-0 flex-1">
           <AgentResponse text={msg.content} />
+          {msg.nav && (
+            <div className="mt-2 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+              <ExternalLink className="h-3.5 w-3.5 text-primary" />
+              <span className="font-medium">Megnyitva:</span>
+              <span className="truncate">{msg.nav.label}</span>
+              <Button size="sm" variant="outline" className="ml-auto h-6 px-2 text-[11px]" onClick={onOpenNav}>Újra megnyit</Button>
+            </div>
+          )}
+          {msg.proposal && (
+            <ProposalCardView card={msg.proposal} onApprove={onApprove} onReject={onReject} />
+          )}
         </div>
       </div>
     );
@@ -432,6 +443,64 @@ function Bubble({ msg }: { msg: Msg }) {
       <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed text-primary-foreground">
         {msg.content}
       </div>
+    </div>
+  );
+}
+
+function ProposalCardView({ card, onApprove, onReject }: { card: ProposalCard; onApprove?: () => void; onReject?: () => void }) {
+  const p = card.proposal;
+  const fields: Array<[string, any]> = [];
+  if (p.kind === "create_followup") {
+    fields.push(["Esedékesség", new Date(p.due_date).toLocaleString("hu-HU")]);
+    if (p.followup_type) fields.push(["Típus", p.followup_type]);
+    if (p.result) fields.push(["Megjegyzés", p.result]);
+  } else if (p.kind === "create_task") {
+    fields.push(["Megnevezés", p.title]);
+    if (p.due_date) fields.push(["Határidő", new Date(p.due_date).toLocaleString("hu-HU")]);
+    if (p.priority) fields.push(["Prioritás", p.priority]);
+    if (p.description) fields.push(["Leírás", p.description]);
+  } else if (p.kind === "create_contact") {
+    fields.push(["Név", p.name]);
+    if (p.email) fields.push(["E-mail", p.email]);
+    if (p.phone) fields.push(["Telefon", p.phone]);
+    if (p.role) fields.push(["Pozíció", p.role]);
+  } else if (p.kind === "create_lead") {
+    fields.push(["Összefoglaló", p.summary]);
+    if (p.source) fields.push(["Forrás", p.source]);
+    if (p.project_type) fields.push(["Típus", p.project_type]);
+  }
+  const tone = card.status === "approved" ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
+    : card.status === "rejected" ? "border-muted bg-muted/30"
+    : card.status === "error" ? "border-destructive/40 bg-destructive/5"
+    : "border-primary/30 bg-primary/5";
+  return (
+    <div className={`mt-2 rounded-md border p-3 text-xs ${tone}`}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider">{proposalTitle(p)}</span>
+        {card.status === "approved" && <Badge variant="outline" className="text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" />Létrehozva</Badge>}
+        {card.status === "rejected" && <Badge variant="outline" className="text-[10px]">Elvetve</Badge>}
+        {card.status === "error" && <Badge variant="destructive" className="text-[10px]">Hiba</Badge>}
+        {card.status === "pending" && <Badge variant="outline" className="text-[10px]">Jóváhagyásra vár</Badge>}
+      </div>
+      <dl className="grid grid-cols-[100px_minmax(0,1fr)] gap-x-2 gap-y-1">
+        {fields.map(([k, v]) => (
+          <div key={k} className="contents">
+            <dt className="text-muted-foreground">{k}</dt>
+            <dd className="truncate">{String(v)}</dd>
+          </div>
+        ))}
+      </dl>
+      {card.error && <p className="mt-2 text-destructive">{card.error}</p>}
+      {card.status === "pending" && (
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" className="h-7 px-2 text-[11px]" onClick={onApprove}>
+            <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és létrehoz
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>
+            <XCircle className="mr-1 h-3 w-3" /> Elvet
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
