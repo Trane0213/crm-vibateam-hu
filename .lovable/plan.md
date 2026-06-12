@@ -1,79 +1,75 @@
+# Sprint 3 — Customer 360, Timeline, Dashboard, Jogosultságok
+
 ## Cél
-Minden felhasználói felületen megjelenő angol szó magyar lesz, és az AI agentek alapból magyarul, közérthetően válaszolnak. A DB séma (enum értékek, oszlopnevek) **nem** változik — csak megjelenítési réteget magyarosítunk, hogy ne kelljen migrációt futtatni és ne törjenek meg a meglévő riportok / API-k.
+Négy egymásra épülő modul kiszállítása. Minden adatbázis változtatás SQL-blokként kerül átadásra a felhasználónak (manuálisan futtatja). Frontend a Lovable buildben.
 
-## Hatókör (mit csinálunk)
+## Hatásvizsgálat (DB)
 
-### 1. Központi szótár létrehozása
-Új fájl: `src/lib/i18n.ts` — egy helyen tartja az összes magyar megfeleltetést. Ezt használja minden komponens, így konzisztens marad.
+### Új objektumok
+| Típus | Név | Cél |
+|---|---|---|
+| VIEW | `customer_360_v` | Customer fejléchez összesített adatok (cégadat + KPI + főbb kontakt) egy lekérésre |
+| VIEW | `dashboard_pipeline_v` | Projekt státusz pipeline összesítés (státusz, darabszám, összérték) |
+| VIEW | `dashboard_user_workload_v` | Felelős → nyitott taskok / followupok / projektek |
+| VIEW | `dashboard_revenue_monthly_v` | Hónap × elfogadott ajánlat érték (utolsó 12 hónap) |
+| VIEW | `activity_timeline_v` | Globális idővonal (a `customer_activity_v` mintájára, de minden modul, customer szűkítés nélkül, `user_id` annotálva) |
+| TABLE | `route_permissions` | Per-route × role engedélyek dinamikus szerkesztéshez (Settings → Permissions) |
+| FUNCTION | `public.has_route_access(_user uuid, _path text)` | SECURITY DEFINER, role + route_permissions alapján |
 
-Tartalom:
-- **Domain szavak**: lead → Érdeklődő, follow-up → Utókövetés, task → Feladat, opportunity → Lehetőség, pipeline → Értékesítési folyamat, contact → Kapcsolattartó, company → Cég, quote → Ajánlat stb.
-- **Műveletek**: create → Létrehozás, save → Mentés, cancel → Mégse, delete → Törlés, edit → Szerkesztés, search → Keresés.
-- **Lead státuszok**: new → Új, contacted → Felvettük a kapcsolatot, qualified → Minősített, proposal_sent → Ajánlat elküldve, negotiation → Tárgyalás alatt, won → Megnyert, lost → Elvesztett.
-- **Feladat státuszok**: todo → Teendő, in_progress → Folyamatban, completed → Kész, cancelled → Törölve.
-- **Projekt / ajánlat státuszok**: draft → Vázlat, sent → Elküldve, accepted → Elfogadva, rejected → Elutasítva, expired → Lejárt, archived → Archivált stb.
-- **Prioritások**: low → Alacsony, normal → Normál, high → Magas, urgent → Sürgős.
-- **Ügynöknevek**: Sales Agent → Értékesítési segítő, Marketing Agent → Marketing segítő, PM Agent → Projektsegítő, Marven megmarad (saját név).
+### Meglévő táblák érintve
+- `companies`, `projects`, `quotes`, `leads`, `followups`, `tasks`, `phone_calls`, `meetings`, `email_threads`, `project_notes`, `project_documents`, `contacts` — **csak olvasás** (view-kon keresztül). Nincs séma változás rajtuk.
+- `roles`, `user_roles` (ha van) / `users_profile` — olvasás a `has_route_access` függvényben.
 
-Két export:
-- `t(kulcs)` — egyetlen szó/kifejezés magyarítása.
-- `tStatus(domain, érték)` — státusz badge címke (pl. `tStatus("lead", "qualified")`).
+### Új oszlopok
+Nincs — a Sprint 3 view-alapú, nem ír meglévő táblákba.
 
-### 2. Komponens-szintű cserék
-A `t()` / `tStatus()` beépítése azokon a helyeken, ahol jelenleg angol szöveg jelenik meg:
-- `src/components/app-sidebar.tsx` — "Follow-up" → "Utókövetés"
-- `src/routes/_authenticated/followups.tsx` — oldalcím + szövegek
-- `src/routes/_authenticated/leads.index.tsx`, `leads.$id.tsx` — státusz badge-ek
-- `src/routes/_authenticated/tasks.tsx` — státusz badge-ek + szűrők
-- `src/routes/_authenticated/dashboard.tsx` — "Follow-up esedékesség" stb. szekciócímek
-- `src/routes/_authenticated/quotes.*`, `projects.*`, `customers.*` — státusz badge-ek
-- `src/routes/_authenticated/ai-assistant.tsx` — agent nevek, quick action címkék (pl. "Follow-up javaslatok" → "Utókövetési javaslatok")
-- `src/routes/_authenticated/calls.tsx` — kategória címkék
-- `src/components/projects/project-timeline.tsx` — esemény címkék
-- `src/components/global-search.tsx`, `quick-add-menu.tsx`, `welcome-header.tsx` stb.
-- `src/components/ai/daily-briefing.tsx` — Sales / PM gomb feliratok
+### RLS / policy
+- Új view-k mind `security_invoker = on` → meglévő RLS érvényesül.
+- `route_permissions`: RLS engedélyezve, `SELECT` minden `authenticated`-nek (mindenkinek tudnia kell a saját menüjét), `INSERT/UPDATE/DELETE` csak `owner` role-nak (via `has_role`).
+- `has_route_access` SECURITY DEFINER, `search_path=public` rögzítve.
 
-Ami **nem** változik: shadcn primitív komponensek belső `displayName`-jei (pl. `AlertDialogCancel`), enum értékek a kódban, importok, változónevek, fájlnevek.
+A teljes futtatható SQL blokkot a következő üzenetben adom át, lépésenként (1. view-k, 2. route_permissions + function), hogy ne legyen monstre.
 
-### 3. AI agentek magyar nyelvi instrukciója
-`src/lib/ai/prompts.ts` minden system promptja kap egy expliciten kötelező sort az elején:
+## Frontend változások
 
-> "Mindig magyarul válaszolj, közérthető, hétköznapi nyelven. Ne használj angol CRM szakkifejezéseket (lead, follow-up, pipeline, task, opportunity stb.) — helyettük: érdeklődő, utókövetés, értékesítési folyamat, feladat, lehetőség. A kollégákat keresztnéven szólítsd."
+### 1. Customer 360 (`/customers/$id`)
+- Jelenlegi `customers.$id.tsx` bővítése: header KPI sáv (`customer_360_v`), tabok: **Áttekintés / Projektek / Ajánlatok / Aktivitás / Kapcsolat / Dokumentumok**.
+- Új komponens: `src/components/customers/customer-360-header.tsx`.
+- Aktivitás tab a meglévő `customer_activity_v`-t használja, csoportosítva nap szerint.
 
-Ez vonatkozik: Marven, Sales (Értékesítési segítő), Marketing (Marketing segítő), PM (Projektsegítő).
+### 2. Activity Timeline (új route)
+- `src/routes/_authenticated/activity.tsx` — globális idővonal `activity_timeline_v`-ből, szűrőkkel (esemény típus, felhasználó, dátum, customer).
+- Sidebar menüpont (Pulse mellé): „Aktivitás".
 
-Az agentek megjelenített neve (UI-ban) is magyarosodik a 2. pont szerint.
+### 3. Vezetői Dashboard
+- `src/routes/_authenticated/dashboard.tsx` bővítése (nem új route):
+  - Pipeline blokk: `dashboard_pipeline_v` → bar chart státuszonként.
+  - Bevétel blokk: `dashboard_revenue_monthly_v` → line chart 12 hónap.
+  - Workload tábla: `dashboard_user_workload_v`.
+  - Meglévő `CustomerKpiWidgets` megmarad alul.
+- Új komponens: `src/components/dashboard/exec-widgets.tsx` (3 kártya + recharts).
 
-### 4. Tool válaszok formátuma
-A `src/lib/ai/tools.ts` és `operator.ts` tool-output stringjei (amiket az agent visszakap és gyakran szó szerint továbbad) magyarra cseréljük: "Lead found" → "Érdeklődőt találtam", "Created" → "Létrehozva" stb. A tool **nevek** (`create_lead`, `daily_call_list`) nem változnak, mert ezeket a modell hívja, nem a felhasználó látja.
+### 4. Jogosultság audit & finomhangolás
+- `src/lib/permissions.ts` — `canAccessRoute` átállítása async lookup-ra ELLENI: marad sync default, DE új hook: `useRoutePermissions()` → `route_permissions` táblát olvas, fallback a kódban lévő `ROUTE_ACCESS`-re. Így DB nélkül is működik.
+- `src/routes/_authenticated/route.tsx` — child-route gate hozzáadása (jelenleg csak auth, role check nincs).
+- `src/routes/_authenticated/settings.permissions-audit.tsx` — már létezik; bővítés szerkeszthető mátrix-szá (role × route checkbox), írás a `route_permissions` táblába (owner only).
 
-### 5. Toast üzenetek
-A `sonner` toast-ok rövid szövegei magyarra: a meglévők nagy része már magyar, csak átfutok az `rg "toast\.(success|error|info)"` találatokon és lecserélem a maradék angol stringeket (pl. "Saved", "Created", "Deleted").
+## Sorrend
+1. **DB SQL #1** — view-k (`customer_360_v`, `dashboard_*`, `activity_timeline_v`) — átadás → user futtatja.
+2. **DB SQL #2** — `route_permissions` tábla + `has_route_access` function + RLS + GRANT-ok.
+3. **Frontend** — fenti 4 modul, parallel fájl írással.
+4. **Sanity build** — verify, majd rövid teszt útmutató.
 
 ## Technikai részletek
+- Charts: `recharts` (már a projektben szerepel a `src/components/ui/chart.tsx` miatt).
+- Query keys: `["customer_360", id]`, `["dashboard","pipeline"]`, `["activity","timeline", filters]`, `["route_permissions"]`.
+- Minden lekérdezés `useQuery`-vel, staleTime 30s a dashboard kártyákon.
+- Nincs új npm dependency.
 
-- **Nincs DB migráció.** A `lead_status`, `task_status` enum értékek angolul maradnak a DB-ben; csak a megjelenítés magyar.
-- **Nincs új npm csomag.** Saját mini `t()` függvény elég — react-i18next overkill lenne 1 nyelvhez.
-- **Tipusbiztos**: `t()` és `tStatus()` szigorú TS típusokkal, így új angol szó hozzáadáskor a TS hibát jelez.
-- **Csak frontend változás**, semmi backend / RLS / server function logika nem módosul.
+## Kockázatok
+- Ha a `tasks.assigned_user` nem `users_profile.id`-re mutat (Sprint 2-ben tisztáztuk: `auth.users.id`), a workload view-ban `JOIN users_profile ON up.auth_user_id = t.assigned_user` használat — ezt a SQL-ben kezelem.
+- `route_permissions` séma változás esetén a frontend fallback marad (`ROUTE_ACCESS` const), tehát nem törik el a UI ha a tábla még nincs migrálva.
 
-## Mit NEM csinálok ebben a körben
+---
 
-- Új funkciókat (te kértél).
-- Új AI képességeket.
-- DB schema változást.
-- Új oldalakat / route-okat.
-- Vizuális redesignt.
-
-## Ellenőrzés a végén
-
-1. Sidebar minden menüpontja magyarul.
-2. Érdeklődő / Feladat / Ajánlat listák — minden státusz badge magyar.
-3. Dashboard — minden szekciócím magyar.
-4. AI Assistant — agent nevek, quick action gombok, agent válaszok magyarul.
-5. Marketing kutatás → Lead gomb felirata és toast üzenete magyar.
-6. `rg -i "follow-up|todo|in progress|qualified" src/routes src/components` — már csak engedélyezett helyeken talál (változónevek, kommentek), UI-ban sehol.
-
-## Becsült érintett fájlok
-
-~25-30 fájl, többségében 1-3 soros cserék. A `i18n.ts` az egyetlen új fájl. Egyetlen iterációban végrehajtható.
+**Jóváhagyás után küldöm sorrendben:** SQL #1 → SQL #2 → frontend kód.
