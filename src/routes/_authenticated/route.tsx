@@ -41,7 +41,7 @@ function AppShell() {
           <header className="flex h-12 items-center justify-between gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sticky top-0 z-30">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <Link to="/dashboard" className="flex items-center gap-2">
+              <Link to="/today" className="flex items-center gap-2">
                 <BrandLogo className="h-6 md:h-7" />
               </Link>
             </div>
@@ -79,7 +79,7 @@ function Forbidden({ role }: { role: string }) {
         </p>
         <div className="mt-5">
           <Button asChild size="sm">
-            <Link to="/dashboard">Vissza az irányítópultra</Link>
+            <Link to="/today">Vissza a kezdőoldalra</Link>
           </Button>
         </div>
       </div>

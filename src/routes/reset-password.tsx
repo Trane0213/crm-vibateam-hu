@@ -47,7 +47,7 @@ function ResetPasswordPage() {
       return;
     }
     toast.success("Új jelszó beállítva", { description: "Bejelentkezve maradsz." });
-    navigate({ to: "/dashboard", replace: true });
+    navigate({ to: "/today", replace: true });
   };
 
   return (
