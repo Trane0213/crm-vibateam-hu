@@ -4,7 +4,6 @@ import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRin
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
@@ -563,15 +562,19 @@ function ProposalCardView({ card, onApprove, onReject }: { card: ProposalCard; o
 
 function EmptyChat({ onPick, disabled, agent, meta, actions }: {
   onPick: (p: string) => void; disabled: boolean; agent: AgentId;
-  meta: { name: string; tagline: string; icon: any };
+  meta: AgentMeta;
   actions: QuickAction[];
 }) {
-  const Icon = meta.icon;
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Icon className="h-6 w-6" />
-      </div>
+      <img
+        src={meta.portrait}
+        alt={meta.name}
+        width={1024}
+        height={1024}
+        loading="lazy"
+        className={`h-20 w-20 rounded-full object-cover ring-2 ring-offset-2 ring-offset-background ${meta.accentRing}`}
+      />
       <div>
         <h3 className="text-sm font-semibold">{meta.name}</h3>
         <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground">
