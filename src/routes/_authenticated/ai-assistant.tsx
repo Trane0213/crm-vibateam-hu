@@ -181,6 +181,10 @@ function AiAssistantPage() {
   async function ask(text: string) {
     const question = text.trim();
     if (!question || busy) return;
+    if (question.length > 4000) {
+      toast.error("A kérdés túl hosszú", { description: "Rövidítsd 4000 karakter alá." });
+      return;
+    }
     let thread = active;
     if (!thread) thread = newThread(question, agent);
     const usedAgent: AgentId = thread.agent ?? agent;
@@ -208,17 +212,54 @@ function AiAssistantPage() {
         { role: "user" as const, content: question },
       ];
       const tools = getToolDefsForAgent(usedAgent);
-      // Tool-loop: max 5 iteráció. Az LLM toolt hívhat → kliens végrehajtja
-      // (csak olvasás), az eredményt visszaadjuk neki, amíg szöveggel nem zár.
+      // Tool-loop: max 5 iteráció, lépésenként max 5 tool hívás.
+      // Védőhálók: minden tool try/catch-ben, hogy egy elszálló tool ne állítsa
+      // le az egész beszélgetést. Végtelen ciklus ellen: kemény iterációlimit
+      // és teljes idő-limit (90 mp), valamint signature-alapú ismétlésdetektálás.
+      const MAX_TOOL_LOOP_ITER = 5;
+      const MAX_TOOL_CALLS_PER_STEP = 5;
+      const HARD_DEADLINE_MS = 90_000;
+      const started = Date.now();
+      const seenSignatures = new Map<string, number>();
       let finalText = "";
-      for (let i = 0; i < 5; i++) {
+      let aborted: string | null = null;
+      for (let i = 0; i < MAX_TOOL_LOOP_ITER; i++) {
+        if (Date.now() - started > HARD_DEADLINE_MS) {
+          aborted = `Az AI túl hosszú ideje (>${Math.round(HARD_DEADLINE_MS / 1000)} mp) dolgozik. Megszakítom a műveletet.`;
+          break;
+        }
         const step = await aiStep({ data: { messages, tools } });
-        if (step.tool_calls && step.tool_calls.length > 0) {
-          messages.push({ role: "assistant", content: step.text ?? "", tool_calls: step.tool_calls });
-          for (const call of step.tool_calls) {
+        const callsRaw = step.tool_calls ?? [];
+        const calls = callsRaw.slice(0, MAX_TOOL_CALLS_PER_STEP);
+        if (callsRaw.length > MAX_TOOL_CALLS_PER_STEP) {
+          console.warn(`[ai-loop] tool_calls levágva: ${callsRaw.length} → ${MAX_TOOL_CALLS_PER_STEP}`);
+        }
+        if (calls.length > 0) {
+          messages.push({ role: "assistant", content: step.text ?? "", tool_calls: calls });
+          for (const call of calls) {
             let args: any = {};
             try { args = JSON.parse(call.function.arguments || "{}"); } catch { /* ignore */ }
-            const result = await runTool(call.function.name, args);
+            // Ismétlés-detektor: ugyanaz a tool ugyanazokkal az args-okkal
+            // 3-szor egy beszélgetésen belül = leállítjuk, hogy ne pörögjön végtelenül.
+            const sig = `${call.function.name}::${JSON.stringify(args)}`;
+            const seen = (seenSignatures.get(sig) ?? 0) + 1;
+            seenSignatures.set(sig, seen);
+            if (seen > 3) {
+              messages.push({
+                role: "tool",
+                tool_call_id: call.id,
+                name: call.function.name,
+                content: JSON.stringify({ error: "Ismétlődő hívás megállítva. Próbáld más megközelítéssel." }),
+              });
+              continue;
+            }
+            let result: any;
+            try {
+              result = await runTool(call.function.name, args);
+            } catch (toolErr: any) {
+              console.warn(`[ai-tool] hiba (${call.function.name}):`, toolErr?.message);
+              result = { error: `Tool hiba (${call.function.name}): ${toolErr?.message ?? "ismeretlen"}` };
+            }
             // __navigate envelope: jegyezzük be a navigációs kártyát
             if (result && typeof result === "object" && (result as any).__navigate) {
               const nav = (result as any).__navigate as NavCard;
@@ -251,6 +292,20 @@ function AiAssistantPage() {
         }
         finalText = step.text || "";
         break;
+      }
+      if (aborted) {
+        finalText = `⚠️ ${aborted}\n\nKérlek tegyél fel egy konkrétabb, szűkebb kérdést.`;
+        await logAiAction({
+          agent_type: agentTypeForLog,
+          action_type: "other",
+          payload: { kind: "loop_aborted", reason: aborted, question },
+          approved: false,
+          executed: false,
+          error_message: aborted,
+        });
+      } else if (!finalText && !pendingNav && !pendingProposal) {
+        // Elérte a max iterációt, de nincs végleges válasz — adjunk értelmes üzenetet.
+        finalText = "Nem sikerült rövid úton választ adnom. Próbáld pontosabban megfogalmazni a kérdést, vagy bontsd kisebb lépésekre.";
       }
       const assistantMsg: Msg = {
         id: uid(),

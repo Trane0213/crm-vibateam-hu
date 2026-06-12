@@ -67,8 +67,119 @@ function pruneNull<T extends Record<string, any>>(obj: T): Partial<T> {
   return out as Partial<T>;
 }
 
+/** Norm: levágja a fehér karaktereket, kisbetűsít, többszörös szóközöket egyetlenné von össze. */
+function norm(s?: string | null): string {
+  return (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+/** Kerek perc — durva időegyezést detektál (max 5 perc különbség = duplikátum). */
+function withinMinutes(a: string, b: string, mins: number): boolean {
+  const da = new Date(a).getTime();
+  const db = new Date(b).getTime();
+  if (!Number.isFinite(da) || !Number.isFinite(db)) return false;
+  return Math.abs(da - db) <= mins * 60 * 1000;
+}
+
+/** Duplikátum-jelzés a UI felé — barátságos hibaüzenet. */
+class DuplicateError extends Error {
+  constructor(public readonly entity: string, public readonly existingId: string, message: string) {
+    super(message);
+    this.name = "DuplicateError";
+  }
+}
+
+/** Pre-insert dedup: ha azonos rekord már létezik, ne hozzunk létre másikat. */
+async function checkDuplicate(p: Proposal): Promise<{ id: string; reason: string } | null> {
+  switch (p.kind) {
+    case "create_followup": {
+      // Ugyanaz a (company_id | project_id | quote_id) + due_date ±5 perc + típus → duplikátum.
+      const filterCol = p.quote_id ? "quote_id" : p.project_id ? "project_id" : p.company_id ? "company_id" : null;
+      const filterVal = p.quote_id ?? p.project_id ?? p.company_id ?? null;
+      if (!filterCol || !filterVal) return null;
+      const q: any = supabase.from("followups").select("id,due_date,followup_type,completed");
+      const { data } = await q.eq(filterCol, filterVal).eq("completed", false).limit(50);
+      const hit = (data ?? []).find((r: any) =>
+        withinMinutes(r.due_date, p.due_date, 5) &&
+        (!p.followup_type || !r.followup_type || r.followup_type === p.followup_type),
+      );
+      return hit ? { id: (hit as any).id, reason: "Hasonló nyitott utókövetés már létezik ezen időpontra." } : null;
+    }
+    case "create_task": {
+      const title = norm(p.title);
+      if (!title || !p.project_id) return null;
+      const { data } = await supabase
+        .from("tasks")
+        .select("id,title,status,due_date,project_id")
+        .eq("project_id", p.project_id)
+        .limit(100);
+      const hit = (data ?? []).find((r: any) =>
+        norm(r.title) === title &&
+        r.status !== "done" && r.status !== "completed" && r.status !== "cancelled",
+      );
+      return hit ? { id: (hit as any).id, reason: "Ugyanezzel a címmel már létezik nyitott feladat a projekten." } : null;
+    }
+    case "create_contact": {
+      // Email egyezés (case-insensitive) erős jel; ha nincs email, név + company_id.
+      if (p.email && p.email.trim()) {
+        const email = p.email.trim().toLowerCase();
+        const { data } = await supabase
+          .from("contacts")
+          .select("id,email")
+          .ilike("email", email)
+          .limit(5);
+        const hit = (data ?? [])[0];
+        if (hit) return { id: (hit as any).id, reason: "Kapcsolattartó ezzel az e-mail címmel már létezik." };
+      }
+      if (p.company_id && p.name) {
+        const name = norm(p.name);
+        const { data } = await supabase
+          .from("contacts")
+          .select("id,name,company_id")
+          .eq("company_id", p.company_id)
+          .limit(100);
+        const hit = (data ?? []).find((r: any) => norm(r.name) === name);
+        if (hit) return { id: (hit as any).id, reason: "Ugyanilyen nevű kapcsolattartó már létezik ehhez a céghez." };
+      }
+      return null;
+    }
+    case "create_lead": {
+      // Ha van company_id: ugyanaz a cég + nyitott lead → duplikátum (status nem won/lost).
+      if (p.company_id) {
+        const { data } = await supabase
+          .from("leads")
+          .select("id,status,summary,company_id")
+          .eq("company_id", p.company_id)
+          .limit(20);
+        const hit = (data ?? []).find((r: any) => !["won", "lost"].includes(String(r.status)));
+        if (hit) return { id: (hit as any).id, reason: "Ezen céghez már létezik nyitott érdeklődő." };
+      }
+      // Egyébként summary alapján — csak teljes szöveg egyezés erős jel.
+      const summary = norm(p.summary);
+      if (summary.length > 8) {
+        const { data } = await supabase.from("leads").select("id,summary,status").limit(200);
+        const hit = (data ?? []).find((r: any) =>
+          norm(r.summary) === summary && !["won", "lost"].includes(String(r.status)),
+        );
+        if (hit) return { id: (hit as any).id, reason: "Ugyanezzel az összefoglalóval már van nyitott érdeklődő." };
+      }
+      return null;
+    }
+  }
+}
+
 /** Adott proposal alapján beszúrja a rekordot. RLS érvényesül. */
 export async function executeProposal(p: Proposal): Promise<ExecResult> {
+  // 1) Duplikátum-szűrés mentés előtt.
+  try {
+    const dup = await checkDuplicate(p);
+    if (dup) {
+      throw new DuplicateError(p.kind, dup.id, `${dup.reason} (azonosító: ${dup.id})`);
+    }
+  } catch (e) {
+    if (e instanceof DuplicateError) throw e;
+    // Ha maga a dedup-lekérdezés esik el, ne blokkoljuk az insertet — csak naplózzuk.
+    console.warn("[executeProposal] dedup ellenőrzés sikertelen:", (e as any)?.message);
+  }
   switch (p.kind) {
     case "create_followup": {
       const payload = pruneNull({
