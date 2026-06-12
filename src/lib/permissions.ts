@@ -45,6 +45,7 @@ export function normalizeRole(input: unknown): RoleSlug {
 /** Route → engedélyezett szerepkörök. A „/agents" jellegű utak mindenki számára elérhetők. */
 export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/dashboard", roles: ["owner", "project_manager", "sales", "marketing"] },
+  { prefix: "/activity", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/projects", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/quotes", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/followups", roles: ["owner", "project_manager", "sales"] },
