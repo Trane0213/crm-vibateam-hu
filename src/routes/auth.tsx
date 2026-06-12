@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -25,11 +26,8 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-10">
       <div className="mx-auto mb-8 flex flex-col items-center text-center">
-        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-primary-foreground text-2xl font-bold shadow">
-          V
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight">VIBA CRM</h1>
-        <p className="text-sm text-muted-foreground">VIBA-TEAM Kft. belső értékesítési rendszer</p>
+        <BrandLogo className="mb-4 h-14 sm:h-16" />
+        <p className="text-sm text-muted-foreground">Belső értékesítési és projektkövető rendszer</p>
       </div>
       <div className="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-2">
         <SignInCard onSuccess={() => navigate({ to: "/dashboard", replace: true })} />
