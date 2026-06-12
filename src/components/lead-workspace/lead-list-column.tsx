@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,14 @@ export function LeadListColumn({
       return hay.includes(q);
     });
   }, [data, search, status, source]);
+
+  // Auto-select first lead: belépés után rögtön mutassuk a legfrissebb érdeklődőt.
+  useEffect(() => {
+    if (!selectedId && filtered.length > 0) {
+      onSelect(filtered[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered.length, selectedId]);
 
   return (
     <div className="flex h-full flex-col">
