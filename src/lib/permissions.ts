@@ -27,6 +27,7 @@ export function normalizeRole(input: unknown): RoleSlug {
   if ([
     "sales", "ertekesito", "értékesítő", "sales_rep",
     "irodai", "iroda", "irodai_munkatars", "irodai munkatárs", "office",
+    "agent", "ugynok", "ügynök",
   ].includes(v)) return "sales";
   if ([
     "marketing", "marketinges", "marketer",
