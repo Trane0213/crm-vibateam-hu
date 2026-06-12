@@ -275,7 +275,7 @@ function fromInput(value: any, type: FieldType): any {
   return value;
 }
 
-function RecordDialog({
+export function RecordDialog({
   open,
   onOpenChange,
   title,
