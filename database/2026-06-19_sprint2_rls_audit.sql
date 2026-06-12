@@ -8,8 +8,7 @@
 SELECT
   schemaname,
   tablename,
-  rowsecurity AS rls_enabled,
-  forcerowsecurity AS rls_forced
+  rowsecurity AS rls_enabled
 FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY rowsecurity DESC, tablename;
@@ -73,3 +72,25 @@ FROM public.users_profile up
 LEFT JOIN public.roles r ON r.id = up.role_id
 GROUP BY r.name
 ORDER BY users DESC;
+
+-- ----------------------------------------------------------------------------
+-- 9) tasks.assigned_user FK iránya (auth.users vs public.users_profile)
+--    Ez dönti el, hogy a frontend lookup users_profile.id-re vagy
+--    users_profile.auth_user_id-re kell illesszen.
+-- ----------------------------------------------------------------------------
+SELECT
+  tc.constraint_name,
+  kcu.column_name             AS local_column,
+  ccu.table_schema || '.' || ccu.table_name AS references_table,
+  ccu.column_name             AS references_column
+FROM information_schema.table_constraints tc
+JOIN information_schema.key_column_usage  kcu
+  ON kcu.constraint_name = tc.constraint_name
+ AND kcu.table_schema    = tc.table_schema
+JOIN information_schema.constraint_column_usage ccu
+  ON ccu.constraint_name = tc.constraint_name
+ AND ccu.table_schema    = tc.table_schema
+WHERE tc.table_schema = 'public'
+  AND tc.table_name   = 'tasks'
+  AND tc.constraint_type = 'FOREIGN KEY'
+  AND kcu.column_name = 'assigned_user';
