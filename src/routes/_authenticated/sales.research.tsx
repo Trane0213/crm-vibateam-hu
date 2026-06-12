@@ -247,7 +247,7 @@ function ResearchPage() {
   return (
     <div className="flex flex-col">
       <PageHeader
-        title="Marketing Agent"
+        title="Marketing Segítő"
         description="AI-alapú cégkutatás — találj potenciális ügyfeleket és hozz létre belőlük leadeket egy kattintással."
         actions={
           <Badge variant="secondary">
