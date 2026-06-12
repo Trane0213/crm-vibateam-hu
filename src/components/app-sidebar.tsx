@@ -19,6 +19,7 @@ import {
   Hammer,
   Users,
   Radar,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,16 +45,17 @@ const home: Item[] = [
 type AiItem = Item & { search?: Record<string, string> };
 
 const aiAgents: AiItem[] = [
-  { title: "Marven – CRM Navigátor", url: "/ai-assistant", icon: Search,     search: { agent: "crm" },   highlight: true },
-  { title: "Eladási Segítő",          url: "/ai-assistant", icon: TrendingUp, search: { agent: "sales" }, highlight: true },
-  { title: "Projektsegítő",           url: "/ai-assistant", icon: Hammer,     search: { agent: "pm" },    highlight: true },
+  { title: "AI Asszisztensek",                  url: "/ai-assistants",  icon: LayoutGrid, highlight: true },
+  { title: "George – CRM Navigátor",            url: "/ai-assistant",   icon: Search,     search: { agent: "crm" },   highlight: true },
+  { title: "Timothy – Értékesítési Segítő",     url: "/ai-assistant",   icon: TrendingUp, search: { agent: "sales" }, highlight: true },
+  { title: "Boss – Projektfelügyelő",           url: "/ai-assistant",   icon: Hammer,     search: { agent: "pm" },    highlight: true },
+  { title: "Scarlet – Marketing Stratéga",      url: "/sales/research", icon: Radar,      highlight: true },
 ];
 
 const sales: Item[] = [
   { title: "Érdeklődők", url: "/leads", icon: Sparkles },
   { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
   { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true },
-  { title: "Marketing Segítő", url: "/sales/research", icon: Radar, highlight: true },
 ];
 
 const projects: Item[] = [
@@ -125,11 +127,19 @@ export function AppSidebar() {
         <SidebarGroupContent>
           <SidebarMenu>
             {items.map((item) => {
-              const agent = item.search?.agent ?? "crm";
+              const agent = item.search?.agent;
+              const key = agent ?? item.url;
+              const active = agent
+                ? isAiActive(agent)
+                : isActive(item.url);
               return (
-                <SidebarMenuItem key={agent}>
-                  <SidebarMenuButton asChild isActive={isAiActive(agent)} tooltip={item.title}>
-                    <Link to={item.url} search={{ agent } as any} className="flex items-center gap-2">
+                <SidebarMenuItem key={key}>
+                  <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                    <Link
+                      to={item.url}
+                      {...(agent ? { search: { agent } as any } : {})}
+                      className="flex items-center gap-2"
+                    >
                       <item.icon className="h-4 w-4 shrink-0 text-primary" />
                       {!collapsed && <span className="font-medium">{item.title}</span>}
                     </Link>
