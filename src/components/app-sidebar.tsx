@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/sidebar";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessRoute } from "@/lib/permissions";
+import { BrandLogo } from "@/components/brand-logo";
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean };
 
@@ -170,17 +171,20 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border/60">
-        <div className="flex items-center gap-2.5 px-3 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold shadow-sm">
-            V
-          </div>
-          {!collapsed && (
-            <div className="leading-tight">
-              <div className="text-sm font-semibold tracking-tight text-sidebar-foreground">VIBA CRM</div>
-              <div className="text-[11px] text-sidebar-foreground/55">VIBA-TEAM Kft</div>
-            </div>
+        <Link
+          to="/dashboard"
+          className="flex items-center gap-2.5 px-3 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
+        >
+          {collapsed ? (
+            <BrandLogo
+              onDark
+              className="h-7 w-7 [object-position:left]"
+              alt="VIBA-TEAM"
+            />
+          ) : (
+            <BrandLogo onDark className="h-9 max-w-full" alt="VIBA-TEAM Kft" />
           )}
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent className="gap-0 px-2 py-2">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
