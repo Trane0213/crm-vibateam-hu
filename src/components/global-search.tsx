@@ -49,7 +49,7 @@ export function GlobalSearch() {
         supabase.from("companies").select("id,name,city").ilike("name", like).limit(5),
         supabase.from("contacts").select("id,name,email,company_id").ilike("name", like).limit(5),
         supabase.from("projects").select("id,title,status").ilike("title", like).limit(5),
-        supabase.from("leads").select("id,source,status,description").or(`source.ilike.${like},description.ilike.${like}`).limit(5),
+        supabase.from("leads").select("id,source,status,summary").or(`source.ilike.${like},summary.ilike.${like}`).limit(5),
         supabase.from("quotes").select("id,title,version,status").or(`title.ilike.${like}`).limit(5),
         supabase.from("emails").select("id,subject,summary,from_email,thread_id").or(`subject.ilike.${like},summary.ilike.${like},from_email.ilike.${like}`).limit(5),
       ]);
@@ -57,7 +57,7 @@ export function GlobalSearch() {
       (co.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "customers", label: r.name ?? "—", sub: r.city ?? undefined }));
       (ct.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "contacts", label: r.name ?? "—", sub: r.email ?? undefined }));
       (pr.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "projects", label: r.title ?? "—", sub: r.status ?? undefined }));
-      (ld.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "leads", label: r.description?.slice(0, 60) ?? r.source ?? "Érdeklődő", sub: r.status ?? undefined }));
+      (ld.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "leads", label: r.summary?.slice(0, 60) ?? r.source ?? "Érdeklődő", sub: r.status ?? undefined }));
       (qu.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "quotes", label: r.title ?? (r.version != null ? `v${r.version}` : "Ajánlat"), sub: r.status ?? undefined }));
       (em.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "emails", label: r.subject ?? r.summary ?? "(nincs tárgy)", sub: r.from_email ?? undefined }));
       return out;
