@@ -48,10 +48,10 @@ export type AgentDefinition = {
 export const AGENTS: Record<AgentId, AgentDefinition> = {
   crm: {
     id: "crm",
-    name: "Marven – CRM Navigátor",
+    name: "George – CRM Navigátor",
     role: "Segít eligibálni a rendszerben — megkeresi az adatokat, megmutatja hol vannak.",
     description:
-      "Ha nem tudod hol keress valamit a CRM-ben, kérdezd Marvent. " +
+      "Ha nem tudod hol keress valamit a CRM-ben, kérdezd George-ot. " +
       "Megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat, " +
       "és gyorsan összegzi, mi tartozik egymáshoz.",
     capabilities: {
@@ -71,7 +71,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
   },
   sales: {
     id: "sales",
-    name: "Eladási Segítő",
+    name: "Timothy – Értékesítési Segítő",
     role: "Az értékesítésben segít — leadek, ajánlatok, utókövetések.",
     description:
       "Megmondja kit kell ma hívni, mely ajánlatok állnak régóta, " +
@@ -90,7 +90,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
   },
   pm: {
     id: "pm",
-    name: "Projektsegítő",
+    name: "Boss – Projektfelügyelő",
     role: "A projektek vezetésében segít — határidők, feladatok, kockázatok.",
     description:
       "Megmutatja mely projektek vannak veszélyben, mi a mai feladat, " +

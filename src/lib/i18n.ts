@@ -48,10 +48,10 @@ const DICT = {
   add: "Hozzáadás",
 
   // Ügynöknevek
-  "agent.marven": "Marven – CRM Navigátor",
-  "agent.sales": "Értékesítési Segítő",
-  "agent.marketing": "Marketing Segítő",
-  "agent.pm": "Projektsegítő",
+  "agent.marven": "George – CRM Navigátor",
+  "agent.sales": "Timothy – Értékesítési Segítő",
+  "agent.marketing": "Scarlet – Marketing Stratéga",
+  "agent.pm": "Boss – Projektfelügyelő",
 } as const;
 
 export type I18nKey = keyof typeof DICT;

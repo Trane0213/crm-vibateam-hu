@@ -68,9 +68,9 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
 };
 
 const AGENT_META: Record<AgentId, { name: string; tagline: string; icon: any }> = {
-  crm:   { name: "Marven – CRM Navigátor", tagline: "Segít eligibálni a CRM-ben — megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat.", icon: Search },
-  sales: { name: "Eladási Segítő",          tagline: "Az értékesítésben segít — megmondja kit kell ma hívni, mely ajánlatok állnak, mely leadek aktívak.", icon: TrendingUp },
-  pm:    { name: "Projektsegítő",           tagline: "A projektek vezetésében segít — határidők, mai feladatok, veszélyes projektek, hiányzó dokumentumok.", icon: Hammer },
+  crm:   { name: "George – CRM Navigátor",        tagline: "Segít eligibálni a CRM-ben — megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat.", icon: Search },
+  sales: { name: "Timothy – Értékesítési Segítő", tagline: "Az értékesítésben segít — megmondja kit kell ma hívni, mely ajánlatok állnak, mely érdeklődők aktívak.", icon: TrendingUp },
+  pm:    { name: "Boss – Projektfelügyelő",        tagline: "A projektek vezetésében segít — határidők, mai feladatok, veszélyes projektek, hiányzó dokumentumok.", icon: Hammer },
 };
 
 function AiAssistantPage() {
