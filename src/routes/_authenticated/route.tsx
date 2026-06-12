@@ -8,7 +8,8 @@ import { QuickAddMenu } from "@/components/quick-add-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnsureProfile } from "@/hooks/use-ensure-profile";
 import { usePermissions } from "@/hooks/use-permissions";
-import { canAccessRoute, ROLE_LABEL } from "@/lib/permissions";
+import { ROLE_LABEL } from "@/lib/permissions";
+import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permissions";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
@@ -28,7 +29,10 @@ function AppShell() {
   useEnsureProfile();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { role, isLoading: permLoading } = usePermissions();
-  const allowed = permLoading ? true : canAccessRoute(role, pathname);
+  const rp = useRoutePermissions();
+  const allowed = permLoading || rp.isLoading
+    ? true
+    : resolveAccess(role, pathname, rp.data);
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">

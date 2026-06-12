@@ -20,6 +20,7 @@ import {
   Users,
   Radar,
   LayoutGrid,
+  Activity,
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,6 +42,7 @@ type Item = { title: string; url: string; icon: React.ComponentType<{ className?
 
 const home: Item[] = [
   { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Aktivitás", url: "/activity", icon: Activity },
 ];
 
 type AiItem = Item & { search?: Record<string, string> };
