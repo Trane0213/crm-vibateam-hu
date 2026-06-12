@@ -51,8 +51,8 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
   const autoFollowup = useCreateLeadFollowup(leadForFu);
 
   async function handleEmailSent() {
-    if (!leadForFu?.company_id) {
-      toast.message("Email elküldve", { description: "Cég nélkül nincs automatikus utókövetés." });
+    if (!leadForFu) {
+      toast.message("Email elküldve");
       return;
     }
     const d = new Date(); d.setDate(d.getDate() + 3); d.setHours(9, 0, 0, 0);
@@ -62,7 +62,11 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         due_date: d.toISOString(),
         result: "Email utánkövetés (automatikus, +3 nap)",
       });
-      toast.success("Email elküldve · Followup +3 napra ütemezve");
+      toast.success(
+        leadForFu.company_id
+          ? "Email elküldve · Followup +3 napra ütemezve"
+          : "Email elküldve · Followup +3 napra ütemezve (cég nélkül)",
+      );
     } catch {
       // useCreateLeadFollowup már toastolja a hibát
     }
