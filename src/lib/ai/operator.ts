@@ -96,12 +96,8 @@ async function checkDuplicate(p: Proposal): Promise<{ id: string; reason: string
       const filterCol = p.quote_id ? "quote_id" : p.project_id ? "project_id" : p.company_id ? "company_id" : null;
       const filterVal = p.quote_id ?? p.project_id ?? p.company_id ?? null;
       if (!filterCol || !filterVal) return null;
-      const { data } = await supabase
-        .from("followups")
-        .select("id,due_date,followup_type,completed")
-        .eq(filterCol as any, filterVal)
-        .eq("completed", false)
-        .limit(50);
+      const q: any = supabase.from("followups").select("id,due_date,followup_type,completed");
+      const { data } = await q.eq(filterCol, filterVal).eq("completed", false).limit(50);
       const hit = (data ?? []).find((r: any) =>
         withinMinutes(r.due_date, p.due_date, 5) &&
         (!p.followup_type || !r.followup_type || r.followup_type === p.followup_type),
