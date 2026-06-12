@@ -23,7 +23,7 @@ type Ev = {
 const META: Record<Ev["kind"], { label: string; icon: any; tone: string }> = {
   project_created:{ label: "Projekt létrehozva",   icon: Briefcase,  tone: "text-primary" },
   project_closed: { label: "Projekt lezárva",      icon: Briefcase,  tone: "text-emerald-500" },
-  lead_created:   { label: "Lead létrehozva",      icon: BellRing,   tone: "text-amber-500" },
+  lead_created:   { label: "Érdeklődő létrehozva",      icon: BellRing,   tone: "text-amber-500" },
   quote:          { label: "Ajánlat létrehozva",   icon: FileText,   tone: "text-primary" },
   quote_update:   { label: "Ajánlat módosítva",    icon: FileText,   tone: "text-primary" },
   followup:       { label: "Utókövetés létrehozva", icon: BellRing,   tone: "text-amber-500" },
@@ -138,7 +138,7 @@ export function ProjectTimeline(props: {
 }
 
 const ENTITY_LABEL: Record<string, string> = {
-  projects: "Projekt", quotes: "Ajánlat", leads: "Lead",
+  projects: "Projekt", quotes: "Ajánlat", leads: "Érdeklődő",
   companies: "Cég", contacts: "Kapcsolattartó", tasks: "Feladat",
   followups: "Utókövetés", emails: "Email", phone_calls: "Hívás",
   meetings: "Találkozó", project_documents: "Dokumentum",

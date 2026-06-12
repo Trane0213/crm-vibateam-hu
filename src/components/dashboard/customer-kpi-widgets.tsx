@@ -164,7 +164,7 @@ export function CustomerKpiWidgets() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <BellRing className="h-4 w-4 text-destructive" /> Lejárt utókövetésok ügyfelenként
+            <BellRing className="h-4 w-4 text-destructive" /> Lejárt utókövetések ügyfelenként
           </CardTitle>
           <CardDescription>top 5</CardDescription>
         </CardHeader>

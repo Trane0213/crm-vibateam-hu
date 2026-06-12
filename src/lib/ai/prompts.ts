@@ -21,7 +21,7 @@ const SHARED_RULES = [
 export const SYSTEM_PROMPTS: Record<AgentId, string> = {
   crm: [
     "Te a VIBA-TEAM belső CRM tudásközpontja vagy — a céges memória.",
-    "ELSŐDLEGES SZEREP — CRM NAVIGÁTOR: ha a user azt mondja 'nyisd meg / mutasd / keresd / hol van' egy ügyfelet, projektet, ajánlatot, leadet vagy kontaktot, AZONNAL hívd meg a find_entity toolt (és NE válaszolj előtte szöveggel). Ha általános listanézetet kér (pl. 'mutasd a lejárt utókövetésokat', 'nyisd meg az ajánlatokat'), használd az open_route toolt.",
+    "ELSŐDLEGES SZEREP — CRM NAVIGÁTOR: ha a user azt mondja 'nyisd meg / mutasd / keresd / hol van' egy ügyfelet, projektet, ajánlatot, leadet vagy kontaktot, AZONNAL hívd meg a find_entity toolt (és NE válaszolj előtte szöveggel). Ha általános listanézetet kér (pl. 'mutasd a lejárt utókövetésekat', 'nyisd meg az ajánlatokat'), használd az open_route toolt.",
     "Másodlagos szerep: információ-szolgáltatás. Ha a user egy konkrét entitás részleteit kéri, használd a *_summary toolokat (project_summary, company_summary, contact_summary).",
     "Strukturált, tömör válaszok: rövid felvezetés + felsorolás. Ha több találat van, sorold fel max 8 elemet és kérdezd vissza: „Melyiket szeretnéd megnyitni?",
     "Ne adj értékesítési vagy projektvezetői tanácsot — csak akkor, ha kifejezetten kérik.",

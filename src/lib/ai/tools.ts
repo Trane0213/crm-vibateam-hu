@@ -363,7 +363,7 @@ async function daily_call_list(_args: Record<string, never> = {}) {
     scores.set(customer_id, cur);
   };
 
-  // Lejárt utókövetésok → súly 30 + napok
+  // Lejárt utókövetések → súly 30 + napok
   for (const f of followups) {
     if (f.completed || !f.due_date) continue;
     const due = new Date(f.due_date);
@@ -636,7 +636,7 @@ type ToolEntry = { def: AiToolDef; run: (args: any) => Promise<any> };
 const TOOLS: Record<string, ToolEntry> = {
   // CRM
   project_summary: {
-    def: { type: "function", function: { name: "project_summary", description: "Egy konkrét projekt teljes összefoglalója: cég, ajánlatok, utókövetésok, feladatok, dokumentumok. CSAK OLVAS.", parameters: { type: "object", properties: { project_id: { type: "string", description: "A projekt UUID-ja a CRM-ből." } }, required: ["project_id"] } } },
+    def: { type: "function", function: { name: "project_summary", description: "Egy konkrét projekt teljes összefoglalója: cég, ajánlatok, utókövetések, feladatok, dokumentumok. CSAK OLVAS.", parameters: { type: "object", properties: { project_id: { type: "string", description: "A projekt UUID-ja a CRM-ből." } }, required: ["project_id"] } } },
     run: project_summary,
   },
   company_summary: {
@@ -644,7 +644,7 @@ const TOOLS: Record<string, ToolEntry> = {
     run: company_summary,
   },
   contact_summary: {
-    def: { type: "function", function: { name: "contact_summary", description: "Egy kapcsolattartó adatai, cége, hozzá tartozó utókövetésok. CSAK OLVAS.", parameters: { type: "object", properties: { contact_id: { type: "string" } }, required: ["contact_id"] } } },
+    def: { type: "function", function: { name: "contact_summary", description: "Egy kapcsolattartó adatai, cége, hozzá tartozó utókövetések. CSAK OLVAS.", parameters: { type: "object", properties: { contact_id: { type: "string" } }, required: ["contact_id"] } } },
     run: contact_summary,
   },
   // Sales
@@ -684,7 +684,7 @@ const TOOLS: Record<string, ToolEntry> = {
     run: find_entity,
   },
   open_route: {
-    def: { type: "function", function: { name: "open_route", description: "Megnyit egy listanézetet a CRM-ben (pl. /followups, /quotes, /leads). Használd, ha a user általános listát kér (pl. 'mutasd a lejárt utókövetésokat' → /followups).", parameters: { type: "object", properties: { route: { type: "string", enum: ["/dashboard", "/customers", "/companies", "/contacts", "/leads", "/projects", "/quotes", "/followups", "/tasks", "/meetings", "/calls", "/emails", "/documents", "/ai-assistant"] }, label: { type: "string", description: "Felhasználónak megjelenő rövid címke" } }, required: ["route"] } } },
+    def: { type: "function", function: { name: "open_route", description: "Megnyit egy listanézetet a CRM-ben (pl. /followups, /quotes, /leads). Használd, ha a user általános listát kér (pl. 'mutasd a lejárt utókövetésekat' → /followups).", parameters: { type: "object", properties: { route: { type: "string", enum: ["/dashboard", "/customers", "/companies", "/contacts", "/leads", "/projects", "/quotes", "/followups", "/tasks", "/meetings", "/calls", "/emails", "/documents", "/ai-assistant"] }, label: { type: "string", description: "Felhasználónak megjelenő rövid címke" } }, required: ["route"] } } },
     run: open_route,
   },
   // SALES — napi munka

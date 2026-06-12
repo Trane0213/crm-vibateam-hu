@@ -216,7 +216,7 @@ function CustomerDetail() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-sm">Aktív utókövetésok</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm">Aktív utókövetések</CardTitle></CardHeader>
               <CardContent>
                 {openFollowups.length === 0 ? <EmptyState icon={BellRing} title="Nincs nyitott utókövetés" /> : (
                   <ul className="space-y-1.5 text-sm">

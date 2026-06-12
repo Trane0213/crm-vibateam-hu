@@ -23,7 +23,7 @@ export function QuickAddMenu() {
     { key: "quote",   label: "Új ajánlat",   icon: FileText,   to: "/quotes" },
     { key: "followup",label: "Új utókövetés", icon: BellRing,   to: "/followups" },
     { key: "task",    label: "Új feladat",   icon: ListChecks, to: "/tasks" },
-    { key: "lead",    label: "Új lead",      icon: Sparkles,   to: "/leads" },
+    { key: "lead",    label: "Új érdeklődő",      icon: Sparkles,   to: "/leads" },
     { key: "doc",     label: "Új dokumentum",icon: FolderOpen, to: "/documents" },
   ].filter((i) => canAccessRoute(role, i.to));
 

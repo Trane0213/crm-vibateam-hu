@@ -232,7 +232,7 @@ function ResearchPage() {
           i === idx ? { ...row, _matched: true, _lead_id: lead_id } : row,
         ),
       );
-      toast.success("Lead létrehozva", {
+      toast.success("Érdeklődő létrehozva", {
         description: r.company_name,
         action: {
           label: "Megnyitás",
@@ -240,7 +240,7 @@ function ResearchPage() {
         },
       });
     } catch (e: any) {
-      toast.error("Lead létrehozás hiba", { description: humanizeSupabaseError(e) });
+      toast.error("Érdeklődő létrehozás hiba", { description: humanizeSupabaseError(e) });
     }
   }
 

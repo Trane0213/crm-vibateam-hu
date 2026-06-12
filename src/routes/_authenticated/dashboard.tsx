@@ -184,7 +184,7 @@ function Dashboard() {
           value={conversionPct != null ? `${conversionPct}%` : "—"}
           sub={wonTotal > 0 ? `${wonQuotes.data}/${wonTotal} megnyert` : "nincs lezárt ajánlat"}
         />
-        <Kpi icon={Sparkles} tone="info" label="Új leadek (7 nap)" value={weeklyLeads.data ?? "—"} sub={`30 napban: ${monthlyLeads.data ?? "—"}`} />
+        <Kpi icon={Sparkles} tone="info" label="Új érdeklődőek (7 nap)" value={weeklyLeads.data ?? "—"} sub={`30 napban: ${monthlyLeads.data ?? "—"}`} />
       </div>
 
       {/* PROJEKT */}
@@ -273,12 +273,12 @@ function Dashboard() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Lead státuszok</CardTitle>
+            <CardTitle className="text-base">Érdeklődő státuszok</CardTitle>
             <CardDescription>jelenlegi megoszlás</CardDescription>
           </CardHeader>
           <CardContent>
             {Object.keys(leadStatusCounts).length === 0 ? (
-              <EmptyState icon={Sparkles} title="Nincs lead" />
+              <EmptyState icon={Sparkles} title="Nincs érdeklődő" />
             ) : (
               <div className="space-y-1.5">
                 {Object.entries(leadStatusCounts).map(([s, n]) => (
@@ -294,7 +294,7 @@ function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base">Közelgő utókövetésok</CardTitle>
+              <CardTitle className="text-base">Közelgő utókövetések</CardTitle>
               <CardDescription>időrendben</CardDescription>
             </div>
             <Link to="/followups" className="text-xs text-primary hover:underline">Mind</Link>
