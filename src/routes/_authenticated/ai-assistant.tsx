@@ -17,10 +17,26 @@ import { getToolDefsForAgent, runTool } from "@/lib/ai/tools";
 import { AgentResponse } from "@/components/ai/agent-response";
 import { executeProposal, proposalTitle, type Proposal } from "@/lib/ai/operator";
 import { logAiAction, updateAiAction, type ActionType, type AgentType } from "@/lib/ai/action-log";
+import { AgentGate } from "@/components/ai/agent-gate";
+import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
-  component: AiAssistantPage,
+  component: AiAssistantRoute,
 });
+
+function AiAssistantRoute() {
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
+  const urlAgent = new URLSearchParams(searchStr ?? "").get("agent");
+  // Csak akkor érvényesítünk gate-et, ha az URL kifejezetten megad agentet.
+  // Ha nincs ?agent=, akkor a default crm (George) tölt be, ami mindenki számára látható.
+  const agentToGate =
+    urlAgent === "crm" || urlAgent === "sales" || urlAgent === "pm" ? urlAgent : null;
+  return (
+    <AgentGate agentId={agentToGate}>
+      <AiAssistantPage />
+    </AgentGate>
+  );
+}
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
 type ProposalCard = { logId: string | null; proposal: Proposal; status: "pending" | "approved" | "rejected" | "error"; error?: string };
