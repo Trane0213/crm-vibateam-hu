@@ -130,7 +130,7 @@ export async function executeProposal(p: Proposal): Promise<ExecResult> {
 /** Magyar címke proposal típushoz (UI-hoz). */
 export function proposalTitle(p: Proposal): string {
   switch (p.kind) {
-    case "create_followup": return "Follow-up létrehozása";
+    case "create_followup": return "Utókövetés létrehozása";
     case "create_task":     return "Feladat létrehozása";
     case "create_contact":  return "Kapcsolattartó létrehozása";
     case "create_lead":     return "Lead létrehozása";

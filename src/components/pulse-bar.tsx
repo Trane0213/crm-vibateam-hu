@@ -64,7 +64,7 @@ export function PulseBar() {
     },
     {
       icon: BellRing,
-      label: "lejárt follow-up",
+      label: "lejárt utókövetés",
       value: overdueFu.data ?? "—",
       to: "/followups" as const,
       tone: "danger" as const,

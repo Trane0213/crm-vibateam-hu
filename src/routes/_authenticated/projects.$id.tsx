@@ -145,7 +145,7 @@ function ProjectDetail() {
                 "2) Ajánlatok (darab, összérték, legutóbbi státusz).",
                 "3) Nyitott feladatok (mennyi, mi a legsürgősebb).",
                 "4) Dokumentumok (van-e, mennyi).",
-                "5) Follow-upok (van-e lejárt, mikor a következő).",
+                "5) Utókövetésok (van-e lejárt, mikor a következő).",
                 "Zárj 2–3 mondatos vezetői üzenettel: hol áll a projekt és mi a legfontosabb teendő.",
               ].join(" ")}
             />
@@ -153,8 +153,8 @@ function ProjectDetail() {
         </div>
         <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Mini label="Ajánlatok" value={`${quotes.data?.length ?? 0} db`} tone="primary" />
-          <Mini label="Köv. follow-up" value={nextFollowup ? fmtDateTime(nextFollowup) : "—"} tone={nextFollowup && new Date(nextFollowup) < new Date() ? "danger" : "warning"} />
-          <Mini label="Nyitott feladat / follow-up" value={`${openTasksCount} / ${openFollowups.length}`} tone="info" />
+          <Mini label="Köv. utókövetés" value={nextFollowup ? fmtDateTime(nextFollowup) : "—"} tone={nextFollowup && new Date(nextFollowup) < new Date() ? "danger" : "warning"} />
+          <Mini label="Nyitott feladat / utókövetés" value={`${openTasksCount} / ${openFollowups.length}`} tone="info" />
           <Mini label="Utolsó aktivitás" value={lastComm ? fmtDate(lastComm) : "—"} />
         </div>
         {company.data && (
@@ -177,7 +177,7 @@ function ProjectDetail() {
             <TabsTrigger value="overview"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolatok ({projectContacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Follow-up ({openFollowups.length})</TabsTrigger>
+            <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({emailThreads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>
@@ -209,9 +209,9 @@ function ProjectDetail() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-sm">Aktív follow-up-ok</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm">Aktív utókövetés-ok</CardTitle></CardHeader>
               <CardContent>
-                {openFollowups.length === 0 ? <EmptyState icon={BellRing} title="Nincs nyitott follow-up" /> : (
+                {openFollowups.length === 0 ? <EmptyState icon={BellRing} title="Nincs nyitott utókövetés" /> : (
                   <ul className="space-y-1.5 text-sm">
                     {openFollowups.slice(0, 5).map((f) => {
                       const overdue = f.due_date && new Date(f.due_date) < new Date();
@@ -267,7 +267,7 @@ function ProjectDetail() {
               { label: "Típus", get: (r) => r.followup_type ?? "—" },
               { label: "Lezárva", get: (r) => (r.completed ? "✓" : "—") },
               { label: "Jegyzet", get: (r) => r.result ?? "—" },
-            ]} empty="Nincs follow-up." />
+            ]} empty="Nincs utókövetés." />
           </TabsContent>
           <TabsContent value="calls" className="mt-4">
             <RelationList rows={calls.data} columns={[

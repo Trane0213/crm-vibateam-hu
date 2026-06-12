@@ -177,7 +177,7 @@ async function project_risk_report(_args: Record<string, never> = {}) {
     const pd = docs.filter((d) => d.project_id === p.id);
     const risks: string[] = [];
     if (overdue.length) risks.push(`${overdue.length} lejárt feladat`);
-    if (!pf.length) risks.push("nincs follow-up");
+    if (!pf.length) risks.push("nincs utókövetés");
     if (!pd.length) risks.push("nincs dokumentum");
     const level = overdue.length >= 2 || risks.length >= 3 ? "🔴" : risks.length >= 1 ? "🟡" : "🟢";
     return { ...pickProject(p), level, risks, overdue_tasks: overdue.length, open_tasks: open.length, followups: pf.length, documents: pd.length };
@@ -363,7 +363,7 @@ async function daily_call_list(_args: Record<string, never> = {}) {
     scores.set(customer_id, cur);
   };
 
-  // Lejárt follow-upok → súly 30 + napok
+  // Lejárt utókövetések → súly 30 + napok
   for (const f of followups) {
     if (f.completed || !f.due_date) continue;
     const due = new Date(f.due_date);
@@ -371,7 +371,7 @@ async function daily_call_list(_args: Record<string, never> = {}) {
     const days = daysBetween(now, due);
     const cid = f.company_id;
     if (!cid) continue;
-    bump(cid, { kind: "overdue_followup", weight: 30 + Math.min(days, 30), detail: `${days} napja lejárt follow-up` });
+    bump(cid, { kind: "overdue_followup", weight: 30 + Math.min(days, 30), detail: `${days} napja lejárt utókövetés` });
   }
 
   // Nyitott ajánlatok → súly 15 + ajánlat kora (max 30 nap)
@@ -388,13 +388,13 @@ async function daily_call_list(_args: Record<string, never> = {}) {
     bump(cid, { kind: "open_quote", weight: 15 + age, detail: `nyitott ajánlat (${age} napos)` });
   }
 
-  // KPI: lejárt follow-up + nyitott ajánlat overdue ügyfeleknek (fallback)
+  // KPI: lejárt utókövetés + nyitott ajánlat overdue ügyfeleknek (fallback)
   for (const k of kpi) {
     const cid = k.customer_id ?? k.id;
     if (!cid) continue;
     const overdue = Number(k.overdue_followups ?? 0);
     if (overdue > 0 && !scores.has(cid)) {
-      bump(cid, { kind: "overdue_followup_kpi", weight: 25, detail: `${overdue} lejárt follow-up (KPI)` });
+      bump(cid, { kind: "overdue_followup_kpi", weight: 25, detail: `${overdue} lejárt utókövetés (KPI)` });
     }
     const open = Number(k.open_quotes ?? 0);
     if (open > 0 && !scores.has(cid)) {
@@ -431,7 +431,7 @@ async function daily_call_list(_args: Record<string, never> = {}) {
     generated_at: now.toISOString(),
     total: list.length,
     call_list: list,
-    note: "Pontozás: lejárt follow-up (30+), nyitott ajánlat (15+kor), inaktivitás (max 20), friss lead (12).",
+    note: "Pontozás: lejárt utókövetés (30+), nyitott ajánlat (15+kor), inaktivitás (max 20), friss lead (12).",
   };
 }
 
@@ -469,7 +469,7 @@ async function quote_followup_assistant(_args: Record<string, never> = {}) {
     // Van-e válasz / aktivitás az ajánlat után?
     const hadReplyAfterQuote = sentRef && last ? last > sentRef : false;
 
-    // Van-e már nyitott follow-up erre az ajánlatra?
+    // Van-e már nyitott utókövetés erre az ajánlatra?
     const hasOpenFollowup = followups.some(
       (f) => !f.completed && f.quote_id === q.id,
     );
@@ -479,7 +479,7 @@ async function quote_followup_assistant(_args: Record<string, never> = {}) {
     let reason = "—";
     if (hasOpenFollowup) {
       suggestion = "wait";
-      reason = "Már van nyitott follow-up erre az ajánlatra.";
+      reason = "Már van nyitott utókövetés erre az ajánlatra.";
     } else if (daysSinceSent != null && daysSinceSent >= 14 && !hadReplyAfterQuote) {
       suggestion = "call";
       reason = `${daysSinceSent} napja küldve, nem érkezett válasz → telefonhívás javasolt.`;
@@ -550,7 +550,7 @@ async function propose_create_followup(args: {
     company_id: args.company_id ?? null,
     quote_id: args.quote_id ?? null,
   };
-  return { __proposal: proposal, summary: "Készítettem egy follow-up javaslatot. Kérlek hagyd jóvá a felületen." };
+  return { __proposal: proposal, summary: "Készítettem egy utókövetés javaslatot. Kérlek hagyd jóvá a felületen." };
 }
 
 async function propose_create_task(args: {
@@ -636,7 +636,7 @@ type ToolEntry = { def: AiToolDef; run: (args: any) => Promise<any> };
 const TOOLS: Record<string, ToolEntry> = {
   // CRM
   project_summary: {
-    def: { type: "function", function: { name: "project_summary", description: "Egy konkrét projekt teljes összefoglalója: cég, ajánlatok, follow-upok, feladatok, dokumentumok. CSAK OLVAS.", parameters: { type: "object", properties: { project_id: { type: "string", description: "A projekt UUID-ja a CRM-ből." } }, required: ["project_id"] } } },
+    def: { type: "function", function: { name: "project_summary", description: "Egy konkrét projekt teljes összefoglalója: cég, ajánlatok, utókövetések, feladatok, dokumentumok. CSAK OLVAS.", parameters: { type: "object", properties: { project_id: { type: "string", description: "A projekt UUID-ja a CRM-ből." } }, required: ["project_id"] } } },
     run: project_summary,
   },
   company_summary: {
@@ -644,12 +644,12 @@ const TOOLS: Record<string, ToolEntry> = {
     run: company_summary,
   },
   contact_summary: {
-    def: { type: "function", function: { name: "contact_summary", description: "Egy kapcsolattartó adatai, cége, hozzá tartozó follow-upok. CSAK OLVAS.", parameters: { type: "object", properties: { contact_id: { type: "string" } }, required: ["contact_id"] } } },
+    def: { type: "function", function: { name: "contact_summary", description: "Egy kapcsolattartó adatai, cége, hozzá tartozó utókövetések. CSAK OLVAS.", parameters: { type: "object", properties: { contact_id: { type: "string" } }, required: ["contact_id"] } } },
     run: contact_summary,
   },
   // Sales
   create_followup_suggestion: {
-    def: { type: "function", function: { name: "create_followup_suggestion", description: "Follow-up JAVASLATOKAT generál priorizálva. NEM hoz létre semmit — csak olvas és javasol.", parameters: { type: "object", properties: {} } } },
+    def: { type: "function", function: { name: "create_followup_suggestion", description: "Utókövetés JAVASLATOKAT generál priorizálva. NEM hoz létre semmit — csak olvas és javasol.", parameters: { type: "object", properties: {} } } },
     run: create_followup_suggestion,
   },
   lead_priority_report: {
@@ -662,7 +662,7 @@ const TOOLS: Record<string, ToolEntry> = {
   },
   // PM
   project_risk_report: {
-    def: { type: "function", function: { name: "project_risk_report", description: "Aktív projektek kockázati riportja: 🟢/🟡/🔴 + indokok (lejárt feladat, hiányzó follow-up vagy dokumentum). CSAK OLVAS.", parameters: { type: "object", properties: {} } } },
+    def: { type: "function", function: { name: "project_risk_report", description: "Aktív projektek kockázati riportja: 🟢/🟡/🔴 + indokok (lejárt feladat, hiányzó utókövetés vagy dokumentum). CSAK OLVAS.", parameters: { type: "object", properties: {} } } },
     run: project_risk_report,
   },
   deadline_report: {
@@ -684,21 +684,21 @@ const TOOLS: Record<string, ToolEntry> = {
     run: find_entity,
   },
   open_route: {
-    def: { type: "function", function: { name: "open_route", description: "Megnyit egy listanézetet a CRM-ben (pl. /followups, /quotes, /leads). Használd, ha a user általános listát kér (pl. 'mutasd a lejárt follow-upokat' → /followups).", parameters: { type: "object", properties: { route: { type: "string", enum: ["/dashboard", "/customers", "/companies", "/contacts", "/leads", "/projects", "/quotes", "/followups", "/tasks", "/meetings", "/calls", "/emails", "/documents", "/ai-assistant"] }, label: { type: "string", description: "Felhasználónak megjelenő rövid címke" } }, required: ["route"] } } },
+    def: { type: "function", function: { name: "open_route", description: "Megnyit egy listanézetet a CRM-ben (pl. /followups, /quotes, /leads). Használd, ha a user általános listát kér (pl. 'mutasd a lejárt utókövetésekat' → /followups).", parameters: { type: "object", properties: { route: { type: "string", enum: ["/dashboard", "/customers", "/companies", "/contacts", "/leads", "/projects", "/quotes", "/followups", "/tasks", "/meetings", "/calls", "/emails", "/documents", "/ai-assistant"] }, label: { type: "string", description: "Felhasználónak megjelenő rövid címke" } }, required: ["route"] } } },
     run: open_route,
   },
   // SALES — napi munka
   daily_call_list: {
-    def: { type: "function", function: { name: "daily_call_list", description: "Prioritás szerint rangsorolt ügyféllista, kit kell ma hívni. Pontozás: lejárt follow-up, nyitott ajánlat, inaktivitás, friss lead.", parameters: { type: "object", properties: {} } } },
+    def: { type: "function", function: { name: "daily_call_list", description: "Prioritás szerint rangsorolt ügyféllista, kit kell ma hívni. Pontozás: lejárt utókövetés, nyitott ajánlat, inaktivitás, friss lead.", parameters: { type: "object", properties: {} } } },
     run: daily_call_list,
   },
   quote_followup_assistant: {
-    def: { type: "function", function: { name: "quote_followup_assistant", description: "Nyitott ajánlatokra javasol konkrét follow-up típust (call/email/task/wait) annak alapján, mennyi ideje küldtük és volt-e válasz.", parameters: { type: "object", properties: {} } } },
+    def: { type: "function", function: { name: "quote_followup_assistant", description: "Nyitott ajánlatokra javasol konkrét utókövetés típust (call/email/task/wait) annak alapján, mennyi ideje küldtük és volt-e válasz.", parameters: { type: "object", properties: {} } } },
     run: quote_followup_assistant,
   },
   // SALES — operátor (PROPOSAL, jóváhagyás kell)
   propose_create_followup: {
-    def: { type: "function", function: { name: "propose_create_followup", description: "Follow-up rekord JAVASLATA. NEM hozza létre — jóváhagyás után a felület inserteli. Esedékesség ISO dátum vagy óraszám (pl. '2026-06-19T09:00' vagy óra-eltolás).", parameters: { type: "object", properties: { due_date: { type: "string", description: "Esedékesség, ISO formátumban (pl. 2026-06-19T09:00:00). KÖTELEZŐ." }, followup_type: { type: "string", enum: ["call", "email", "meeting", "other"] }, result: { type: "string", description: "Megjegyzés / cél" }, project_id: { type: "string" }, contact_id: { type: "string" }, company_id: { type: "string" }, quote_id: { type: "string" } }, required: ["due_date"] } } },
+    def: { type: "function", function: { name: "propose_create_followup", description: "Utókövetés rekord JAVASLATA. NEM hozza létre — jóváhagyás után a felület inserteli. Esedékesség ISO dátum vagy óraszám (pl. '2026-06-19T09:00' vagy óra-eltolás).", parameters: { type: "object", properties: { due_date: { type: "string", description: "Esedékesség, ISO formátumban (pl. 2026-06-19T09:00:00). KÖTELEZŐ." }, followup_type: { type: "string", enum: ["call", "email", "meeting", "other"] }, result: { type: "string", description: "Megjegyzés / cél" }, project_id: { type: "string" }, contact_id: { type: "string" }, company_id: { type: "string" }, quote_id: { type: "string" } }, required: ["due_date"] } } },
     run: propose_create_followup,
   },
   propose_create_task: {

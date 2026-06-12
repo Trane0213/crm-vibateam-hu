@@ -23,11 +23,11 @@ type Ev = {
 const META: Record<Ev["kind"], { label: string; icon: any; tone: string }> = {
   project_created:{ label: "Projekt létrehozva",   icon: Briefcase,  tone: "text-primary" },
   project_closed: { label: "Projekt lezárva",      icon: Briefcase,  tone: "text-emerald-500" },
-  lead_created:   { label: "Lead létrehozva",      icon: BellRing,   tone: "text-amber-500" },
+  lead_created:   { label: "Érdeklődő létrehozva",      icon: BellRing,   tone: "text-amber-500" },
   quote:          { label: "Ajánlat létrehozva",   icon: FileText,   tone: "text-primary" },
   quote_update:   { label: "Ajánlat módosítva",    icon: FileText,   tone: "text-primary" },
-  followup:       { label: "Follow-up létrehozva", icon: BellRing,   tone: "text-amber-500" },
-  followup_done:  { label: "Follow-up lezárva",    icon: BellRing,   tone: "text-emerald-500" },
+  followup:       { label: "Utókövetés létrehozva", icon: BellRing,   tone: "text-amber-500" },
+  followup_done:  { label: "Utókövetés lezárva",    icon: BellRing,   tone: "text-emerald-500" },
   task:           { label: "Feladat létrehozva",   icon: ListChecks, tone: "text-blue-500" },
   task_done:      { label: "Feladat lezárva",      icon: ListChecks, tone: "text-emerald-500" },
   email:          { label: "Email",                icon: Mail,       tone: "text-indigo-500" },
@@ -80,8 +80,8 @@ export function ProjectTimeline(props: {
     if (r.updated_at && r.updated_at !== r.created_at) events.push({ at: r.updated_at, kind: "quote_update", title: r.title ?? `Ajánlat #${String(r.id).slice(0, 8)}`, detail: r.status ?? undefined });
   }
   for (const r of props.followups ?? []) {
-    if (r.created_at) events.push({ at: r.created_at, kind: "followup", title: r.followup_type ?? "Follow-up", detail: r.result ?? undefined });
-    if (r.completed && r.due_date) events.push({ at: r.due_date, kind: "followup_done", title: r.followup_type ?? "Follow-up", detail: r.result ?? undefined });
+    if (r.created_at) events.push({ at: r.created_at, kind: "followup", title: r.followup_type ?? "Utókövetés", detail: r.result ?? undefined });
+    if (r.completed && r.due_date) events.push({ at: r.due_date, kind: "followup_done", title: r.followup_type ?? "Utókövetés", detail: r.result ?? undefined });
   }
   for (const r of props.tasks ?? []) {
     if (r.created_at) events.push({ at: r.created_at, kind: "task", title: r.title ?? r.description ?? "Feladat" });
@@ -112,7 +112,7 @@ export function ProjectTimeline(props: {
   events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   if (events.length === 0) {
-    return <EmptyState icon={History} title="Még nincs esemény" description="Az új ajánlatok, follow-up-ok, feladatok és kommunikáció itt jelennek meg." />;
+    return <EmptyState icon={History} title="Még nincs esemény" description="Az új ajánlatok, utókövetés-ok, feladatok és kommunikáció itt jelennek meg." />;
   }
 
   return (
@@ -138,9 +138,9 @@ export function ProjectTimeline(props: {
 }
 
 const ENTITY_LABEL: Record<string, string> = {
-  projects: "Projekt", quotes: "Ajánlat", leads: "Lead",
+  projects: "Projekt", quotes: "Ajánlat", leads: "Érdeklődő",
   companies: "Cég", contacts: "Kapcsolattartó", tasks: "Feladat",
-  followups: "Follow-up", emails: "Email", phone_calls: "Hívás",
+  followups: "Utókövetés", emails: "Email", phone_calls: "Hívás",
   meetings: "Találkozó", project_documents: "Dokumentum",
   project_notes: "Jegyzet",
 };

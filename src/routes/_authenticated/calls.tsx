@@ -5,7 +5,7 @@ import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/reso
 const CALL_TYPE = [
   { value: "sales", label: "Értékesítés" },
   { value: "support", label: "Ügyfélszolgálat" },
-  { value: "followup", label: "Follow-up" },
+  { value: "followup", label: "Utókövetés" },
   { value: "other", label: "Egyéb" },
 ];
 

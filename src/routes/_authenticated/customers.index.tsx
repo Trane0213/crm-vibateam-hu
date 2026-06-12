@@ -81,7 +81,7 @@ function CustomersIndex() {
                   <TableHead>Típus</TableHead>
                   <TableHead className="text-right">Projektek</TableHead>
                   <TableHead className="text-right">Nyitott ajánlat</TableHead>
-                  <TableHead className="text-right">Lejárt follow-up</TableHead>
+                  <TableHead className="text-right">Lejárt utókövetés</TableHead>
                   <TableHead>Utolsó aktivitás</TableHead>
                   <TableHead>Státusz</TableHead>
                 </TableRow>

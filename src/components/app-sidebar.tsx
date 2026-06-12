@@ -50,10 +50,10 @@ const aiAgents: AiItem[] = [
 ];
 
 const sales: Item[] = [
-  { title: "Leadek", url: "/leads", icon: Sparkles },
+  { title: "Érdeklődők", url: "/leads", icon: Sparkles },
   { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
-  { title: "Follow-up", url: "/followups", icon: BellRing, highlight: true },
-  { title: "Marketing Agent", url: "/sales/research", icon: Radar, highlight: true },
+  { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true },
+  { title: "Marketing Segítő", url: "/sales/research", icon: Radar, highlight: true },
 ];
 
 const projects: Item[] = [

@@ -17,7 +17,7 @@ type Hit = {
 
 const TYPE_LABEL: Record<Hit["type"], string> = {
   customers: "Ügyfél", contacts: "Kapcsolattartó", projects: "Projekt",
-  leads: "Lead", quotes: "Ajánlat", emails: "Email",
+  leads: "Érdeklődő", quotes: "Ajánlat", emails: "Email",
 };
 
 export function GlobalSearch() {
@@ -57,7 +57,7 @@ export function GlobalSearch() {
       (co.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "customers", label: r.name ?? "—", sub: r.city ?? undefined }));
       (ct.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "contacts", label: r.name ?? "—", sub: r.email ?? undefined }));
       (pr.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "projects", label: r.title ?? "—", sub: r.status ?? undefined }));
-      (ld.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "leads", label: r.description?.slice(0, 60) ?? r.source ?? "Lead", sub: r.status ?? undefined }));
+      (ld.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "leads", label: r.description?.slice(0, 60) ?? r.source ?? "Érdeklődő", sub: r.status ?? undefined }));
       (qu.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "quotes", label: r.title ?? (r.version != null ? `v${r.version}` : "Ajánlat"), sub: r.status ?? undefined }));
       (em.data ?? []).forEach((r: any) => out.push({ id: r.id, type: "emails", label: r.subject ?? r.summary ?? "(nincs tárgy)", sub: r.from_email ?? undefined }));
       return out;

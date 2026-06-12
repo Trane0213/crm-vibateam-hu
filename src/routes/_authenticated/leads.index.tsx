@@ -28,11 +28,11 @@ function LeadsPage() {
   const contactLabel = useLookup("contacts", "name");
   return (
     <ResourcePage
-      title="Leadek"
+      title="Érdeklődők"
       description="Új érdeklődők és potenciális ügyfelek."
       emptyTitle="Itt jelennek meg az új érdeklődők."
-      emptyDescription={`A „Új lead” gombbal rögzíthetsz egy beérkezett megkeresést — később ajánlattá és projektté alakítható.`}
-      newButtonLabel="Új lead"
+      emptyDescription={`A „Új érdeklődő” gombbal rögzíthetsz egy beérkezett megkeresést — később ajánlattá és projektté alakítható.`}
+      newButtonLabel="Új érdeklődő"
       icon={Sparkles}
       table="leads"
       fields={[

@@ -1,5 +1,5 @@
 /**
- * Follow-up figyelmeztetések kategorizálása due_date alapján.
+ * Utókövetés figyelmeztetések kategorizálása due_date alapján.
  * Tisztán dátum-aritmetika, OpenAI-tól függetlenül működik.
  */
 

@@ -233,7 +233,7 @@ function EmailThread() {
   if (crm.data?.contact)
     crmRows.push({ icon: User, label: "Kapcsolattartó", value: crm.data.contact.full_name ?? crm.data.contact.email ?? "—", to: "/contacts/$id", params: { id: crm.data.contact.id } });
   if (crm.data?.lead)
-    crmRows.push({ icon: Target, label: "Lead", value: crm.data.lead.title ?? "Lead", to: "/leads/$id", params: { id: crm.data.lead.id } });
+    crmRows.push({ icon: Target, label: "Érdeklődő", value: crm.data.lead.title ?? "Érdeklődő", to: "/leads/$id", params: { id: crm.data.lead.id } });
   if (crm.data?.project)
     crmRows.push({ icon: Briefcase, label: "Projekt", value: (crm.data.project as any).title ?? (crm.data.project as any).name, to: "/projects/$id", params: { id: crm.data.project.id } });
 
