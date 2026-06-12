@@ -1,22 +1,18 @@
 import logoAsset from "@/assets/viba-team-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 
-type Variant = "full" | "mark";
-
 /**
- * VIBA-TEAM brand logo. The source PNG is dark glyphs on transparent
- * background, so on dark surfaces we invert it. Wrap in a flex container
- * and set a height — width auto-scales to preserve aspect ratio.
+ * VIBA-TEAM brand logo. The PNG has dark glyphs on a transparent
+ * background — on dark surfaces we invert it to white. Set a height via
+ * className; width auto-scales to preserve the aspect ratio.
  */
 export function BrandLogo({
-  variant = "full",
   className,
   onDark = false,
   alt = "VIBA-TEAM Kft",
 }: {
-  variant?: Variant;
   className?: string;
-  /** Force the light (inverted) treatment regardless of theme. */
+  /** Force the white treatment regardless of the current theme. */
   onDark?: boolean;
   alt?: string;
 }) {
@@ -26,12 +22,12 @@ export function BrandLogo({
       alt={alt}
       draggable={false}
       className={cn(
-        "select-none object-contain",
-        onDark ? "invert brightness-0" : "dark:invert dark:brightness-0",
-        variant === "mark" && "aspect-square",
+        "select-none object-contain w-auto",
+        onDark
+          ? "[filter:invert(1)_brightness(2)]"
+          : "dark:[filter:invert(1)_brightness(2)]",
         className,
       )}
-      style={onDark ? { filter: "invert(1) brightness(2)" } : undefined}
     />
   );
 }
