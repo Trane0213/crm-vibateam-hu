@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Settings, Mail, FolderOpen, Users, Shield, ShieldCheck, KeyRound, UserCog } from "lucide-react";
+import { Settings, Mail, FolderOpen, Users, Shield, ShieldCheck, KeyRound, UserCog, Activity } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsLayout,
@@ -14,6 +14,7 @@ const items = [
   { to: "/settings/roles", label: "Szerepkörök", icon: Shield },
   { to: "/settings/audit", label: "Security Audit", icon: ShieldCheck },
   { to: "/settings/permissions-audit", label: "Jogosultság-audit", icon: KeyRound },
+  { to: "/settings/dashboard-status", label: "Dashboard státusz", icon: Activity },
 ];
 
 function SettingsLayout() {

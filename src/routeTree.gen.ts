@@ -46,6 +46,7 @@ import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
 import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
+import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
 import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
@@ -259,6 +260,12 @@ const AuthenticatedSettingsGmailRoute =
     path: '/gmail',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsDashboardStatusRoute =
+  AuthenticatedSettingsDashboardStatusRouteImport.update({
+    id: '/dashboard-status',
+    path: '/dashboard-status',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsAuditRoute =
   AuthenticatedSettingsAuditRouteImport.update({
     id: '/audit',
@@ -351,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
+  '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
@@ -400,6 +408,7 @@ export interface FileRoutesByTo {
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
+  '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
@@ -452,6 +461,7 @@ export interface FileRoutesById {
   '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
   '/_authenticated/sales/research': typeof AuthenticatedSalesResearchRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
+  '/_authenticated/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/_authenticated/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/quotes/$id'
     | '/sales/research'
     | '/settings/audit'
+    | '/settings/dashboard-status'
     | '/settings/gmail'
     | '/settings/openai'
     | '/settings/permissions-audit'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/quotes/$id'
     | '/sales/research'
     | '/settings/audit'
+    | '/settings/dashboard-status'
     | '/settings/gmail'
     | '/settings/openai'
     | '/settings/permissions-audit'
@@ -604,6 +616,7 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes/$id'
     | '/_authenticated/sales/research'
     | '/_authenticated/settings/audit'
+    | '/_authenticated/settings/dashboard-status'
     | '/_authenticated/settings/gmail'
     | '/_authenticated/settings/openai'
     | '/_authenticated/settings/permissions-audit'
@@ -907,6 +920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsGmailRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/dashboard-status': {
+      id: '/_authenticated/settings/dashboard-status'
+      path: '/dashboard-status'
+      fullPath: '/settings/dashboard-status'
+      preLoaderRoute: typeof AuthenticatedSettingsDashboardStatusRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/audit': {
       id: '/_authenticated/settings/audit'
       path: '/audit'
@@ -996,6 +1016,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
+  AuthenticatedSettingsDashboardStatusRoute: typeof AuthenticatedSettingsDashboardStatusRoute
   AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
   AuthenticatedSettingsOpenaiRoute: typeof AuthenticatedSettingsOpenaiRoute
   AuthenticatedSettingsPermissionsAuditRoute: typeof AuthenticatedSettingsPermissionsAuditRoute
@@ -1008,6 +1029,8 @@ interface AuthenticatedSettingsRouteChildren {
 
 const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
+  AuthenticatedSettingsDashboardStatusRoute:
+    AuthenticatedSettingsDashboardStatusRoute,
   AuthenticatedSettingsGmailRoute: AuthenticatedSettingsGmailRoute,
   AuthenticatedSettingsOpenaiRoute: AuthenticatedSettingsOpenaiRoute,
   AuthenticatedSettingsPermissionsAuditRoute:
