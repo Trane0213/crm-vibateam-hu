@@ -61,6 +61,37 @@ export function getProfile(accessToken: string) {
   );
 }
 
+/**
+ * Gmail History API — inkrementális szinkronhoz. Csak a megadott `startHistoryId`
+ * óta történt változásokat adja vissza. 404-et dob, ha a historyId túl régi
+ * (Gmail kb. 7 napra őrzi). Ebben az esetben teljes (kis) resync kell.
+ */
+export type GmailHistoryItem = {
+  id: string;
+  messages?: { id: string; threadId: string }[];
+  messagesAdded?: { message: { id: string; threadId: string; labelIds?: string[] } }[];
+  messagesDeleted?: { message: { id: string; threadId: string } }[];
+  labelsAdded?: any[];
+  labelsRemoved?: any[];
+};
+export type GmailHistoryResp = {
+  history?: GmailHistoryItem[];
+  nextPageToken?: string;
+  historyId?: string;
+};
+
+export function listHistory(
+  accessToken: string,
+  opts: { startHistoryId: string; pageToken?: string; historyTypes?: string[]; maxResults?: number },
+) {
+  const p = new URLSearchParams();
+  p.set("startHistoryId", opts.startHistoryId);
+  if (opts.pageToken) p.set("pageToken", opts.pageToken);
+  p.set("maxResults", String(opts.maxResults ?? 500));
+  for (const t of opts.historyTypes ?? ["messageAdded"]) p.append("historyTypes", t);
+  return call<GmailHistoryResp>(accessToken, `/history?${p.toString()}`);
+}
+
 export type GmailAttachment = { data: string; size: number };
 export function getAttachment(accessToken: string, messageId: string, attachmentId: string) {
   return call<GmailAttachment>(
