@@ -52,9 +52,11 @@ GRANT SELECT ON public.dashboard_revenue_monthly_v TO service_role;
 
 -- ============================================================================
 -- 3) dashboard_user_workload_v
--- Felelős → nyitott taskok / followupok / aktív projektek.
--- FONTOS: tasks.assigned_user → auth.users.id, ezért users_profile-ra
--- auth_user_id-n keresztül joinolunk.
+-- Felelős → nyitott taskok. A followups és projects tábláknak NINCS felelős
+-- (assignee) oszlopa, ezért azok user szerint nem bonthatók — a nyitott
+-- followupok a user taskjaihoz tartozó projekteken keresztül számolódnak,
+-- az aktív projektek pedig szintén a user nyitott taskjainak projektjei.
+-- FONTOS: tasks.assigned_user → auth.users.id, users_profile.auth_user_id join.
 -- ============================================================================
 DROP VIEW IF EXISTS public.dashboard_user_workload_v CASCADE;
 CREATE VIEW public.dashboard_user_workload_v
@@ -65,18 +67,24 @@ WITH t AS (
   WHERE status IS DISTINCT FROM 'done' AND assigned_user IS NOT NULL
   GROUP BY assigned_user
 ),
+user_projects AS (
+  SELECT DISTINCT tk.assigned_user AS auth_user_id, tk.project_id
+  FROM public.tasks tk
+  WHERE tk.assigned_user IS NOT NULL AND tk.project_id IS NOT NULL
+),
 f AS (
-  SELECT assigned_to AS auth_user_id, COUNT(*)::int AS open_followups
-  FROM public.followups
-  WHERE COALESCE(completed, false) = false AND assigned_to IS NOT NULL
-  GROUP BY assigned_to
+  SELECT up2.auth_user_id, COUNT(*)::int AS open_followups
+  FROM public.followups fu
+  JOIN user_projects up2 ON up2.project_id = fu.project_id
+  WHERE COALESCE(fu.completed, false) = false
+  GROUP BY up2.auth_user_id
 ),
 p AS (
-  SELECT assigned_user AS auth_user_id, COUNT(*)::int AS active_projects
-  FROM public.projects
-  WHERE status IN ('uj_megkereses','felmeres','ajanlat_keszul','ajanlat_kikuldve','utankovetes','kivitelezes')
-    AND assigned_user IS NOT NULL
-  GROUP BY assigned_user
+  SELECT up2.auth_user_id, COUNT(DISTINCT pr.id)::int AS active_projects
+  FROM public.projects pr
+  JOIN user_projects up2 ON up2.project_id = pr.id
+  WHERE pr.status NOT IN ('completed','lost','lezart','elvesztett')
+  GROUP BY up2.auth_user_id
 )
 SELECT
   up.id                                    AS user_id,
@@ -114,7 +122,7 @@ WITH (security_invoker = on) AS
     'projects'::text        AS reference_type,
     p.id                    AS reference_id,
     p.company_id            AS customer_id,
-    p.assigned_user         AS user_id
+    NULL::uuid              AS user_id
   FROM public.projects p
 
   UNION ALL
@@ -133,7 +141,7 @@ WITH (security_invoker = on) AS
   UNION ALL
   SELECT 'followup', COALESCE(f.due_date, f.created_at),
          COALESCE(f.followup_type, 'Follow-up'),
-         'followups', f.id, p.company_id, f.assigned_to
+         'followups', f.id, p.company_id, NULL::uuid
   FROM public.followups f
   LEFT JOIN public.projects p ON p.id = f.project_id
 
@@ -302,7 +310,7 @@ GRANT EXECUTE ON FUNCTION public.has_route_access(uuid, text) TO service_role;
 -- 8) Támogató indexek
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_tasks_assigned_user      ON public.tasks(assigned_user);
-CREATE INDEX IF NOT EXISTS idx_followups_assigned_to    ON public.followups(assigned_to);
-CREATE INDEX IF NOT EXISTS idx_projects_assigned_user   ON public.projects(assigned_user);
+CREATE INDEX IF NOT EXISTS idx_tasks_project            ON public.tasks(project_id);
+CREATE INDEX IF NOT EXISTS idx_followups_project        ON public.followups(project_id);
 CREATE INDEX IF NOT EXISTS idx_quotes_status_created    ON public.quotes(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_route_perm_role_route    ON public.route_permissions(role_name, route_prefix);
