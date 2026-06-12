@@ -92,18 +92,27 @@ export function AppSidebar() {
   const renderGroup = (label: string, items: Item[], withDivider = true) => (
     <SidebarGroup
       key={label || "home"}
-      className={withDivider && !collapsed ? "mt-1 border-t border-sidebar-border/60 pt-1" : ""}
+      className={withDivider && !collapsed ? "mt-3 pt-3 border-t border-sidebar-border/40" : ""}
     >
-      {label && !collapsed && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
+      {label && !collapsed && (
+        <SidebarGroupLabel className="px-3 text-[10px] font-medium uppercase tracking-[0.08em] text-sidebar-foreground/50">
+          {label}
+        </SidebarGroupLabel>
+      )}
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-0.5">
           {items.map((item) => (
             <SidebarMenuItem key={item.url}>
-              <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                <Link to={item.url} className="flex items-center gap-2">
-                  <item.icon className="h-4 w-4 shrink-0" />
+              <SidebarMenuButton
+                asChild
+                isActive={isActive(item.url)}
+                tooltip={item.title}
+                className="h-9 rounded-lg px-3 text-sidebar-foreground/80 transition-all duration-150 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-foreground data-[active=true]:font-medium data-[active=true]:shadow-sm"
+              >
+                <Link to={item.url} className="flex items-center gap-2.5">
+                  <item.icon className="h-[18px] w-[18px] shrink-0 opacity-80" />
                   {!collapsed && (
-                    <span className={item.highlight ? "font-medium" : ""}>{item.title}</span>
+                    <span className="truncate text-[13px]">{item.title}</span>
                   )}
                 </Link>
               </SidebarMenuButton>
@@ -118,14 +127,14 @@ export function AppSidebar() {
     const items = aiAgents.filter((i) => canAccessRoute(role, i.url));
     if (items.length === 0) return null;
     return (
-      <SidebarGroup className={!collapsed ? "mt-1 rounded-md border border-primary/30 bg-primary/5 py-1" : ""}>
+      <SidebarGroup className={!collapsed ? "mt-2 rounded-xl bg-primary/[0.04] px-1 py-2 ring-1 ring-primary/15" : ""}>
         {!collapsed && (
-          <SidebarGroupLabel className="text-primary">
+          <SidebarGroupLabel className="px-2 text-[10px] font-medium uppercase tracking-[0.08em] text-primary/80">
             <Bot className="mr-1.5 inline h-3 w-3" /> AI Asszisztensek
           </SidebarGroupLabel>
         )}
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu className="gap-0.5">
             {items.map((item) => {
               const agent = item.search?.agent;
               const key = agent ?? item.url;
@@ -134,14 +143,19 @@ export function AppSidebar() {
                 : isActive(item.url);
               return (
                 <SidebarMenuItem key={key}>
-                  <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={active}
+                    tooltip={item.title}
+                    className="h-9 rounded-lg px-3 text-sidebar-foreground/85 transition-all duration-150 hover:bg-primary/10 hover:text-foreground data-[active=true]:bg-primary/15 data-[active=true]:text-foreground data-[active=true]:font-medium"
+                  >
                     <Link
                       to={item.url}
                       {...(agent ? { search: { agent } as any } : {})}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2.5"
                     >
-                      <item.icon className="h-4 w-4 shrink-0 text-primary" />
-                      {!collapsed && <span className="font-medium">{item.title}</span>}
+                      <item.icon className="h-[18px] w-[18px] shrink-0 text-primary" />
+                      {!collapsed && <span className="truncate text-[13px]">{item.title}</span>}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -155,20 +169,20 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground font-bold">
+      <SidebarHeader className="border-b border-sidebar-border/60">
+        <div className="flex items-center gap-2.5 px-3 py-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold shadow-sm">
             V
           </div>
           {!collapsed && (
             <div className="leading-tight">
-              <div className="text-sm font-semibold text-sidebar-foreground">VIBA CRM</div>
-              <div className="text-[10px] text-sidebar-foreground/60">VIBA-TEAM Kft</div>
+              <div className="text-sm font-semibold tracking-tight text-sidebar-foreground">VIBA CRM</div>
+              <div className="text-[11px] text-sidebar-foreground/55">VIBA-TEAM Kft</div>
             </div>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent className="gap-1">
+      <SidebarContent className="gap-0 px-2 py-2">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
         {renderAiGroup()}
         {visible(sales).length > 0 && renderGroup("Értékesítés", visible(sales))}
