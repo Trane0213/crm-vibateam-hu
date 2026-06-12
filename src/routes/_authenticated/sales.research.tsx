@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AgentGate } from "@/components/ai/agent-gate";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -418,5 +419,14 @@ function ResearchPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/sales/research")({
-  component: ResearchPage,
+  component: ResearchRoute,
 });
+
+function ResearchRoute() {
+  // Scarlet (marketing) agent — ugyanaz a visibility gate, mint az ai-assistant URL guard.
+  return (
+    <AgentGate agentId="marketing">
+      <ResearchPage />
+    </AgentGate>
+  );
+}

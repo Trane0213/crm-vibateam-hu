@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Lock } from "lucide-react";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
 import scarletPortrait from "@/assets/agent-scarlet.jpg";
+import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
 export const Route = createFileRoute("/_authenticated/ai-assistants")({
   component: AiAssistantsGallery,
@@ -14,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/ai-assistants")({
 
 type AssistantCard = {
   id: string;
+  /** agent_id az agent_role_access-ben */
+  agentId: string;
   name: string;
   role: string;
   description: string;
@@ -25,6 +28,7 @@ type AssistantCard = {
 const ASSISTANTS: AssistantCard[] = [
   {
     id: "george",
+    agentId: "crm",
     name: "George",
     role: "CRM Navigátor",
     description:
@@ -35,6 +39,7 @@ const ASSISTANTS: AssistantCard[] = [
   },
   {
     id: "timothy",
+    agentId: "sales",
     name: "Timothy",
     role: "Értékesítési Segítő",
     description:
@@ -45,6 +50,7 @@ const ASSISTANTS: AssistantCard[] = [
   },
   {
     id: "boss",
+    agentId: "pm",
     name: "Boss",
     role: "Projektfelügyelő",
     description:
@@ -55,6 +61,7 @@ const ASSISTANTS: AssistantCard[] = [
   },
   {
     id: "scarlet",
+    agentId: "marketing",
     name: "Scarlet",
     role: "Marketing Stratéga",
     description:
@@ -65,14 +72,28 @@ const ASSISTANTS: AssistantCard[] = [
 ];
 
 function AiAssistantsGallery() {
+  const { visibleAgentIds, isLoading } = useVisibleAgents();
+  const visible = ASSISTANTS.filter((a) => visibleAgentIds.has(a.agentId));
   return (
     <div className="flex flex-col">
       <PageHeader
         title="AI Asszisztensek"
         description="Válaszd ki melyik munkatárssal szeretnél beszélgetni. Mindegyik más területen segít."
       />
+      {visible.length === 0 && !isLoading && (
+        <div className="mx-6 mt-6 flex items-start gap-3 rounded-lg border bg-muted/30 p-4">
+          <Lock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+          <div className="text-sm">
+            <div className="font-medium">Nincs elérhető AI asszisztens</div>
+            <p className="mt-1 text-muted-foreground">
+              A szerepköröd számára jelenleg nincs engedélyezett agent. Kérd a
+              tulajdonostól a Beállítások → AI agent láthatóság oldalon.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="grid gap-6 p-6 sm:grid-cols-2 xl:grid-cols-4">
-        {ASSISTANTS.map((a) => (
+        {visible.map((a) => (
           <Card key={a.id} className="flex flex-col overflow-hidden">
             <div className="aspect-square w-full overflow-hidden bg-muted">
               <img
