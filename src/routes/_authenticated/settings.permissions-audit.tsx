@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { KeyRound, AlertTriangle, ShieldCheck, Users } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { KeyRound, AlertTriangle, ShieldCheck, Users, Route as RouteIcon } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
+import { ROUTE_ACCESS, ROLE_LABEL, type RoleSlug } from "@/lib/permissions";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permissions";
 
 export const Route = createFileRoute("/_authenticated/settings/permissions-audit")({
   component: PermissionsAuditPage,
@@ -174,6 +179,8 @@ function PermissionsAuditPage() {
           />
         </CardContent>
       </Card>
+
+      <RouteMatrixCard />
     </div>
   );
 }
@@ -202,5 +209,113 @@ function Section({ title, items, empty }: { title: string; items: string[]; empt
         </div>
       )}
     </div>
+  );
+}
+
+const ROLE_SLUGS: RoleSlug[] = ["owner", "project_manager", "sales", "marketing"];
+
+function RouteMatrixCard() {
+  const { role } = usePermissions();
+  const isOwner = role === "owner";
+  const rp = useRoutePermissions();
+  const qc = useQueryClient();
+
+  const upsert = useMutation({
+    mutationFn: async (v: { role_name: RoleSlug; route_prefix: string; allowed: boolean }) => {
+      const { error } = await supabase
+        .from("route_permissions")
+        .upsert(
+          { role_name: v.role_name, route_prefix: v.route_prefix, allowed: v.allowed, updated_at: new Date().toISOString() },
+          { onConflict: "role_name,route_prefix" },
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["route_permissions"] }),
+    onError: (e: any) => toast.error(humanizeSupabaseError(e)),
+  });
+
+  const reset = useMutation({
+    mutationFn: async (v: { role_name: RoleSlug; route_prefix: string }) => {
+      const { error } = await supabase
+        .from("route_permissions")
+        .delete()
+        .eq("role_name", v.role_name)
+        .eq("route_prefix", v.route_prefix);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["route_permissions"] }),
+    onError: (e: any) => toast.error(humanizeSupabaseError(e)),
+  });
+
+  const ruleFor = (rn: string, rp_path: string) =>
+    rp.data?.find((r) => r.role_name.toLowerCase() === rn && r.route_prefix === rp_path);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <RouteIcon className="h-4 w-4 text-primary" /> Útvonal-engedély mátrix
+        </CardTitle>
+        <CardDescription>
+          Szerkeszthető DB felülírás a kódba égetett default fölött. Üres = kód-default. Csak owner módosíthat.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr>
+                <th className="px-2 py-1 text-left">Útvonal</th>
+                {ROLE_SLUGS.map((r) => (
+                  <th key={r} className="px-2 py-1 text-center">{ROLE_LABEL[r]}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {ROUTE_ACCESS.map((row) => (
+                <tr key={row.prefix} className="border-t">
+                  <td className="px-2 py-1 font-mono">{row.prefix}</td>
+                  {ROLE_SLUGS.map((rn) => {
+                    if (rn === "owner") {
+                      return <td key={rn} className="px-2 py-1 text-center text-primary">✓</td>;
+                    }
+                    const rule = ruleFor(rn, row.prefix);
+                    const effective = resolveAccess(rn, row.prefix, rp.data);
+                    return (
+                      <td key={rn} className="px-2 py-1 text-center">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <Checkbox
+                            checked={effective}
+                            disabled={!isOwner || upsert.isPending || reset.isPending}
+                            onCheckedChange={(c) => {
+                              const defaultAllowed = row.roles.includes(rn);
+                              const next = Boolean(c);
+                              if (next === defaultAllowed) {
+                                // alapértelmezettre vissza → DB sor törlése
+                                if (rule) reset.mutate({ role_name: rn, route_prefix: row.prefix });
+                              } else {
+                                upsert.mutate({ role_name: rn, route_prefix: row.prefix, allowed: next });
+                              }
+                            }}
+                          />
+                          {rule && (
+                            <span title="DB felülírás aktív" className="h-1.5 w-1.5 rounded-full bg-primary" />
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {!isOwner && (
+          <div className="mt-2 text-[11px] text-muted-foreground">
+            Csak olvasható nézet — szerkesztéshez owner szerepkör szükséges.
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
