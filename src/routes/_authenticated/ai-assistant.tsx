@@ -331,48 +331,61 @@ function AiAssistantPage() {
   const meta = AGENT_META[agent];
   const quickActions = QUICK_ACTIONS[agent];
   return (
-    <div className="flex flex-col">
-      <PageHeader
-        title="AI Asszisztens"
-        description="Három agent, ugyanaz a CRM adat — különböző szemszögből. Csak olvasás: az agentek nem hoznak létre és nem módosítanak adatot."
-        actions={
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Agent fejléc — portré + név + szerep + váltó */}
+      <div className={`border-b ${meta.accent} transition-colors`}>
+        <div className="flex items-start gap-4 px-6 py-4">
+          <img
+            src={meta.portrait}
+            alt={meta.name}
+            width={1024}
+            height={1024}
+            loading="lazy"
+            className={`h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-offset-2 ring-offset-background ${meta.accentRing}`}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h1 className="truncate text-lg font-semibold tracking-tight">{meta.name}</h1>
+              <Badge variant="outline" className="text-[10px] font-normal">Csak olvasás</Badge>
+            </div>
+            <p className="mt-0.5 text-sm text-muted-foreground">"{meta.tagline}"</p>
+          </div>
           <Button size="sm" variant="outline" onClick={() => newThread(undefined, agent)}>
             <Plus className="mr-1.5 h-3.5 w-3.5" /> Új beszélgetés
           </Button>
-        }
-      />
-      {/* Agent választó */}
-      <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-6 py-3">
-        {(Object.keys(AGENT_META) as AgentId[]).map((a) => {
-          const m = AGENT_META[a];
-          const Icon = m.icon;
-          const isActive = agent === a;
-          return (
-            <button
-              key={a}
-              onClick={() => {
-                setAgent(a);
-                if (active && active.messages.length === 0) {
-                  setThreads((prev) => prev.map((t) => t.id === active.id ? { ...t, agent: a } : t));
-                } else {
-                  setActiveId(null);
-                }
-              }}
-              className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition ${isActive ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-accent"}`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              <span className="font-medium">{m.name}</span>
-            </button>
-          );
-        })}
-        <Badge variant="outline" className="ml-auto text-[10px] font-normal">Csak olvasás</Badge>
+        </div>
+        {/* Agent váltó pillek */}
+        <div className="flex flex-wrap items-center gap-2 px-6 pb-3">
+          {(Object.keys(AGENT_META) as AgentId[]).map((a) => {
+            const m = AGENT_META[a];
+            const isActive = agent === a;
+            return (
+              <button
+                key={a}
+                onClick={() => {
+                  setAgent(a);
+                  if (active && active.messages.length === 0) {
+                    setThreads((prev) => prev.map((t) => t.id === active.id ? { ...t, agent: a } : t));
+                  } else {
+                    setActiveId(null);
+                  }
+                }}
+                className={`flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition ${isActive
+                  ? `border-transparent bg-background shadow-sm ${m.accentText} font-medium`
+                  : "border-border bg-background/60 text-muted-foreground hover:bg-background"}`}
+              >
+                <img src={m.portrait} alt="" className="h-5 w-5 rounded-full object-cover" />
+                <span>{m.firstName}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
-      <div className="border-b bg-background px-6 py-2 text-xs text-muted-foreground">{meta.tagline}</div>
 
-      <div className="grid gap-4 p-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)] min-h-[calc(100vh-12rem)]">
+      <div className="grid flex-1 min-h-0 gap-4 p-4 lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)]">
         {/* Beszélgetés lista */}
-        <Card className="h-full">
-          <CardContent className="p-2">
+        <Card className="flex h-full min-h-0 flex-col overflow-hidden">
+          <CardContent className="flex-1 overflow-y-auto p-2">
             <div className="px-2 py-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">Beszélgetések</div>
             {threads.length === 0 ? (
               <p className="px-2 py-3 text-xs text-muted-foreground">Még nincs beszélgetés. Tegyél fel egy kérdést, vagy kattints egy gyors műveletre.</p>
@@ -383,7 +396,7 @@ function AiAssistantPage() {
                     <button onClick={() => setActiveId(t.id)} className="flex flex-1 items-center gap-2 truncate text-left">
                       <MessageSquare className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate">{t.title}</span>
-                      <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {AGENT_META[t.agent]?.name?.split(" ")[0] ?? "CRM"}</span>
+                      <span className="ml-1 shrink-0 text-[10px] text-muted-foreground">· {AGENT_META[t.agent]?.firstName ?? "CRM"}</span>
                     </button>
                     <button onClick={() => deleteThread(t.id)} className="opacity-0 transition group-hover:opacity-100" title="Törlés">
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
@@ -396,34 +409,33 @@ function AiAssistantPage() {
         </Card>
 
         {/* Chat panel */}
-        <Card className="flex h-full flex-col min-w-0">
-          <div className="flex-1 min-h-[400px]">
-            <ScrollArea className="h-full">
-              <div ref={scrollRef} className="mx-auto w-full max-w-[1100px] space-y-4 p-6">
-                {!active || active.messages.length === 0 ? (
-                  <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
-                ) : (
-                  active.messages.map((m) => (
-                    <Bubble
-                      key={m.id}
-                      msg={m}
-                      onApprove={() => approveProposal(m.id)}
-                      onReject={() => rejectProposal(m.id)}
-                      onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
-                    />
-                  ))
-                )}
-                {busy && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Az AI az aktuális CRM adatok alapján dolgozik…
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
+        <Card className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+          {/* Üzenetlista — kizárólag ez görgethető */}
+          <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1100px] space-y-4 p-6">
+              {!active || active.messages.length === 0 ? (
+                <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
+              ) : (
+                active.messages.map((m) => (
+                  <Bubble
+                    key={m.id}
+                    msg={m}
+                    onApprove={() => approveProposal(m.id)}
+                    onReject={() => rejectProposal(m.id)}
+                    onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
+                  />
+                ))
+              )}
+              {busy && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Az AI az aktuális CRM adatok alapján dolgozik…
+                </div>
+              )}
+            </div>
           </div>
-          {/* Composer */}
-          <div className="border-t bg-muted/20 p-3">
+          {/* Composer — mindig alul fix */}
+          <div className="shrink-0 border-t bg-muted/20 p-3">
             <div className="mx-auto w-full max-w-[1100px]">
             <div className="mb-2 flex flex-wrap gap-1.5">
               {quickActions.map((q) => (
@@ -440,7 +452,7 @@ function AiAssistantPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input); }
                 }}
-                placeholder={`Kérdezz a(z) ${meta.name}-tól… (Enter = küldés, Shift+Enter = új sor)`}
+                placeholder={`Kérdezz ${meta.firstName}-tól… (Enter = küldés, Shift+Enter = új sor)`}
                 rows={2}
                 disabled={busy}
                 className="resize-none"
