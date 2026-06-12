@@ -23,6 +23,7 @@ import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
 import { CustomerKpiWidgets } from "@/components/dashboard/customer-kpi-widgets";
 import { PROJECT_STATUS, PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
+import { tStatus } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -259,7 +260,7 @@ function Dashboard() {
                     <li key={t.id} className="flex items-center justify-between gap-3">
                       <span className="truncate font-medium">{t.title}</span>
                       <span className="flex items-center gap-2">
-                        <Badge variant="outline" className="font-normal">{t.priority ?? "—"}</Badge>
+                      <Badge variant="outline" className="font-normal">{tStatus("priority", t.priority)}</Badge>
                         <span className={`tabular-nums ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
                           {fmtDateTime(t.due_date)}
                         </span>
@@ -283,7 +284,7 @@ function Dashboard() {
               <div className="space-y-1.5">
                 {Object.entries(leadStatusCounts).map(([s, n]) => (
                   <div key={s} className="flex items-center justify-between text-sm">
-                    <Badge variant="outline" className="font-normal">{s}</Badge>
+                    <Badge variant="outline" className="font-normal">{tStatus("lead", s)}</Badge>
                     <span className="tabular-nums font-medium">{n}</span>
                   </div>
                 ))}
