@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
+  Home,
   Briefcase,
   FileText,
   BellRing,
@@ -42,8 +43,7 @@ import { BrandLogo } from "@/components/brand-logo";
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean };
 
 const home: Item[] = [
-  { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Aktivitás", url: "/activity", icon: Activity },
+  { title: "Ma", url: "/today", icon: Home, highlight: true },
 ];
 
 type AiItem = Item & { search?: Record<string, string> };
@@ -58,16 +58,12 @@ const aiAgents: AiAgentItem[] = [
   { title: "Scarlet – Marketing Stratéga",      url: "/sales/research", icon: Radar,      agentId: "marketing",                              highlight: true },
 ];
 
-const sales: Item[] = [
+const pipeline: Item[] = [
   { title: "Érdeklődők", url: "/leads", icon: Sparkles },
   { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
-  { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true },
-];
-
-const projects: Item[] = [
   { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
+  { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true },
   { title: "Feladatok", url: "/tasks", icon: ListChecks },
-  { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
 ];
 
 const contacts: Item[] = [
@@ -82,7 +78,12 @@ const comms: Item[] = [
   { title: "Találkozók", url: "/meetings", icon: Calendar },
 ];
 
-const sys: Item[] = [{ title: "Beállítások", url: "/settings", icon: Settings }];
+const sys: Item[] = [
+  { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
+  { title: "Aktivitás", url: "/activity", icon: Activity },
+  { title: "Beállítások", url: "/settings", icon: Settings },
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -200,8 +201,7 @@ export function AppSidebar() {
       <SidebarContent className="gap-0 px-2 py-2">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
         {renderAiGroup()}
-        {visible(sales).length > 0 && renderGroup("Értékesítés", visible(sales))}
-        {visible(projects).length > 0 && renderGroup("Projektek", visible(projects))}
+        {visible(pipeline).length > 0 && renderGroup("Pipeline", visible(pipeline))}
         {visible(contacts).length > 0 && renderGroup("Ügyfelek", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
         {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
