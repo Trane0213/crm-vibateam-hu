@@ -54,6 +54,7 @@ import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
+import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 
@@ -302,6 +303,11 @@ const AuthenticatedCompaniesIdRoute =
     path: '/companies/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
+  id: '/api/public/gmail/cron-sync',
+  path: '/api/public/gmail/cron-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
   id: '/api/gmail/oauth/start',
   path: '/api/gmail/oauth/start',
@@ -360,6 +366,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -407,6 +414,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -457,6 +465,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -507,6 +516,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/gmail/cron-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -554,6 +564,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/gmail/cron-sync'
   id:
     | '__root__'
     | '/'
@@ -603,6 +614,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/gmail/cron-sync'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -619,6 +631,7 @@ export interface RootRouteChildren {
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
+  ApiPublicGmailCronSyncRoute: typeof ApiPublicGmailCronSyncRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -938,6 +951,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/gmail/cron-sync': {
+      id: '/api/public/gmail/cron-sync'
+      path: '/api/public/gmail/cron-sync'
+      fullPath: '/api/public/gmail/cron-sync'
+      preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gmail/oauth/start': {
       id: '/api/gmail/oauth/start'
       path: '/api/gmail/oauth/start'
@@ -1058,6 +1078,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSyncRoute: ApiGmailSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
+  ApiPublicGmailCronSyncRoute: ApiPublicGmailCronSyncRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
