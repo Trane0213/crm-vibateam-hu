@@ -40,8 +40,8 @@ function CustomerDetail() {
     queryKey: ["customers", "detail", id, "kpi"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("customer_kpi_v")
-        .select("total_projects,active_projects,open_quotes,overdue_followups,last_activity_at")
+        .from("customer_360_v")
+        .select("total_projects,active_projects,open_quotes,overdue_followups,last_activity_at,won_revenue,contact_name,contact_email,contact_phone")
         .eq("customer_id", id)
         .maybeSingle();
       if (error) throw error;
@@ -114,7 +114,8 @@ function CustomerDetail() {
   const openQuotesCount = kpi.data?.open_quotes       ?? (quotes.data ?? []).filter((q) => ["draft","sent","negotiation"].includes(q.status)).length;
   const overdueCount    = kpi.data?.overdue_followups ?? overdueFollowups.length;
   const lastActivityAtView = kpi.data?.last_activity_at ?? null;
-  const totalQuoteValue = (quotes.data ?? []).reduce((a, r) => a + (Number(r.total_amount) || 0), 0);
+  const wonRevenue      = Number(kpi.data?.won_revenue ?? 0);
+  const totalQuoteValue = wonRevenue || (quotes.data ?? []).reduce((a, r) => a + (Number(r.total_amount) || 0), 0);
   const lastActivityAt = (() => {
     if (lastActivityAtView) return lastActivityAtView;
     const dates: number[] = [];
@@ -189,7 +190,6 @@ function CustomerDetail() {
                 {!isPersonal && <Row label="Adószám" value={c.tax_number ?? "—"} />}
                 {primary?.phone   && <Row label="Telefon" value={primary.phone} />}
                 {primary?.email   && <Row label="E-mail"  value={primary.email} />}
-                {c.address        && <Row label="Cím"     value={c.address} />}
                 {c.website        && <Row label="Web"     value={c.website} />}
                 <Row label="Létrejött" value={fmtDate(c.created_at)} />
               </CardContent>
