@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/page-header";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import georgePortrait from "@/assets/agent-george.jpg";
+import timothyPortrait from "@/assets/agent-timothy.jpg";
+import bossPortrait from "@/assets/agent-boss.jpg";
 import { aiStep } from "@/lib/ai/ai.functions";
 import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
 import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
@@ -67,10 +69,52 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
   ],
 };
 
-const AGENT_META: Record<AgentId, { name: string; tagline: string; icon: any }> = {
-  crm:   { name: "George – CRM Navigátor",        tagline: "Segít eligibálni a CRM-ben — megtalál cégeket, projekteket, ajánlatokat, kapcsolattartókat.", icon: Search },
-  sales: { name: "Timothy – Értékesítési Segítő", tagline: "Az értékesítésben segít — megmondja kit kell ma hívni, mely ajánlatok állnak, mely érdeklődők aktívak.", icon: TrendingUp },
-  pm:    { name: "Boss – Projektfelügyelő",        tagline: "A projektek vezetésében segít — határidők, mai feladatok, veszélyes projektek, hiányzó dokumentumok.", icon: Hammer },
+type AgentMeta = {
+  firstName: string;
+  role: string;
+  name: string;
+  tagline: string;
+  icon: any;
+  portrait: string;
+  accent: string;       // bg tint for header
+  accentRing: string;   // ring color for active tab
+  accentText: string;   // text color
+};
+
+const AGENT_META: Record<AgentId, AgentMeta> = {
+  crm: {
+    firstName: "George",
+    role: "CRM Navigátor",
+    name: "George – CRM Navigátor",
+    tagline: "CRM adatok és ügyfélinformációk specialistája",
+    icon: Search,
+    portrait: georgePortrait,
+    accent: "bg-blue-50 dark:bg-blue-950/30",
+    accentRing: "ring-blue-500/40",
+    accentText: "text-blue-600 dark:text-blue-300",
+  },
+  sales: {
+    firstName: "Timothy",
+    role: "Értékesítési Segítő",
+    name: "Timothy – Értékesítési Segítő",
+    tagline: "Ajánlatok, utókövetések és értékesítési lehetőségek",
+    icon: TrendingUp,
+    portrait: timothyPortrait,
+    accent: "bg-emerald-50 dark:bg-emerald-950/30",
+    accentRing: "ring-emerald-500/40",
+    accentText: "text-emerald-600 dark:text-emerald-300",
+  },
+  pm: {
+    firstName: "Boss",
+    role: "Projektfelügyelő",
+    name: "Boss – Projektfelügyelő",
+    tagline: "Projektek, határidők és feladatok felügyelete",
+    icon: Hammer,
+    portrait: bossPortrait,
+    accent: "bg-orange-50 dark:bg-orange-950/30",
+    accentRing: "ring-orange-500/40",
+    accentText: "text-orange-600 dark:text-orange-300",
+  },
 };
 
 function AiAssistantPage() {
