@@ -296,6 +296,13 @@ export function RecordDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // FONTOS: csak a dialog megnyitásakor inicializálunk.
+    // A `fields` és `defaults` propok gyakran új referenciaként érkeznek
+    // minden renderkor (inline tömb / spread-elt `seed` objektum), ezért
+    // ha őket is deps-be vennénk, végtelen render-loopba esnénk
+    // (setValues → re-render → új fields ref → effect újrafut → …),
+    // ami „Maximum update depth exceeded" crash-t okozna a dialog első
+    // megnyitásakor (B1 + B2 crash).
     if (!open) return;
     const init: Record<string, any> = {};
     for (const f of fields) {
@@ -303,7 +310,8 @@ export function RecordDialog({
     }
     setValues(init);
     setErrors({});
-  }, [open, fields, defaults]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
