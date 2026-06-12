@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AgentGate } from "@/components/ai/agent-gate";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -422,9 +423,7 @@ export const Route = createFileRoute("/_authenticated/sales/research")({
 });
 
 function ResearchRoute() {
-  // Scarlet (marketing) agent — ugyanaz a visibility gate, mint az ai-assistant URL.
-  // Lazy import a meglévő struktúra megőrzéséhez nem szükséges, mert már a fájl tetején nincs cikkulturális dep.
-  const { AgentGate } = require("@/components/ai/agent-gate") as typeof import("@/components/ai/agent-gate");
+  // Scarlet (marketing) agent — ugyanaz a visibility gate, mint az ai-assistant URL guard.
   return (
     <AgentGate agentId="marketing">
       <ResearchPage />
