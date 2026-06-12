@@ -418,5 +418,16 @@ function ResearchPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/sales/research")({
-  component: ResearchPage,
+  component: ResearchRoute,
 });
+
+function ResearchRoute() {
+  // Scarlet (marketing) agent — ugyanaz a visibility gate, mint az ai-assistant URL.
+  // Lazy import a meglévő struktúra megőrzéséhez nem szükséges, mert már a fájl tetején nincs cikkulturális dep.
+  const { AgentGate } = require("@/components/ai/agent-gate") as typeof import("@/components/ai/agent-gate");
+  return (
+    <AgentGate agentId="marketing">
+      <ResearchPage />
+    </AgentGate>
+  );
+}
