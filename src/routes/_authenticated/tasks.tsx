@@ -33,7 +33,10 @@ const PRIO_TONE: Record<string, string> = {
 };
 
 function TasksPage() {
-  const userLabel = useLookup("users_profile", "full_name");
+  // A users_profile érzékeny mezőket tartalmaz (Gmail tokenek), ezért nem
+  // azt olvassuk, hanem a users_profile_lookup view-t — ugyanaz az id,
+  // csak a publikus oszlopokkal, GRANT SELECT authenticated.
+  const userLabel = useLookup("users_profile_lookup", "full_name");
   const projectLabel = useLookup("projects", "title");
   return (
     <ResourcePage
@@ -59,7 +62,7 @@ function TasksPage() {
           name: "assigned_user",
           label: "Felelős",
           type: "ref",
-          ref: { table: "users_profile", labelColumn: "full_name" },
+          ref: { table: "users_profile_lookup", labelColumn: "full_name" },
         },
         { name: "status", label: "Státusz", type: "select", options: TASK_STATUS, required: true },
         { name: "priority", label: "Prioritás", type: "select", options: TASK_PRIORITY, required: true },
