@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, Briefcase, BellRing, Building2 } from "lucide-react";
+import { FileText, Briefcase, BellRing, Building2, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/page-header";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
 import { fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import { formatHuf } from "@/lib/format";
+import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 
 export const Route = createFileRoute("/_authenticated/quotes/$id")({
   component: QuoteDetail,
@@ -113,9 +114,12 @@ function QuoteDetail() {
             ) : (
               <span className="text-muted-foreground">Nincs projekthez kötve.</span>
             )}
-            <div className="mt-2 text-xs text-muted-foreground">
-              Ajánlat tételek (<code>quote_items</code>) modul: következő fejlesztési kör.
-            </div>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Package className="h-4 w-4" />Ajánlat tételek</CardTitle></CardHeader>
+          <CardContent>
+            <QuoteItemsPanel quoteId={quote.id} />
           </CardContent>
         </Card>
       </div>
