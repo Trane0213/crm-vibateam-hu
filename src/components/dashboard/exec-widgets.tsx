@@ -95,7 +95,7 @@ export function ExecutiveWidgets() {
                   labelStyle={{ color: "var(--foreground)" }}
                   contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: 12 }}
                 />
-                <Bar dataKey="count" name="Projektek" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="count" name="Projektek" fill="var(--primary)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -122,7 +122,7 @@ export function ExecutiveWidgets() {
                   formatter={(v: any) => formatHuf(Number(v))}
                   contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: 12 }}
                 />
-                <Line type="monotone" dataKey="total_amount" name="Bevétel" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="total_amount" name="Bevétel" stroke="var(--primary)" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
