@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +50,16 @@ export function EmailComposer({
   const [uploading, setUploading] = useState(false);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
+
+  // A defaultTo / defaultSubject gyakran csak a dialog megnyitása UTÁN érkezik meg
+  // (a contact/lead query aszinkron), ezért minden nyitáskor szinkronizálunk.
+  // Csak akkor írjuk felül, ha a mező még üres — így a már gépelt szöveg nem
+  // tűnik el, ha közben befut a query.
+  useEffect(() => {
+    if (!open) return;
+    setTo((cur) => (cur && cur.trim() ? cur : (defaultTo ?? "")));
+    setSubject((cur) => (cur && cur.trim() ? cur : (defaultSubject ?? "")));
+  }, [open, defaultTo, defaultSubject]);
 
   const exec = (cmd: string, val?: string) => {
     editorRef.current?.focus();
