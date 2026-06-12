@@ -21,7 +21,11 @@ export type ResearchInput = {
   count?: number;
 };
 
-const RESEARCH_MODEL = process.env.RESEARCH_MODEL ?? "google/gemini-3-flash-preview";
+// Ha OPENAI_API_KEY van beállítva, az OpenAI provider default modelljét használjuk.
+// Csak ha a workspace kifejezetten Gemini-t akar (Lovable Gateway), állítsa be a RESEARCH_MODEL-t.
+const RESEARCH_MODEL = process.env.RESEARCH_MODEL
+  ?? process.env.OPENAI_MODEL
+  ?? (process.env.OPENAI_API_KEY ? "gpt-4o-mini" : "google/gemini-3-flash-preview");
 
 function buildPrompt(input: ResearchInput): string {
   const count = Math.min(Math.max(input.count ?? 15, 1), 50);
