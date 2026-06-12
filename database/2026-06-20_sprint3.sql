@@ -373,6 +373,41 @@ CREATE INDEX IF NOT EXISTS idx_quotes_project_version   ON public.quotes(project
 CREATE INDEX IF NOT EXISTS idx_route_perm_role_route    ON public.route_permissions(role_name, route_prefix);
 CREATE INDEX IF NOT EXISTS idx_dashboard_status_cfg_kind ON public.dashboard_status_config(kind);
 
+-- ----------------------------------------------------------------------------
+-- 13) COMMENT-ek
+-- ----------------------------------------------------------------------------
+COMMENT ON TABLE public.dashboard_status_config IS
+  'Konfigurálható status mapping: melyik quotes/projects status érték számít won/active/closed-nak.';
+COMMENT ON COLUMN public.dashboard_status_config.kind IS
+  'quote_won | project_active | project_closed';
+COMMENT ON COLUMN public.dashboard_status_config.status_value IS
+  'A pontos status szöveg, ahogy a quotes.status vagy projects.status tárolja.';
+
+COMMENT ON TABLE public.route_permissions IS
+  'Szerkeszthető route × role engedélyek. NULL = nincs DB szabály, frontend fallback dönt.';
+COMMENT ON COLUMN public.route_permissions.role_name IS
+  'A roles.name kisbetűs változata.';
+COMMENT ON COLUMN public.route_permissions.route_prefix IS
+  'Path prefix, pl. /customers vagy /settings/users. Leghosszabb prefix nyer.';
+
+COMMENT ON FUNCTION public.is_owner_role(uuid) IS
+  'true ha az adott auth user owner/admin/tulajdonos/superadmin role-ban van.';
+COMMENT ON FUNCTION public.has_route_access(uuid, text) IS
+  'true/false/NULL. NULL = nincs route_permissions szabály.';
+
+COMMENT ON VIEW public.dashboard_pipeline_v IS
+  'Projektek darab- és összértékben státusz szerint. Utolsó ajánlat alapján.';
+COMMENT ON VIEW public.dashboard_revenue_monthly_v IS
+  'Utolsó 12 hónap bevétele. dashboard_status_config(quote_won) konfigtól függ.';
+COMMENT ON VIEW public.dashboard_user_workload_v IS
+  'Csak tasks alapú humán workload. tasks.assigned_user → users_profile.id.';
+COMMENT ON VIEW public.dashboard_followup_heatmap_v IS
+  'Followupok nap × típus bontásban, utolsó 90 nap.';
+COMMENT ON VIEW public.activity_timeline_v IS
+  'Globális idővonal. user_id normalizálva users_profile.id-re.';
+COMMENT ON VIEW public.customer_360_v IS
+  'Customer header KPI-kal. won_revenue és active_projects a dashboard_status_config-tól függ.';
+
 -- ============================================================================
 -- VÉGE — Sprint 3 séma kész.
 -- A frontend a dashboard_status_config-ot tölti fel a Settings → Dashboard
