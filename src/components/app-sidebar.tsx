@@ -184,7 +184,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border/60">
         <Link
-          to="/dashboard"
+          to="/today"
           className="flex items-center gap-2.5 px-3 py-3 outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
         >
           {collapsed ? (

@@ -19,7 +19,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: "/today", replace: true });
     });
   }, [navigate]);
 
@@ -30,7 +30,7 @@ function AuthPage() {
         <p className="text-sm text-muted-foreground">Belső értékesítési és projektkövető rendszer</p>
       </div>
       <div className="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-2">
-        <SignInCard onSuccess={() => navigate({ to: "/dashboard", replace: true })} />
+        <SignInCard onSuccess={() => navigate({ to: "/today", replace: true })} />
         <SignUpCard />
       </div>
     </div>
@@ -164,7 +164,7 @@ function SignUpCard() {
     const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+      options: { emailRedirectTo: `${window.location.origin}/today` },
     });
     setLoading(false);
     if (error) {
