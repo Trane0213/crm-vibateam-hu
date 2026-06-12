@@ -11,6 +11,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessRoute, ROLE_LABEL } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -36,7 +37,9 @@ function AppShell() {
           <header className="flex h-12 items-center justify-between gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sticky top-0 z-30">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <span className="text-sm font-medium text-muted-foreground">VIBA CRM V1</span>
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <BrandLogo className="h-6 md:h-7" />
+              </Link>
             </div>
             <div className="flex items-center gap-2">
               <GlobalSearch />
