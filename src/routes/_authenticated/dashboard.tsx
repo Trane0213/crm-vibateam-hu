@@ -22,6 +22,7 @@ import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
 import { CustomerKpiWidgets } from "@/components/dashboard/customer-kpi-widgets";
+import { ExecutiveWidgets } from "@/components/dashboard/exec-widgets";
 import { PROJECT_STATUS, PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
 import { tStatus } from "@/lib/i18n";
 
@@ -239,6 +240,9 @@ function Dashboard() {
 
       <SectionLabel title="Ügyfelek · egységes nézet" tone="primary" />
       <CustomerKpiWidgets />
+
+      <SectionLabel title="Vezetői áttekintés" tone="primary" />
+      <ExecutiveWidgets />
 
       <div className="grid gap-4 px-6 pb-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
