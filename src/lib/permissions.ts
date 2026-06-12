@@ -7,7 +7,17 @@ export const ROLE_LABEL: Record<RoleSlug, string> = {
   marketing: "Marketinges",
 };
 
-/** Magyar/angol/akármi → kanonikus slug. Ismeretlen → "owner" (biztonságos default a tulajdonosra). */
+/**
+ * Magyar/angol/akármi → kanonikus slug.
+ *
+ * H5 biztonságos viselkedés:
+ * - üres / hiányzó input → "owner" (legacy: az a rekord, amelyiknek nincs még role_id-je,
+ *   nem zárható ki — a useEnsureProfile / admin pótolja a role-t).
+ * - ismert alias → kanonikus slug.
+ * - ismeretlen, de nem-üres név → "marketing" (LEGSZŰKEBB jog) + figyelmeztetés.
+ *   Ez megakadályozza a véletlen privilege-escalation-t arra az esetre, ha valaki
+ *   új, ismeretlen role-t hoz létre az adatbázisban.
+ */
 export function normalizeRole(input: unknown): RoleSlug {
   const v = String(input ?? "").toLowerCase().trim();
   if (!v) return "owner";
@@ -22,7 +32,13 @@ export function normalizeRole(input: unknown): RoleSlug {
     "marketing", "marketinges", "marketer",
     "szerelo", "szerelő", "installer", "technician", "field",
   ].includes(v)) return "marketing";
-  return "owner";
+  if (typeof console !== "undefined") {
+    console.warn(
+      `[permissions] Ismeretlen role név ("${v}") → fallback: "marketing" (legszűkebb jog). ` +
+        `Vegyél fel aliast a normalizeRole-ba, vagy javítsd a roles.name értéket.`,
+    );
+  }
+  return "marketing";
 }
 
 /** Route → engedélyezett szerepkörök. A „/agents" jellegű utak mindenki számára elérhetők. */
