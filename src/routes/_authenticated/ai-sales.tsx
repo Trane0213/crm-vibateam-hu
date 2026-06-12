@@ -26,7 +26,7 @@ function AgentsHub() {
           <TabsList>
             <TabsTrigger value="crm"><Search className="mr-1.5 h-3.5 w-3.5" />CRM Agent</TabsTrigger>
             <TabsTrigger value="sales"><Bot className="mr-1.5 h-3.5 w-3.5" />Sales Agent</TabsTrigger>
-            <TabsTrigger value="followup"><BellRing className="mr-1.5 h-3.5 w-3.5" />Follow-up Agent</TabsTrigger>
+            <TabsTrigger value="followup"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés Agent</TabsTrigger>
           </TabsList>
           <TabsContent value="crm" className="mt-4"><CrmAgent /></TabsContent>
           <TabsContent value="sales" className="mt-4"><SalesAgent /></TabsContent>
@@ -127,7 +127,7 @@ function SalesAgent() {
         <CardHeader><CardTitle className="text-sm">Napi összefoglaló</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
           <Row label="Nyitott ajánlatok" value={`${openQuotes.length} db · ${new Intl.NumberFormat("hu-HU").format(totalOpen)} Ft`} />
-          <Row label="Lejárt follow-up" value={`${overdueFollowups.length} db`} tone={overdueFollowups.length > 0 ? "danger" : undefined} />
+          <Row label="Lejárt utókövetés" value={`${overdueFollowups.length} db`} tone={overdueFollowups.length > 0 ? "danger" : undefined} />
           <Row label="Ma esedékes" value={`${todayFollowups.length} db`} tone="warning" />
           <Row label="Aktív projektek" value={`${activeProjects.length} db`} />
         </CardContent>
@@ -136,7 +136,7 @@ function SalesAgent() {
         <CardHeader><CardTitle className="text-sm">Javasolt teendők</CardTitle></CardHeader>
         <CardContent className="space-y-2 text-sm">
           {overdueFollowups.slice(0, 5).map((f) => (
-            <div key={f.id} className="flex items-center gap-2"><AlertTriangle className="h-3.5 w-3.5 text-destructive" /><span>Lejárt follow-up — {fmtDateTime(f.due_date)}</span></div>
+            <div key={f.id} className="flex items-center gap-2"><AlertTriangle className="h-3.5 w-3.5 text-destructive" /><span>Lejárt utókövetés — {fmtDateTime(f.due_date)}</span></div>
           ))}
           {overdueFollowups.length === 0 && <p className="text-xs text-muted-foreground">Nincs lejárt teendő. Szép munka.</p>}
         </CardContent>
@@ -186,7 +186,7 @@ function FollowupAgent() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Follow-up Agent · szabályok</CardTitle>
+          <CardTitle className="text-sm">Utókövetés Agent · szabályok</CardTitle>
           <p className="text-xs text-muted-foreground">3 nap → jelzés · 7 nap → figyelmeztetés · 14 nap → eszkaláció · 30 nap → archiválási javaslat. OpenAI nem szükséges.</p>
         </CardHeader>
       </Card>
@@ -197,13 +197,13 @@ function FollowupAgent() {
         <Bucket title="30 napos — archiválás" count={buckets.d30.length} tone="muted" />
       </div>
       <Card>
-        <CardHeader><CardTitle className="text-sm">Lejárt follow-up-ok ({buckets.overdueOpen.length})</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm">Lejárt utókövetés-ok ({buckets.overdueOpen.length})</CardTitle></CardHeader>
         <CardContent>
-          {buckets.overdueOpen.length === 0 ? <p className="text-sm text-muted-foreground">Nincs lejárt follow-up.</p> : (
+          {buckets.overdueOpen.length === 0 ? <p className="text-sm text-muted-foreground">Nincs lejárt utókövetés.</p> : (
             <ul className="space-y-1.5 text-sm">
               {buckets.overdueOpen.slice(0, 20).map((f) => (
                 <li key={f.id} className="flex justify-between gap-2">
-                  <span className="truncate">{f.followup_type ?? "follow-up"} — {f.result ?? "—"}</span>
+                  <span className="truncate">{f.followup_type ?? "utókövetés"} — {f.result ?? "—"}</span>
                   <span className="text-destructive font-semibold tabular-nums">{fmtDateTime(f.due_date)}</span>
                 </li>
               ))}

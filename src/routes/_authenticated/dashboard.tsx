@@ -83,7 +83,7 @@ function Dashboard() {
   const wonTotal = (wonQuotes.data ?? 0) + (lostQuotes.data ?? 0);
   const conversionPct = wonTotal > 0 ? Math.round(((wonQuotes.data ?? 0) / wonTotal) * 100) : null;
 
-  // Veszélyes projektek = ahol van lejárt feladat vagy lejárt follow-up.
+  // Veszélyes projektek = ahol van lejárt feladat vagy lejárt utókövetés.
   const riskyProjectIds = new Set<string>();
   for (const t of upcomingTasks.data ?? []) {
     if (t.status !== "done" && t.due_date && new Date(t.due_date) < new Date() && t.project_id) riskyProjectIds.add(t.project_id);
@@ -107,7 +107,7 @@ function Dashboard() {
             to="/followups"
             tone="danger"
             icon={AlertOctagon}
-            label="Lejárt follow-up"
+            label="Lejárt utókövetés"
             value={overdueFollowups.data ?? 0}
             sub="haladéktalanul intézendő"
           />
@@ -117,7 +117,7 @@ function Dashboard() {
             icon={BellRing}
             label="Ma esedékes"
             value={todayFollowups.data ?? 0}
-            sub="follow-up — ma kell"
+            sub="utókövetés — ma kell"
           />
           <HeroStat
             to="/tasks"
@@ -147,7 +147,7 @@ function Dashboard() {
         <div className="text-xs uppercase tracking-wider text-muted-foreground">Mai fókusz</div>
         <AiSummaryDialog
             title="AI napi összefoglaló"
-            description="Az AI a CRM aktuális ajánlatai, follow-upjai, projektjei és feladatai alapján készít napi vezetői összefoglalót."
+            description="Az AI a CRM aktuális ajánlatai, utókövetésjai, projektjei és feladatai alapján készít napi vezetői összefoglalót."
             triggerLabel="AI napi összefoglaló"
             loadContext={async () => serializeSnapshot(await loadCrmSnapshot())}
             prompt={[
@@ -164,7 +164,7 @@ function Dashboard() {
       {/* KRITIKUS */}
       <SectionLabel tone="danger" title="Kritikus · azonnal kezelendő" />
       <div className="grid gap-3 px-6 lg:grid-cols-3">
-        <Kpi icon={AlertOctagon} tone="danger" label="Lejárt follow-up" value={overdueFollowups.data ?? "—"} sub="haladéktalanul" />
+        <Kpi icon={AlertOctagon} tone="danger" label="Lejárt utókövetés" value={overdueFollowups.data ?? "—"} sub="haladéktalanul" />
         <Kpi icon={AlertTriangle} tone="danger" label="Lejárt feladat" value={overdueTasks.data ?? "—"} sub="határidőn túl" />
         <Kpi icon={Briefcase} tone="danger" label="Veszélyes projektek" value={riskyCount} sub="lejárt teendővel" />
       </div>
@@ -192,7 +192,7 @@ function Dashboard() {
       <div className="grid gap-3 px-6 lg:grid-cols-3">
         <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjectsTotal} sub={`${PROJECT_STATUS_LABEL["kivitelezes"]}: ${projectStatusCounts["kivitelezes"] ?? 0}`} />
         <Kpi icon={ListChecks} tone="warning" label="Ma esedékes feladat" value={todayTasks.data ?? "—"} sub="mai határidős" />
-        <Kpi icon={BellRing} tone="warning" label="Közelgő follow-up (7 nap)" value={fuBuckets["due-3d"] + fuBuckets["due-7d"]} sub="ezen a héten" />
+        <Kpi icon={BellRing} tone="warning" label="Közelgő utókövetés (7 nap)" value={fuBuckets["due-3d"] + fuBuckets["due-7d"]} sub="ezen a héten" />
       </div>
 
       {/* PROJEKT STÁTUSZ BONTÁS */}
@@ -217,7 +217,7 @@ function Dashboard() {
       </div>
 
       <div className="px-6 pb-4">
-        <SectionLabel title="Follow-up esedékesség" />
+        <SectionLabel title="Utókövetés esedékesség" />
         <Card>
           <CardContent className="pt-4">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -294,14 +294,14 @@ function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-base">Közelgő follow-upok</CardTitle>
+              <CardTitle className="text-base">Közelgő utókövetésok</CardTitle>
               <CardDescription>időrendben</CardDescription>
             </div>
             <Link to="/followups" className="text-xs text-primary hover:underline">Mind</Link>
           </CardHeader>
           <CardContent>
             {fuList.length === 0 ? (
-              <EmptyState icon={BellRing} title="Nincs nyitott follow-up" />
+              <EmptyState icon={BellRing} title="Nincs nyitott utókövetés" />
             ) : (
               <ul className="space-y-2 text-sm">
                 {fuList.map((f: any) => {

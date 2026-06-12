@@ -157,7 +157,7 @@ function CustomerDetail() {
           <Mini label="Típus"            value={isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[c.company_type] ?? "Cég")} />
           <Mini label="Projekt"          value={`${activeProjects} / ${totalProjects}`} hint="aktív / összes" />
           <Mini label="Nyitott ajánlat"  value={String(openQuotesCount)} tone={openQuotesCount > 0 ? "primary" : undefined} />
-          <Mini label="Lejárt follow-up" value={String(overdueCount)} tone={overdueCount > 0 ? "danger" : undefined} />
+          <Mini label="Lejárt utókövetés" value={String(overdueCount)} tone={overdueCount > 0 ? "danger" : undefined} />
           <Mini label="Utolsó aktivitás" value={lastActivityAt ? fmtDate(lastActivityAt) : "—"} />
           <Mini label="Státusz"          value={customerStatus} tone={customerStatus === "Aktív" ? "success" : undefined} />
         </div>
@@ -169,7 +169,7 @@ function CustomerDetail() {
             <TabsTrigger value="overview"><Building2 className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="projects"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Projektek ({projects.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Follow-up ({openFollowups.length})</TabsTrigger>
+            <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="leads"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Leadek ({leads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threads.data?.length ?? 0})</TabsTrigger>
@@ -216,9 +216,9 @@ function CustomerDetail() {
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="text-sm">Aktív follow-upok</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm">Aktív utókövetésok</CardTitle></CardHeader>
               <CardContent>
-                {openFollowups.length === 0 ? <EmptyState icon={BellRing} title="Nincs nyitott follow-up" /> : (
+                {openFollowups.length === 0 ? <EmptyState icon={BellRing} title="Nincs nyitott utókövetés" /> : (
                   <ul className="space-y-1.5 text-sm">
                     {openFollowups.slice(0, 5).map((f) => {
                       const overdue = f.due_date && new Date(f.due_date) < new Date();
@@ -257,7 +257,7 @@ function CustomerDetail() {
               { label: "Típus", get: (r) => r.followup_type ?? "—" },
               { label: "Lezárva", get: (r) => (r.completed ? "✓" : "—") },
               { label: "Jegyzet", get: (r) => r.result ?? "—" },
-            ]} empty="Nincs follow-up." emptyIcon={BellRing} />
+            ]} empty="Nincs utókövetés." emptyIcon={BellRing} />
           </TabsContent>
           <TabsContent value="contacts" className="mt-4">
             <SimpleList rows={contacts.data} link={(r) => ({ to: "/contacts/$id", params: { id: r.id } })} cols={[

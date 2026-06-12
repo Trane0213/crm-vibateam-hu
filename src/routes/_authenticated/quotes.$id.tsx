@@ -87,10 +87,10 @@ function QuoteDetail() {
           </CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><BellRing className="h-4 w-4" />Follow-up-ok</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><BellRing className="h-4 w-4" />Utókövetés-ok</CardTitle></CardHeader>
           <CardContent>
             {(followups.data ?? []).length === 0 ? (
-              <EmptyState icon={BellRing} title="Nincs follow-up" />
+              <EmptyState icon={BellRing} title="Nincs utókövetés" />
             ) : (
               <ul className="space-y-1.5 text-sm">
                 {(followups.data ?? []).map((f) => (

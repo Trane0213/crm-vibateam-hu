@@ -40,11 +40,11 @@ function FollowupsPage() {
       ))}
     </div>
     <ResourcePage
-      title="Follow-up"
+      title="Utókövetés"
       description="Itt kezelheted az ajánlatok és projektek utánkövetését."
       emptyTitle="Itt kezelheted az utánkövetéseket."
-      emptyDescription={`Még nincs felvett follow-up. A „Új follow-up” gombbal rögzíthetsz egyet (pl. visszahívás, ajánlat-emlékeztető).`}
-      newButtonLabel="Új follow-up"
+      emptyDescription={`Még nincs felvett utókövetés. A „Új utókövetés” gombbal rögzíthetsz egyet (pl. visszahívás, ajánlat-emlékeztető).`}
+      newButtonLabel="Új utókövetés"
       icon={BellRing}
       table="followups"
       order="due_date"

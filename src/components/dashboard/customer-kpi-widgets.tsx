@@ -164,13 +164,13 @@ export function CustomerKpiWidgets() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <BellRing className="h-4 w-4 text-destructive" /> Lejárt follow-upok ügyfelenként
+            <BellRing className="h-4 w-4 text-destructive" /> Lejárt utókövetésok ügyfelenként
           </CardTitle>
           <CardDescription>top 5</CardDescription>
         </CardHeader>
         <CardContent>
           {topOverdueFu.length === 0 ? (
-            <EmptyState icon={BellRing} title="Nincs lejárt follow-up" />
+            <EmptyState icon={BellRing} title="Nincs lejárt utókövetés" />
           ) : (
             <ul className="space-y-1.5 text-sm">
               {topOverdueFu.map((r) => (

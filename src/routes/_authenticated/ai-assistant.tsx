@@ -53,9 +53,9 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
   ],
   sales: [
     { id: "call-today",    label: "Kit hívjak ma?",       icon: Phone,         prompt: "Kit hívjak ma? Használd a daily_call_list toolt és prezentáld a top 5 ügyfelet indoklással." },
-    { id: "fu-suggest",    label: "Follow-up javaslatok", icon: BellRing,      prompt: "Mely ajánlatokra kell most follow-up? Használd a quote_followup_assistant toolt és add meg ajánlatonként a javasolt típust (call/email/task) az indoklással." },
+    { id: "fu-suggest",    label: "Utókövetés javaslatok", icon: BellRing,      prompt: "Mely ajánlatokra kell most utókövetés? Használd a quote_followup_assistant toolt és add meg ajánlatonként a javasolt típust (call/email/task) az indoklással." },
     { id: "open-quotes",   label: "Nyitott ajánlatok",    icon: FileText,      prompt: "Listázd a nyitott ajánlatokat érték szerint csökkenő sorrendben. Használd a quote_risk_report toolt. Jelöld, melyik mióta nyitott és mely ajánlatok elakadtak (>14 nap)." },
-    { id: "overdue-fu",    label: "Lejárt follow-upok",   icon: AlertTriangle, prompt: "Mutasd a lejárt follow-upokat prioritás szerint. Használd a daily_call_list toolt — az 'overdue_followup' indokkal szereplő ügyfeleket emeld ki, hány napja lejárt jelöléssel." },
+    { id: "overdue-fu",    label: "Lejárt utókövetésok",   icon: AlertTriangle, prompt: "Mutasd a lejárt utókövetésokat prioritás szerint. Használd a daily_call_list toolt — az 'overdue_followup' indokkal szereplő ügyfeleket emeld ki, hány napja lejárt jelöléssel." },
     { id: "marketing-leads", label: "Új marketing leadek", icon: TrendingUp,  prompt: "Listázd az új marketing leadeket. Használd a lead_priority_report toolt, és szűrd azokra a leadekre, ahol source = 'Marketing Agent' ÉS status = 'new'. Minden lead-hez add meg: cég neve, létrehozás dátuma (hány napja), elérhetőség (telefon/email a kapcsolattartóból), hogy a kolléga azonnal tudja hívni. Sorrend: legfrissebb először." },
   ],
   pm: [
@@ -63,7 +63,7 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: "today-tasks",   label: "Mai feladatok",       icon: CalendarCheck, prompt: "Sorold fel a ma esedékes és lejárt feladatokat projekt szerint csoportosítva." },
     { id: "deadlines",     label: "Közelgő határidők",   icon: BellRing,      prompt: "Mely projekteknek vannak 7 napon belüli határidős feladatai? Adj projekt + dátum listát." },
     { id: "missing-docs",  label: "Hiányzó dokumentáció", icon: ClipboardList, prompt: "Mely aktív projekteknek nincs egyetlen dokumentumuk sem? Adj listát." },
-    { id: "risks",         label: "Kockázatos projektek", icon: AlertOctagon,  prompt: "Mely projektek kockázatosak (lejárt feladat, nincs follow-up, nincs dokumentum)? Indoklással." },
+    { id: "risks",         label: "Kockázatos projektek", icon: AlertOctagon,  prompt: "Mely projektek kockázatosak (lejárt feladat, nincs utókövetés, nincs dokumentum)? Indoklással." },
   ],
 };
 

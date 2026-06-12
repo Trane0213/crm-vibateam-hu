@@ -72,7 +72,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
   sales: {
     id: "sales",
     name: "Eladási Segítő",
-    role: "Az értékesítésben segít — leadek, ajánlatok, follow-upok.",
+    role: "Az értékesítésben segít — leadek, ajánlatok, utókövetésok.",
     description:
       "Megmondja kit kell ma hívni, mely ajánlatok állnak régóta, " +
       "mely leadekkel érdemes foglalkozni, és napi értékesítési riportot készít.",
