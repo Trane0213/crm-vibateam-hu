@@ -134,6 +134,7 @@ const AGENT_META: Record<AgentId, AgentMeta> = {
 
 function AiAssistantPage() {
   const navigate = useNavigate();
+  const { visibleAgentIds } = useVisibleAgents();
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const urlAgent = (() => {
     const v = new URLSearchParams(searchStr ?? "").get("agent");
@@ -426,7 +427,9 @@ function AiAssistantPage() {
         </div>
         {/* Agent váltó pillek */}
         <div className="flex flex-wrap items-center gap-2 px-6 pb-3">
-          {(Object.keys(AGENT_META) as AgentId[]).map((a) => {
+          {(Object.keys(AGENT_META) as AgentId[])
+            .filter((a) => visibleAgentIds.has(a))
+            .map((a) => {
             const m = AGENT_META[a];
             const isActive = agent === a;
             return (
