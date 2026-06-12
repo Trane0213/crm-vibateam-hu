@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/sidebar";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessRoute } from "@/lib/permissions";
+import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { BrandLogo } from "@/components/brand-logo";
 
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean };
@@ -47,12 +48,14 @@ const home: Item[] = [
 
 type AiItem = Item & { search?: Record<string, string> };
 
-const aiAgents: AiItem[] = [
+type AiAgentItem = AiItem & { agentId?: string };
+
+const aiAgents: AiAgentItem[] = [
   { title: "AI Asszisztensek",                  url: "/ai-assistants",  icon: LayoutGrid, highlight: true },
-  { title: "George – CRM Navigátor",            url: "/ai-assistant",   icon: Search,     search: { agent: "crm" },   highlight: true },
-  { title: "Timothy – Értékesítési Segítő",     url: "/ai-assistant",   icon: TrendingUp, search: { agent: "sales" }, highlight: true },
-  { title: "Boss – Projektfelügyelő",           url: "/ai-assistant",   icon: Hammer,     search: { agent: "pm" },    highlight: true },
-  { title: "Scarlet – Marketing Stratéga",      url: "/sales/research", icon: Radar,      highlight: true },
+  { title: "George – CRM Navigátor",            url: "/ai-assistant",   icon: Search,     search: { agent: "crm" },   agentId: "crm",       highlight: true },
+  { title: "Timothy – Értékesítési Segítő",     url: "/ai-assistant",   icon: TrendingUp, search: { agent: "sales" }, agentId: "sales",     highlight: true },
+  { title: "Boss – Projektfelügyelő",           url: "/ai-assistant",   icon: Hammer,     search: { agent: "pm" },    agentId: "pm",        highlight: true },
+  { title: "Scarlet – Marketing Stratéga",      url: "/sales/research", icon: Radar,      agentId: "marketing",                              highlight: true },
 ];
 
 const sales: Item[] = [
@@ -90,6 +93,7 @@ export function AppSidebar() {
   const isAiActive = (agent: string) =>
     pathname.startsWith("/ai-assistant") && new URLSearchParams(searchStr ?? "").get("agent") === agent;
   const { role } = usePermissions();
+  const { visibleAgentIds } = useVisibleAgents();
   const visible = (items: Item[]) => items.filter((i) => canAccessRoute(role, i.url));
 
   const renderGroup = (label: string, items: Item[], withDivider = true) => (
@@ -127,7 +131,12 @@ export function AppSidebar() {
   );
 
   const renderAiGroup = () => {
-    const items = aiAgents.filter((i) => canAccessRoute(role, i.url));
+    const items = aiAgents.filter((i) => {
+      if (!canAccessRoute(role, i.url)) return false;
+      // A landing item (nincs agentId) mindig látszódik, ha route engedi.
+      if (!i.agentId) return true;
+      return visibleAgentIds.has(i.agentId);
+    });
     if (items.length === 0) return null;
     return (
       <SidebarGroup className={!collapsed ? "mt-2 rounded-xl bg-primary/[0.04] px-1 py-2 ring-1 ring-primary/15" : ""}>
