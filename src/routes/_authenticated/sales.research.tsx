@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -31,6 +31,10 @@ type Row = ResearchCompany & {
   _score: number;
   _matched: boolean;
   _lead_id?: string;
+  /** Igaz, ha a sor cégét hozzáadtuk a kampánylistához (companies.company_type='potencialis'). */
+  _in_campaign?: boolean;
+  /** A létrejött/talált companies.id, ha kampánylistára került. */
+  _company_id?: string;
 };
 
 function scoreRow(r: ResearchCompany, keyword: string, area: string | null): number {
@@ -58,13 +62,14 @@ function scoreBreakdown(r: ResearchCompany, keyword: string, area: string | null
 }
 
 const SHORTLIST_KEY = "marketing.research.shortlist.v1";
-function loadShortlist(): ResearchCompany[] {
-  if (typeof window === "undefined") return [];
-  try { return JSON.parse(localStorage.getItem(SHORTLIST_KEY) ?? "[]"); } catch { return []; }
-}
-function saveShortlist(list: ResearchCompany[]) {
+/**
+ * Régi localStorage shortlist takarítása: ha a felhasználó böngészőjében
+ * még van adat, töröljük, hogy ne maradjon árva állapot.
+ * (Az új Kampánylista valós CRM-rekord — companies.company_type='potencialis'.)
+ */
+function purgeLegacyShortlist() {
   if (typeof window === "undefined") return;
-  localStorage.setItem(SHORTLIST_KEY, JSON.stringify(list));
+  try { localStorage.removeItem(SHORTLIST_KEY); } catch { /* noop */ }
 }
 
 function scoreTone(score: number): string {
@@ -81,24 +86,115 @@ function ResearchPage() {
   const [area, setArea] = useState("");
   const [count, setCount] = useState(15);
   const [rows, setRows] = useState<Row[]>([]);
-  const [shortlist, setShortlist] = useState<ResearchCompany[]>(() => loadShortlist());
+  // Egyszeri legacy takarítás — a localStorage shortlist már nem használt.
+  if (typeof window !== "undefined") purgeLegacyShortlist();
 
-  function addToShortlist(r: ResearchCompany) {
-    const key = (r.website || r.company_name).toLowerCase();
-    const exists = shortlist.some((x) => (x.website || x.company_name).toLowerCase() === key);
-    if (exists) {
-      toast.info("Már a kampánylistán van");
-      return;
+  /**
+   * Kampány gomb — a céget bevezeti a CRM-be `company_type='potencialis'`
+   * (Kampány) jelöléssel, opcionálisan kapcsolattartóval, DE leadet
+   * NEM hoz létre. Így a marketing nem nyom rá sales pipeline-ra.
+   */
+  async function addToCampaign(idx: number) {
+    const r = rows[idx];
+    if (!r) return;
+    try {
+      // Duplikáció — cégnév vagy contact email egyezés
+      let company_id: string | null = null;
+      const { data: existing } = await supabase
+        .from("companies")
+        .select("id")
+        .ilike("name", r.company_name)
+        .limit(1)
+        .maybeSingle();
+      if (existing?.id) {
+        company_id = existing.id;
+      } else if (r.email) {
+        const { data: existContact } = await supabase
+          .from("contacts")
+          .select("id, company_id")
+          .ilike("email", r.email)
+          .not("company_id", "is", null)
+          .limit(1)
+          .maybeSingle();
+        if (existContact?.company_id) company_id = existContact.company_id as string;
+      }
+
+      if (company_id) {
+        setRows((prev) =>
+          prev.map((row, i) => i === idx ? { ...row, _in_campaign: true, _company_id: company_id! } : row),
+        );
+        toast.info("Már szerepel a CRM-ben", {
+          description: r.company_name,
+          action: {
+            label: "Megnyitás",
+            onClick: () => navigate({ to: "/customers/$id", params: { id: company_id! } }),
+          },
+        });
+        return;
+      }
+
+      // Cég létrehozása kampányjelöléssel
+      const today = new Date().toISOString().slice(0, 10);
+      const noteLines = [
+        `Forrás: Scarlet kampány (${today})`,
+        r.city ? `Település: ${r.city}` : null,
+        r.phone ? `Telefon: ${r.phone}` : null,
+        r.email ? `Email: ${r.email}` : null,
+        r.reason ? `AI indok: ${r.reason}` : null,
+      ].filter(Boolean);
+      const { data: cIns, error: cErr } = await supabase
+        .from("companies")
+        .insert({
+          name: r.company_name,
+          website: r.website,
+          company_type: "potencialis",
+          notes: noteLines.join("\n") || null,
+        } as any)
+        .select("id")
+        .single();
+      if (cErr) throw cErr;
+      company_id = (cIns as any).id as string;
+
+      // Opcionális kontakt
+      let contact_id: string | null = null;
+      if (r.email || r.phone) {
+        const { data: kIns, error: kErr } = await supabase
+          .from("contacts")
+          .insert({
+            name: "Iroda",
+            company_id,
+            email: r.email,
+            phone: r.phone,
+            position: null,
+          } as any)
+          .select("id")
+          .single();
+        if (kErr) throw kErr;
+        contact_id = (kIns as any).id as string;
+      }
+
+      await logAiAction({
+        agent_type: "marketing",
+        action_type: "add_to_campaign",
+        payload: { company_name: r.company_name, source: "scarlet_research" },
+        approved: true,
+        executed: true,
+        result: { company_id, contact_id },
+      });
+
+      setRows((prev) =>
+        prev.map((row, i) => i === idx ? { ...row, _in_campaign: true, _company_id: company_id! } : row),
+      );
+      toast.success("Hozzáadva a kampánylistához", {
+        description: r.company_name,
+        action: {
+          label: "Kampánylista",
+          onClick: () => navigate({ to: "/campaign-list" }),
+        },
+      });
+    } catch (e: any) {
+      toast.error("Kampánylistára helyezés hiba", { description: humanizeSupabaseError(e) });
     }
-    const next = [...shortlist, r];
-    setShortlist(next);
-    saveShortlist(next);
-    toast.success("Hozzáadva a kampánylistához", { description: `${r.company_name} — ${next.length} cég a listán.` });
-  }
-  function clearShortlist() {
-    setShortlist([]);
-    saveShortlist([]);
-    toast.success("Kampánylista törölve");
   }
 
   const search = useMutation({
