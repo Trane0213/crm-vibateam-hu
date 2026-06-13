@@ -1,76 +1,88 @@
-import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Sparkles, Mail, Radar, TrendingUp, ChevronDown, ChevronUp, ShieldCheck, Copy, ArrowRightCircle, CheckCircle2, BookOpen } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Mail, Radar, BookOpen, AlertCircle, Clock, Sparkles, ArrowRightCircle, Phone, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { WelcomeHeader } from "@/components/welcome-header";
-import { HeroStat, QuickActions } from "@/components/today/today-shell";
-import { useCount, useList } from "@/lib/db-hooks";
-import { LeadWorkspace } from "@/components/lead-workspace/lead-workspace";
+import { QuickActions } from "@/components/today/today-shell";
+import { useList } from "@/lib/db-hooks";
 import { QuickCreateLeadButton } from "@/components/today/quick-create";
-import { scanIncompleteCompanies, scanCompanyDuplicatePairs } from "@/lib/dedupe/global-scans";
-import { SystemAlertsPanel } from "@/components/today/system-alerts-panel";
 
 const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
 const isoWeekAgo = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
 const isoMonthAgo = () => { const d = new Date(); d.setDate(d.getDate()-30); return d.toISOString(); };
 
+const STATUS_LABEL: Record<string, string> = {
+  new: "Új",
+  contacted: "Kapcsolatfelvétel",
+  qualified: "Minősítés / átadható",
+  converted: "Átadott",
+  lost: "Elveszett",
+};
+
+const STATUS_TONE: Record<string, string> = {
+  new:        "border-[color:var(--status-info)]/40    bg-[color:var(--status-info)]/5    text-[color:var(--status-info)]",
+  contacted:  "border-primary/40                       bg-primary/5                       text-primary",
+  qualified:  "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/5 text-[color:var(--status-warning)]",
+  converted:  "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5 text-[color:var(--status-success)]",
+  lost:       "border-muted-foreground/30              bg-muted/30                        text-muted-foreground",
+};
+
 export function MarketingHome() {
-  const [overviewOpen, setOverviewOpen] = useState(false);
   const todayStart = isoStartOfDay();
   const weekAgo = isoWeekAgo();
   const monthAgo = isoMonthAgo();
 
-  const todayLeads = useCount("leads", (q) => q.gte("created_at", todayStart), "today");
-  const weekLeads  = useCount("leads", (q) => q.gte("created_at", weekAgo), "week");
-  const monthLeads = useCount("leads", (q) => q.gte("created_at", monthAgo), "month");
-  const recentEmails = useCount("email_threads", (q) => q.gte("last_message_at", weekAgo), "week-emails");
+  const leadsQ    = useList<any>("leads",      { order: "created_at", ascending: false });
+  const followupsQ = useList<any>("followups", { order: "due_date",   ascending: true  });
+  const emailsQ   = useList<any>("email_threads", { order: "last_message_at", ascending: false });
 
-  const leadsList = useList<any>("leads", { order: "created_at", ascending: false });
-  const followups = useList<any>("followups", { order: "due_date", ascending: true });
+  const leads = leadsQ.data ?? [];
+  const followups = followupsQ.data ?? [];
+  const emails = emailsQ.data ?? [];
 
-  // Marketing fejléc KPI-k: az élő lead-lista státuszaiból.
-  const allLeads = leadsList.data ?? [];
-  const activeLeads = allLeads.filter((l) => l.status === "new" || l.status === "contacted").length;
-  const qualifiedLeads = allLeads.filter((l) => l.status === "qualified").length;
-  const handedOverLeads = allLeads.filter((l) => l.status === "converted").length;
-
-  // Adatminőség / duplikáció — a Data Quality motorból (cache-elve).
-  const incompleteQ = useQuery({
-    queryKey: ["mkt-hero", "incomplete-companies"],
-    queryFn: () => scanIncompleteCompanies(500),
-    staleTime: 5 * 60_000,
-  });
-  const dupQ = useQuery({
-    queryKey: ["mkt-hero", "company-dup-pairs"],
-    queryFn: () => scanCompanyDuplicatePairs(),
-    staleTime: 5 * 60_000,
-  });
-  const incompleteCount = (incompleteQ.data ?? []).filter((r) => r.score.band !== "green").length;
-  const duplicateCount = dupQ.data?.length ?? 0;
   const now = new Date();
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
-  const openFollowups = (followups.data ?? []).filter((f: any) => !f.completed && f.due_date);
-  const overdueFollowups = openFollowups.filter((f: any) => new Date(f.due_date) < now).length;
-  const todayFollowups = openFollowups.filter((f: any) => {
-    const due = new Date(f.due_date);
-    return due >= new Date(todayStart) && due <= todayEnd;
-  }).length;
+  const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
 
-  // Lead-forrás bontás (utolsó 30 nap)
-  const monthLeadsList = (leadsList.data ?? []).filter((l: any) => l.created_at >= monthAgo);
-  const sourceCounts: Record<string, number> = {};
-  for (const l of monthLeadsList) {
-    const s = l.source ?? "ismeretlen";
-    sourceCounts[s] = (sourceCounts[s] ?? 0) + 1;
-  }
-  const sourceEntries = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]);
-  const maxSource = Math.max(1, ...sourceEntries.map(([, n]) => n));
+  // ───────── Mai feladatok ─────────
+  const openFollowups = followups.filter((f: any) => !f.completed && f.due_date);
+  const overdue = openFollowups.filter((f: any) => new Date(f.due_date) < now);
+  const dueToday = openFollowups.filter((f: any) => {
+    const d = new Date(f.due_date); return d >= now && d <= todayEnd;
+  });
+  const newLeadsToday = leads.filter((l: any) => l.created_at >= todayStart);
+  const handoffReady = leads.filter((l: any) => l.status === "qualified");
+
+  // ───────── Pipeline ─────────
+  const pipeline = {
+    new:        leads.filter((l: any) => l.status === "new").length,
+    contacted:  leads.filter((l: any) => l.status === "contacted").length,
+    qualified:  leads.filter((l: any) => l.status === "qualified").length,
+    converted:  leads.filter((l: any) => l.status === "converted").length,
+    lost:       leads.filter((l: any) => l.status === "lost").length,
+  };
+
+  // ───────── Marketing teljesítmény ─────────
+  const newLeads7  = leads.filter((l: any) => l.created_at >= weekAgo).length;
+  const newLeads30 = leads.filter((l: any) => l.created_at >= monthAgo).length;
+  const handoffRate30 = (() => {
+    const last30 = leads.filter((l: any) => l.created_at >= monthAgo);
+    if (last30.length === 0) return 0;
+    const handed = last30.filter((l: any) => l.status === "converted" || l.status === "qualified").length;
+    return Math.round((handed / last30.length) * 100);
+  })();
+  const emails7 = emails.filter((e: any) => e.last_message_at >= weekAgo).length;
+  const repliedRate7 = (() => {
+    const recent = emails.filter((e: any) => e.last_message_at >= weekAgo);
+    if (recent.length === 0) return 0;
+    const replied = recent.filter((e: any) => (e.message_count ?? 1) > 1).length;
+    return Math.round((replied / recent.length) * 100);
+  })();
+
+  const loading = leadsQ.isLoading || followupsQ.isLoading;
 
   return (
     <div className="flex flex-col">
-      <WelcomeHeader subtitle="Marketing munkafelület — lead, email, utánkövetés, AI egy képernyőn." />
+      <WelcomeHeader subtitle="A mai napod egy képernyőn — mit kell csinálni, kit kell hívni, mi az átadható." />
 
       <QuickActions>
         <QuickCreateLeadButton />
@@ -79,109 +91,189 @@ export function MarketingHome() {
         <Button size="sm" variant="ghost" asChild><Link to="/help/marketing"><BookOpen className="mr-1 h-3.5 w-3.5" />Marketing súgó</Link></Button>
       </QuickActions>
 
-      {/* Marketing fejléc KPI sor */}
-      <div className="mx-6 mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        <MkHeroCard tone="info"    icon={Sparkles}        label="Aktív leadek"          value={activeLeads}      sub="új + kapcsolatfelvétel alatt" to="/today" />
-        <MkHeroCard tone="warning" icon={CheckCircle2}    label="Átadható leadek"       value={qualifiedLeads}   sub="minősített, átadásra vár"      to="/today" />
-        <MkHeroCard tone="success" icon={ArrowRightCircle} label="Átadott leadek"        value={handedOverLeads}  sub="értékesítőhöz került"          to="/leads" />
-        <MkHeroCard tone="warning" icon={ShieldCheck}     label="Hiányos cégadatok"     value={incompleteCount}  sub="adatminőség < 100%"            to="/data-quality" />
-        <MkHeroCard tone="danger"  icon={Copy}            label="Duplikáció figyelm."   value={duplicateCount}   sub="potenciális egyezés"           to="/data-quality" />
-      </div>
-
-      {/* HERO: Lead Workspace teljes magasságban */}
-      <LeadWorkspace
-        mode="marketing"
-        className="mx-6 mt-3 mb-4 grid h-[calc(100vh-300px)] min-h-[520px] grid-cols-1 overflow-hidden rounded-lg border bg-card lg:grid-cols-[280px_minmax(0,1fr)_320px]"
-      />
-
-      {/* Rendszer figyelmeztetések — D3/D4/D5 motorok aggregálva */}
-      <div className="px-6 pb-4">
-        <SystemAlertsPanel />
-      </div>
-
-      <div className="px-6 pb-4">
-        <div className="rounded-lg border bg-card p-4">
-          <div className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Mai teendők</div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-            <MkHeroCard tone="danger" icon={Mail} label="Lejárt utánkövetések" value={overdueFollowups} sub="azonnali teendő" to="/followups" />
-            <MkHeroCard tone="warning" icon={Mail} label="Mai utánkövetések" value={todayFollowups} sub="mai napra ütemezve" to="/followups" />
-            <MkHeroCard tone="warning" icon={CheckCircle2} label="Átadható leadek" value={qualifiedLeads} sub="értékesítőre vár" to="/today" />
-            <MkHeroCard tone="warning" icon={ShieldCheck} label="Hiányos cégek" value={incompleteCount} sub="adatpótlás ajánlott" to="/data-quality" />
-            <MkHeroCard tone="danger" icon={Copy} label="Duplikációk" value={duplicateCount} sub="ellenőrzést kér" to="/data-quality" />
+      <div className="space-y-4 p-6 pt-3">
+        {/* ───────── 1. Mai feladatok ───────── */}
+        <section className="rounded-lg border bg-card">
+          <SectionHeader title="Mai feladatok" subtitle="Mit kell ma elintézned. Kattints a sorra a részletekért." />
+          <div className="grid gap-px bg-border md:grid-cols-2 xl:grid-cols-4">
+            <TaskColumn
+              tone="danger"
+              icon={AlertCircle}
+              title="Lejárt utánkövetések"
+              count={overdue.length}
+              to="/followups"
+              empty="Nincs lejárt teendő."
+              items={overdue.slice(0, 5).map((f: any) => ({
+                key: f.id,
+                primary: f.title ?? f.kind ?? "Utánkövetés",
+                secondary: `Esedékes: ${fmtDate(f.due_date)}`,
+                to: f.lead_id ? `/leads/${f.lead_id}` : "/followups",
+              }))}
+            />
+            <TaskColumn
+              tone="warning"
+              icon={Clock}
+              title="Ma esedékes"
+              count={dueToday.length}
+              to="/followups"
+              empty="Mára nincs ütemezve teendő."
+              items={dueToday.slice(0, 5).map((f: any) => ({
+                key: f.id,
+                primary: f.title ?? f.kind ?? "Utánkövetés",
+                secondary: `Ma: ${fmtTime(f.due_date)}`,
+                to: f.lead_id ? `/leads/${f.lead_id}` : "/followups",
+              }))}
+            />
+            <TaskColumn
+              tone="info"
+              icon={Sparkles}
+              title="Új érdeklődők (ma)"
+              count={newLeadsToday.length}
+              to="/leads"
+              empty="Ma még nem érkezett új lead."
+              items={newLeadsToday.slice(0, 5).map((l: any) => ({
+                key: l.id,
+                primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
+                secondary: [l.source, l.email].filter(Boolean).join(" · ") || "—",
+                to: `/leads/${l.id}`,
+              }))}
+            />
+            <TaskColumn
+              tone="success"
+              icon={ArrowRightCircle}
+              title="Átadásra váró leadek"
+              count={handoffReady.length}
+              to="/leads"
+              empty="Nincs átadásra váró lead."
+              items={handoffReady.slice(0, 5).map((l: any) => ({
+                key: l.id,
+                primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
+                secondary: l.source ?? "—",
+                to: `/leads/${l.id}`,
+              }))}
+            />
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Áttekintés (collapsible) */}
-      <div className="px-6 pb-6">
-        <button
-          type="button"
-          onClick={() => setOverviewOpen((v) => !v)}
-          className="flex w-full items-center justify-between rounded-md border bg-card px-3 py-2 text-sm font-medium hover:bg-muted/40"
-        >
-          <span>Áttekintés · KPI-k és lead-források</span>
-          {overviewOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
-
-        {overviewOpen && (
-          <div className="mt-3 space-y-3">
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <HeroStat to="/leads" tone="primary" icon={Sparkles} label="Új érdeklődő ma"   value={todayLeads.data ?? 0} sub="0–24 óra" />
-              <HeroStat to="/leads" tone="info"    icon={TrendingUp} label="Új érdeklődő (7 nap)" value={weekLeads.data ?? 0} sub="utolsó hét" />
-              <HeroStat to="/leads" tone="info"    icon={TrendingUp} label="Új érdeklődő (30 nap)" value={monthLeads.data ?? 0} sub="utolsó hónap" />
-              <HeroStat to="/emails" tone="primary" icon={Mail}      label="Email szálak (7 nap)" value={recentEmails.data ?? 0} sub="aktív kommunikáció" />
-            </div>
-            <div className="rounded-lg border bg-card p-4">
-              <div className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Lead-források · utolsó 30 nap</div>
-              {sourceEntries.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Nincs lead az elmúlt 30 napban.</div>
-              ) : (
-                <ul className="space-y-2">
-                  {sourceEntries.map(([src, n]) => (
-                    <li key={src} className="flex items-center gap-3 text-sm">
-                      <div className="w-32 truncate text-muted-foreground">{src}</div>
-                      <div className="flex-1 h-5 rounded bg-muted/30 overflow-hidden">
-                        <div className="h-full bg-primary/70" style={{ width: `${Math.round((n / maxSource) * 100)}%` }} />
-                      </div>
-                      <div className="w-10 text-right tabular-nums font-medium">{n}</div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+        {/* ───────── 2. Lead pipeline ───────── */}
+        <section className="rounded-lg border bg-card">
+          <SectionHeader title="Lead pipeline" subtitle="Hol állnak a leadjeid a marketing-funnelben." />
+          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-5">
+            {(["new","contacted","qualified","converted","lost"] as const).map((k) => (
+              <Link
+                key={k}
+                to="/leads"
+                className={`rounded-lg border p-3 transition hover:brightness-105 ${STATUS_TONE[k]}`}
+              >
+                <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{STATUS_LABEL[k]}</div>
+                <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{pipeline[k]}</div>
+                <div className="mt-1 text-[11px] opacity-70">{k === "qualified" ? "értékesítőre vár" : k === "converted" ? "átadva sales-nek" : ""}</div>
+              </Link>
+            ))}
           </div>
+        </section>
+
+        {/* ───────── 3. Marketing teljesítmény ───────── */}
+        <section className="rounded-lg border bg-card">
+          <SectionHeader title="Marketing teljesítmény" subtitle="Heti és havi mérőszámok." />
+          <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
+            <PerfTile label="Új lead · 7 nap"  value={newLeads7} />
+            <PerfTile label="Új lead · 30 nap" value={newLeads30} />
+            <PerfTile label="Átadási arány · 30 nap" value={`${handoffRate30}%`} sub="qualified + converted" />
+            <PerfTile label="Email aktivitás · 7 nap" value={emails7} sub="aktív szál" />
+            <PerfTile label="Válaszadási arány · 7 nap" value={`${repliedRate7}%`} sub="szálban >1 üzenet" />
+          </div>
+        </section>
+
+        {loading && (
+          <p className="text-center text-xs text-muted-foreground">Adatok betöltése…</p>
         )}
       </div>
     </div>
   );
 }
 
-function MkHeroCard({
-  to, tone, icon: Icon, label, value, sub,
-}: {
-  to: string;
-  tone: "info" | "success" | "warning" | "danger";
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: number;
-  sub: string;
-}) {
-  const toneCls =
-    tone === "success" ? "text-emerald-700 border-emerald-200" :
-    tone === "warning" ? "text-amber-700 border-amber-200" :
-    tone === "danger"  ? "text-destructive border-destructive/30" :
-                         "text-primary border-primary/20";
+function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <Link
-      to={to}
-      className={`rounded-lg border bg-card p-3 transition-colors hover:bg-muted/40 ${toneCls}`}
-    >
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider opacity-80">
-        <Icon className="h-3.5 w-3.5" />
-        <span className="truncate">{label}</span>
+    <div className="flex items-end justify-between border-b px-4 py-3">
+      <div>
+        <h2 className="text-sm font-semibold">{title}</h2>
+        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </div>
-      <div className="mt-0.5 text-2xl font-semibold tabular-nums">{value}</div>
-      <div className="text-[11px] text-muted-foreground">{sub}</div>
-    </Link>
+    </div>
   );
 }
+
+function TaskColumn({
+  tone, icon: Icon, title, count, to, empty, items,
+}: {
+  tone: "danger" | "warning" | "info" | "success";
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  count: number;
+  to: string;
+  empty: string;
+  items: { key: string; primary: string; secondary: string; to: string }[];
+}) {
+  const toneText =
+    tone === "danger"  ? "text-destructive" :
+    tone === "warning" ? "text-[color:var(--status-warning)]" :
+    tone === "success" ? "text-[color:var(--status-success)]" :
+                         "text-[color:var(--status-info)]";
+  return (
+    <div className="bg-card p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <div className={`flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider ${toneText}`}>
+          <Icon className="h-3.5 w-3.5" />
+          <span>{title}</span>
+        </div>
+        <Badge variant="outline" className="tabular-nums">{count}</Badge>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">{empty}</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map((it) => (
+            <li key={it.key}>
+              <Link to={it.to as any} className="group flex items-start gap-2 rounded-md border bg-background px-2 py-1.5 text-xs hover:bg-muted/50">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{it.primary}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">{it.secondary}</div>
+                </div>
+                <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-60" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {count > items.length && (
+        <Link to={to as any} className="mt-2 inline-flex text-[11px] text-primary hover:underline">
+          További {count - items.length} megnyitása →
+        </Link>
+      )}
+    </div>
+  );
+}
+
+function PerfTile({ label, value, sub }: { label: string; value: number | string; sub?: string }) {
+  return (
+    <div className="bg-card p-4">
+      <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1 text-2xl font-semibold tabular-nums">{value}</div>
+      {sub && <div className="mt-0.5 text-[11px] text-muted-foreground">{sub}</div>}
+    </div>
+  );
+}
+
+function fmtDate(iso?: string) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString("hu-HU", { month: "short", day: "numeric" });
+}
+function fmtTime(iso?: string) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" });
+}
+
+// Unused legacy imports retained intentionally removed; Phone is referenced by handoff column icon if needed later.
+void Phone;
