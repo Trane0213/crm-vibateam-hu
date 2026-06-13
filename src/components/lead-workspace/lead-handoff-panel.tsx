@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowRightCircle, UserCheck } from "lucide-react";
+import { ArrowRightCircle, UserCheck, ShieldCheck, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { toast } from "sonner";
+import { computeCompanyScore } from "@/lib/dedupe/scoring";
 
 /**
  * Marketing → Sales lead átadás panel.
@@ -26,6 +27,21 @@ export function LeadHandoffPanel({
   const qc = useQueryClient();
   const [salesId, setSalesId] = useState<string>("");
   const [note, setNote] = useState<string>("");
+  const [override, setOverride] = useState(false);
+
+  // Cégadat-minőség lekérdezése (csak ha van company_id) — minőségkapuhoz.
+  const quality = useQuery({
+    queryKey: ["handoff", "quality", lead?.company_id],
+    enabled: !!lead?.company_id,
+    queryFn: async () => {
+      const [{ data: company }, { data: contacts }] = await Promise.all([
+        supabase.from("companies").select("id,name,company_type,tax_number,website,domain,city").eq("id", lead!.company_id!).maybeSingle(),
+        supabase.from("contacts").select("email,phone").eq("company_id", lead!.company_id!),
+      ]);
+      if (!company) return null;
+      return computeCompanyScore(company as any, contacts ?? []);
+    },
+  });
 
   // Értékesítők lekérdezése: users_profile JOIN roles WHERE roles.name = 'sales'.
   const sales = useQuery({
@@ -80,6 +96,11 @@ export function LeadHandoffPanel({
   if (!lead) return null;
   if (lead.status !== "qualified") return null;
 
+  const score = quality.data ?? null;
+  const isRed = score?.band === "red";
+  const isYellow = score?.band === "yellow";
+  const canSubmit = !!salesId && !handoff.isPending && (!isRed || override);
+
   return (
     <div className="rounded-md border border-primary/30 bg-primary/[0.04] p-3">
       <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-primary/80">
@@ -92,6 +113,30 @@ export function LeadHandoffPanel({
         </div>
       ) : (
         <div className="space-y-2">
+          {score && (isRed || isYellow) && (
+            <div className={
+              "rounded-md border p-2 text-[11px] " +
+              (isRed ? "border-destructive/40 bg-destructive/5 text-destructive"
+                     : "border-amber-500/40 bg-amber-50 text-amber-900")
+            }>
+              <div className="flex items-center gap-1.5 font-medium">
+                {isRed ? <AlertTriangle className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
+                Adatminőség: {score.pct}% — {isRed ? "Hiányos" : "Részleges"}
+              </div>
+              <div className="mt-0.5">
+                {isRed ? "Erősen javasolt az adatok pótlása átadás előtt." : "Figyelmeztetés: néhány alapadat hiányzik."}
+              </div>
+              {score.missing.length > 0 && (
+                <div className="mt-0.5 opacity-80">Hiányzik: {score.missing.join(", ")}</div>
+              )}
+              {isRed && (
+                <label className="mt-1.5 flex items-center gap-1.5">
+                  <input type="checkbox" checked={override} onChange={(e) => setOverride(e.target.checked)} />
+                  Mégis átadom (felülbírálás)
+                </label>
+              )}
+            </div>
+          )}
           <select
             value={salesId}
             onChange={(e) => setSalesId(e.target.value)}
@@ -116,7 +161,7 @@ export function LeadHandoffPanel({
           <Button
             size="sm"
             className="w-full"
-            disabled={!salesId || handoff.isPending}
+            disabled={!canSubmit}
             onClick={() => handoff.mutate()}
           >
             <ArrowRightCircle className="mr-1.5 h-3.5 w-3.5" />
