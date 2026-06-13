@@ -87,6 +87,7 @@ export function ResourcePage({
   order,
   ascending,
   filter,
+  toolbar,
   emptyTitle,
   emptyDescription,
   newButtonLabel = "Új",
@@ -101,6 +102,8 @@ export function ResourcePage({
   order?: string;
   ascending?: boolean;
   filter?: (rows: any[]) => any[];
+  /** Tetszőleges szűrő/kereső sáv a táblázat fölött. */
+  toolbar?: ReactNode;
   emptyTitle?: string;
   emptyDescription?: string;
   newButtonLabel?: string;
@@ -152,6 +155,7 @@ export function ResourcePage({
         }
       />
       <div className="p-6">
+        {toolbar && <div className="mb-3">{toolbar}</div>}
         {error && (
           <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             Adatbázis hiba: {(error as any).message}
