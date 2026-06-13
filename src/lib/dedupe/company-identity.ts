@@ -27,6 +27,12 @@ export type CompanyIdentity = {
   knownEmails: string[];
   /** Az alapadatokat „erősen azonosítónak” tartjuk-e (≥ 2 mező kitöltve). */
   isStrongIdentity: boolean;
+  /** 0..100 — hány azonosító jegyet tartunk a céghez (név, adószám, domain, website, ≥1 email). */
+  identityStrength: number;
+  /** A jelenleg ismert identitás forrása. */
+  identitySource: "crm_internal" | "nav" | "opten" | "ceginfo" | "clearbit" | "bisnode";
+  /** Mire futtatható le következő automatikus enrichment lekérés (jövőbeli külső API). */
+  lastEnrichmentCandidate: "tax_lookup" | "domain_lookup" | "name_lookup" | "none";
   /** Külső adatforrás (most mindig `crm_internal`). */
   source: "crm_internal";
 };
@@ -50,6 +56,22 @@ export async function resolveCompanyIdentity(companyId: string): Promise<Company
   const taxTrunk = normalizeTaxNumber(c.tax_number) || null;
   const filled = [c.tax_number, c.domain, c.website].filter(Boolean).length;
 
+  // Súlyozott identity-strength (0..100):
+  //   név 20, adószám 30, domain 25, website 15, min. 1 ismert email 10.
+  let strength = 0;
+  if (c.name)        strength += 20;
+  if (c.tax_number)  strength += 30;
+  if (c.domain)      strength += 25;
+  if (c.website)     strength += 15;
+  if (emails.size > 0) strength += 10;
+
+  // Következő javasolt külső lekérés (prioritás: legpontosabb azonosító → leggyengébb).
+  const lastEnrichmentCandidate: CompanyIdentity["lastEnrichmentCandidate"] =
+    taxTrunk ? "tax_lookup"
+    : (c.domain ? "domain_lookup"
+    : (c.name ? "name_lookup"
+    : "none"));
+
   return {
     id: c.id,
     legalName: c.name,
@@ -60,6 +82,9 @@ export async function resolveCompanyIdentity(companyId: string): Promise<Company
     website: c.website ?? null,
     knownEmails: [...emails],
     isStrongIdentity: filled >= 2,
+    identityStrength: strength,
+    identitySource: "crm_internal",
+    lastEnrichmentCandidate,
     source: "crm_internal",
   };
 }
