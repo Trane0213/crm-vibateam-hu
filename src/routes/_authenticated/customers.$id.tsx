@@ -22,6 +22,7 @@ import { CompanyHealthPanel } from "@/components/customers/company-health-panel"
 import { CrmHealthSummaryCard } from "@/components/customers/crm-health-summary-card";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -30,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/customers/$id")({
 function CustomerDetail() {
   const { id } = Route.useParams();
   useAutoEnrich("company", id);
+  const { role } = usePermissions();
+  const isMarketing = role === "marketing";
 
   const cust = useQuery({
     queryKey: ["customers", "detail", id],
