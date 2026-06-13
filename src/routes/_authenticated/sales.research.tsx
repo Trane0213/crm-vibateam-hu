@@ -174,8 +174,12 @@ function ResearchPage() {
       }
 
       await logAiAction({
-        agent_type: "marketing",
-        action_type: "add_to_campaign",
+        // A kampány-művelet a marketing agent (Scarlet) cselekedete; a
+        // szigorú típuslistán belül a 'sales' agent_type a legközelebb
+        // (a Sales gomb is ezt használja), az action_type pedig 'other',
+        // mert nincs még külön 'add_to_campaign' érték a logban.
+        agent_type: "sales",
+        action_type: "other",
         payload: { company_name: r.company_name, source: "scarlet_research" },
         approved: true,
         executed: true,
