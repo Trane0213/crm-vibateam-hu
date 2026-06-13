@@ -26,6 +26,7 @@ export function EmailComposer({
   onOpenChange,
   defaultTo,
   defaultSubject,
+  defaultBody,
   threadId,
   inReplyTo,
   references,
@@ -35,6 +36,7 @@ export function EmailComposer({
   onOpenChange: (v: boolean) => void;
   defaultTo?: string;
   defaultSubject?: string;
+  defaultBody?: string;
   threadId?: string;
   inReplyTo?: string;
   references?: string;
@@ -60,6 +62,17 @@ export function EmailComposer({
     setTo((cur) => (cur && cur.trim() ? cur : (defaultTo ?? "")));
     setSubject((cur) => (cur && cur.trim() ? cur : (defaultSubject ?? "")));
   }, [open, defaultTo, defaultSubject]);
+
+  // defaultBody-t csak akkor töltjük be, ha a szerkesztő üres — így a már
+  // megírt tartalom nem tűnik el, ha egy második sablonválasztás történik.
+  useEffect(() => {
+    if (!open) return;
+    if (!defaultBody) return;
+    const el = editorRef.current;
+    if (!el) return;
+    const current = el.innerHTML.replace(/<br\s*\/?>(\s*)?/g, "").trim();
+    if (!current) el.innerHTML = defaultBody;
+  }, [open, defaultBody]);
 
   const exec = (cmd: string, val?: string) => {
     editorRef.current?.focus();
