@@ -94,7 +94,7 @@ export function LeadDetailColumn({
     queryFn: async () => {
       const [{ data: company }, { data: contact }] = await Promise.all([
         lead.data?.company_id
-          ? supabase.from("companies").select("domain,website").eq("id", lead.data.company_id).maybeSingle()
+          ? supabase.from("companies").select("website").eq("id", lead.data.company_id).maybeSingle()
           : Promise.resolve({ data: null } as any),
         lead.data?.contact_id
           ? supabase.from("contacts").select("email,phone").eq("id", lead.data.contact_id).maybeSingle()

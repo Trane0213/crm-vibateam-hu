@@ -35,7 +35,7 @@ export function LeadHandoffPanel({
     enabled: !!lead?.company_id,
     queryFn: async () => {
       const [{ data: company }, { data: contacts }] = await Promise.all([
-        supabase.from("companies").select("id,name,company_type,tax_number,website,domain,city").eq("id", lead!.company_id!).maybeSingle(),
+        supabase.from("companies").select("id,name,company_type,tax_number,website").eq("id", lead!.company_id!).maybeSingle(),
         supabase.from("contacts").select("email,phone").eq("company_id", lead!.company_id!),
       ]);
       if (!company) return null;

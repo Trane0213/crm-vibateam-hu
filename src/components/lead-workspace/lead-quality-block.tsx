@@ -14,7 +14,7 @@ export function LeadQualityBlock({ lead }: { lead: LeadForScore | null }) {
     queryFn: async () => {
       const [{ data: company }, { data: contact }] = await Promise.all([
         lead?.company_id
-          ? supabase.from("companies").select("domain,website").eq("id", lead.company_id).maybeSingle()
+          ? supabase.from("companies").select("website").eq("id", lead.company_id).maybeSingle()
           : Promise.resolve({ data: null } as any),
         lead?.contact_id
           ? supabase.from("contacts").select("email,phone").eq("id", lead.contact_id).maybeSingle()

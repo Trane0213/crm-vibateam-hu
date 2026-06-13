@@ -18,7 +18,7 @@ function useCompanyQualityMap() {
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const [{ data: companies }, { data: contacts }] = await Promise.all([
-        supabase.from("companies").select("id,name,company_type,website,domain,tax_number,city"),
+        supabase.from("companies").select("id,name,company_type,website,tax_number"),
         supabase.from("contacts").select("company_id,email,phone"),
       ]);
       const byCompany = new Map<string, { email?: string | null; phone?: string | null }[]>();
