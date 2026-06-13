@@ -33,16 +33,23 @@ export const Route = createFileRoute("/_authenticated/customers/$id")({
 function CustomerDetail() {
   const { id } = Route.useParams();
   useAutoEnrich("company", id);
-  const { role } = usePermissions();
-  const isMarketing = role === "marketing";
+  const { role, isLoading } = usePermissions();
 
-  // Marketing role-ban a /customers/$id egy dedikált Marketing Minősítő
-  // Munkafelületet ad — egyetlen forrás, marketing státuszokkal,
-  // sales-átadási akcióval. A többi role az alábbi általános nézetet kapja.
-  if (isMarketing) {
+  if (isLoading) {
+    return <div className="p-6 text-sm text-muted-foreground">Jogosultságok betöltése…</div>;
+  }
+
+  // A role aszinkron oldódik fel. A marketing ág külön komponensbe került,
+  // hogy a role-váltás ne sértse meg a hook-sorrendet ugyanabban a render fában.
+  if (role === "marketing") {
     return <MarketingWorkspace companyId={id} />;
   }
 
+  return <LegacyCustomerDetail id={id} />;
+}
+
+function LegacyCustomerDetail({ id }: { id: string }) {
+  const isMarketing = false;
   const cust = useQuery({
     queryKey: ["customers", "detail", id],
     queryFn: async () => {
