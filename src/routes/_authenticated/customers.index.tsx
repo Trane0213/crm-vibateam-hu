@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Building2, User } from "lucide-react";
+import { Users, Building2, User, Sparkles, RotateCcw, Briefcase, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -10,7 +10,7 @@ import { PageHeader, EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
-import { FilterBar, StatusPill, relativeTime, type StatusKey } from "@/components/marketing-ui";
+import { FilterBar, relativeTime } from "@/components/marketing-ui";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
   component: CustomersIndex,
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/customers/")({
 
 function CustomersIndex() {
   const [search, setSearch] = useState("");
+  const [segment, setSegment] = useState<"all" | "active" | "new" | "reactivatable">("all");
   const companies = useQuery({
     queryKey: ["customers", "list"],
     queryFn: async () => {
@@ -35,9 +36,47 @@ function CustomersIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customer_kpi_v")
-        .select("customer_id,active_projects,last_activity_at");
+        .select("customer_id,active_projects,total_projects,open_quotes,overdue_followups,last_activity_at");
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+  // Pipeline érték: nyitott (draft/sent/negotiation) ajánlatok összegzve cégenként.
+  const pipeline = useQuery({
+    queryKey: ["customers", "list", "pipeline_value"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("total_amount,status,projects!inner(company_id)")
+        .in("status", ["draft", "sent", "negotiation"]);
+      if (error) throw error;
+      const map = new Map<string, number>();
+      for (const q of (data ?? []) as any[]) {
+        const cid = q.projects?.company_id;
+        if (!cid) continue;
+        map.set(cid, (map.get(cid) ?? 0) + Number(q.total_amount ?? 0));
+      }
+      return map;
+    },
+  });
+
+  // Utolsó email cégenként.
+  const lastEmail = useQuery({
+    queryKey: ["customers", "list", "last_email"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_threads")
+        .select("company_id,last_message_at")
+        .not("company_id", "is", null)
+        .order("last_message_at", { ascending: false })
+        .limit(5000);
+      if (error) throw error;
+      const map = new Map<string, string>();
+      for (const t of (data ?? []) as any[]) {
+        if (!map.has(t.company_id)) map.set(t.company_id, t.last_message_at);
+      }
+      return map;
     },
   });
 
@@ -53,23 +92,45 @@ function CustomersIndex() {
     for (const k of (kpis.data ?? []) as any[]) {
       byCo.set(k.customer_id, k);
     }
+    const sevenDaysAgo = Date.now() - 7 * 86400_000;
+    const ninetyDaysAgo = Date.now() - 90 * 86400_000;
     const all = (companies.data ?? []).map((c: any) => {
       const k = byCo.get(c.id);
       const active = k?.active_projects ?? 0;
+      const totalProjects = k?.total_projects ?? 0;
       const s = surface?.get(c.id);
       const leads = s?.activeLeadCount ?? 0;
       const lastActivity = k?.last_activity_at ?? null;
-      const status: StatusKey = active > 0 || leads > 0 ? "active" : lastActivity ? "neutral" : "new";
+      const lastEmailAt = lastEmail.data?.get(c.id) ?? null;
+      const pipelineValue = pipeline.data?.get(c.id) ?? 0;
+      const createdMs = c.created_at ? new Date(c.created_at).getTime() : 0;
+      const lastActMs = lastActivity ? new Date(lastActivity).getTime() : 0;
+      const isNew = createdMs >= sevenDaysAgo;
+      const isReactivatable =
+        !isNew && totalProjects > 0 && active === 0 && leads === 0 &&
+        (lastActMs === 0 || lastActMs < ninetyDaysAgo);
       return {
         ...c,
         leads,
+        activeProjects: active,
+        totalProjects,
         lastActivity,
-        status,
+        lastEmailAt,
+        pipelineValue,
+        isNew,
+        isReactivatable,
       };
     });
     const s = search.trim().toLowerCase();
-    return s ? all.filter((r) => r.name?.toLowerCase().includes(s)) : all;
-  }, [companies.data, kpis.data, surface, search]);
+    const searched = s ? all.filter((r) => r.name?.toLowerCase().includes(s)) : all;
+    if (segment === "active") return searched.filter((r) => r.activeProjects > 0 || r.leads > 0);
+    if (segment === "new") return searched.filter((r) => r.isNew);
+    if (segment === "reactivatable") return searched.filter((r) => r.isReactivatable);
+    return searched;
+  }, [companies.data, kpis.data, surface, search, segment, pipeline.data, lastEmail.data]);
+
+  const fmtHuf = (n: number) =>
+    n > 0 ? new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 0 }).format(n) + " Ft" : "—";
 
   return (
     <div className="flex flex-col">
@@ -78,13 +139,33 @@ function CustomersIndex() {
         description="Cégek és magánszemélyek — marketing nézet a fontos mezőkkel."
       />
       <div className="p-6">
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {([
+            { v: "all" as const,            label: "Mind" },
+            { v: "active" as const,         label: "Aktív" },
+            { v: "new" as const,            label: "Új (7 nap)" },
+            { v: "reactivatable" as const,  label: "Reaktiválható" },
+          ]).map((s) => (
+            <button
+              key={s.v}
+              onClick={() => setSegment(s.v)}
+              className={`rounded-full border px-3 py-1 text-xs transition ${
+                segment === s.v
+                  ? "border-primary bg-primary/10 text-primary font-medium"
+                  : "border-border bg-card hover:bg-muted/50 text-muted-foreground"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
         <div className="mb-3">
           <FilterBar
             search={search}
             onSearch={setSearch}
             searchPlaceholder="Keresés ügyfélnév…"
             resultCount={rows.length}
-            onReset={search ? () => setSearch("") : undefined}
+            onReset={search || segment !== "all" ? () => { setSearch(""); setSegment("all"); } : undefined}
           />
         </div>
         {companies.isLoading ? (
@@ -97,10 +178,11 @@ function CustomersIndex() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Ügyfél</TableHead>
-                  <TableHead>Típus</TableHead>
-                  <TableHead className="text-right">Leadek</TableHead>
+                  <TableHead className="text-right">Pipeline érték</TableHead>
+                  <TableHead className="text-right">Projekt</TableHead>
+                  <TableHead>Utolsó email</TableHead>
                   <TableHead>Utolsó aktivitás</TableHead>
-                  <TableHead>Státusz</TableHead>
+                  <TableHead>Szegmens</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -110,32 +192,57 @@ function CustomersIndex() {
                   return (
                     <TableRow key={r.id} className="cursor-pointer">
                       <TableCell className="font-medium">
-                        <Link
-                          to="/customers/$id"
-                          params={{ id: r.id }}
-                          className="flex items-center gap-2 text-primary hover:underline"
-                        >
-                          <TypeIcon className="h-4 w-4 text-muted-foreground" />
-                          {r.name}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={isPersonal ? "outline" : "secondary"}>
-                          {isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[r.company_type] ?? "Cég")}
-                        </Badge>
+                        <div className="flex flex-col gap-0.5">
+                          <Link
+                            to="/customers/$id"
+                            params={{ id: r.id }}
+                            className="flex items-center gap-2 text-primary hover:underline"
+                          >
+                            <TypeIcon className="h-4 w-4 text-muted-foreground" />
+                            {r.name}
+                          </Link>
+                          <span className="text-[11px] text-muted-foreground">
+                            {isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[r.company_type] ?? "Cég")}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
-                        {r.leads > 0 ? (
-                          <span className="font-medium text-primary">{r.leads}</span>
-                        ) : (
-                          <span className="text-muted-foreground">0</span>
-                        )}
+                        {r.pipelineValue > 0
+                          ? <span className="font-medium text-foreground">{fmtHuf(r.pipelineValue)}</span>
+                          : <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="inline-flex items-center gap-1 tabular-nums">
+                          <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="font-medium">{r.activeProjects}</span>
+                          <span className="text-muted-foreground">/ {r.totalProjects}</span>
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {r.lastEmailAt ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {relativeTime(r.lastEmailAt)}
+                          </span>
+                        ) : "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {relativeTime(r.lastActivity)}
                       </TableCell>
                       <TableCell>
-                        <StatusPill status={r.status} />
+                        {r.isNew ? (
+                          <Badge className="border-[color:var(--status-info)]/40 bg-[color:var(--status-info)]/10 text-[color:var(--status-info)]">
+                            <Sparkles className="mr-1 h-3 w-3" />Új
+                          </Badge>
+                        ) : r.isReactivatable ? (
+                          <Badge className="border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]">
+                            <RotateCcw className="mr-1 h-3 w-3" />Reaktiválható
+                          </Badge>
+                        ) : r.activeProjects > 0 || r.leads > 0 ? (
+                          <Badge variant="secondary">Aktív</Badge>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
