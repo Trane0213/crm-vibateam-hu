@@ -26,7 +26,7 @@ export async function loadCompanySurfaceMap(): Promise<Map<string, CompanySurfac
     dupPairs,
     contactConflicts,
   ] = await Promise.all([
-    supabase.from("companies").select("id,name,company_type,website,domain,tax_number,city").limit(2000),
+    supabase.from("companies").select("id,name,company_type,website,tax_number").limit(2000),
     supabase.from("contacts").select("id,company_id,email,phone").limit(5000),
     supabase.from("leads").select("id,company_id,status").limit(5000),
     supabase.from("email_threads").select("id,company_id,last_message_at").limit(5000),

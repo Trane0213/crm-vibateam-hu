@@ -7,9 +7,7 @@ export type CompanyForScore = {
   name: string;
   company_type?: string | null;
   website?: string | null;
-  domain?: string | null;
   tax_number?: string | null;
-  city?: string | null;
 };
 export type ContactForScore = { email?: string | null; phone?: string | null };
 
@@ -33,20 +31,17 @@ export function computeCompanyScore(company: CompanyForScore, contacts: ContactF
 
   const items: Array<{ key: string; label: string; ok: boolean; weight: number }> = isPersonal
     ? [
-        { key: "name",          label: "Név",                    ok: !!company.name, weight: 20 },
-        { key: "city",          label: "Település",              ok: !!company.city, weight: 15 },
-        { key: "contact_email", label: "Email",                  ok: hasEmail,       weight: 30 },
-        { key: "contact_phone", label: "Telefon",                ok: hasPhone,       weight: 35 },
+        { key: "name",          label: "Név",                    ok: !!company.name, weight: 25 },
+        { key: "contact_email", label: "Email",                  ok: hasEmail,       weight: 35 },
+        { key: "contact_phone", label: "Telefon",                ok: hasPhone,       weight: 40 },
       ]
     : [
-        { key: "name",          label: "Cégnév",                 ok: !!company.name,        weight: 10 },
-        { key: "company_type",  label: "Cégforma",               ok: !!company.company_type,weight: 5  },
-        { key: "tax_number",    label: "Adószám",                ok: !!company.tax_number,  weight: 15 },
-        { key: "website",       label: "Weboldal",               ok: !!company.website,     weight: 10 },
-        { key: "domain",        label: "Email domain",           ok: !!company.domain,      weight: 10 },
-        { key: "city",          label: "Település",              ok: !!company.city,        weight: 10 },
+        { key: "name",          label: "Cégnév",                 ok: !!company.name,        weight: 15 },
+        { key: "company_type",  label: "Cégforma",               ok: !!company.company_type,weight: 10 },
+        { key: "tax_number",    label: "Adószám",                ok: !!company.tax_number,  weight: 20 },
+        { key: "website",       label: "Weboldal",               ok: !!company.website,     weight: 20 },
         { key: "contact",       label: "Kapcsolattartó",         ok: hasContact,            weight: 15 },
-        { key: "contact_email", label: "Kapcsolattartó email",   ok: hasEmail,              weight: 15 },
+        { key: "contact_email", label: "Kapcsolattartó email",   ok: hasEmail,              weight: 10 },
         { key: "contact_phone", label: "Kapcsolattartó telefon", ok: hasPhone,              weight: 10 },
       ];
 

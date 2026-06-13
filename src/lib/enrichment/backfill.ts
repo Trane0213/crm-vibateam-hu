@@ -102,12 +102,13 @@ export async function runHistoricalBackfill(
   // Domain → company map (egyszer betöltjük)
   const { data: companies } = await supabase
     .from("companies")
-    .select("id,domain")
-    .not("domain", "is", null)
+    .select("id,website")
+    .not("website", "is", null)
     .limit(5000);
   const domainMap = new Map<string, string>();
   for (const c of companies ?? []) {
-    if (c.domain && !isPublicDomain(c.domain)) domainMap.set(c.domain.toLowerCase(), c.id);
+    const d = extractDomain(c.website);
+    if (d && !isPublicDomain(d)) domainMap.set(d, c.id);
   }
 
   for (const t of threadList) {

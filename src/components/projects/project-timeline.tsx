@@ -149,15 +149,16 @@ function mapAudit(a: ActivityEntry): Ev {
   const kind: Ev["kind"] =
     a.action === "create" ? "audit_create" :
     a.action === "delete" ? "audit_delete" : "audit_update";
-  const entity = ENTITY_LABEL[a.entity_type] ?? a.entity_type;
-  const p = a.payload ?? {};
+  const d = a.details ?? {};
+  const entityType = String(d.entity_type ?? "");
+  const entity = ENTITY_LABEL[entityType] ?? entityType ?? "rekord";
+  const p = (d.payload ?? {}) as Record<string, any>;
   const summary =
-    (p as any).title ?? (p as any).name ?? (p as any).subject ??
-    (p as any).status ?? "—";
+    p.title ?? p.name ?? p.subject ?? p.status ?? "—";
   return {
     at: a.created_at,
     kind,
     title: `${entity}: ${summary}`,
-    detail: (p as any).status ?? undefined,
+    detail: p.status ?? undefined,
   };
 }

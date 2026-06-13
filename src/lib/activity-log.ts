@@ -9,11 +9,12 @@ export type ActivityAction =
   | "download";
 
 /**
- * Best-effort audit napló. Soha nem dob hibát — ha a tábla nem létezik
- * vagy nincs jogosultság, csak warningot ír a konzolra.
+ * Best-effort audit napló az élő `activities` táblába.
+ * Soha nem dob hibát — ha nincs jogosultság, csak warningot ír a konzolra.
  *
- * A `payload` jsonb-be kerül, érdemes csak rövid összefoglalót adni
- * (status mező, kulcsmezők változása, törölt rekord neve).
+ * Az `activities` séma: { id, user_id, agent_id, action, details(jsonb), created_at }.
+ * Mi a `details` jsonb-be tesszük az entity_type / entity_id / payload mezőket,
+ * mert a táblában nincs külön oszlopa ezeknek.
  */
 export async function logActivity(
   entity_type: string,
@@ -25,16 +26,18 @@ export async function logActivity(
     const { data: u } = await supabase.auth.getUser();
     const user_id = u.user?.id ?? null;
     const row: Record<string, any> = {
-      entity_type,
-      entity_id: entity_id ?? null,
       action,
-      payload: payload ?? null,
+      details: {
+        entity_type,
+        entity_id: entity_id ?? null,
+        payload: payload ?? null,
+      },
     };
     if (user_id) row.user_id = user_id;
-    const { error } = await supabase.from("activity_log").insert(row);
-    if (error) console.warn("[activity_log] insert sikertelen:", error.message);
+    const { error } = await supabase.from("activities").insert(row);
+    if (error) console.warn("[activities] insert sikertelen:", error.message);
   } catch (e: any) {
-    console.warn("[activity_log] kivétel:", e?.message ?? e);
+    console.warn("[activities] kivétel:", e?.message ?? e);
   }
 }
 
@@ -42,32 +45,36 @@ export type ActivityEntry = {
   id: string;
   created_at: string;
   user_id: string | null;
-  entity_type: string;
-  entity_id: string | null;
   action: ActivityAction;
-  payload: Record<string, any> | null;
+  details: {
+    entity_type?: string | null;
+    entity_id?: string | null;
+    payload?: Record<string, any> | null;
+  } | null;
 };
 
 /**
- * Egy projekt teljes idővonalának lekérése. A projekt saját rekordja +
- * minden hozzá tartozó entitás (quotes/tasks/emails/...) ami az
- * activity_log payloadjában project_id-t tartalmaz.
+ * Egy projekt teljes idővonalának lekérése az `activities` táblából.
+ * Mivel az entity_type / entity_id / payload a `details` jsonb-ben él,
+ * a szűrés is oda mutat (`details->>...`).
  */
 export async function fetchProjectActivity(projectId: string, limit = 200): Promise<ActivityEntry[]> {
   try {
     const { data, error } = await supabase
-      .from("activity_log")
+      .from("activities")
       .select("*")
-      .or(`and(entity_type.eq.projects,entity_id.eq.${projectId}),payload->>project_id.eq.${projectId}`)
+      .or(
+        `and(details->>entity_type.eq.projects,details->>entity_id.eq.${projectId}),details->payload->>project_id.eq.${projectId}`,
+      )
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) {
-      console.warn("[activity_log] fetch sikertelen:", error.message);
+      console.warn("[activities] fetch sikertelen:", error.message);
       return [];
     }
     return (data ?? []) as ActivityEntry[];
   } catch (e: any) {
-    console.warn("[activity_log] kivétel:", e?.message ?? e);
+    console.warn("[activities] kivétel:", e?.message ?? e);
     return [];
   }
 }

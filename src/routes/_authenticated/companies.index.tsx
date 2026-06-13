@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Building2, ExternalLink } from "lucide-react";
 import { ResourcePage } from "@/components/resource/resource-page";
@@ -15,7 +15,6 @@ export const Route = createFileRoute("/_authenticated/companies/")({
 function CompaniesIndex() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [city, setCity] = useState("");
 
   const surfaceQ = useQuery({
     queryKey: ["companies", "surface-map"],
@@ -23,24 +22,12 @@ function CompaniesIndex() {
     staleTime: 60_000,
   });
 
-  // Szűrő-opciók: a teljes lista alapján (nem a már szűrt halmazból).
-  const allRowsRef = { current: [] as any[] };
-
-  const cityOptions = useMemo(() => {
-    const set = new Set<string>();
-    for (const r of allRowsRef.current) if (r.city) set.add(r.city);
-    return [...set].sort().map((v) => ({ value: v, label: v }));
-    // a referencia mutáció miatt a memo újraszámol a setStateekre — opciók a renderelt sorokból generálódnak
-  }, [search, category, city]); // eslint-disable-line react-hooks/exhaustive-deps
-
   function filterFn(rows: any[]) {
-    allRowsRef.current = rows;
     const s = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (category && r.company_type !== category) return false;
-      if (city && (r.city ?? "") !== city) return false;
       if (!s) return true;
-      const hay = `${r.name ?? ""} ${r.website ?? ""} ${r.city ?? ""} ${r.tax_number ?? ""}`.toLowerCase();
+      const hay = `${r.name ?? ""} ${r.website ?? ""} ${r.tax_number ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
   }
@@ -63,8 +50,8 @@ function CompaniesIndex() {
         <FilterBar
           search={search}
           onSearch={setSearch}
-          searchPlaceholder="Keresés cégnév, weboldal, város, adószám…"
-          onReset={search || category || city ? () => { setSearch(""); setCategory(""); setCity(""); } : undefined}
+          searchPlaceholder="Keresés cégnév, weboldal, adószám…"
+          onReset={search || category ? () => { setSearch(""); setCategory(""); } : undefined}
         >
           <FilterSelect
             value={category}
@@ -72,19 +59,12 @@ function CompaniesIndex() {
             placeholder="Minden kategória"
             options={COMPANY_TYPE.map((c) => ({ value: c.value, label: c.label }))}
           />
-          <FilterSelect
-            value={city}
-            onChange={setCity}
-            placeholder="Minden város"
-            options={cityOptions}
-          />
         </FilterBar>
       }
       fields={[
         { name: "name", label: "Cégnév", type: "text", required: true },
         { name: "company_type", label: "Kategória", type: "select",
           options: COMPANY_TYPE.map((c) => ({ value: c.value, label: c.label })) },
-        { name: "city", label: "Város", type: "text" },
         { name: "tax_number", label: "Adószám", type: "text" },
         { name: "website", label: "Weboldal", type: "text", placeholder: "https://" },
         { name: "notes", label: "Megjegyzés", type: "textarea" },
@@ -104,7 +84,6 @@ function CompaniesIndex() {
             ? <Badge variant="secondary" className="font-normal">{COMPANY_TYPE_LABEL[r.company_type] ?? r.company_type}</Badge>
             : <span className="text-muted-foreground">—</span>,
         },
-        { key: "city", label: "Város", render: (r) => r.city || <span className="text-muted-foreground">—</span> },
         {
           key: "website", label: "Weboldal",
           render: (r) => r.website

@@ -15,9 +15,7 @@ type Company = {
   name: string;
   company_type?: string | null;
   website?: string | null;
-  domain?: string | null;
   tax_number?: string | null;
-  city?: string | null;
   notes?: string | null;
 };
 type Contact = { id: string; email?: string | null; phone?: string | null; name?: string | null };
@@ -68,9 +66,7 @@ export function CompanyHealthPanel({
     const hasPhone   = contacts.some((c) => !!c.phone);
     const items: { key: string; label: string; ok: boolean; required: boolean }[] = [
       { key: "website",   label: "Weboldal",            ok: !!company.website,     required: !isPersonal },
-      { key: "domain",    label: "Email domain",        ok: !!company.domain,      required: !isPersonal },
       { key: "tax",       label: "Adószám",             ok: !!company.tax_number,  required: !isPersonal },
-      { key: "city",      label: "Település",           ok: !!company.city,        required: true },
       { key: "contact",   label: "Kapcsolattartó",      ok: hasContact,            required: true },
       { key: "email",     label: "Kapcsolattartó email",ok: hasEmail,              required: true },
       { key: "phone",     label: "Kapcsolattartó telefon", ok: hasPhone,           required: true },
@@ -85,49 +81,18 @@ export function CompanyHealthPanel({
     const out: Suggestion[] = [];
     const contactEmail = contacts.find((c) => !!c.email)?.email ?? null;
     const emailDomain = extractDomain(contactEmail);
-    const websiteDomain = extractDomain(company.website);
 
-    // Domain
-    if (!company.domain) {
-      const d = websiteDomain ?? emailDomain;
-      if (d) {
-        out.push({
-          key: "domain",
-          label: "Email domain kitöltése",
-          source: websiteDomain ? `weboldal (${company.website})` : `kapcsolattartó email (${contactEmail})`,
-          value: d,
-          patch: { domain: d },
-        });
-      }
+    // Weboldal — a hivatalos forrás a `website` mező; domain belőle származik.
+    if (!company.website && emailDomain) {
+      out.push({
+        key: "website",
+        label: "Weboldal kitöltése",
+        source: `kapcsolattartó email (${contactEmail})`,
+        value: `https://${emailDomain}`,
+        patch: { website: `https://${emailDomain}` },
+      });
     }
-    // Website
-    if (!company.website) {
-      const d = company.domain ?? emailDomain;
-      if (d) {
-        out.push({
-          key: "website",
-          label: "Weboldal kitöltése",
-          source: company.domain ? `meglévő domain (${company.domain})` : `kapcsolattartó email (${contactEmail})`,
-          value: `https://${d}`,
-          patch: { website: `https://${d}` },
-        });
-      }
-    }
-    // Város – leadek/jegyzetek között keressünk "Település: X" mintát (Scarlet jegyzet formátum)
-    if (!company.city) {
-      const allText = [company.notes ?? "", ...leads.map((l) => `${l.summary ?? ""}\n${l.notes ?? ""}`)].join("\n");
-      const m = allText.match(/Telep[üu]l[ée]s:\s*([^\n,;]+)/i);
-      if (m?.[1]) {
-        const city = m[1].trim();
-        out.push({
-          key: "city",
-          label: "Település kitöltése",
-          source: "lead jegyzet",
-          value: city,
-          patch: { city },
-        });
-      }
-    }
+    void leads; // a lead-jegyzetes város-pótlás megszűnt (companies.city eltávolítva)
     return out;
   }, [company, contacts, leads]);
 

@@ -22,9 +22,7 @@ type Company = {
   name: string;
   company_type?: string | null;
   website?: string | null;
-  domain?: string | null;
   tax_number?: string | null;
-  city?: string | null;
 };
 
 type Contact = { id: string; email?: string | null; phone?: string | null; name?: string | null };

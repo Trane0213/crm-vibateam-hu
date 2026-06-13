@@ -14,7 +14,7 @@ export type IncompleteCompanyRow = {
 export async function scanIncompleteCompanies(limit = 200): Promise<IncompleteCompanyRow[]> {
   const { data: companies } = await supabase
     .from("companies")
-    .select("id,name,company_type,tax_number,website,domain,city")
+    .select("id,name,company_type,tax_number,website")
     .order("created_at", { ascending: false })
     .limit(1000);
   if (!companies?.length) return [];
@@ -48,7 +48,7 @@ export type CompanyDuplicatePair = {
 export async function scanCompanyDuplicatePairs(): Promise<CompanyDuplicatePair[]> {
   const { data: rows } = await supabase
     .from("companies")
-    .select("id,name,domain,tax_number")
+    .select("id,name,website,tax_number")
     .limit(1000);
   const list = rows ?? [];
   const pairs: CompanyDuplicatePair[] = [];
@@ -56,14 +56,15 @@ export async function scanCompanyDuplicatePairs(): Promise<CompanyDuplicatePair[
     const a = list[i];
     const aTax = normalizeTaxNumber(a.tax_number);
     const aNorm = normalizeCompanyName(a.name);
-    const aDom = a.domain?.toLowerCase() ?? null;
+    const aDom = extractDomain(a.website);
     for (let j = i + 1; j < list.length; j++) {
       const b = list[j];
       if (aTax && normalizeTaxNumber(b.tax_number) === aTax) {
         pairs.push({ a: { id: a.id, name: a.name }, b: { id: b.id, name: b.name }, reason: "tax_number", confidence: 1 });
         continue;
       }
-      if (aDom && b.domain && b.domain.toLowerCase() === aDom && !isPublicDomain(aDom)) {
+      const bDom = extractDomain(b.website);
+      if (aDom && bDom && bDom === aDom && !isPublicDomain(aDom)) {
         pairs.push({ a: { id: a.id, name: a.name }, b: { id: b.id, name: b.name }, reason: "domain", confidence: 0.95 });
         continue;
       }
@@ -145,14 +146,16 @@ export async function scanUnlinkedLeads(): Promise<UnlinkedLeadRow[]> {
   if (uniqueDomains.length === 0) return [];
   const { data: companies } = await supabase
     .from("companies")
-    .select("id,name,domain")
-    .in("domain", uniqueDomains);
+    .select("id,name,website")
+    .not("website", "is", null)
+    .limit(5000);
   const byDomain = new Map<string, { id: string; name: string }[]>();
   for (const c of companies ?? []) {
-    if (!c.domain) continue;
-    const arr = byDomain.get(c.domain.toLowerCase()) ?? [];
+    const d = extractDomain(c.website);
+    if (!d) continue;
+    const arr = byDomain.get(d) ?? [];
     arr.push({ id: c.id, name: c.name });
-    byDomain.set(c.domain.toLowerCase(), arr);
+    byDomain.set(d, arr);
   }
   const out: UnlinkedLeadRow[] = [];
   for (const l of leads) {
@@ -185,12 +188,13 @@ export async function scanUnlinkedThreads(): Promise<UnlinkedThreadRow[]> {
   // Az összes ismert üzleti domain-cég map.
   const { data: companies } = await supabase
     .from("companies")
-    .select("id,name,domain")
-    .not("domain", "is", null)
+    .select("id,name,website")
+    .not("website", "is", null)
     .limit(2000);
   const byDomain = new Map<string, { id: string; name: string }>();
   for (const c of companies ?? []) {
-    if (c.domain && !isPublicDomain(c.domain)) byDomain.set(c.domain.toLowerCase(), { id: c.id, name: c.name });
+    const d = extractDomain(c.website);
+    if (d && !isPublicDomain(d)) byDomain.set(d, { id: c.id, name: c.name });
   }
 
   const out: UnlinkedThreadRow[] = [];

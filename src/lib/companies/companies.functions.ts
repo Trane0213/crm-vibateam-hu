@@ -10,10 +10,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 const listInput = z.object({
   search: z.string().trim().max(200).optional().default(""),
   companyType: z.string().trim().max(64).optional().default(""),
-  city: z.string().trim().max(120).optional().default(""),
   page: z.number().int().min(1).default(1),
   pageSize: z.number().int().min(1).max(200).default(50),
-  sort: z.enum(["name", "created_at", "updated_at"]).default("name"),
+  sort: z.enum(["name", "created_at"]).default("name"),
   ascending: z.boolean().default(true),
 });
 
@@ -27,7 +26,7 @@ export const listCompanies = createServerFn({ method: "POST" })
     let q = supabase
       .from("companies")
       .select(
-        "id, name, website, city, tax_number, company_type, notes, created_at, updated_at",
+        "id, name, website, tax_number, company_type, notes, created_at",
         { count: "exact" },
       )
       .order(data.sort, { ascending: data.ascending })
@@ -35,11 +34,10 @@ export const listCompanies = createServerFn({ method: "POST" })
     if (data.search) {
       const s = `%${data.search}%`;
       q = q.or(
-        `name.ilike.${s},website.ilike.${s},city.ilike.${s},tax_number.ilike.${s}`,
+        `name.ilike.${s},website.ilike.${s},tax_number.ilike.${s}`,
       );
     }
     if (data.companyType) q = q.eq("company_type", data.companyType);
-    if (data.city) q = q.eq("city", data.city);
     const { data: rows, count, error } = await q;
     if (error) throw new Error(error.message);
     return { rows: rows ?? [], total: count ?? 0, page: data.page, pageSize: data.pageSize };
