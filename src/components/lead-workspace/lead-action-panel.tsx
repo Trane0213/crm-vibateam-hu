@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2, FileSignature } from "lucide-react";
+import { Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2, FileSignature, UserCheck, Sparkles, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
@@ -8,6 +8,7 @@ import { FollowupQuickForm } from "./followup-quick-form";
 import { AiSheet } from "./ai-sheet";
 import { useCreateLeadFollowup } from "./use-lead-mutations";
 import { QuickCreateQuoteButton } from "@/components/today/quick-create";
+import { LeadHandoffPanel } from "./lead-handoff-panel";
 import { toast } from "sonner";
 
 type Mode = "marketing" | "sales";
@@ -133,6 +134,17 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         </div>
       )}
 
+      {/* 5. Átadás értékesítőnek — csak Marketing, qualified státusznál */}
+      {mode === "marketing" && lead.data && (
+        <LeadHandoffPanel
+          lead={{
+            id: lead.data.id,
+            status: lead.data.status ?? null,
+            company_id: lead.data.company_id ?? null,
+          }}
+        />
+      )}
+
       <EmailComposer
         open={emailOpen}
         onOpenChange={setEmailOpen}
@@ -147,7 +159,7 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
 /* ─────────── Folyamat-szalag ─────────── */
 
-type StepKey = "lead" | "email" | "followup" | "ai" | "quote" | "contract";
+type StepKey = "lead" | "email" | "followup" | "ai" | "quote" | "contract" | "qualify" | "handoff";
 
 function ProcessStrip({ mode, status }: { mode: Mode; status?: string | null }) {
   const steps: { key: StepKey; label: string; icon: typeof Mail }[] =
@@ -159,18 +171,25 @@ function ProcessStrip({ mode, status }: { mode: Mode; status?: string | null }) 
           { key: "contract", label: "Szerződés", icon: FileSignature },
         ]
       : [
-          { key: "lead", label: "Lead", icon: Radar },
-          { key: "email", label: "Email", icon: Mail },
-          { key: "followup", label: "Followup", icon: CheckCircle2 },
-          { key: "ai", label: "AI", icon: Bot },
+          // Marketing: lineáris 4-lépéses minőségellenőrzés.
+          { key: "lead",    label: "Új lead",         icon: Sparkles },
+          { key: "email",   label: "Kapcsolat",       icon: Mail },
+          { key: "qualify", label: "Minősítés",       icon: Filter },
+          { key: "handoff", label: "Átadás",          icon: UserCheck },
         ];
 
-  // Egyszerű aktív lépés-becslés a lead státuszából.
+  // Aktív lépés a lead státuszából.
   const active: StepKey =
-    status === "converted" ? (mode === "sales" ? "contract" : "ai") :
-    status === "qualified" ? (mode === "sales" ? "quote" : "followup") :
-    status === "contacted" ? (mode === "sales" ? "quote" : "email") :
-    "lead";
+    mode === "sales"
+      ? (status === "converted" ? "contract"
+        : status === "qualified" ? "quote"
+        : status === "contacted" ? "quote"
+        : "lead")
+      : (status === "converted" ? "handoff"
+        : status === "qualified" ? "handoff"
+        : status === "contacted" ? "qualify"
+        : status === "lost"      ? "qualify"
+        : "lead");
 
   return (
     <div className="rounded-md border bg-muted/30 p-2">
