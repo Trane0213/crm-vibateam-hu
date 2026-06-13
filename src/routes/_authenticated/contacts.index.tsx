@@ -7,6 +7,7 @@ import {
 } from "@/components/resource/resource-page";
 import { PersonalContactDialog } from "@/components/projects/personal-contact-dialog";
 import { ContactQualityCell, ContactLinkStateCell } from "@/components/customers/contact-quality-cell";
+import { ContactConflictBadgeCell, ContactMetricCell, ContactPercentCell } from "@/components/customers/contact-crm-cells";
 
 function ContactsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -53,6 +54,10 @@ function ContactsPage() {
         },
         { key: "email", label: "E-mail" },
         { key: "phone", label: "Telefon" },
+        { key: "quality_pct", label: "Adatminőség", render: (r) => <ContactPercentCell contactId={r.id} /> },
+        { key: "active_leads", label: "Aktív leadek", render: (r) => <ContactMetricCell contactId={r.id} field="activeLeadCount" /> },
+        { key: "email_activity", label: "Email aktivitás", render: (r) => <ContactMetricCell contactId={r.id} field="emailActivityCount" /> },
+        { key: "conflict_badge", label: "Konfliktus", render: (r) => <ContactConflictBadgeCell contactId={r.id} /> },
         {
           key: "quality",
           label: "Kapcsolat állapot",
