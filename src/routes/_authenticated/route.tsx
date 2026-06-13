@@ -13,6 +13,7 @@ import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permission
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
+import { CrmNotificationsMenu } from "@/components/crm-notifications-menu";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -48,6 +49,7 @@ function AppShell() {
             <div className="flex items-center gap-2">
               <GlobalSearch />
               <QuickAddMenu />
+              <CrmNotificationsMenu />
               <UserMenu />
             </div>
           </header>

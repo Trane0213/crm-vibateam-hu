@@ -6,7 +6,9 @@ import {
   enrichContactFromExistingData,
   enrichLeadLinks,
   formatEnrichmentMessage,
+  getEnrichmentResult,
   markEnriched,
+  setEnrichmentResult,
   wasEnriched,
 } from "./enrich";
 
@@ -29,6 +31,7 @@ export function useAutoEnrich(kind: Kind, id: string | null | undefined) {
           : kind === "contact" ? enrichContactFromExistingData
           : enrichLeadLinks;
         const res = await fn(id);
+        setEnrichmentResult(kind, id, res);
         if (cancelled || !res.ok || res.changed.length === 0) return;
         toast.success(`Automatikus adatjavítás: ${formatEnrichmentMessage(res.changed)}`, {
           description: "A rendszer a meglévő adatokból kitöltötte a hiányzó mezőket.",
@@ -46,4 +49,6 @@ export function useAutoEnrich(kind: Kind, id: string | null | undefined) {
     })();
     return () => { cancelled = true; };
   }, [kind, id, qc]);
+
+  return id ? getEnrichmentResult(kind, id) : null;
 }

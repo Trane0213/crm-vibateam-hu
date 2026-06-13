@@ -52,7 +52,7 @@ function extractCity(text?: string | null): string | null {
   return city.length >= 2 && city.length <= 60 ? city : null;
 }
 
-type EnrichResult = {
+export type EnrichResult = {
   ok: boolean;
   patch: Record<string, any>;
   changed: string[];
@@ -228,15 +228,26 @@ const FIELD_LABELS: Record<string, string> = {
   email: "email",
 };
 
+export function enrichmentFieldLabel(key: string) {
+  return FIELD_LABELS[key] ?? key;
+}
+
 export function formatEnrichmentMessage(changed: string[]): string {
-  return changed.map((k) => FIELD_LABELS[k] ?? k).join(", ");
+  return changed.map((k) => enrichmentFieldLabel(k)).join(", ");
 }
 
 /** Sessionön belüli dedup: ugyanazt a rekordot nem futtatjuk újra. */
 const RAN = new Set<string>();
+const RESULTS = new Map<string, EnrichResult>();
 export function markEnriched(kind: "company" | "contact" | "lead", id: string) {
   RAN.add(`${kind}:${id}`);
 }
 export function wasEnriched(kind: "company" | "contact" | "lead", id: string) {
   return RAN.has(`${kind}:${id}`);
+}
+export function setEnrichmentResult(kind: "company" | "contact" | "lead", id: string, result: EnrichResult) {
+  RESULTS.set(`${kind}:${id}`, result);
+}
+export function getEnrichmentResult(kind: "company" | "contact" | "lead", id: string) {
+  return RESULTS.get(`${kind}:${id}`) ?? null;
 }

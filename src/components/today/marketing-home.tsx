@@ -27,6 +27,7 @@ export function MarketingHome() {
   const recentEmails = useCount("email_threads", (q) => q.gte("last_message_at", weekAgo), "week-emails");
 
   const leadsList = useList<any>("leads", { order: "created_at", ascending: false });
+  const followups = useList<any>("followups", { order: "due_date", ascending: true });
 
   // Marketing fejléc KPI-k: az élő lead-lista státuszaiból.
   const allLeads = leadsList.data ?? [];
@@ -47,6 +48,15 @@ export function MarketingHome() {
   });
   const incompleteCount = (incompleteQ.data ?? []).filter((r) => r.score.band !== "green").length;
   const duplicateCount = dupQ.data?.length ?? 0;
+  const now = new Date();
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+  const openFollowups = (followups.data ?? []).filter((f: any) => !f.completed && f.due_date);
+  const overdueFollowups = openFollowups.filter((f: any) => new Date(f.due_date) < now).length;
+  const todayFollowups = openFollowups.filter((f: any) => {
+    const due = new Date(f.due_date);
+    return due >= new Date(todayStart) && due <= todayEnd;
+  }).length;
 
   // Lead-forrás bontás (utolsó 30 nap)
   const monthLeadsList = (leadsList.data ?? []).filter((l: any) => l.created_at >= monthAgo);
@@ -87,6 +97,19 @@ export function MarketingHome() {
       {/* Rendszer figyelmeztetések — D3/D4/D5 motorok aggregálva */}
       <div className="px-6 pb-4">
         <SystemAlertsPanel />
+      </div>
+
+      <div className="px-6 pb-4">
+        <div className="rounded-lg border bg-card p-4">
+          <div className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">Mai teendők</div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            <MkHeroCard tone="danger" icon={Mail} label="Lejárt utánkövetések" value={overdueFollowups} sub="azonnali teendő" to="/followups" />
+            <MkHeroCard tone="warning" icon={Mail} label="Mai utánkövetések" value={todayFollowups} sub="mai napra ütemezve" to="/followups" />
+            <MkHeroCard tone="warning" icon={CheckCircle2} label="Átadható leadek" value={qualifiedLeads} sub="értékesítőre vár" to="/today" />
+            <MkHeroCard tone="warning" icon={ShieldCheck} label="Hiányos cégek" value={incompleteCount} sub="adatpótlás ajánlott" to="/data-quality" />
+            <MkHeroCard tone="danger" icon={Copy} label="Duplikációk" value={duplicateCount} sub="ellenőrzést kér" to="/data-quality" />
+          </div>
+        </div>
       </div>
 
       {/* Áttekintés (collapsible) */}

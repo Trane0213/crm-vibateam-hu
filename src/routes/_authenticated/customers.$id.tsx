@@ -19,6 +19,7 @@ import { COMPANY_TYPE_LABEL, PROJECT_STATUS_LABEL, ACTIVE_PROJECT_STATUSES } fro
 import { formatHuf } from "@/lib/format";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { CompanyHealthPanel } from "@/components/customers/company-health-panel";
+import { CrmHealthSummaryCard } from "@/components/customers/crm-health-summary-card";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 
@@ -198,6 +199,12 @@ function CustomerDetail() {
                 company={c}
                 contacts={contacts.data ?? []}
                 leads={leads.data ?? []}
+              />
+              <CrmHealthSummaryCard
+                company={c}
+                contacts={contacts.data ?? []}
+                leads={leads.data ?? []}
+                threads={threads.data ?? []}
               />
               {identity.data && (
                 <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs">
