@@ -52,7 +52,7 @@ import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
  */
 export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
-  const [composer, setComposer] = useState<{ to: string; subject: string } | null>(null);
+  const [composer, setComposer] = useState<{ to: string; subject: string; contactId?: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any | null>(null);
@@ -221,7 +221,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         setContactDialogOpen(true);
         return;
       case "send-email":
-        if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — ` });
+        if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — `, contactId: primary.id });
         else {
           setTab("contacts");
           setEditingContact(primary ?? null);
@@ -386,7 +386,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <Row label="Telefon" value={primary.phone ?? "—"} />
                     {primary.email && (
                       <div className="pt-2">
-                        <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — ` })}>
+                        <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — `, contactId: primary.id })}>
                           <Send className="mr-1 h-3.5 w-3.5" />Email küldése
                         </Button>
                       </div>
@@ -427,11 +427,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 setEditingContact(null);
                 setContactDialogOpen(true);
               }}
-              onEdit={(contact) => {
+              onEdit={(contact: any) => {
                 setEditingContact(contact);
                 setContactDialogOpen(true);
               }}
-              onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "" })}
+              onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "", contactId: c2.id })}
             />
           </TabsContent>
 
@@ -444,7 +444,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 oldalon vagy az alábbi gombbal indíthatod.
               </p>
               {primary?.email && (
-                <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — ` })}>
+                <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — `, contactId: primary.id })}>
                   <Send className="mr-1 h-3.5 w-3.5" />Új email
                 </Button>
               )}
@@ -514,19 +514,19 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         defaultTo={composer?.to ?? ""}
         defaultSubject={composer?.subject ?? ""}
         companyId={companyId}
-        contactId={primary?.id ?? undefined}
+        contactId={composer?.contactId}
         onSent={() => setComposer(null)}
       />
 
       <ContactDialog
         open={contactDialogOpen}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setContactDialogOpen(open);
           if (!open) setEditingContact(null);
         }}
         initial={editingContact}
         saving={saveContact.isPending}
-        onSave={(data) => saveContact.mutate(data)}
+        onSave={(data: { id?: string; name: string; email: string; phone: string; position: string }) => saveContact.mutate(data)}
       />
 
       <HandoffDialog
