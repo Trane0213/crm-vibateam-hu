@@ -100,7 +100,7 @@ export function QuickCreateLeadButton({ onCreated }: { onCreated?: (row: any) =>
         defaults={{ status: "new" }}
         submitting={upsert.isPending}
         onSubmit={async (values) => {
-          const merged = { status: "new", ...values };
+          const merged: Record<string, any> = { status: "new", ...(values as Record<string, any>) };
           // Duplikáció ellenőrzés — ha van nyitott lead ugyanahhoz a céghez vagy emailhez, nyissuk meg azt.
           const dup = await findOpenLeadDuplicate({
             companyId: merged.company_id ?? null,
