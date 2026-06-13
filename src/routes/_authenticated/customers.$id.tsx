@@ -19,6 +19,7 @@ import { COMPANY_TYPE_LABEL, PROJECT_STATUS_LABEL, ACTIVE_PROJECT_STATUSES } fro
 import { formatHuf } from "@/lib/format";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { CompanyHealthPanel } from "@/components/customers/company-health-panel";
+import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/customers/$id")({
 
 function CustomerDetail() {
   const { id } = Route.useParams();
+  useAutoEnrich("company", id);
 
   const cust = useQuery({
     queryKey: ["customers", "detail", id],

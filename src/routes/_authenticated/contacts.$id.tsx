@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime, useLookup } from "@/components/resource/resource-page";
+import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   component: ContactDetail,
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/contacts/$id")({
 
 function ContactDetail() {
   const { id } = Route.useParams();
+  useAutoEnrich("contact", id);
   const companyLabel = useLookup("companies", "name");
   const q = useQuery({
     queryKey: ["contacts", "detail", id],
