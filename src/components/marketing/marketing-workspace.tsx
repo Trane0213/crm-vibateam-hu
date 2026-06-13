@@ -240,7 +240,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 isHandoff
                   ? "A cég már átadva"
                   : step.id !== "ready-handoff"
-                    ? "Nézd meg a „Következő lépés" kártyát — még hiányoznak feltételek"
+                    ? 'Nézd meg a „Következő lépés" kártyát — még hiányoznak feltételek'
                     : "Lead létrehozása és átadás a sales pipeline-nak"
               }
             >
