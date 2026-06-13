@@ -52,6 +52,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
   const [composer, setComposer] = useState<{ to: string; subject: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [tab, setTab] = useState<string>("overview");
 
   const cust = useQuery({
     queryKey: ["customers", "detail", companyId],
