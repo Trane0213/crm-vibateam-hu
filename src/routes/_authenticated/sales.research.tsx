@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, Sparkles, Loader2, ExternalLink, UserPlus, Check, ListPlus, Info } from "lucide-react";
+import { Search, Sparkles, Loader2, ExternalLink, Check, ListPlus, Info, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { logAiAction, updateAiAction } from "@/lib/ai/action-log";
+import { logAiAction } from "@/lib/ai/action-log";
 import {
   researchCompanies,
   type ResearchCompany,
@@ -30,7 +30,6 @@ import {
 type Row = ResearchCompany & {
   _score: number;
   _matched: boolean;
-  _lead_id?: string;
   /** Igaz, ha a sor cégét hozzáadtuk a kampánylistához (companies.company_type='potencialis'). */
   _in_campaign?: boolean;
   /** A létrejött/talált companies.id, ha kampánylistára került. */
