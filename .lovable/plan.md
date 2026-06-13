@@ -1,104 +1,120 @@
 
-# Backend-first refaktor terv
+# Scarlet Kampány → CRM workflow terv
 
-## Cél
-Minden frontend-oldali Supabase lekérdezés és üzleti számítás átkerül a backendre. UI csak megjelenítés és események. Séma: **csak bővítés**, semmi DROP.
+Cél: a "Kampány" gomb valódi CRM-rekordokat hozzon létre (cég + opcionális kontakt), **de ne** generáljon leadet vagy sales-pipeline elemet. A jelenlegi localStorage shortlist megszűnik, helyette egy valós nézet jön létre.
 
-## Jelenlegi állapot (audit)
-- **39 frontend fájl** hívja közvetlenül `supabase.from(...)`-t (route-ok, komponensek, hookok).
-- **13 server fájl** már létezik (`*.functions.ts`, `*.server.ts`) — Gmail sync, AI, R2, enrichment részben.
-- Üzleti motorok már kész: enrichment, dedupe, company health, data quality, lead quality, handoff, marketing KPI, identity, backfill, lead workspace — ezek **nem íródnak újra**, csak server-fn wrapperbe kerülnek.
+Megkötés: **nincs új tábla, nincs új oszlop, nincs új view, nincs migration**. Sales gombhoz nem nyúlunk.
 
-## Hatókör — mit jelent „teljes frontend logika a backendre"
+---
 
-| Réteg | Most | Cél |
+## 1. Hogyan jelöljük a "kampány" cégeket — meglévő struktúrán belül
+
+A `companies` táblának van egy `company_type` szöveges mezője, CHECK-listával:
+
+```
+generalkivitelezo, tarsashaz, kozos_kepviselo,
+beruhazo, alvallalkozo, maganszemely,
+potencialis   -- legacy, „kézzel átsorolásra vár"
+```
+
+A `potencialis` érték már létezik, jelenleg legacy célra használt ("kézzel átsorolásra vár") — szemantikailag pontosan ezt jelenti: marketing által felvett, még nem minősített cég. **Ezt használjuk fel** a kampánycégek jelölésére.
+
+Előny:
+- nincs schema-változás
+- a CHECK constraint már megengedi
+- létezik index: `idx_companies_company_type` → szűrés gyors
+- a meglévő /companies, /customers, kvalitás-számítók már kezelik
+
+Mellékhatás:
+- a legacy 2 sor `potencialis` cég innentől "kampánylistába" kerül vizuálisan — ezt elfogadjuk, hisz a legacy komment is azt mondja, kézi átsorolásra vár.
+
+Nincs szükség `source` mezőre — a marketing eredet rögzítésére a `notes` szabad-szöveg mezőbe írunk egy első sort: `Forrás: Scarlet kampány (YYYY-MM-DD)`. Ezt a sort már most is használja a Sales-flow (lásd `sales.research.tsx:195`).
+
+---
+
+## 2. Kampány gomb új viselkedése (`sales.research.tsx` → új `addToCampaign` fn)
+
+A jelenlegi `addToShortlist` localStorage-író helyére:
+
+1. **Duplikáció-ellenőrzés** ugyanaz, mint Sales-ben:
+   - `companies.name ILIKE` egyezés → ha van, csak toast: "Már szerepel a CRM-ben" (kampánylistára nem duplikáljuk)
+   - `contacts.email` egyezés → cég megvan, csak toast
+2. **Ha nincs egyezés:**
+   - `INSERT INTO companies` — `name`, `website`, `company_type = 'potencialis'`, `notes` (Forrás + város + AI indok)
+   - Ha van `email` vagy `phone`: `INSERT INTO contacts` — `name='Iroda'`, `company_id`, `email`, `phone`
+   - **NEM** hoz létre `leads` rekordot → automatikusan nem jelenik meg a /today, /leads, lead pipeline-ban, és a sales nem látja
+3. `ai_action_log` bejegyzés: `agent_type='marketing'`, `action_type='add_to_campaign'`, `executed=true`, `result={company_id, contact_id}`
+4. Sor megjelölése `_matched`-ként, toast "Megnyitás" akció a `/campaign-list` (vagy ha a cég oldal nyitható, `/customers/$id`) felé
+
+A régi shortlist State, `loadShortlist/saveShortlist/clearShortlist`, `SHORTLIST_KEY` és a fejléc "Kampánylista: N" Badge teljesen törölhető — helyettük a valós DB-számláló.
+
+---
+
+## 3. Kampánylista nézet — új route vagy szűrt /companies?
+
+Két opció, javaslat a **B**:
+
+**A) Csak szűrés a /companies-en** (`?filter=campaign`)
+- ✓ nem új route
+- ✗ a marketing user nem találja meg könnyen, a sidebar nem mutathat link-paramétert
+- ✗ keveredik a /companies normál ügyfél-nézettel
+
+**B) Új route: `/campaign-list`** (frontend-only, semmilyen új tábla)  *— javasolt*
+- A komponens egy szűrt `companies` query: `WHERE company_type = 'potencialis'`
+- Oszlopok: cégnév, kapcsolattartó név + email + telefon, létrehozás dátuma, "Forrás" (notes első sora), művelet-gombok: Megnyitás (`/customers/$id`), **Promóció Sales-re** (megnyitja a Scarlet sort vagy direkt `/sales/research` linket ad — nem hozunk létre leadet automatikusan, a Sales-promóciót a meglévő Sales gombbal kell megtenni a research lapon)
+- Permission map (`src/lib/permissions.ts`) bővítése: `/campaign-list` → `owner, project_manager, marketing`
+- Sidebar bővítés: a marketing szekcióban (`app-sidebar.tsx`) új menüpont "Kampánylista" — Scarlet alá
+
+A user kifejezetten új menüpontot kért ("Marketing → Scarlet → Kampánylista"), ezért **B opciót** javaslom.
+
+---
+
+## 4. Mellék-takarítások
+
+- A /companies és /customers fő nézetében a `company_type='potencialis'` cégeket **kiszűrjük alapból** (vagy badge-eljük), hogy a kampányba tett cégek ne keveredjenek a tényleges ügyfelekkel. Ezt kapcsolható szűrőként valósítjuk meg, default = ne mutassa.
+  - Vagy egyszerűbben: csak jelöljük badge-dzsel ("Kampány" pill) és hagyjuk a listában. Döntés a megvalósítás előtt.
+- A Scarlet (`sales.research.tsx`) megőrzi a Sales gombot változatlanul.
+
+---
+
+## 5. Érintett fájlok (kódszinten)
+
+| Fájl | Változás | Típus |
 |---|---|---|
-| Lista lekérdezések (companies, contacts, leads, emails, …) | `supabase.from()` komponensben | `createServerFn` + `useSuspenseQuery` |
-| Szűrés / rendezés / lapozás | kliens-oldal | server fn paraméter |
-| Számítások (lead score, company health, KPI) | komponensben / kliens hook | Postgres view vagy server fn |
-| Aggregátumok (dashboard, marketing KPI) | több query + JS reduce | egy RPC / view |
-| Mutációk (insert/update/delete) | `supabase.from().insert()` | `createServerFn` + Zod validáció |
-| Engedély-ellenőrzés (`has_role`, route access) | kliens guard | server fn middleware + RLS |
+| `src/routes/_authenticated/sales.research.tsx` | `addToShortlist` → `addToCampaign` mutation: companies+contacts insert, log; shortlist state, localStorage, Badge eltávolítása | UI + DB-insert |
+| `src/routes/_authenticated/campaign-list.tsx` | **új route file** — szűrt companies lista | UI-only |
+| `src/lib/permissions.ts` | ROUTE_ACCESS bővítés `/campaign-list` | config |
+| `src/components/app-sidebar.tsx` | "Kampánylista" menüpont a marketing szekcióhoz | UI |
+| (opcionális) `src/routes/_authenticated/companies.index.tsx` és `customers.index.tsx` | "Kampány" badge vagy default-filter `company_type != 'potencialis'` | UI-only |
 
-## Séma bővítések (csak ADD, semmi DROP)
+Nincs migration, nincs SQL, nincs új tábla, nincs új oszlop, nincs új view, nincs új edge function, nincs RLS-változtatás.
 
-Új objektumok migrációként, meglévő adat érintetlen:
+---
 
-1. **Views** (read-only, aggregátumok):
-   - `v_company_overview` — company + linked contacts count + linked leads count + last email date + health score
-   - `v_lead_pipeline` — lead + company + owner + score + next_action
-   - `v_email_thread_enriched` — thread + matched company + matched contact + project link
-   - `v_marketing_kpi_daily` — napi import/contact/lead/email aggregátum
-   - `v_data_quality_summary` — táblánként hiányzó mezők, orphan rekordok
-2. **RPC-k** (security definer, RLS-szel kompatibilis):
-   - `rpc_dashboard_today(user_id)` — today oldal teljes payloadja egy hívásban
-   - `rpc_company_full(company_id)` — company detail oldal (company + contacts + leads + emails + tasks + projects)
-   - `rpc_search_global(query, limit)` — global search egy hívásban minden entitásra
-   - `rpc_marketing_overview(date_from, date_to)` — marketing dashboard
-   - `rpc_recompute_lead_score(lead_id)` — lead quality számítás szerveroldalt
-3. **Nincs új tábla** az első körben. Ha kiderül hogy egy meglévő számítást érdemes anyagolni (materialized view / cache tábla), külön döntésként, S2-ben.
-
-## Server function réteg (új fájlok)
-
-`src/lib/<domain>/<domain>.functions.ts` minta, mind `createServerFn` + `requireSupabaseAuth` middleware:
+## 6. Workflow a javítás után
 
 ```
-src/lib/companies/companies.functions.ts     — list, get, create, update, archive, mergeDuplicates
-src/lib/contacts/contacts.functions.ts       — list, get, create, update, linkToCompany
-src/lib/leads/leads.functions.ts             — list, get, create, update, qualify, handoff, recomputeScore
-src/lib/emails/emails.functions.ts           — listThreads, getThread, linkThreadToCompany, linkThreadToProject
-src/lib/customers/customers.functions.ts     — list, get, create, update, healthRefresh
-src/lib/projects/projects.functions.ts       — list, get, create, update, attachEmail, attachQuote
-src/lib/quotes/quotes.functions.ts           — list, get, create, update, send
-src/lib/tasks/tasks.functions.ts             — list, get, create, update, complete
-src/lib/followups/followups.functions.ts     — list, snooze, complete
-src/lib/dashboard/dashboard.functions.ts     — today, kpis (RPC wrapperek)
-src/lib/data-quality/dq.functions.ts         — summary, fix actions
-src/lib/marketing/marketing.functions.ts     — kpi, lead-pipeline, import-batches
-src/lib/search/search.functions.ts           — global search
-src/lib/admin/admin.functions.ts             — users, roles, agent-visibility, audit
+Scarlet (AI találat)
+   │
+   ├── Kampány ──► dedupe-check
+   │                 ├── van ──► toast "Már szerepel"
+   │                 └── nincs ──► INSERT companies (company_type=potencialis)
+   │                                └─► INSERT contacts (ha van email/telefon)
+   │                                      └─► ai_action_log (add_to_campaign)
+   │                                            └─► látható: /campaign-list
+   │                                            └─► NEM látható: /today, /leads, lead pipeline
+   │
+   └── Sales ──► (változatlan, létrehoz leadet is)
 ```
 
-A meglévő motorok (`enrichment/`, `dedupe/`, `lead-workspace/`, `crm/crm-surface.ts`) **kompozícióban** kerülnek be — wrapper hívja, nem újraírás.
+A "promóció kampányból → leadbe" felhasználói művelet marad: a marketinges a `/campaign-list`-en megtalálja a céget, és a Scarlet research oldalon a `Sales` gombbal készít belőle leadet (vagy később egy "Promóció leadre" gombot adunk a kampánylista soraira — ez azonban már új művelet, **nem része ennek a sprintnek**).
 
-## Migrációs fázisok
+---
 
-### S0 (Stabilizáció — előfeltétel)
-A korábbi audit nyitott pontjai. **Nem indul el az S1, amíg ez nincs lezárva.**
-- Email backfill futtatás (0% → cél: >80% thread linkelt).
-- `email_threads.participants` populálás javítása a Gmail incremental syncben.
-- 1 orphan lead rendezése.
-- Döntés: Scarlet import → auto-lead generáljon-e.
+## Jóváhagyás kérdései
 
-### S1 — Read path (kockázat: alacsony)
-Új views + read-only `createServerFn`-ek. Frontend lista/detail oldalak átállítása `useSuspenseQuery`-re. Mutációk maradnak régiben.
-Output: 39 fájl helyett ~15 hívás-pont a server fn rétegen át.
+1. **Új route `/campaign-list`** vagy csak szűrt `/companies?filter=campaign`? (Javaslat: új route — sidebar-menüpont egyértelműsége miatt.)
+2. **`/companies` és `/customers` fő nézetében** a kampánycégeket alapból szűrjük ki, vagy csak jelöljük badge-dzsel? (Javaslat: badge — semmi sem tűnik el a meglévő nézetekből, csak címkézve van.)
+3. **`company_type='potencialis'` jelölés** elfogadható? (Egyetlen alternatíva új oszlop nélkül: csak `notes` szöveg — de az nem indexelhető és nem szűrhető megbízhatóan.)
 
-### S2 — Write path (kockázat: közepes)
-Mutációs server fn-ek Zod validációval. Frontend `supabase.from().insert/update/delete` hívások cseréje. Activity log szervert-oldali trigger.
-
-### S3 — Aggregátumok & RPC-k
-Dashboard, marketing KPI, global search egy-egy RPC-re. Frontend reduce/map logika törlése.
-
-### S4 — Computed / cache (opcionális)
-Materialized view vagy cache tábla a drága számításokra (health score, dedupe match), `pg_cron` refresh. Csak akkor, ha S3 után mérhető lassú.
-
-## Mit NEM csinálunk
-- Új UI modul / route refaktor (D9 fagyasztva).
-- Edge Function új logikára (a stack TanStack server fn, edge function csak webhook).
-- RLS lazítás. Minden új server fn `requireSupabaseAuth` middleware-rel + user-scope RLS.
-- Tábla DROP, oszlop átnevezés, FK módosítás. Csak ADD.
-
-## Technikai szabályok
-- `client.server.ts` (service role) csak `.handler()` body-ban `await import(...)` — soha module-scope.
-- Public read view-okra `GRANT SELECT` az `authenticated`-re, soha `anon`-ra.
-- Minden új view `WITH (security_invoker=on)`, hogy az RLS a hívó user nevében fusson.
-- Lista server fn-ek paraméter-shape: `{ filter, sort, page, pageSize }` Zod-validált.
-
-## Első lépés visszaigazolásra
-Megerősítést kérek:
-1. **S0 lezárása előfeltétel** (email backfill + orphan lead + participants fix) — most futtassam le?
-2. **S1 első batch**: melyik domain induljon? Javaslat: **companies + contacts** (legtöbb adat, legtöbb fájl, és a marketing/sales modul építőköve).
-3. **View-k név-prefixe** `v_` és RPC-k `rpc_` — elfogadható?
-
-Csak ezek után írok migrációt vagy fájlt.
+Implementáció csak a fenti három kérdés megválaszolása után indul.

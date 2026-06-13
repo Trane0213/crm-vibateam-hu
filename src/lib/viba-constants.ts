@@ -41,7 +41,7 @@ export const COMPANY_TYPE = [
 
 export const COMPANY_TYPE_LABEL: Record<string, string> = {
   ...Object.fromEntries(COMPANY_TYPE.map((c) => [c.value, c.label])),
-  potencialis: "Potenciális (legacy)",
+  potencialis: "Kampány",
 };
 
 export const PROJECT_CONTACT_ROLE = [

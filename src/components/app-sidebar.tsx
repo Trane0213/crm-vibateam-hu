@@ -24,6 +24,7 @@ import {
   Activity,
   ShieldCheck,
   BookOpen,
+  ListPlus,
 } from "lucide-react";
 import {
   Sidebar,
@@ -72,6 +73,7 @@ const contacts: Item[] = [
   { title: "Ügyfelek", url: "/customers", icon: Users, highlight: true },
   { title: "Cégek", url: "/companies", icon: Building2 },
   { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
+  { title: "Kampánylista", url: "/campaign-list", icon: ListPlus },
 ];
 
 const comms: Item[] = [
