@@ -18,6 +18,7 @@ import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
 import { COMPANY_TYPE_LABEL, PROJECT_STATUS_LABEL, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
 import { formatHuf } from "@/lib/format";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
+import { CompanyHealthPanel } from "@/components/customers/company-health-panel";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -194,6 +195,11 @@ function CustomerDetail() {
                 <Row label="Létrejött" value={fmtDate(c.created_at)} />
               </CardContent>
             </Card>
+            <CompanyHealthPanel
+              company={c}
+              contacts={contacts.data ?? []}
+              leads={leads.data ?? []}
+            />
             {c.notes && (
               <Card>
                 <CardHeader><CardTitle className="text-sm">Megjegyzés</CardTitle></CardHeader>
