@@ -10,6 +10,7 @@ import { useLookup, fmtDateTime } from "@/components/resource/resource-page";
 import { LEAD_STATUS_OPTIONS } from "./lead-list-column";
 import { useUpdateLead } from "./use-lead-mutations";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
+import { LeadQualityBlock } from "./lead-quality-block";
 
 export function LeadDetailColumn({
   leadId,
@@ -160,6 +161,8 @@ export function LeadDetailColumn({
             </div>
           </div>
         </section>
+
+        <LeadQualityBlock lead={l} />
 
         <section>
           <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
