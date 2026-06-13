@@ -1,120 +1,139 @@
+# Marketing Workspace — Workflow-vezérelt redesign
 
-# Scarlet Kampány → CRM workflow terv
+A jelenlegi képernyő státusz-központú: a marketinges látja a 4 státuszt és próbálja kitalálni, mit kéne tennie. Az új koncepció ezt megfordítja: **a rendszer mondja meg a következő lépést**, a státusz csak származtatott melléktermék.
 
-Cél: a "Kampány" gomb valódi CRM-rekordokat hozzon létre (cég + opcionális kontakt), **de ne** generáljon leadet vagy sales-pipeline elemet. A jelenlegi localStorage shortlist megszűnik, helyette egy valós nézet jön létre.
+## 1. Központi elem: „Next Best Action" kártya
 
-Megkötés: **nincs új tábla, nincs új oszlop, nincs új view, nincs migration**. Sales gombhoz nem nyúlunk.
+A fejléc alatt, a tabok fölött egyetlen, nagy, vizuálisan domináns kártya. Ez a képernyő szíve.
 
----
+Felépítése:
+- **Lépés címe** (pl. „Kapcsolattartó felvétele szükséges")
+- **Egy mondatos magyarázat** miért ez a következő lépés
+- **Elsődleges CTA gomb** ami pontosan oda navigál / azt a dialógust nyitja (pl. „Kapcsolattartó hozzáadása")
+- **Másodlagos link** („Miért ez a lépés?" → tooltip a feltételekkel)
+- Bal oldalon ikon + szín a lépés jellegéhez (info / warning / success)
 
-## 1. Hogyan jelöljük a "kampány" cégeket — meglévő struktúrán belül
+## 2. A workflow szabályai (determinisztikus, sorrendben kiértékelve)
 
-A `companies` táblának van egy `company_type` szöveges mezője, CHECK-listával:
+```text
+ha status === 'handoff'
+   → ÁTADVA   „Sales-nek átadva {dátum}. Lead: {link}"
+                CTA: „Lead megnyitása" (másodlagos)
 
-```
-generalkivitelezo, tarsashaz, kozos_kepviselo,
-beruhazo, alvallalkozo, maganszemely,
-potencialis   -- legacy, „kézzel átsorolásra vár"
-```
+különben ha contacts.length === 0
+   → ADAT     „Kapcsolattartó felvétele szükséges"
+                „A salesnek átadáshoz legalább egy kapcsolattartó kell."
+                CTA: „Kapcsolattartó hozzáadása" → contacts tab + new dialog
 
-A `potencialis` érték már létezik, jelenleg legacy célra használt ("kézzel átsorolásra vár") — szemantikailag pontosan ezt jelenti: marketing által felvett, még nem minősített cég. **Ezt használjuk fel** a kampánycégek jelölésére.
+különben ha primaryContact.email hiányzik
+   → ADAT     „Email cím hiányzik a kapcsolattartónál"
+                CTA: „Kapcsolattartó szerkesztése"
 
-Előny:
-- nincs schema-változás
-- a CHECK constraint már megengedi
-- létezik index: `idx_companies_company_type` → szűrés gyors
-- a meglévő /companies, /customers, kvalitás-számítók már kezelik
+különben ha threadCount === 0
+   → AKCIÓ    „Első kapcsolatfelvétel szükséges"
+                „Küldj bemutatkozó emailt {primary.name} részére."
+                CTA: „Email küldése" → composer
 
-Mellékhatás:
-- a legacy 2 sor `potencialis` cég innentől "kampánylistába" kerül vizuálisan — ezt elfogadjuk, hisz a legacy komment is azt mondja, kézi átsorolásra vár.
+különben ha status === 'new'  (van email, de még nincs minősítve)
+   → MINŐSÍTÉS „Minősítés folyamatban"
+                „Vártok válaszra? Jelöld „Kapcsolatban" állapotra, ha párbeszéd indult."
+                CTA: „Kapcsolatban" gomb (státuszváltás inline)
 
-Nincs szükség `source` mezőre — a marketing eredet rögzítésére a `notes` szabad-szöveg mezőbe írunk egy első sort: `Forrás: Scarlet kampány (YYYY-MM-DD)`. Ezt a sort már most is használja a Sales-flow (lásd `sales.research.tsx:195`).
+különben ha status === 'contacted' és !meta.salesNote
+   → ADAT     „Jegyzet a salesnek szükséges az átadáshoz"
+                „Foglald össze 2-3 mondatban a sales számára a fontos tudnivalókat."
+                CTA: „Jegyzet írása" → sales-note tab
 
----
+különben ha status === 'contacted' és meta.salesNote
+   → KÉSZ     „Átadható sales-nek"
+                „Minden adat megvan. Hozz létre leadet és add át."
+                CTA: „Saleshez átadás" (elsődleges, hangsúlyos)
 
-## 2. Kampány gomb új viselkedése (`sales.research.tsx` → új `addToCampaign` fn)
-
-A jelenlegi `addToShortlist` localStorage-író helyére:
-
-1. **Duplikáció-ellenőrzés** ugyanaz, mint Sales-ben:
-   - `companies.name ILIKE` egyezés → ha van, csak toast: "Már szerepel a CRM-ben" (kampánylistára nem duplikáljuk)
-   - `contacts.email` egyezés → cég megvan, csak toast
-2. **Ha nincs egyezés:**
-   - `INSERT INTO companies` — `name`, `website`, `company_type = 'potencialis'`, `notes` (Forrás + város + AI indok)
-   - Ha van `email` vagy `phone`: `INSERT INTO contacts` — `name='Iroda'`, `company_id`, `email`, `phone`
-   - **NEM** hoz létre `leads` rekordot → automatikusan nem jelenik meg a /today, /leads, lead pipeline-ban, és a sales nem látja
-3. `ai_action_log` bejegyzés: `agent_type='marketing'`, `action_type='add_to_campaign'`, `executed=true`, `result={company_id, contact_id}`
-4. Sor megjelölése `_matched`-ként, toast "Megnyitás" akció a `/campaign-list` (vagy ha a cég oldal nyitható, `/customers/$id`) felé
-
-A régi shortlist State, `loadShortlist/saveShortlist/clearShortlist`, `SHORTLIST_KEY` és a fejléc "Kampánylista: N" Badge teljesen törölhető — helyettük a valós DB-számláló.
-
----
-
-## 3. Kampánylista nézet — új route vagy szűrt /companies?
-
-Két opció, javaslat a **B**:
-
-**A) Csak szűrés a /companies-en** (`?filter=campaign`)
-- ✓ nem új route
-- ✗ a marketing user nem találja meg könnyen, a sidebar nem mutathat link-paramétert
-- ✗ keveredik a /companies normál ügyfél-nézettel
-
-**B) Új route: `/campaign-list`** (frontend-only, semmilyen új tábla)  *— javasolt*
-- A komponens egy szűrt `companies` query: `WHERE company_type = 'potencialis'`
-- Oszlopok: cégnév, kapcsolattartó név + email + telefon, létrehozás dátuma, "Forrás" (notes első sora), művelet-gombok: Megnyitás (`/customers/$id`), **Promóció Sales-re** (megnyitja a Scarlet sort vagy direkt `/sales/research` linket ad — nem hozunk létre leadet automatikusan, a Sales-promóciót a meglévő Sales gombbal kell megtenni a research lapon)
-- Permission map (`src/lib/permissions.ts`) bővítése: `/campaign-list` → `owner, project_manager, marketing`
-- Sidebar bővítés: a marketing szekcióban (`app-sidebar.tsx`) új menüpont "Kampánylista" — Scarlet alá
-
-A user kifejezetten új menüpontot kért ("Marketing → Scarlet → Kampánylista"), ezért **B opciót** javaslom.
-
----
-
-## 4. Mellék-takarítások
-
-- A /companies és /customers fő nézetében a `company_type='potencialis'` cégeket **kiszűrjük alapból** (vagy badge-eljük), hogy a kampányba tett cégek ne keveredjenek a tényleges ügyfelekkel. Ezt kapcsolható szűrőként valósítjuk meg, default = ne mutassa.
-  - Vagy egyszerűbben: csak jelöljük badge-dzsel ("Kampány" pill) és hagyjuk a listában. Döntés a megvalósítás előtt.
-- A Scarlet (`sales.research.tsx`) megőrzi a Sales gombot változatlanul.
-
----
-
-## 5. Érintett fájlok (kódszinten)
-
-| Fájl | Változás | Típus |
-|---|---|---|
-| `src/routes/_authenticated/sales.research.tsx` | `addToShortlist` → `addToCampaign` mutation: companies+contacts insert, log; shortlist state, localStorage, Badge eltávolítása | UI + DB-insert |
-| `src/routes/_authenticated/campaign-list.tsx` | **új route file** — szűrt companies lista | UI-only |
-| `src/lib/permissions.ts` | ROUTE_ACCESS bővítés `/campaign-list` | config |
-| `src/components/app-sidebar.tsx` | "Kampánylista" menüpont a marketing szekcióhoz | UI |
-| (opcionális) `src/routes/_authenticated/companies.index.tsx` és `customers.index.tsx` | "Kampány" badge vagy default-filter `company_type != 'potencialis'` | UI-only |
-
-Nincs migration, nincs SQL, nincs új tábla, nincs új oszlop, nincs új view, nincs új edge function, nincs RLS-változtatás.
-
----
-
-## 6. Workflow a javítás után
-
-```
-Scarlet (AI találat)
-   │
-   ├── Kampány ──► dedupe-check
-   │                 ├── van ──► toast "Már szerepel"
-   │                 └── nincs ──► INSERT companies (company_type=potencialis)
-   │                                └─► INSERT contacts (ha van email/telefon)
-   │                                      └─► ai_action_log (add_to_campaign)
-   │                                            └─► látható: /campaign-list
-   │                                            └─► NEM látható: /today, /leads, lead pipeline
-   │
-   └── Sales ──► (változatlan, létrehoz leadet is)
+különben (status === 'qualified')
+   → KÉSZ     „Átadható sales-nek"
+                CTA: „Saleshez átadás"
 ```
 
-A "promóció kampányból → leadbe" felhasználói művelet marad: a marketinges a `/campaign-list`-en megtalálja a céget, és a Scarlet research oldalon a `Sales` gombbal készít belőle leadet (vagy később egy "Promóció leadre" gombot adunk a kampánylista soraira — ez azonban már új művelet, **nem része ennek a sprintnek**).
+## 3. „Mi hiányzik az átadáshoz?" checklist panel
 
----
+A Next Best Action kártya alatt egy kompakt csekklista, ami **vizuálisan megmutatja, hol tart a folyamat**. Minden tételnél: ikon (✓ teljesült / ○ hátralévő), címke, kis link a javításhoz.
 
-## Jóváhagyás kérdései
+```text
+✓  Cég adatok kitöltve
+✓  Kapcsolattartó felvéve  (2)
+○  Email cím a kapcsolattartónál         [Szerkesztés]
+○  Első emailt küldve                    [Email küldése]
+○  Jegyzet sales-nek                     [Megírom]
+○  Saleshez átadva
+```
 
-1. **Új route `/campaign-list`** vagy csak szűrt `/companies?filter=campaign`? (Javaslat: új route — sidebar-menüpont egyértelműsége miatt.)
-2. **`/companies` és `/customers` fő nézetében** a kampánycégeket alapból szűrjük ki, vagy csak jelöljük badge-dzsel? (Javaslat: badge — semmi sem tűnik el a meglévő nézetekből, csak címkézve van.)
-3. **`company_type='potencialis'` jelölés** elfogadható? (Egyetlen alternatíva új oszlop nélkül: csak `notes` szöveg — de az nem indexelhető és nem szűrhető megbízhatóan.)
+Ez egyszerre **progress bar és teendőlista** — a marketinges egy pillantással látja a teljes minősítési útvonalat.
 
-Implementáció csak a fenti három kérdés megválaszolása után indul.
+## 4. Státusz lefokozása
+
+A jelenlegi 4 színes státuszgomb a fejlécben **eltűnik mint elsődleges UI**. Helyettük:
+- A státusz badge marad a fejlécben (informatív címke, nem akció).
+- A státuszváltás **csak az adott lépés CTA-jából** történik (pl. „Megjelölés: Kapcsolatban").
+- Egy „Részletek" linkben elérhető marad a kézi státuszváltás haladóknak (`Override státusz`), de alapból rejtett — ne ez legyen a fő interakció.
+
+## 5. Az „Átadás" gomb viselkedése
+
+Jelenleg: tiltva, ha nincs kapcsolattartó, tooltip elmagyarázza.
+Új: a gomb **mindig látható ugyanott** (fejléc jobb felső), de:
+- ha nem teljesülnek a feltételek → **disabled + a Next Best Action kártya megmondja, mi hiányzik**;
+- ha teljesülnek → **enabled, pulse-effect**, és a Next Best Action is ugyanezt javasolja.
+Így a két elem (kártya + gomb) sosem mond ellent egymásnak.
+
+## 6. Státuszváltás visszajelzése
+
+Jelenleg: toast „Státusz: Kapcsolatban", ennyi.
+Új:
+- Toast marad.
+- A Next Best Action kártya **azonnal újraszámol** és új lépést mutat (pl. „Most már írj jegyzetet sales-nek").
+- Az „Idővonal" tabon kis bejegyzés jelenik meg (`Marketinges → státusz: Kapcsolatban, {időpont}`) — már most is van timeline, ezt használjuk.
+
+## 7. Vizuális prioritáshierarchia (új layout)
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│  Cég neve · típus · státusz badge       [Saleshez átadás]│   ← fejléc (visszafogottabb)
+│  email · telefon · web                                   │
+├─────────────────────────────────────────────────────────┤
+│  ┌──────────────────────────────────────────────────┐   │
+│  │ 🟡  KÖVETKEZŐ LÉPÉS                              │   │   ← NBA kártya (domináns)
+│  │     Első kapcsolatfelvétel szükséges             │   │
+│  │     Küldj bemutatkozó emailt Kovács Anna részére.│   │
+│  │     [ Email küldése ]    Miért ez a lépés? ⓘ     │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                          │
+│  Hol tart a folyamat:  ✓✓○○○○  2/6                       │   ← progress checklist
+│   ✓ Cég adatok    ✓ Kapcsolattartó    ○ Email küldve …  │
+├─────────────────────────────────────────────────────────┤
+│  [Áttekintés] [Kapcsolattartók] [Emailek] [Dokumentumok]│   ← tabok (változatlanok)
+│  ...                                                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+A KPI mini-kártyák (Kapcsolattartók / Email szálak / Dokumentumok / Felvéve) **átkerülnek a checklist mellé** vagy az Áttekintés tabba — a fejlécben már nem versenyeznek a NBA kártyával.
+
+## 8. Technikai megvalósítás (vázlat)
+
+- Új tiszta függvény: `src/lib/marketing-workflow.ts`
+  - `computeNextStep(company, contacts, threads, meta) → NextStep`
+  - `computeChecklist(company, contacts, threads, meta) → ChecklistItem[]`
+  - Tisztán determinisztikus, unit-tesztelhető, nincs DB hívás benne.
+- Új komponens: `src/components/marketing/next-best-action.tsx`
+  - Megkapja a `NextStep`-et + callback-eket (onSendEmail, onAddContact, onWriteSalesNote, onOpenHandoff, onMarkContacted).
+- Új komponens: `src/components/marketing/workflow-checklist.tsx`
+  - Egyszerű lista a `ChecklistItem[]`-ből.
+- `marketing-workspace.tsx` átszervezése: új fejléc-blokk + NBA + checklist beillesztése a tabok fölé; státusz-gombsor eltávolítása a fejlécből (átkerül egy diszkrét „⋯ Státusz felülírása" menübe).
+- Nincs új tábla, új RPC, új migráció. Minden adat a meglévő `companies.notes` markerekből + `contacts` / `email_threads` / `company_documents` lekérdezésekből származik (már mind elérhető a komponensben).
+
+## 9. Amit ez a kör NEM tartalmaz
+
+- Új funkció (pl. emlékeztető, automatikus emailezés, AI javaslat).
+- Új státusz a marketing-status enumban.
+- Sidebar / route gating / `/customers` lista refaktor (külön audit, későbbi kör).
+- Backend / séma változás.
+
+Ha jóváhagyod, a következő körben pontosan ezt a 8 pontot vágom le egyetlen PR-ben, screenshotokkal a végén.
