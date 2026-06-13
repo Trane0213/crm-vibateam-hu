@@ -22,6 +22,7 @@ import { CompanyHealthPanel } from "@/components/customers/company-health-panel"
 import { CrmHealthSummaryCard } from "@/components/customers/crm-health-summary-card";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -30,6 +31,8 @@ export const Route = createFileRoute("/_authenticated/customers/$id")({
 function CustomerDetail() {
   const { id } = Route.useParams();
   useAutoEnrich("company", id);
+  const { role } = usePermissions();
+  const isMarketing = role === "marketing";
 
   const cust = useQuery({
     queryKey: ["customers", "detail", id],
@@ -180,15 +183,15 @@ function CustomerDetail() {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Building2 className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
-            <TabsTrigger value="projects"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Projektek ({projects.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>
+            {!isMarketing && <TabsTrigger value="projects"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Projektek ({projects.data?.length ?? 0})</TabsTrigger>}
+            {!isMarketing && <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>}
+            {!isMarketing && <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>}
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="leads"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Leadek ({leads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threads.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>
+            {!isMarketing && <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>}
+            {!isMarketing && <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>}
+            {!isMarketing && <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>}
             <TabsTrigger value="notes"><StickyNote className="mr-1.5 h-3.5 w-3.5" />Jegyzetek ({notes.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
           </TabsList>

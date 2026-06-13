@@ -81,7 +81,6 @@ function MarketingHelpPage() {
         <CardContent className="flex flex-wrap gap-2 text-sm">
           <Link to="/today" className="rounded-md border px-3 py-1.5 hover:bg-muted/40">Marketing munkafelület</Link>
           <Link to="/data-quality" className="rounded-md border px-3 py-1.5 hover:bg-muted/40">Adatminőség</Link>
-          <Link to="/leads" className="rounded-md border px-3 py-1.5 hover:bg-muted/40">Érdeklődők</Link>
           <Link to="/customers" className="rounded-md border px-3 py-1.5 hover:bg-muted/40">Ügyfelek</Link>
         </CardContent>
       </Card>

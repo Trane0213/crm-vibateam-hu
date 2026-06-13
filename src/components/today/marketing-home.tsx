@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, Radar, BookOpen, AlertCircle, Clock, Sparkles, ArrowRightCircle, Phone, ExternalLink } from "lucide-react";
+import { Mail, Radar, BookOpen, AlertCircle, Clock, Sparkles, ArrowRightCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WelcomeHeader } from "@/components/welcome-header";
@@ -160,15 +160,14 @@ export function MarketingHome() {
           <SectionHeader title="Lead pipeline" subtitle="Hol állnak a leadjeid a marketing-funnelben." />
           <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-5">
             {(["new","contacted","qualified","converted","lost"] as const).map((k) => (
-              <Link
+              <div
                 key={k}
-                to="/leads"
-                className={`rounded-lg border p-3 transition hover:brightness-105 ${STATUS_TONE[k]}`}
+                className={`rounded-lg border p-3 ${STATUS_TONE[k]}`}
               >
                 <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{STATUS_LABEL[k]}</div>
                 <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{pipeline[k]}</div>
                 <div className="mt-1 text-[11px] opacity-70">{k === "qualified" ? "értékesítőre vár" : k === "converted" ? "átadva sales-nek" : ""}</div>
-              </Link>
+              </div>
             ))}
           </div>
         </section>
@@ -220,40 +219,41 @@ function TaskColumn({
     tone === "warning" ? "text-[color:var(--status-warning)]" :
     tone === "success" ? "text-[color:var(--status-success)]" :
                          "text-[color:var(--status-info)]";
+  // Marketing role-ban a /followups és /leads route 403 — a fejlécet és a
+  // sorokat nem linkelhetjük oda. Csak az átadásra váró / új lead sorokon
+  // belüli konkrét /leads/$id és /customers/$id linkek lennének hasznosak,
+  // de a /leads/$id is tiltott marketingnek. Ezért minden link kikapcsolva,
+  // a fejléc és sorok csak megjelenítenek.
+  void to;
   return (
     <div className="bg-card p-4">
-      <Link
-        to={to as any}
-        className="group mb-2 flex items-center justify-between rounded-md px-1 py-1 -mx-1 transition hover:bg-muted/50"
-      >
+      <div className="mb-2 flex items-center justify-between rounded-md px-1 py-1 -mx-1">
         <div className={`flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider ${toneText}`}>
           <Icon className="h-3.5 w-3.5" />
           <span>{title}</span>
-          <ArrowRightCircle className="h-3 w-3 opacity-0 transition group-hover:opacity-100" />
         </div>
         <Badge variant="outline" className={`tabular-nums ${count > 0 ? `border-current ${toneText}` : ""}`}>{count}</Badge>
-      </Link>
+      </div>
       {items.length === 0 ? (
         <p className="text-xs text-muted-foreground">{empty}</p>
       ) : (
         <ul className="space-y-1.5">
           {items.map((it) => (
             <li key={it.key}>
-              <Link to={it.to as any} className="group flex items-start gap-2 rounded-md border bg-background px-2 py-1.5 text-xs hover:bg-muted/50">
+              <div className="flex items-start gap-2 rounded-md border bg-background px-2 py-1.5 text-xs">
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{it.primary}</div>
                   <div className="truncate text-[11px] text-muted-foreground">{it.secondary}</div>
                 </div>
-                <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-0 transition group-hover:opacity-60" />
-              </Link>
+              </div>
             </li>
           ))}
         </ul>
       )}
       {count > items.length && (
-        <Link to={to as any} className="mt-2 inline-flex text-[11px] text-primary hover:underline">
-          További {count - items.length} megnyitása →
-        </Link>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          + még {count - items.length} elem
+        </p>
       )}
     </div>
   );

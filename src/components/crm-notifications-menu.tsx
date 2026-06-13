@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useCount } from "@/lib/db-hooks";
 import { useQualityOverview } from "@/lib/dedupe/use-quality-overview";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export function CrmNotificationsMenu() {
+  const { role } = usePermissions();
+  const isMarketing = role === "marketing";
   const nowIso = new Date().toISOString();
   const overdueFollowups = useCount(
     "followups",
@@ -26,7 +29,10 @@ export function CrmNotificationsMenu() {
   );
   const overview = useQualityOverview();
 
-  const urgent = (overdueFollowups.data ?? 0) + (transferableLeads.data ?? 0);
+  // Marketing nem fér hozzá a /followups oldalhoz, ezért az ehhez tartozó
+  // sor és számláló elrejtésre kerül (403-as link elkerülése).
+  const overdueCount = isMarketing ? 0 : (overdueFollowups.data ?? 0);
+  const urgent = overdueCount + (transferableLeads.data ?? 0);
   const warnings =
     overview.counts.incompleteCompanies +
     overview.counts.companyDuplicates +
@@ -62,7 +68,9 @@ export function CrmNotificationsMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        <NotificationLink to="/followups" icon={AlertTriangle} tone="danger" label="Lejárt utánkövetések" count={overdueFollowups.data ?? 0} />
+        {!isMarketing && (
+          <NotificationLink to="/followups" icon={AlertTriangle} tone="danger" label="Lejárt utánkövetések" count={overdueFollowups.data ?? 0} />
+        )}
         <NotificationLink to="/today" icon={Sparkles} tone="warning" label="Átadható leadek" count={transferableLeads.data ?? 0} />
         <NotificationLink to="/data-quality" icon={ShieldCheck} tone="warning" label="Hiányos cégek" count={overview.counts.incompleteCompanies} />
         <NotificationLink to="/data-quality" icon={Copy} tone="warning" label="Duplikációk" count={overview.counts.companyDuplicates} />

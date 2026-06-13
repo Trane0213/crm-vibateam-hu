@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ShieldCheck, Copy, AlertTriangle, Link2, Mail, Loader2 } from "lucide-react";
+import { ShieldCheck, Copy, AlertTriangle, Link2, Mail, Loader2, Wand2, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -173,9 +173,25 @@ function IncompleteCompaniesTable({ q }: { q: ReturnType<typeof useQuery<any>> }
                 </td>
                 <td className="px-3 py-2 text-xs text-muted-foreground">{r.score.missing.join(", ") || "—"}</td>
                 <td className="px-3 py-2 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button size="sm" variant="secondary" disabled={fix.isPending} onClick={() => fix.mutate(r.id)}>Javítás</Button>
-                    <Link to="/customers/$id" params={{ id: r.id }} className="text-xs text-primary hover:underline">Megnyitás →</Link>
+                  <div className="flex items-center justify-end gap-3">
+                    <Button
+                      size="sm"
+                      disabled={fix.isPending}
+                      onClick={() => fix.mutate(r.id)}
+                      title="Automatikus mező-kitöltés meglévő adatokból (helyben fut)"
+                    >
+                      {fix.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
+                      Javítás
+                    </Button>
+                    <Link
+                      to="/customers/$id"
+                      params={{ id: r.id }}
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary hover:underline"
+                      title="Ügyfél adatlap megnyitása"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Megnyitás
+                    </Link>
                   </div>
                 </td>
               </tr>
