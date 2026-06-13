@@ -1,186 +1,192 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, Radar, BookOpen, AlertCircle, Clock, Sparkles, ArrowRightCircle, Phone } from "lucide-react";
+import { Mail, Radar, BookOpen, ListPlus, Building2, ArrowRightCircle, Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { QuickActions } from "@/components/today/today-shell";
-import { useList } from "@/lib/db-hooks";
-import { QuickCreateLeadButton } from "@/components/today/quick-create";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
+  readMarketingMeta, type MarketingStatus,
+} from "@/lib/marketing-status";
 
 const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
 const isoWeekAgo = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
 const isoMonthAgo = () => { const d = new Date(); d.setDate(d.getDate()-30); return d.toISOString(); };
-
-const STATUS_LABEL: Record<string, string> = {
-  new: "Új",
-  contacted: "Kapcsolatfelvétel",
-  qualified: "Minősítés / átadható",
-  converted: "Átadott",
-  lost: "Elveszett",
-};
-
-const STATUS_TONE: Record<string, string> = {
-  new:        "border-[color:var(--status-info)]/40    bg-[color:var(--status-info)]/5    text-[color:var(--status-info)]",
-  contacted:  "border-primary/40                       bg-primary/5                       text-primary",
-  qualified:  "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/5 text-[color:var(--status-warning)]",
-  converted:  "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5 text-[color:var(--status-success)]",
-  lost:       "border-muted-foreground/30              bg-muted/30                        text-muted-foreground",
-};
 
 export function MarketingHome() {
   const todayStart = isoStartOfDay();
   const weekAgo = isoWeekAgo();
   const monthAgo = isoMonthAgo();
 
-  const leadsQ    = useList<any>("leads",      { order: "created_at", ascending: false });
-  const followupsQ = useList<any>("followups", { order: "due_date",   ascending: true  });
-  const emailsQ   = useList<any>("email_threads", { order: "last_message_at", ascending: false });
-
-  const leads = leadsQ.data ?? [];
-  const followups = followupsQ.data ?? [];
-  const emails = emailsQ.data ?? [];
-
-  const now = new Date();
-  const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
-
-  // ───────── Mai feladatok ─────────
-  const openFollowups = followups.filter((f: any) => !f.completed && f.due_date);
-  const overdue = openFollowups.filter((f: any) => new Date(f.due_date) < now);
-  const dueToday = openFollowups.filter((f: any) => {
-    const d = new Date(f.due_date); return d >= now && d <= todayEnd;
+  // A marketing kizárólag a `companies` (company_type='potencialis') és a
+  // `email_threads` adattal dolgozik. A leadek itt SOHA nem jelennek meg —
+  // azokat a sales pipeline tartalmazza.
+  const companiesQ = useQuery({
+    queryKey: ["mkt-home", "potencialis-companies"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id,name,notes,created_at")
+        .eq("company_type", "potencialis")
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data ?? []) as { id: string; name: string; notes: string | null; created_at: string }[];
+    },
   });
-  const newLeadsToday = leads.filter((l: any) => l.created_at >= todayStart);
-  const handoffReady = leads.filter((l: any) => l.status === "qualified");
 
-  // ───────── Pipeline ─────────
-  const pipeline = {
-    new:        leads.filter((l: any) => l.status === "new").length,
-    contacted:  leads.filter((l: any) => l.status === "contacted").length,
-    qualified:  leads.filter((l: any) => l.status === "qualified").length,
-    converted:  leads.filter((l: any) => l.status === "converted").length,
-    lost:       leads.filter((l: any) => l.status === "lost").length,
+  const threadsQ = useQuery({
+    queryKey: ["mkt-home", "recent-threads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_threads")
+        .select("id,subject,company_id,participants,message_count,last_message_at")
+        .gte("last_message_at", monthAgo)
+        .order("last_message_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  const companies = companiesQ.data ?? [];
+  const threads   = threadsQ.data ?? [];
+
+  // Marketing státusz dekorálás a notes-ból.
+  const decorated = companies.map((c) => ({ ...c, meta: readMarketingMeta(c.notes) }));
+  const byStatus = (s: MarketingStatus) => decorated.filter((c) => c.meta.status === s);
+
+  const pipeline: Record<MarketingStatus, number> = {
+    new:       byStatus("new").length,
+    contacted: byStatus("contacted").length,
+    qualified: byStatus("qualified").length,
+    handoff:   byStatus("handoff").length,
   };
 
-  // ───────── Marketing teljesítmény ─────────
-  const newLeads7  = leads.filter((l: any) => l.created_at >= weekAgo).length;
-  const newLeads30 = leads.filter((l: any) => l.created_at >= monthAgo).length;
-  const handoffRate30 = (() => {
-    const last30 = leads.filter((l: any) => l.created_at >= monthAgo);
-    if (last30.length === 0) return 0;
-    const handed = last30.filter((l: any) => l.status === "converted" || l.status === "qualified").length;
-    return Math.round((handed / last30.length) * 100);
-  })();
-  const emails7 = emails.filter((e: any) => e.last_message_at >= weekAgo).length;
-  const repliedRate7 = (() => {
-    const recent = emails.filter((e: any) => e.last_message_at >= weekAgo);
+  const qualified  = byStatus("qualified");
+  const newToday   = decorated.filter((c) => c.created_at >= todayStart && c.meta.status !== "handoff");
+  const handoffToday = decorated.filter(
+    (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= todayStart.slice(0, 10),
+  );
+
+  const newCompanies7  = decorated.filter((c) => c.created_at >= weekAgo).length;
+  const newCompanies30 = decorated.filter((c) => c.created_at >= monthAgo).length;
+  const handoff30 = decorated.filter(
+    (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= monthAgo.slice(0, 10),
+  ).length;
+  const handoffRate30 = newCompanies30 > 0 ? Math.round((handoff30 / newCompanies30) * 100) : 0;
+  const emails7 = threads.filter((t: any) => t.last_message_at >= weekAgo).length;
+  const replied7 = (() => {
+    const recent = threads.filter((t: any) => t.last_message_at >= weekAgo);
     if (recent.length === 0) return 0;
-    const replied = recent.filter((e: any) => (e.message_count ?? 1) > 1).length;
-    return Math.round((replied / recent.length) * 100);
+    const r = recent.filter((t: any) => (t.message_count ?? 1) > 1).length;
+    return Math.round((r / recent.length) * 100);
   })();
 
-  const loading = leadsQ.isLoading || followupsQ.isLoading;
+  const loading = companiesQ.isLoading || threadsQ.isLoading;
 
   return (
     <div className="flex flex-col">
-      <WelcomeHeader subtitle="A mai napod egy képernyőn — mit kell csinálni, kit kell hívni, mi az átadható." />
+      <WelcomeHeader subtitle="Marketing minősítés egy képernyőn — kampánycégek, email aktivitás, sales-átadás." />
 
       <QuickActions>
-        <QuickCreateLeadButton />
+        <Button size="sm" variant="default" asChild><Link to="/campaign-list"><ListPlus className="mr-1 h-3.5 w-3.5" />Kampánylista</Link></Button>
         <Button size="sm" variant="secondary" asChild><Link to="/emails"><Mail className="mr-1 h-3.5 w-3.5" />Levelek</Link></Button>
         <Button size="sm" variant="outline" asChild><Link to="/sales/research"><Radar className="mr-1 h-3.5 w-3.5" />Scarlet research</Link></Button>
         <Button size="sm" variant="ghost" asChild><Link to="/help/marketing"><BookOpen className="mr-1 h-3.5 w-3.5" />Marketing súgó</Link></Button>
       </QuickActions>
 
       <div className="space-y-4 p-6 pt-3">
-        {/* ───────── 1. Mai feladatok ───────── */}
+        {/* ───────── 1. Marketing minősítési pipeline ───────── */}
         <section className="rounded-lg border bg-card">
-          <SectionHeader title="Mai feladatok" subtitle="Mit kell ma elintézned. Kattints a sorra a részletekért." />
-          <div className="grid gap-px bg-border md:grid-cols-2 xl:grid-cols-4">
-            <TaskColumn
-              tone="danger"
-              icon={AlertCircle}
-              title="Lejárt utánkövetések"
-              count={overdue.length}
-              to="/followups"
-              empty="Nincs lejárt teendő."
-              items={overdue.slice(0, 5).map((f: any) => ({
-                key: f.id,
-                primary: f.title ?? f.kind ?? "Utánkövetés",
-                secondary: `Esedékes: ${fmtDate(f.due_date)}`,
-                to: f.lead_id ? `/leads/${f.lead_id}` : "/followups",
-              }))}
-            />
-            <TaskColumn
-              tone="warning"
-              icon={Clock}
-              title="Ma esedékes"
-              count={dueToday.length}
-              to="/followups"
-              empty="Mára nincs ütemezve teendő."
-              items={dueToday.slice(0, 5).map((f: any) => ({
-                key: f.id,
-                primary: f.title ?? f.kind ?? "Utánkövetés",
-                secondary: `Ma: ${fmtTime(f.due_date)}`,
-                to: f.lead_id ? `/leads/${f.lead_id}` : "/followups",
-              }))}
-            />
-            <TaskColumn
-              tone="success"
-              icon={ArrowRightCircle}
-              title="Átadásra váró leadek"
-              count={handoffReady.length}
-              to="/leads"
-              empty="Nincs átadásra váró lead."
-              items={handoffReady.slice(0, 5).map((l: any) => ({
-                key: l.id,
-                primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
-                secondary: l.source ?? "—",
-                to: `/leads/${l.id}`,
-              }))}
-            />
-            <TaskColumn
-              tone="info"
-              icon={Sparkles}
-              title="Új érdeklődők (ma)"
-              count={newLeadsToday.length}
-              to="/leads"
-              empty="Ma még nem érkezett új lead."
-              items={newLeadsToday.slice(0, 5).map((l: any) => ({
-                key: l.id,
-                primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
-                secondary: [l.source, l.email].filter(Boolean).join(" · ") || "—",
-                to: `/leads/${l.id}`,
-              }))}
-            />
-          </div>
-        </section>
-
-        {/* ───────── 2. Lead pipeline ───────── */}
-        <section className="rounded-lg border bg-card">
-          <SectionHeader title="Lead pipeline" subtitle="Hol állnak a leadjeid a marketing-funnelben." />
-          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-5">
-            {(["new","contacted","qualified","converted","lost"] as const).map((k) => (
+          <SectionHeader title="Marketing pipeline"
+            subtitle="Cégek állapota a kampánylistán. Lead csak manuális átadásból jön létre." />
+          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4">
+            {(["new","contacted","qualified","handoff"] as const).map((k) => (
               <div
                 key={k}
-                className={`rounded-lg border p-3 ${STATUS_TONE[k]}`}
+                className={`rounded-lg border p-3 ${MARKETING_STATUS_TONE[k]}`}
               >
-                <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{STATUS_LABEL[k]}</div>
+                <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{MARKETING_STATUS_LABEL[k]}</div>
                 <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{pipeline[k]}</div>
-                <div className="mt-1 text-[11px] opacity-70">{k === "qualified" ? "értékesítőre vár" : k === "converted" ? "átadva sales-nek" : ""}</div>
+                <div className="mt-1 text-[11px] opacity-70">
+                  {k === "qualified" ? "átadásra vár" : k === "handoff" ? "sales pipeline-ban" : ""}
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* ───────── 3. Marketing teljesítmény ───────── */}
+        {/* ───────── 2. Mai cselekvési listák ───────── */}
+        <section className="rounded-lg border bg-card">
+          <SectionHeader title="Mai prioritás" subtitle="Kattints egy sorra a marketing munkafelületre." />
+          <div className="grid gap-px bg-border md:grid-cols-3">
+            <CompanyColumn
+              tone="success"
+              icon={ArrowRightCircle}
+              title="Átadásra váró cégek"
+              count={qualified.length}
+              empty="Nincs minősített cég átadásra."
+              items={qualified.slice(0, 6)}
+            />
+            <CompanyColumn
+              tone="info"
+              icon={Sparkles}
+              title="Új cégek (ma)"
+              count={newToday.length}
+              empty="Ma még nem került fel új cég."
+              items={newToday.slice(0, 6)}
+            />
+            <CompanyColumn
+              tone="success"
+              icon={Building2}
+              title="Ma átadva"
+              count={handoffToday.length}
+              empty="Ma még nem adtál át céget."
+              items={handoffToday.slice(0, 6)}
+            />
+          </div>
+        </section>
+
+        {/* ───────── 3. Email aktivitás ───────── */}
+        <section className="rounded-lg border bg-card">
+          <SectionHeader title="Friss email szálak" subtitle="Az utolsó 30 nap aktív szálai." />
+          <div className="p-4">
+            {threads.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nincs email az elmúlt 30 napban.</p>
+            ) : (
+              <ul className="divide-y">
+                {threads.slice(0, 8).map((t: any) => (
+                  <li key={t.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                    <Link
+                      to="/emails/$threadId" params={{ threadId: t.id }}
+                      className="min-w-0 flex-1 truncate text-primary hover:underline"
+                    >
+                      <Mail className="mr-1 inline h-3.5 w-3.5 align-text-bottom text-muted-foreground" />
+                      {t.subject ?? "(nincs tárgy)"}
+                    </Link>
+                    <span className="hidden truncate text-xs text-muted-foreground sm:inline">
+                      {(t.participants ?? []).slice(0, 2).join(", ")}
+                    </span>
+                    <span className="whitespace-nowrap text-xs text-muted-foreground">{fmtDate(t.last_message_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+
+        {/* ───────── 4. Marketing teljesítmény ───────── */}
         <section className="rounded-lg border bg-card">
           <SectionHeader title="Marketing teljesítmény" subtitle="Heti és havi mérőszámok." />
           <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
-            <PerfTile label="Új lead · 7 nap"  value={newLeads7} />
-            <PerfTile label="Új lead · 30 nap" value={newLeads30} />
-            <PerfTile label="Átadási arány · 30 nap" value={`${handoffRate30}%`} sub="qualified + converted" />
+            <PerfTile label="Új cég · 7 nap"  value={newCompanies7} />
+            <PerfTile label="Új cég · 30 nap" value={newCompanies30} />
+            <PerfTile label="Átadási arány · 30 nap" value={`${handoffRate30}%`} sub="átadott / új cég" />
             <PerfTile label="Email aktivitás · 7 nap" value={emails7} sub="aktív szál" />
-            <PerfTile label="Válaszadási arány · 7 nap" value={`${repliedRate7}%`} sub="szálban >1 üzenet" />
+            <PerfTile label="Válaszadási arány · 7 nap" value={`${replied7}%`} sub="szálban >1 üzenet" />
           </div>
         </section>
 
@@ -203,28 +209,21 @@ function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }
   );
 }
 
-function TaskColumn({
-  tone, icon: Icon, title, count, to, empty, items,
+function CompanyColumn({
+  tone, icon: Icon, title, count, empty, items,
 }: {
   tone: "danger" | "warning" | "info" | "success";
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   count: number;
-  to: string;
   empty: string;
-  items: { key: string; primary: string; secondary: string; to: string }[];
+  items: { id: string; name: string; meta: { status: MarketingStatus; statusDate: string | null } }[];
 }) {
   const toneText =
     tone === "danger"  ? "text-destructive" :
     tone === "warning" ? "text-[color:var(--status-warning)]" :
     tone === "success" ? "text-[color:var(--status-success)]" :
                          "text-[color:var(--status-info)]";
-  // Marketing role-ban a /followups és /leads route 403 — a fejlécet és a
-  // sorokat nem linkelhetjük oda. Csak az átadásra váró / új lead sorokon
-  // belüli konkrét /leads/$id és /customers/$id linkek lennének hasznosak,
-  // de a /leads/$id is tiltott marketingnek. Ezért minden link kikapcsolva,
-  // a fejléc és sorok csak megjelenítenek.
-  void to;
   return (
     <div className="bg-card p-4">
       <div className="mb-2 flex items-center justify-between rounded-md px-1 py-1 -mx-1">
@@ -239,13 +238,18 @@ function TaskColumn({
       ) : (
         <ul className="space-y-1.5">
           {items.map((it) => (
-            <li key={it.key}>
-              <div className="flex items-start gap-2 rounded-md border bg-background px-2 py-1.5 text-xs">
+            <li key={it.id}>
+              <Link to="/customers/$id" params={{ id: it.id }}
+                    className="flex items-start gap-2 rounded-md border bg-background px-2 py-1.5 text-xs hover:bg-muted/40">
+                <Building2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-medium">{it.primary}</div>
-                  <div className="truncate text-[11px] text-muted-foreground">{it.secondary}</div>
+                  <div className="truncate font-medium">{it.name}</div>
+                  <div className="truncate text-[11px] text-muted-foreground">
+                    {MARKETING_STATUS_LABEL[it.meta.status]}
+                    {it.meta.statusDate && ` · ${it.meta.statusDate}`}
+                  </div>
                 </div>
-              </div>
+              </Link>
             </li>
           ))}
         </ul>
@@ -274,10 +278,8 @@ function fmtDate(iso?: string) {
   const d = new Date(iso);
   return d.toLocaleDateString("hu-HU", { month: "short", day: "numeric" });
 }
-function fmtTime(iso?: string) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" });
-}
 
-// Unused legacy imports retained intentionally removed; Phone is referenced by handoff column icon if needed later.
-void Phone;
+// Note: a marketing home a leadek táblát SZÁNDÉKOSAN nem kérdezi le.
+// A marketing kizárólag company + contact + email szinten dolgozik;
+// a leadek a sales pipeline saját adatai.
+void Send;
