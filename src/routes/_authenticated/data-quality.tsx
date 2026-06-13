@@ -19,6 +19,7 @@ import {
 } from "@/lib/dedupe/global-scans";
 import { SCORE_BAND_LABEL } from "@/lib/dedupe/scoring";
 import { fmtDateTime } from "@/components/resource/resource-page";
+import { useQualityOverview } from "@/lib/dedupe/use-quality-overview";
 
 export const Route = createFileRoute("/_authenticated/data-quality")({
   component: DataQualityCenter,
@@ -30,6 +31,7 @@ function DataQualityCenter() {
   const conflicts  = useQuery({ queryKey: ["dq", "contact-conflicts"], queryFn: scanContactConflicts });
   const leads      = useQuery({ queryKey: ["dq", "unlinked-leads"], queryFn: scanUnlinkedLeads });
   const threads    = useQuery({ queryKey: ["dq", "unlinked-threads"], queryFn: scanUnlinkedThreads });
+  const overview   = useQualityOverview();
 
   const tabBadge = (n: number | undefined) =>
     n && n > 0 ? <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-[10px]">{n}</Badge> : null;
@@ -46,13 +48,22 @@ function DataQualityCenter() {
         </p>
       </div>
 
+      {/* Összesített KPI fejléc — D7 */}
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiTile icon={ShieldCheck}   label="Hiányos cégek"            value={overview.counts.incompleteCompanies} tone="warning" />
+        <KpiTile icon={Copy}          label="Duplikációk"              value={overview.counts.companyDuplicates}   tone="danger"  />
+        <KpiTile icon={AlertTriangle} label="Kapcsolattartó probléma"  value={overview.counts.contactConflicts}    tone="danger"  />
+        <KpiTile icon={Link2}         label="Kapcsolatlan leadek"      value={overview.counts.unlinkedLeads}       tone="info"    />
+        <KpiTile icon={Mail}          label="Kapcsolatlan emailek"     value={overview.counts.unlinkedThreads}     tone="info"    />
+      </div>
+
       <Tabs defaultValue="incomplete">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="incomplete">Hiányos cégek {tabBadge(incomplete.data?.length)}</TabsTrigger>
-          <TabsTrigger value="dups">Duplikátum {tabBadge(dups.data?.length)}</TabsTrigger>
-          <TabsTrigger value="conflicts">Kontakt konfliktus {tabBadge(conflicts.data?.length)}</TabsTrigger>
-          <TabsTrigger value="leads">Linkeletlen leadek {tabBadge(leads.data?.length)}</TabsTrigger>
-          <TabsTrigger value="threads">Linkeletlen emailek {tabBadge(threads.data?.length)}</TabsTrigger>
+          <TabsTrigger value="dups">Duplikált cégek {tabBadge(dups.data?.length)}</TabsTrigger>
+          <TabsTrigger value="conflicts">Kapcsolattartó problémák {tabBadge(conflicts.data?.length)}</TabsTrigger>
+          <TabsTrigger value="leads">Kapcsolatlan leadek {tabBadge(leads.data?.length)}</TabsTrigger>
+          <TabsTrigger value="threads">Kapcsolatlan emailek {tabBadge(threads.data?.length)}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="incomplete" className="mt-4">
@@ -72,6 +83,31 @@ function DataQualityCenter() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+function KpiTile({
+  icon: Icon, label, value, tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: number;
+  tone: "info" | "warning" | "danger";
+}) {
+  const cls =
+    tone === "danger"  ? "text-destructive border-destructive/30" :
+    tone === "warning" ? "text-amber-700 border-amber-200" :
+                         "text-primary border-primary/20";
+  return (
+    <Card className={cls}>
+      <CardContent className="p-3">
+        <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider opacity-80">
+          <Icon className="h-3.5 w-3.5" />
+          <span className="truncate">{label}</span>
+        </div>
+        <div className="mt-0.5 text-2xl font-semibold tabular-nums">{value}</div>
+      </CardContent>
+    </Card>
   );
 }
 
