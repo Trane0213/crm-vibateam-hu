@@ -24,6 +24,7 @@ import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 import { usePermissions } from "@/hooks/use-permissions";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
+import { MarketingWorkspace } from "@/components/marketing/marketing-workspace";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -34,6 +35,13 @@ function CustomerDetail() {
   useAutoEnrich("company", id);
   const { role } = usePermissions();
   const isMarketing = role === "marketing";
+
+  // Marketing role-ban a /customers/$id egy dedikált Marketing Minősítő
+  // Munkafelületet ad — egyetlen forrás, marketing státuszokkal,
+  // sales-átadási akcióval. A többi role az alábbi általános nézetet kapja.
+  if (isMarketing) {
+    return <MarketingWorkspace companyId={id} />;
+  }
 
   const cust = useQuery({
     queryKey: ["customers", "detail", id],
