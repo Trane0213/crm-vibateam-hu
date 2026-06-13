@@ -27,7 +27,7 @@ export function LeadAutoFixesBlock({
 
       {status !== "running" && changed.length > 0 && (
         <ul className="mt-2 space-y-1.5 text-sm">
-          {changed.map((field) => (
+          {changed.map((field: string) => (
             <li key={field} className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
               <span>{enrichmentFieldLabel(field)} automatikusan kitöltve</span>
