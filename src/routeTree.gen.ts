@@ -54,6 +54,7 @@ import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authen
 import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
+import { Route as AuthenticatedHelpMarketingRouteImport } from './routes/_authenticated/help.marketing'
 import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authenticated/emails.$threadId'
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
@@ -307,6 +308,12 @@ const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
   path: '/leads/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHelpMarketingRoute =
+  AuthenticatedHelpMarketingRouteImport.update({
+    id: '/help/marketing',
+    path: '/help/marketing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEmailsThreadIdRoute =
   AuthenticatedEmailsThreadIdRouteImport.update({
     id: '/emails/$threadId',
@@ -368,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
+  '/help/marketing': typeof AuthenticatedHelpMarketingRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
@@ -420,6 +428,7 @@ export interface FileRoutesByTo {
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
+  '/help/marketing': typeof AuthenticatedHelpMarketingRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
@@ -475,6 +484,7 @@ export interface FileRoutesById {
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
   '/_authenticated/emails/$threadId': typeof AuthenticatedEmailsThreadIdRoute
+  '/_authenticated/help/marketing': typeof AuthenticatedHelpMarketingRoute
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
@@ -530,6 +540,7 @@ export interface FileRouteTypes {
     | '/contacts/$id'
     | '/customers/$id'
     | '/emails/$threadId'
+    | '/help/marketing'
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
@@ -582,6 +593,7 @@ export interface FileRouteTypes {
     | '/contacts/$id'
     | '/customers/$id'
     | '/emails/$threadId'
+    | '/help/marketing'
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
@@ -636,6 +648,7 @@ export interface FileRouteTypes {
     | '/_authenticated/contacts/$id'
     | '/_authenticated/customers/$id'
     | '/_authenticated/emails/$threadId'
+    | '/_authenticated/help/marketing'
     | '/_authenticated/leads/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/quotes/$id'
@@ -1002,6 +1015,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeadsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/help/marketing': {
+      id: '/_authenticated/help/marketing'
+      path: '/help/marketing'
+      fullPath: '/help/marketing'
+      preLoaderRoute: typeof AuthenticatedHelpMarketingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/emails/$threadId': {
       id: '/_authenticated/emails/$threadId'
       path: '/emails/$threadId'
@@ -1107,6 +1127,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedContactsIdRoute: typeof AuthenticatedContactsIdRoute
   AuthenticatedCustomersIdRoute: typeof AuthenticatedCustomersIdRoute
   AuthenticatedEmailsThreadIdRoute: typeof AuthenticatedEmailsThreadIdRoute
+  AuthenticatedHelpMarketingRoute: typeof AuthenticatedHelpMarketingRoute
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
@@ -1137,6 +1158,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedContactsIdRoute: AuthenticatedContactsIdRoute,
   AuthenticatedCustomersIdRoute: AuthenticatedCustomersIdRoute,
   AuthenticatedEmailsThreadIdRoute: AuthenticatedEmailsThreadIdRoute,
+  AuthenticatedHelpMarketingRoute: AuthenticatedHelpMarketingRoute,
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
