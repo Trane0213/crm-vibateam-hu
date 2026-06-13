@@ -201,8 +201,8 @@ function CampaignListPage() {
 
         <p className="text-xs text-muted-foreground">
           A kampánylista cégei a CRM-ben <Badge variant="outline" className="mx-1">company_type = potencialis</Badge>
-          jelöléssel találhatók. Leadet nem hoznak létre — a sales pipeline-ba a Scarlet
-          oldalon a „Sales” gombbal kerülnek át.
+          jelöléssel találhatók. Leadet automatikusan nem hozunk létre — a sales pipeline-ba
+          átemelés mindig tudatos, manuális döntés a cég adatlapján.
         </p>
       </div>
       <EmailComposer
