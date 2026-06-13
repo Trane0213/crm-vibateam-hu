@@ -128,18 +128,29 @@ export async function findOpenLeadDuplicate(input: {
       .maybeSingle();
     if (data?.id) return { id: data.id, reason: "company" };
   }
+  // A leads tábla nem tárol email mezőt — email-alapú duplikáció a kapcsolt
+  // contact rekordon keresztül érhető el. Egyszerűsített logikaként megkeressük
+  // az email-egyezésű kontaktokat, és az azokhoz tartozó nyitott leadeket.
   if (input.email) {
     const d = extractDomain(input.email);
     if (d && !isPublicDomain(d)) {
-      const { data } = await supabase
-        .from("leads")
-        .select("id,status")
+      const { data: matchedContacts } = await supabase
+        .from("contacts")
+        .select("id")
         .ilike("email", input.email)
-        .not("status", "in", `(${CLOSED_STATUSES.join(",")})`)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (data?.id) return { id: data.id, reason: "email" };
+        .limit(50);
+      const ids = (matchedContacts ?? []).map((c) => c.id);
+      if (ids.length) {
+        const { data } = await supabase
+          .from("leads")
+          .select("id,status")
+          .in("contact_id", ids)
+          .not("status", "in", `(${CLOSED_STATUSES.join(",")})`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (data?.id) return { id: data.id, reason: "email" };
+      }
     }
   }
   return null;
