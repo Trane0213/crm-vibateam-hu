@@ -12,6 +12,7 @@ import { useUpdateLead } from "./use-lead-mutations";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { LeadQualityBlock } from "./lead-quality-block";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
+import { LeadAutoFixesBlock } from "./lead-auto-fixes-block";
 
 export function LeadDetailColumn({
   leadId,
@@ -20,7 +21,7 @@ export function LeadDetailColumn({
   leadId: string | null;
   mode?: "marketing" | "sales";
 }) {
-  useAutoEnrich("lead", leadId);
+  const enrichmentResult = useAutoEnrich("lead", leadId);
   const companyLabel = useLookup("companies", "name");
   const contactLabel = useLookup("contacts", "name");
   const lead = useQuery({
@@ -182,6 +183,11 @@ export function LeadDetailColumn({
         </section>
 
         <LeadQualityBlock lead={l} />
+
+        <LeadAutoFixesBlock
+          status={enrichmentResult ? "done" : leadId ? "running" : "idle"}
+          result={enrichmentResult}
+        />
 
         <section>
           <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
