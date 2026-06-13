@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
   Send, ArrowRightCircle, Globe, Phone, Calendar, CheckCircle2,
-  AlertCircle, Sparkles,
+  AlertCircle, Sparkles, MoreHorizontal,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -31,6 +35,9 @@ import {
   readMarketingMeta, stripMarkers, withMarketingStatus, withSalesNote,
   type MarketingStatus,
 } from "@/lib/marketing-status";
+import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
+import { NextBestAction } from "@/components/marketing/next-best-action";
+import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
