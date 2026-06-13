@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -581,12 +581,12 @@ function HandoffDialog({
   const [summary, setSummary] = useState(defaultSummary);
   const [projectType, setProjectType] = useState<string>("");
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
-  // resync default when reopened
-  useMemo(() => {
-    if (open) {
-      setSummary(defaultSummary);
-      setContactId(contacts[0]?.id ?? "");
-    }
+  // Minden megnyitáskor szinkronizáljuk a defaultokat (sales note vagy első kontakt).
+  useEffect(() => {
+    if (!open) return;
+    setSummary(defaultSummary);
+    setProjectType("");
+    setContactId(contacts[0]?.id ?? "");
   }, [open, defaultSummary, contacts]);
 
   return (
