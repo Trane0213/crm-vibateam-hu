@@ -76,12 +76,11 @@ const EMPTY: EnrichResult = { ok: true, patch: {}, changed: [] };
 
 export async function enrichCompanyFromExistingData(companyId: string): Promise<EnrichResult> {
   if (!companyId) return EMPTY;
-  const [{ data: company }, contacts, threads, emails, leads] = await Promise.all([
+  const [{ data: company }, contacts, threads, emails] = await Promise.all([
     supabase.from("companies").select("id,name,website,notes").eq("id", companyId).maybeSingle(),
     supabase.from("contacts").select("email").eq("company_id", companyId),
     supabase.from("email_threads").select("participants").eq("company_id", companyId).limit(50),
     supabase.from("emails").select("from_email").eq("company_id", companyId).limit(50),
-    supabase.from("leads").select("summary,notes,email").eq("company_id", companyId).limit(50),
   ]);
   if (!company) return { ...EMPTY, ok: false, reason: "company not found" };
 
@@ -95,7 +94,6 @@ export async function enrichCompanyFromExistingData(companyId: string): Promise<
     for (const c of contacts.data ?? []) candidates.push(c.email);
     for (const t of threads.data ?? []) for (const p of t.participants ?? []) candidates.push(p);
     for (const e of emails.data ?? []) candidates.push(e.from_email);
-    for (const l of leads.data ?? []) candidates.push(l.email);
     const d = uniqueBusinessDomain(candidates);
     if (d && !isPublicDomain(d)) { patch.website = `https://${d}`; changed.push("website"); }
   }
