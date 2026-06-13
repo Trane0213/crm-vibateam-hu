@@ -17,6 +17,7 @@ import {
   linkLeadToCompany,
   linkThreadToCompany,
 } from "@/lib/dedupe/global-scans";
+import { enrichCompanyFromExistingData, enrichLeadLinks } from "@/lib/enrichment/enrich";
 import { SCORE_BAND_LABEL } from "@/lib/dedupe/scoring";
 import { fmtDateTime } from "@/components/resource/resource-page";
 import { useQualityOverview } from "@/lib/dedupe/use-quality-overview";
@@ -116,6 +117,16 @@ function bandTone(band: "green" | "yellow" | "red") {
 }
 
 function IncompleteCompaniesTable({ q }: { q: ReturnType<typeof useQuery<any>> }) {
+  const qc = useQueryClient();
+  const fix = useMutation({
+    mutationFn: (companyId: string) => enrichCompanyFromExistingData(companyId),
+    onSuccess: () => {
+      toast.success("Automatikus kitöltés lefutott");
+      qc.invalidateQueries({ queryKey: ["dq", "incomplete"] });
+      qc.invalidateQueries({ queryKey: ["companies", "surface-map"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Sikertelen javítás"),
+  });
   if (q.isLoading) return <Loading />;
   if (!q.data?.length) return <EmptyState icon={ShieldCheck} title="Minden cég 100%-os" description="Nincs hiányos rekord." />;
   return (
@@ -146,7 +157,10 @@ function IncompleteCompaniesTable({ q }: { q: ReturnType<typeof useQuery<any>> }
                 </td>
                 <td className="px-3 py-2 text-xs text-muted-foreground">{r.score.missing.join(", ") || "—"}</td>
                 <td className="px-3 py-2 text-right">
-                  <Link to="/customers/$id" params={{ id: r.id }} className="text-xs text-primary hover:underline">Megnyitás →</Link>
+                  <div className="flex items-center justify-end gap-2">
+                    <Button size="sm" variant="secondary" disabled={fix.isPending} onClick={() => fix.mutate(r.id)}>Javítás</Button>
+                    <Link to="/customers/$id" params={{ id: r.id }} className="text-xs text-primary hover:underline">Megnyitás →</Link>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -214,6 +228,15 @@ function ConflictsTable({ q }: { q: ReturnType<typeof useQuery<any>> }) {
 
 function UnlinkedLeadsTable({ q }: { q: ReturnType<typeof useQuery<any>> }) {
   const qc = useQueryClient();
+  const autofill = useMutation({
+    mutationFn: (leadId: string) => enrichLeadLinks(leadId),
+    onSuccess: () => {
+      toast.success("Automatikus kitöltés lefutott");
+      qc.invalidateQueries({ queryKey: ["dq", "unlinked-leads"] });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Sikertelen"),
+  });
   const link = useMutation({
     mutationFn: ({ leadId, companyId }: { leadId: string; companyId: string }) => linkLeadToCompany(leadId, companyId),
     onSuccess: () => {
@@ -241,13 +264,16 @@ function UnlinkedLeadsTable({ q }: { q: ReturnType<typeof useQuery<any>> }) {
                 </Link>
               </div>
             </div>
-            <Button
-              size="sm"
-              disabled={link.isPending}
-              onClick={() => link.mutate({ leadId: r.id, companyId: r.suggestedCompany.id })}
-            >
-              Kapcsolj össze
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" disabled={autofill.isPending} onClick={() => autofill.mutate(r.id)}>Automatikus kitöltés</Button>
+              <Button
+                size="sm"
+                disabled={link.isPending}
+                onClick={() => link.mutate({ leadId: r.id, companyId: r.suggestedCompany.id })}
+              >
+                Összekapcsolás
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}
