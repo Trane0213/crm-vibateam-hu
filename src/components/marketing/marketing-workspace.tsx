@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -52,6 +54,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
   const [composer, setComposer] = useState<{ to: string; subject: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<any | null>(null);
   const [tab, setTab] = useState<string>("overview");
 
   const cust = useQuery({
@@ -127,6 +131,36 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
   });
 
+  const saveContact = useMutation({
+    mutationFn: async (input: { id?: string; name: string; email: string; phone: string; position: string }) => {
+      const payload: any = {
+        name: input.name.trim(),
+        email: input.email.trim() || null,
+        phone: input.phone.trim() || null,
+        position: input.position.trim() || null,
+      };
+      if (input.id) {
+        const { error } = await supabase.from("contacts").update(payload).eq("id", input.id);
+        if (error) throw error;
+        return input.id;
+      }
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert({ ...payload, company_id: companyId })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return (data as any).id as string;
+    },
+    onSuccess: () => {
+      toast.success(editingContact ? "Kapcsolattartó frissítve" : "Kapcsolattartó létrehozva");
+      setContactDialogOpen(false);
+      setEditingContact(null);
+      qc.invalidateQueries({ queryKey: ["contacts", "by_company", companyId] });
+    },
+    onError: (e: any) => toast.error("Kapcsolattartó mentése sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
   const handoff = useMutation({
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null }) => {
       const payload: any = {
@@ -177,12 +211,22 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     if (targetTab) setTab(targetTab);
     switch (action) {
       case "add-contact":
+        setTab("contacts");
+        setEditingContact(null);
+        setContactDialogOpen(true);
+        return;
       case "edit-contact":
         setTab("contacts");
+        setEditingContact(primary ?? (contacts.data ?? [])[0] ?? null);
+        setContactDialogOpen(true);
         return;
       case "send-email":
         if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — ` });
-        else setTab("contacts");
+        else {
+          setTab("contacts");
+          setEditingContact(primary ?? null);
+          setContactDialogOpen(true);
+        }
         return;
       case "mark-contacted":
         setStatus.mutate("contacted");
@@ -379,6 +423,14 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           <TabsContent value="contacts" className="mt-4">
             <ContactsTable
               rows={contacts.data ?? []}
+              onAdd={() => {
+                setEditingContact(null);
+                setContactDialogOpen(true);
+              }}
+              onEdit={(contact) => {
+                setEditingContact(contact);
+                setContactDialogOpen(true);
+              }}
               onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "" })}
             />
           </TabsContent>
@@ -461,7 +513,20 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         onOpenChange={(v) => { if (!v) setComposer(null); }}
         defaultTo={composer?.to ?? ""}
         defaultSubject={composer?.subject ?? ""}
+        companyId={companyId}
+        contactId={primary?.id ?? undefined}
         onSent={() => setComposer(null)}
+      />
+
+      <ContactDialog
+        open={contactDialogOpen}
+        onOpenChange={(open) => {
+          setContactDialogOpen(open);
+          if (!open) setEditingContact(null);
+        }}
+        initial={editingContact}
+        saving={saveContact.isPending}
+        onSave={(data) => saveContact.mutate(data)}
       />
 
       <HandoffDialog
