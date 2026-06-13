@@ -1,71 +1,104 @@
+
+# Backend-first refaktor terv
+
 ## Cél
+Minden frontend-oldali Supabase lekérdezés és üzleti számítás átkerül a backendre. UI csak megjelenítés és események. Séma: **csak bővítés**, semmi DROP.
 
-A marketinges a Lead Workspace-en belül egyetlen képernyőről végzi a teljes napi munkát: kiválasztás → értékelés → kapcsolatfelvétel → utánkövetés → átadás. Nincs oldalváltás, nincs új tábla, nincs új motor – csak a meglévő hookok és komponensek újrarendezése + hiányzó interakciók pótlása.
+## Jelenlegi állapot (audit)
+- **39 frontend fájl** hívja közvetlenül `supabase.from(...)`-t (route-ok, komponensek, hookok).
+- **13 server fájl** már létezik (`*.functions.ts`, `*.server.ts`) — Gmail sync, AI, R2, enrichment részben.
+- Üzleti motorok már kész: enrichment, dedupe, company health, data quality, lead quality, handoff, marketing KPI, identity, backfill, lead workspace — ezek **nem íródnak újra**, csak server-fn wrapperbe kerülnek.
 
-Lista oldalakat (companies / contacts / customers / today) ebben a sprintben **nem érintjük**.
+## Hatókör — mit jelent „teljes frontend logika a backendre"
 
-## 1. Három-oszlopos váz finomítás
+| Réteg | Most | Cél |
+|---|---|---|
+| Lista lekérdezések (companies, contacts, leads, emails, …) | `supabase.from()` komponensben | `createServerFn` + `useSuspenseQuery` |
+| Szűrés / rendezés / lapozás | kliens-oldal | server fn paraméter |
+| Számítások (lead score, company health, KPI) | komponensben / kliens hook | Postgres view vagy server fn |
+| Aggregátumok (dashboard, marketing KPI) | több query + JS reduce | egy RPC / view |
+| Mutációk (insert/update/delete) | `supabase.from().insert()` | `createServerFn` + Zod validáció |
+| Engedély-ellenőrzés (`has_role`, route access) | kliens guard | server fn middleware + RLS |
 
-`src/components/lead-workspace/lead-workspace.tsx`
-- Magasság `h-[640px]` helyett `h-[calc(100vh-9rem)]` – teljes képernyős munkafelület.
-- Bal 300px / közép rugalmas / jobb 340px (jelenleg 280/–/300). A jobb oldali akció panel ma túl szűk, az átadás form nem fér ki.
-- Mobil: tabos váltás (Lista / Részletek / Akciók) – egyszerű state-alapú renderelés, nem új lib.
+## Séma bővítések (csak ADD, semmi DROP)
 
-## 2. Bal oszlop – Lead lista (kiválasztás)
+Új objektumok migrációként, meglévő adat érintetlen:
 
-`src/components/lead-workspace/lead-list-column.tsx`
-- Új sürgősség-jel: minden lead sorban kis színes pötty a státusz badge mellett.
-  - Piros = lejárt utánkövetés van, sárga = mai utánkövetés, szürke = nincs esedékes.
-  - Adat: `useListWhere("followups", "company_id", ...)` helyett egyszeri `followups` lekérdezés a látható leadek `company_id` listájára, in-memory map.
-- Rendezés a marketing tabokban: lejárt → mai → új lead 24h → többi. (sales mód érintetlen).
-- Sor másodlagos sorában a forrás mellé: utolsó aktivitás relatív idő (`relativeTime(l.updated_at)`).
-- „X érdeklődő" alá mini-összefoglaló a tabhoz: pl. „3 lejárt · 2 mai".
+1. **Views** (read-only, aggregátumok):
+   - `v_company_overview` — company + linked contacts count + linked leads count + last email date + health score
+   - `v_lead_pipeline` — lead + company + owner + score + next_action
+   - `v_email_thread_enriched` — thread + matched company + matched contact + project link
+   - `v_marketing_kpi_daily` — napi import/contact/lead/email aggregátum
+   - `v_data_quality_summary` — táblánként hiányzó mezők, orphan rekordok
+2. **RPC-k** (security definer, RLS-szel kompatibilis):
+   - `rpc_dashboard_today(user_id)` — today oldal teljes payloadja egy hívásban
+   - `rpc_company_full(company_id)` — company detail oldal (company + contacts + leads + emails + tasks + projects)
+   - `rpc_search_global(query, limit)` — global search egy hívásban minden entitásra
+   - `rpc_marketing_overview(date_from, date_to)` — marketing dashboard
+   - `rpc_recompute_lead_score(lead_id)` — lead quality számítás szerveroldalt
+3. **Nincs új tábla** az első körben. Ha kiderül hogy egy meglévő számítást érdemes anyagolni (materialized view / cache tábla), külön döntésként, S2-ben.
 
-## 3. Közép oszlop – Lead adatlap (értékelés)
+## Server function réteg (új fájlok)
 
-`src/components/lead-workspace/lead-detail-column.tsx`
-- Fejléc kompaktabb: cím sor mellé jobbra chip-sor – **Score%** (LeadQualityBlock pct), **Hőmérséklet pötty** (lejárt/mai/új alapján), **Identity strength** (ha van), **Utolsó aktivitás**. A statisztikák így már a görgetés előtt láthatóak.
-- A jelenlegi nagy „Adatminőség" és „Automatikus javítások" szekciók egy összecsukható `<details>` blokkba kerülnek: **„Adatminőség és automatikus javítások"** – alapból zárva, hogy a jegyzet, cég/kapcsolat és időskála dominálja a középső területet.
-- Új inline mezők (mind autosave a `useUpdateLead`-en keresztül, új mező nélkül – meglévő `leads` oszlopok): `source`, `project_type` szerkeszthető kis input-ok a chip-sor alatt. Ma csak megjelennek, marketinges nem tudja javítani.
-- Időskála: csak handoff/email/meeting/call típusra ikonos render (Mail / Phone / UserCheck / Calendar). Ma minden szürke szövegként jelenik meg.
+`src/lib/<domain>/<domain>.functions.ts` minta, mind `createServerFn` + `requireSupabaseAuth` middleware:
 
-## 4. Jobb oszlop – Akciópanel (kapcsolat, utánkövetés, átadás)
+```
+src/lib/companies/companies.functions.ts     — list, get, create, update, archive, mergeDuplicates
+src/lib/contacts/contacts.functions.ts       — list, get, create, update, linkToCompany
+src/lib/leads/leads.functions.ts             — list, get, create, update, qualify, handoff, recomputeScore
+src/lib/emails/emails.functions.ts           — listThreads, getThread, linkThreadToCompany, linkThreadToProject
+src/lib/customers/customers.functions.ts     — list, get, create, update, healthRefresh
+src/lib/projects/projects.functions.ts       — list, get, create, update, attachEmail, attachQuote
+src/lib/quotes/quotes.functions.ts           — list, get, create, update, send
+src/lib/tasks/tasks.functions.ts             — list, get, create, update, complete
+src/lib/followups/followups.functions.ts     — list, snooze, complete
+src/lib/dashboard/dashboard.functions.ts     — today, kpis (RPC wrapperek)
+src/lib/data-quality/dq.functions.ts         — summary, fix actions
+src/lib/marketing/marketing.functions.ts     — kpi, lead-pipeline, import-batches
+src/lib/search/search.functions.ts           — global search
+src/lib/admin/admin.functions.ts             — users, roles, agent-visibility, audit
+```
 
-`src/components/lead-workspace/lead-action-panel.tsx`
-- A folyamat-szalag (ProcessStrip) megmarad, de **kattinthatóvá** válik: marketing módban a lépésre kattintva a megfelelő státuszt állítja (`new` → `contacted` → `qualified`). Új átmenet, de a státuszok már léteznek.
-- Email blokk: a „Levél írása" gomb mellé egy **„Sablon"** menü – 3 előre megírt rövid sablon (első megkeresés / emlékeztető / kvalifikáló kérdések). Csak frontend constants, a sablonok átadásra kerülnek az `EmailComposer`-be (`defaultBody` prop – ha még nincs, hozzáadjuk).
-- Followup blokk megmarad (FollowupQuickForm).
-- AI blokk megmarad.
-- **Új: Hívás rögzítése** mini-blokk: egy „Hívás megtörtént" gomb azonnal létrehoz egy `followup_type='call'`, `completed=true`, `due_date=now()` rekordot opcionális 1 soros eredménnyel. A meglévő `useCreateLeadFollowup`-ot használjuk.
-- **Átadás panel (LeadHandoffPanel)** marketing módban marad – de a megjelenési feltételt enyhítjük: `status === 'qualified' || status === 'contacted'`-nál is mutatja (egy kis figyelmeztetéssel, hogy minősítés ajánlott), hogy a marketinges ne ragadjon be – ha a minőség zöld, közvetlenül átadhassa.
+A meglévő motorok (`enrichment/`, `dedupe/`, `lead-workspace/`, `crm/crm-surface.ts`) **kompozícióban** kerülnek be — wrapper hívja, nem újraírás.
 
-## 5. /leads útvonal: alapértelmezett a Workspace
+## Migrációs fázisok
 
-`src/routes/_authenticated/leads.index.tsx`
-- A jelenlegi táblázatos `ResourcePage` átkerül `/leads/table` (vagy „Lista" tab) – a `/leads` alapnézet a `LeadWorkspace mode="marketing"` lesz. A user explicit kérése: napi munkát itt végzi, ne tudjon véletlenül a lista nézetben elveszni.
-- Egyszerű top-bar két gombbal: **Munkafelület** (alap) / **Lista** (a régi tábla). Nem új route – `useState` váltó.
+### S0 (Stabilizáció — előfeltétel)
+A korábbi audit nyitott pontjai. **Nem indul el az S1, amíg ez nincs lezárva.**
+- Email backfill futtatás (0% → cél: >80% thread linkelt).
+- `email_threads.participants` populálás javítása a Gmail incremental syncben.
+- 1 orphan lead rendezése.
+- Döntés: Scarlet import → auto-lead generáljon-e.
 
-## 6. Apró fixek
+### S1 — Read path (kockázat: alacsony)
+Új views + read-only `createServerFn`-ek. Frontend lista/detail oldalak átállítása `useSuspenseQuery`-re. Mutációk maradnak régiben.
+Output: 39 fájl helyett ~15 hívás-pont a server fn rétegen át.
 
-- `LeadActionPanel` jelenlegi `leadId == null` esete „üres workspace" üzenet a teljes középre is, ne csak a jobbra.
-- A `LeadDetailColumn`-ban a `min-w-0` mellé `max-w-full` – hosszú összefoglalók eltörik a layoutot bizonyos szélességeknél.
-- AutoEnrich status megjelenítés: ha 800ms után nincs result, ne mutassa végtelen „Meglévő adatok ellenőrzése…", inkább „Nincs javítható adat".
+### S2 — Write path (kockázat: közepes)
+Mutációs server fn-ek Zod validációval. Frontend `supabase.from().insert/update/delete` hívások cseréje. Activity log szervert-oldali trigger.
 
-## Műszaki megjegyzések
+### S3 — Aggregátumok & RPC-k
+Dashboard, marketing KPI, global search egy-egy RPC-re. Frontend reduce/map logika törlése.
 
-- Csak frontend / presentation. Nincs új tábla, nincs új mező, nincs új edge function.
-- Új komponensek:
-  - `src/components/lead-workspace/lead-urgency-dot.tsx` (közös pötty logika)
-  - `src/lib/lead-workspace/email-templates.ts` (3 hard-coded sablon)
-- Érintett fájlok: a 4 lead-workspace komponens + `EmailComposer` props bővítése (`defaultBody`) + `leads.index.tsx`.
+### S4 — Computed / cache (opcionális)
+Materialized view vagy cache tábla a drága számításokra (health score, dedupe match), `pg_cron` refresh. Csak akkor, ha S3 után mérhető lassú.
 
-## Elfogadási kritérium
+## Mit NEM csinálunk
+- Új UI modul / route refaktor (D9 fagyasztva).
+- Edge Function új logikára (a stack TanStack server fn, edge function csak webhook).
+- RLS lazítás. Minden új server fn `requireSupabaseAuth` middleware-rel + user-scope RLS.
+- Tábla DROP, oszlop átnevezés, FK módosítás. Csak ADD.
 
-A marketinges a `/leads` oldalon belépve:
-1. Bal oldalon látja a kiválasztott aktuális leadeket sürgősség szerint.
-2. Középen 1 másodperc alatt felméri a lead állapotát (score, hőmérséklet, identity, utolsó aktivitás chip-ekből).
-3. Jobb oldalon: email küld sablonnal, +3 nap auto-followup, hívás rögzítés egy kattintással, átadás értékesítőnek – oldalváltás nélkül.
-4. A státusz a folyamat-szalag kattintásával lép.
-5. A többi marketing oldalra csak akkor megy, ha valami atipikus dologra van szüksége.
+## Technikai szabályok
+- `client.server.ts` (service role) csak `.handler()` body-ban `await import(...)` — soha module-scope.
+- Public read view-okra `GRANT SELECT` az `authenticated`-re, soha `anon`-ra.
+- Minden új view `WITH (security_invoker=on)`, hogy az RLS a hívó user nevében fusson.
+- Lista server fn-ek paraméter-shape: `{ filter, sort, page, pageSize }` Zod-validált.
 
-Jóváhagyod? Ha igen, nekiállok – csak ezt a sprintet csinálom végig, a listaoldalakat ezúttal nem nyúlom.
+## Első lépés visszaigazolásra
+Megerősítést kérek:
+1. **S0 lezárása előfeltétel** (email backfill + orphan lead + participants fix) — most futtassam le?
+2. **S1 első batch**: melyik domain induljon? Javaslat: **companies + contacts** (legtöbb adat, legtöbb fájl, és a marketing/sales modul építőköve).
+3. **View-k név-prefixe** `v_` és RPC-k `rpc_` — elfogadható?
+
+Csak ezek után írok migrációt vagy fájlt.
