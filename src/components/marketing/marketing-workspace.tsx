@@ -157,6 +157,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
       setContactDialogOpen(false);
       setEditingContact(null);
       qc.invalidateQueries({ queryKey: ["contacts", "by_company", companyId] });
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
     },
     onError: (e: any) => toast.error("Kapcsolattartó mentése sikertelen", { description: humanizeSupabaseError(e) }),
   });
@@ -515,7 +516,12 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         defaultSubject={composer?.subject ?? ""}
         companyId={companyId}
         contactId={composer?.contactId}
-        onSent={() => setComposer(null)}
+        onSent={() => {
+          qc.invalidateQueries({ queryKey: ["email_threads", "by_company", companyId] });
+          qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+          setTab("emails");
+          setComposer(null);
+        }}
       />
 
       <ContactDialog
