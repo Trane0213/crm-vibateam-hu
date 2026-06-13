@@ -16,7 +16,7 @@ export const Route = createFileRoute("/api/gmail/send")({
             html?: string; body?: string;
             cc?: string; bcc?: string;
             threadId?: string; inReplyTo?: string; references?: string;
-            project_id?: string; contact_id?: string;
+            project_id?: string; company_id?: string; contact_id?: string; lead_id?: string;
             attachments?: { key: string; filename: string; mime_type: string; size_bytes: number }[];
           };
           if (!body?.to || !body?.subject) {
@@ -71,6 +71,9 @@ export const Route = createFileRoute("/api/gmail/send")({
                 gmail_thread_id: sent.threadId,
                 subject: body.subject && body.subject.trim().length > 0 ? body.subject : "(nincs tárgy)",
                 project_id: body.project_id ?? null,
+                company_id: body.company_id ?? null,
+                contact_id: body.contact_id ?? null,
+                lead_id: body.lead_id ?? null,
                 owner_user_id: userId,
               })
               .select("id")
@@ -100,8 +103,19 @@ export const Route = createFileRoute("/api/gmail/send")({
             gmail_label_ids: ["SENT"],
             owner_user_id: userId,
             contact_id: body.contact_id ?? null,
+            company_id: body.company_id ?? null,
+            lead_id: body.lead_id ?? null,
             project_id: body.project_id ?? null,
           }).select("id").single();
+          await admin
+            .from("email_threads")
+            .update({
+              company_id: body.company_id ?? undefined,
+              contact_id: body.contact_id ?? undefined,
+              lead_id: body.lead_id ?? undefined,
+              last_message_at: new Date().toISOString(),
+            })
+            .eq("id", threadDbId);
           // csatolmányok metaadat mentése (a fájlok már R2-ben vannak az outbound-attachments/ prefix alatt)
           if (insEmail?.id && (body.attachments?.length ?? 0) > 0) {
             const rows = (body.attachments ?? []).map((a) => ({
