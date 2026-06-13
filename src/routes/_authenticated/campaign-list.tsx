@@ -55,10 +55,15 @@ function fmtDate(iso: string): string {
  */
 const MARKER_EMAIL_SENT = "[KAMPANY:EMAIL_SENT:";
 const MARKER_REJECTED   = "[KAMPANY:REJECTED:";
+const MARKER_HANDOFF    = "[MKT:STATUS:handoff";
 
 function isActiveCampaign(notes: string | null): boolean {
   if (!notes) return true;
-  return !notes.includes(MARKER_EMAIL_SENT) && !notes.includes(MARKER_REJECTED);
+  return (
+    !notes.includes(MARKER_EMAIL_SENT) &&
+    !notes.includes(MARKER_REJECTED) &&
+    !notes.includes(MARKER_HANDOFF)
+  );
 }
 
 function appendMarker(notes: string | null, marker: string): string {
