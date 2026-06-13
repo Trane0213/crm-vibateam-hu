@@ -9,6 +9,7 @@ import { useCount, useList } from "@/lib/db-hooks";
 import { LeadWorkspace } from "@/components/lead-workspace/lead-workspace";
 import { QuickCreateLeadButton } from "@/components/today/quick-create";
 import { scanIncompleteCompanies, scanCompanyDuplicatePairs } from "@/lib/dedupe/global-scans";
+import { SystemAlertsPanel } from "@/components/today/system-alerts-panel";
 
 const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
 const isoWeekAgo = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
@@ -82,6 +83,11 @@ export function MarketingHome() {
         mode="marketing"
         className="mx-6 mt-3 mb-4 grid h-[calc(100vh-300px)] min-h-[520px] grid-cols-1 overflow-hidden rounded-lg border bg-card lg:grid-cols-[280px_minmax(0,1fr)_320px]"
       />
+
+      {/* Rendszer figyelmeztetések — D3/D4/D5 motorok aggregálva */}
+      <div className="px-6 pb-4">
+        <SystemAlertsPanel />
+      </div>
 
       {/* Áttekintés (collapsible) */}
       <div className="px-6 pb-6">
