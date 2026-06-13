@@ -62,7 +62,7 @@ export async function syncInbox(
   // Egyszer betöltjük a teljes run elején (kis méretű).
   const [contactsRes, companiesRes, leadsRes] = await Promise.all([
     admin.from("contacts").select("id,email").not("email", "is", null),
-    admin.from("companies").select("id,domain").not("domain", "is", null),
+    admin.from("companies").select("id,website").not("website", "is", null),
     admin.from("leads").select("id,email").not("email", "is", null),
   ]);
   const contactByEmail = new Map<string, string>();
@@ -72,7 +72,7 @@ export async function syncInbox(
   }
   const companyByDomain = new Map<string, string>();
   for (const c of (companiesRes.data ?? []) as any[]) {
-    const d = String(c.domain ?? "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+    const d = String(c.website ?? "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
     if (d) companyByDomain.set(d, c.id);
   }
   const leadByEmail = new Map<string, string>();

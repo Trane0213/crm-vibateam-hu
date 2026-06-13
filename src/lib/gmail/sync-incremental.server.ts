@@ -83,7 +83,7 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
   // CRM cache (kicsi tábla, ritkán fut, percenkénti hívásnak ez bőven elég).
   const [contactsRes, companiesRes, leadsRes] = await Promise.all([
     admin.from("contacts").select("id,email").not("email", "is", null),
-    admin.from("companies").select("id,domain").not("domain", "is", null),
+    admin.from("companies").select("id,website").not("website", "is", null),
     admin.from("leads").select("id,email").not("email", "is", null),
   ]);
   const contactByEmail = new Map<string, string>();
@@ -93,7 +93,7 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
   }
   const companyByDomain = new Map<string, string>();
   for (const c of (companiesRes.data ?? []) as any[]) {
-    const d = String(c.domain ?? "")
+    const d = String(c.website ?? "")
       .toLowerCase()
       .trim()
       .replace(/^https?:\/\//, "")
