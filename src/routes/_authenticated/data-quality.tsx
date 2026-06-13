@@ -21,6 +21,7 @@ import { enrichCompanyFromExistingData, enrichLeadLinks } from "@/lib/enrichment
 import { SCORE_BAND_LABEL } from "@/lib/dedupe/scoring";
 import { fmtDateTime } from "@/components/resource/resource-page";
 import { useQualityOverview } from "@/lib/dedupe/use-quality-overview";
+import { HistoricalBackfillPanel } from "@/components/data-quality/backfill-panel";
 
 export const Route = createFileRoute("/_authenticated/data-quality")({
   component: DataQualityCenter,
@@ -57,6 +58,9 @@ function DataQualityCenter() {
         <KpiTile icon={Link2}         label="Kapcsolatlan leadek"      value={overview.counts.unlinkedLeads}       tone="info"    />
         <KpiTile icon={Mail}          label="Kapcsolatlan emailek"     value={overview.counts.unlinkedThreads}     tone="info"    />
       </div>
+
+      {/* D8-M: Historikus backfill — egyszer minden meglévő rekordra lefuttatja a D3 motorokat */}
+      <HistoricalBackfillPanel />
 
       <Tabs defaultValue="incomplete">
         <TabsList className="flex flex-wrap h-auto">
