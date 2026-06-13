@@ -124,10 +124,10 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       id: "needs-qualification",
       tone: "progress",
       title: "Minősítés folyamatban",
-      description: "Már elindult a kommunikáció. Ha a kapcsolattartó válaszolt és párbeszéd indult, jelöld „Kapcsolatban" állapotra.",
+      description: 'Már elindult a kommunikáció. Ha a kapcsolattartó válaszolt és párbeszéd indult, jelöld „Kapcsolatban" állapotra.',
       primary: { label: "Megjelölés: Kapcsolatban", action: "mark-contacted" },
       secondary: { label: "Email szálak átnézése", action: "send-email", targetTab: "emails" },
-      why: ["Van email aktivitás", "Státusz még „Új"],
+      why: ["Van email aktivitás", 'Státusz még „Új"'],
     };
   }
 
