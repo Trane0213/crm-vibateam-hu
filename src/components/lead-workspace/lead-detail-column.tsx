@@ -9,6 +9,7 @@ import { useListWhere } from "@/lib/db-hooks";
 import { useLookup, fmtDateTime } from "@/components/resource/resource-page";
 import { LEAD_STATUS_OPTIONS } from "./lead-list-column";
 import { useUpdateLead } from "./use-lead-mutations";
+import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 
 export function LeadDetailColumn({
   leadId,
@@ -17,6 +18,7 @@ export function LeadDetailColumn({
   leadId: string | null;
   mode?: "marketing" | "sales";
 }) {
+  useAutoEnrich("lead", leadId);
   const companyLabel = useLookup("companies", "name");
   const contactLabel = useLookup("contacts", "name");
   const lead = useQuery({
