@@ -10,7 +10,6 @@ import { findOpenLeadDuplicate } from "@/lib/dedupe/detect";
 const LEAD_FIELDS: Field[] = [
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
   { name: "contact_id", label: "Kapcsolattartó", type: "ref", ref: { table: "contacts", labelColumn: "name" } },
-  { name: "email", label: "E-mail (duplikáció ellenőrzéshez)", type: "text" },
   { name: "source", label: "Forrás", type: "text", placeholder: "pl. Weboldal, Ajánlás" },
   { name: "project_type", label: "Projekt típus", type: "text" },
   { name: "status", label: "Státusz", type: "select", required: true, options: [
