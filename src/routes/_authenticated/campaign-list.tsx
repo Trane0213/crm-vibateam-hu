@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ListPlus, Radar, Mail, Phone, Building2, Search } from "lucide-react";
+import { ListPlus, Radar, Mail, Phone, Building2, Search, Send } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
+import { EmailComposer } from "@/components/emails/email-composer";
 
 export const Route = createFileRoute("/_authenticated/campaign-list")({
   component: CampaignListPage,
@@ -35,6 +36,7 @@ function fmtDate(iso: string): string {
 
 function CampaignListPage() {
   const [search, setSearch] = useState("");
+  const [composer, setComposer] = useState<{ to: string; company: string } | null>(null);
 
   const q = useQuery({
     queryKey: ["campaign-list", "potencialis"],
@@ -168,13 +170,25 @@ function CampaignListPage() {
                         <td className="px-3 py-2 text-xs text-muted-foreground">{firstNoteLine(r.notes) ?? "—"}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDate(r.created_at)}</td>
                         <td className="px-3 py-2 text-right">
-                          <Link
-                            to="/customers/$id"
-                            params={{ id: r.id }}
-                            className="text-xs text-primary hover:underline"
-                          >
-                            Megnyitás →
-                          </Link>
+                            <div className="flex items-center justify-end gap-1.5">
+                              {k?.email && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setComposer({ to: k.email!, company: r.name })}
+                                  title="Egyszeri email küldése ennek a kapcsolattartónak"
+                                >
+                                  <Send className="mr-1 h-3.5 w-3.5" /> Email
+                                </Button>
+                              )}
+                              <Link
+                                to="/customers/$id"
+                                params={{ id: r.id }}
+                                className="text-xs text-primary hover:underline"
+                              >
+                                Megnyitás →
+                              </Link>
+                            </div>
                         </td>
                       </tr>
                     );
@@ -191,6 +205,12 @@ function CampaignListPage() {
           oldalon a „Sales” gombbal kerülnek át.
         </p>
       </div>
+      <EmailComposer
+        open={!!composer}
+        onOpenChange={(v) => { if (!v) setComposer(null); }}
+        defaultTo={composer?.to ?? ""}
+        defaultSubject={composer ? `${composer.company} — ajánlat` : ""}
+      />
     </div>
   );
 }
