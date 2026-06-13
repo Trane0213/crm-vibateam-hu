@@ -21,7 +21,6 @@ SELECT
   c.company_type,
   c.website,
   c.tax_number,
-  c.city,
   c.created_at,
   c.updated_at,
   COALESCE(ct.contact_count,   0)                   AS contact_count,
