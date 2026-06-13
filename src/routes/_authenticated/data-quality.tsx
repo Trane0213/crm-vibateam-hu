@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, Settings2 } from "lucide-react";
 import { EmptyState } from "@/components/page-header";
 import {
   scanIncompleteCompanies,
@@ -59,9 +61,6 @@ function DataQualityCenter() {
         <KpiTile icon={Mail}          label="Kapcsolatlan emailek"     value={overview.counts.unlinkedThreads}     tone="info"    />
       </div>
 
-      {/* D8-M: Historikus backfill — egyszer minden meglévő rekordra lefuttatja a D3 motorokat */}
-      <HistoricalBackfillPanel />
-
       <Tabs defaultValue="incomplete">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="incomplete">Hiányos cégek {tabBadge(incomplete.data?.length)}</TabsTrigger>
@@ -87,6 +86,19 @@ function DataQualityCenter() {
           <UnlinkedThreadsTable q={threads} />
         </TabsContent>
       </Tabs>
+
+      {/* Admin műveletek — ritkán használt, ezért az oldal aljára került, alapból csukva */}
+      <Collapsible>
+        <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border bg-muted/30 px-3 py-2 text-sm font-medium hover:bg-muted/50">
+          <span className="flex items-center gap-2 text-muted-foreground">
+            <Settings2 className="h-4 w-4" /> Admin műveletek · historikus backfill
+          </span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-3">
+          <HistoricalBackfillPanel />
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }
