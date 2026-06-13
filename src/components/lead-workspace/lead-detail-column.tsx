@@ -11,6 +11,7 @@ import { LEAD_STATUS_OPTIONS } from "./lead-list-column";
 import { useUpdateLead } from "./use-lead-mutations";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { LeadQualityBlock } from "./lead-quality-block";
+import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 
 export function LeadDetailColumn({
   leadId,
@@ -40,6 +41,14 @@ export function LeadDetailColumn({
   });
 
   const updateLead = useUpdateLead(leadId);
+
+  // D7: Cég Identity Strength a fejlécben (csak ha van cég).
+  const identity = useQuery({
+    queryKey: ["lead", leadId, "company-identity", lead.data?.company_id],
+    enabled: !!lead.data?.company_id,
+    queryFn: () => resolveCompanyIdentity(lead.data!.company_id!),
+    staleTime: 60_000,
+  });
 
   // Inline jegyzet (summary) — debounced autosave
   const [note, setNote] = useState<string>("");
@@ -147,6 +156,16 @@ export function LeadDetailColumn({
                 </Link>
               ) : <span className="text-muted-foreground">—</span>}
             </div>
+            {identity.data && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
+                <Badge variant="outline" className="font-normal">
+                  Identity {identity.data.identityStrength}/100
+                </Badge>
+                {identity.data.isStrongIdentity && (
+                  <span className="text-emerald-600">erős azonosító</span>
+                )}
+              </div>
+            )}
           </div>
           <div className="rounded-md border p-3">
             <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">

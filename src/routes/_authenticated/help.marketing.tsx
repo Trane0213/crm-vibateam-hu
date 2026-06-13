@@ -115,6 +115,34 @@ function MarketingHelpPage() {
         </ul>
       </Section>
 
+      <Section icon={ShieldCheck} title="7. CRM egészség és Identity Strength">
+        <p>
+          Minden cég adatlapján megjelenik az „Identity Strength" mutató (0–100).
+          A rendszer a meglévő adatok alapján számolja:
+        </p>
+        <ul className="ml-5 list-disc space-y-0.5">
+          <li>cégnév — 20 pont</li>
+          <li>adószám — 30 pont</li>
+          <li>email domain — 25 pont</li>
+          <li>weboldal — 15 pont</li>
+          <li>min. 1 ismert email — 10 pont</li>
+        </ul>
+        <p className="text-xs text-muted-foreground">
+          Az erős azonosító (≥ 2 mező kitöltve) később NAV / OPTEN / Céginfó lekérdezés alapja lesz.
+        </p>
+      </Section>
+
+      <Section icon={AlertTriangle} title="8. Rendszer figyelmeztetések">
+        <p>A marketing dashboardon külön blokkban látható:</p>
+        <ul className="ml-5 list-disc space-y-0.5">
+          <li>hiányos cégadatok száma (D5)</li>
+          <li>potenciális duplikációk (D4)</li>
+          <li>kapcsolattartó konfliktusok (D4)</li>
+          <li>linkeletlen leadek és email threadek (D3 + D5)</li>
+        </ul>
+        <p>Bármelyik sorra kattintva a <Code><Link to="/data-quality" className="text-primary hover:underline">Data Quality Center</Link></Code> nyílik meg.</p>
+      </Section>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm flex items-center gap-2">

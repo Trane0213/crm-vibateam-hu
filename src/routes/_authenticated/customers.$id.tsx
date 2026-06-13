@@ -20,6 +20,7 @@ import { formatHuf } from "@/lib/format";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { CompanyHealthPanel } from "@/components/customers/company-health-panel";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
+import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -58,6 +59,13 @@ function CustomerDetail() {
   const calls     = useListWhere<any>("phone_calls",   "company_id", id, { order: "created_at",   ascending: false });
   const meetings  = useListWhere<any>("meetings",      "company_id", id, { order: "meeting_date", ascending: false });
   const threads   = useListWhere<any>("email_threads", "company_id", id, { order: "last_message_at", ascending: false });
+
+  // D7 — Identity Strength a CRM Egészség blokkhoz.
+  const identity = useQuery({
+    queryKey: ["customers", "detail", id, "identity"],
+    queryFn: () => resolveCompanyIdentity(id),
+    staleTime: 60_000,
+  });
 
   const projectIds = (projects.data ?? []).map((p) => p.id);
 
@@ -191,6 +199,25 @@ function CustomerDetail() {
                 contacts={contacts.data ?? []}
                 leads={leads.data ?? []}
               />
+              {identity.data && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs">
+                  <span className="font-medium uppercase tracking-wider text-muted-foreground">
+                    Identity Strength
+                  </span>
+                  <Badge variant="outline" className="tabular-nums">
+                    {identity.data.identityStrength}/100
+                  </Badge>
+                  {identity.data.isStrongIdentity && (
+                    <Badge variant="secondary">erős azonosító</Badge>
+                  )}
+                  <span className="ml-2 text-muted-foreground">Forrás: {identity.data.identitySource}</span>
+                  {identity.data.lastEnrichmentCandidate !== "none" && (
+                    <span className="text-muted-foreground">
+                      · javasolt enrichment: <span className="font-mono">{identity.data.lastEnrichmentCandidate}</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <Card>
               <CardHeader><CardTitle className="text-sm">Alapadatok</CardTitle></CardHeader>

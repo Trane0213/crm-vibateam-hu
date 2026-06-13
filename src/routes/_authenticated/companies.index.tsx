@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
 import { ResourcePage, fmtDate } from "@/components/resource/resource-page";
 import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { CompanyQualityCell, CompanyDuplicateCell } from "@/components/customers/customer-quality-cell";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
   component: () => (
@@ -34,6 +35,8 @@ export const Route = createFileRoute("/_authenticated/companies/")({
         },
         { key: "tax_number", label: "Adószám" },
         { key: "website", label: "Weboldal" },
+        { key: "quality", label: "Adatminőség", render: (r) => <CompanyQualityCell companyId={r.id} /> },
+        { key: "dups", label: "Duplikátum", render: (r) => <CompanyDuplicateCell companyId={r.id} /> },
         {
           key: "created_at",
           label: "Létrehozva",
