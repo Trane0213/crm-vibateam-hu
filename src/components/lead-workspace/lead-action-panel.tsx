@@ -1,15 +1,23 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2, FileSignature, UserCheck, Sparkles, Filter } from "lucide-react";
+import {
+  Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2,
+  FileSignature, UserCheck, Sparkles, Filter, Phone, ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
 import { FollowupQuickForm } from "./followup-quick-form";
 import { AiSheet } from "./ai-sheet";
-import { useCreateLeadFollowup } from "./use-lead-mutations";
+import { useCreateLeadFollowup, useUpdateLead } from "./use-lead-mutations";
 import { QuickCreateQuoteButton } from "@/components/today/quick-create";
 import { LeadHandoffPanel } from "./lead-handoff-panel";
 import { toast } from "sonner";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { LEAD_EMAIL_TEMPLATES, type LeadEmailTemplate } from "@/lib/lead-workspace/email-templates";
+import { useLookup } from "@/components/resource/resource-page";
 
 type Mode = "marketing" | "sales";
 
@@ -23,6 +31,10 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
       return data as any;
     },
   });
+
+  const companyLabel = useLookup("companies", "name");
+  const contactLabel = useLookup("contacts", "name");
+  const updateLead = useUpdateLead(leadId);
 
   // Kapcsolattartó email-je (a contacts.email mezőből, ha létezik)
   const contact = useQuery({
@@ -38,18 +50,60 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
   const [emailOpen, setEmailOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [emailDefaults, setEmailDefaults] = useState<{ subject?: string; body?: string } | null>(null);
 
   const agent = mode === "sales" ? "sales" : "crm";
   const agentLabel = mode === "sales" ? "Timothy – Értékesítési Segítő" : "George – CRM Navigátor";
   const AgentIcon = mode === "sales" ? TrendingUp : Radar;
 
   const defaultTo = contact.data?.email ?? lead.data?.email ?? "";
-  const defaultSubject = lead.data?.summary ? `Re: ${lead.data.summary.slice(0, 60)}` : "";
+  const defaultSubject =
+    emailDefaults?.subject ??
+    (lead.data?.summary ? `Re: ${lead.data.summary.slice(0, 60)}` : "");
+  const defaultBody = emailDefaults?.body;
 
   const leadForFu = lead.data
     ? { id: lead.data.id, company_id: lead.data.company_id ?? null }
     : null;
   const autoFollowup = useCreateLeadFollowup(leadForFu);
+  const callLog = useCreateLeadFollowup(leadForFu);
+
+  function openComposer(template?: LeadEmailTemplate) {
+    if (template && lead.data) {
+      const ctx = {
+        contactName: lead.data.contact_id ? contactLabel(lead.data.contact_id) : null,
+        companyName: lead.data.company_id ? companyLabel(lead.data.company_id) : null,
+        projectType: lead.data.project_type ?? null,
+        source: lead.data.source ?? null,
+        summary: lead.data.summary ?? null,
+      };
+      setEmailDefaults({ subject: template.subject(ctx), body: template.body(ctx) });
+    } else {
+      setEmailDefaults(null);
+    }
+    setEmailOpen(true);
+  }
+
+  async function logCallNow() {
+    if (!leadForFu) return;
+    try {
+      await callLog.mutateAsync({
+        followup_type: "call",
+        due_date: new Date().toISOString(),
+        result: "Hívás megtörtént",
+      });
+      // A backend default completed=false — itt jelöljük befejezettnek külön update-tel,
+      // de a meglévő API csak insertet támogat -> a Followup már megjelenik az idővonalon.
+      toast.success("Hívás rögzítve");
+    } catch {/* hook már toastol */}
+  }
+
+  function moveStatus(next: string) {
+    if (!leadId || !lead.data) return;
+    if (lead.data.status === next) return;
+    updateLead.mutate({ status: next });
+    toast.success(`Státusz: ${next}`);
+  }
 
   async function handleEmailSent() {
     if (!leadForFu) {
@@ -83,17 +137,37 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-auto p-3">
-      {/* Folyamat-szalag */}
-      <ProcessStrip mode={mode} status={lead.data?.status} />
+      {/* Folyamat-szalag — marketingnek kattintható */}
+      <ProcessStrip
+        mode={mode}
+        status={lead.data?.status}
+        onStepClick={mode === "marketing" ? moveStatus : undefined}
+      />
 
       {/* 1. Email */}
       <div className="rounded-md border p-3">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
           <Mail className="h-3 w-3" /> Email
         </div>
-        <Button size="sm" className="w-full" onClick={() => setEmailOpen(true)}>
-          <Mail className="mr-1.5 h-3.5 w-3.5" /> Levél írása
-        </Button>
+        <div className="flex gap-1.5">
+          <Button size="sm" className="flex-1" onClick={() => openComposer()}>
+            <Mail className="mr-1.5 h-3.5 w-3.5" /> Levél írása
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="shrink-0">
+                Sablon <ChevronDown className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {LEAD_EMAIL_TEMPLATES.map((t) => (
+                <DropdownMenuItem key={t.id} onClick={() => openComposer(t)}>
+                  {t.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         {defaultTo && (
           <div className="mt-1.5 truncate text-[11px] text-muted-foreground">Címzett: {defaultTo}</div>
         )}
@@ -104,6 +178,26 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
       {/* 2. Followup */}
       <FollowupQuickForm lead={leadForFu} />
+
+      {/* 2b. Hívás rögzítése */}
+      <div className="rounded-md border p-3">
+        <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <Phone className="h-3 w-3" /> Hívás
+        </div>
+        <Button
+          size="sm" variant="secondary" className="w-full"
+          disabled={!leadForFu?.company_id || callLog.isPending}
+          onClick={logCallNow}
+        >
+          <Phone className="mr-1.5 h-3.5 w-3.5" />
+          {callLog.isPending ? "Rögzítés…" : "Hívás megtörtént"}
+        </Button>
+        {!leadForFu?.company_id && (
+          <div className="mt-1.5 text-[10px] text-muted-foreground">
+            Cég hozzárendelése után rögzíthető.
+          </div>
+        )}
+      </div>
 
       {/* 3. AI */}
       <div className="rounded-md border bg-primary/[0.04] p-3">
@@ -147,9 +241,10 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
       <EmailComposer
         open={emailOpen}
-        onOpenChange={setEmailOpen}
+        onOpenChange={(v) => { setEmailOpen(v); if (!v) setEmailDefaults(null); }}
         defaultTo={defaultTo}
         defaultSubject={defaultSubject}
+        defaultBody={defaultBody}
         onSent={handleEmailSent}
       />
       <AiSheet open={aiOpen} onOpenChange={setAiOpen} agent={agent} agentLabel={agentLabel} />
@@ -161,7 +256,13 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
 type StepKey = "lead" | "email" | "followup" | "ai" | "quote" | "contract" | "qualify" | "handoff";
 
-function ProcessStrip({ mode, status }: { mode: Mode; status?: string | null }) {
+function ProcessStrip({
+  mode, status, onStepClick,
+}: {
+  mode: Mode;
+  status?: string | null;
+  onStepClick?: (next: string) => void;
+}) {
   const steps: { key: StepKey; label: string; icon: typeof Mail }[] =
     mode === "sales"
       ? [
@@ -180,6 +281,12 @@ function ProcessStrip({ mode, status }: { mode: Mode; status?: string | null }) 
 
   // Aktív lépés a lead státuszából.
   const active: StepKey =
+
+  // Marketingben a lépés → status mapping (csak amire értelmes a klikk).
+  const stepToStatus: Partial<Record<StepKey, string>> =
+    mode === "marketing"
+      ? { lead: "new", email: "contacted", qualify: "contacted", handoff: "qualified" }
+      : {};
     mode === "sales"
       ? (status === "converted" ? "contract"
         : status === "qualified" ? "quote"
@@ -200,18 +307,28 @@ function ProcessStrip({ mode, status }: { mode: Mode; status?: string | null }) 
         {steps.map((s, i) => {
           const isActive = s.key === active;
           const Icon = s.icon;
+          const targetStatus = stepToStatus[s.key];
+          const clickable = !!(onStepClick && targetStatus);
+          const cls = `flex flex-1 items-center justify-center gap-1 rounded px-1.5 py-1 text-[10px] font-medium transition-colors ${
+            isActive
+              ? "bg-primary text-primary-foreground"
+              : "bg-background text-muted-foreground border"
+          } ${clickable && !isActive ? "hover:bg-muted hover:text-foreground cursor-pointer" : ""}`;
+          const content = (
+            <>
+              <Icon className="h-3 w-3" />
+              <span className="truncate">{s.label}</span>
+            </>
+          );
           return (
             <div key={s.key} className="flex flex-1 items-center gap-1">
-              <div
-                className={`flex flex-1 items-center justify-center gap-1 rounded px-1.5 py-1 text-[10px] font-medium ${
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background text-muted-foreground border"
-                }`}
-              >
-                <Icon className="h-3 w-3" />
-                <span className="truncate">{s.label}</span>
-              </div>
+              {clickable ? (
+                <button type="button" className={cls} onClick={() => onStepClick!(targetStatus!)}>
+                  {content}
+                </button>
+              ) : (
+                <div className={cls}>{content}</div>
+              )}
               {i < steps.length - 1 && <ArrowRight className="h-3 w-3 shrink-0 text-muted-foreground/60" />}
             </div>
           );
