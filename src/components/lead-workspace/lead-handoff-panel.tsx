@@ -94,7 +94,10 @@ export function LeadHandoffPanel({
   });
 
   if (!lead) return null;
-  if (lead.status !== "qualified") return null;
+  // Marketingnek `qualified` és `contacted` állapotban is engedjük a panelt —
+  // ha az adatminőség zöld, ne kelljen pluszban státuszt állítani átadás előtt.
+  if (lead.status !== "qualified" && lead.status !== "contacted") return null;
+  const earlyHandoff = lead.status === "contacted";
 
   const score = quality.data ?? null;
   const isRed = score?.band === "red";
@@ -122,6 +125,11 @@ export function LeadHandoffPanel({
         </div>
       ) : (
         <div className="space-y-2">
+          {earlyHandoff && (
+            <div className="rounded-md border border-amber-500/40 bg-amber-50 p-2 text-[11px] text-amber-900">
+              A lead még nincs minősítve. Csak akkor add át, ha az adatminőség és a kapcsolat tisztázott.
+            </div>
+          )}
           <div className="rounded-md border bg-background p-2 text-[11px] space-y-1">
             <div className="flex justify-between gap-2">
               <span className="text-muted-foreground">Lead állapot</span>
