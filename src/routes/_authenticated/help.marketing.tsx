@@ -25,44 +25,50 @@ function MarketingHelpPage() {
 
       <Section icon={Sparkles} title="1. Új érdeklődő létrehozása">
         <p>Nyisd meg: <Code>Ma → Új érdeklődő</Code></p>
-        <p>Töltsd ki: Név, Cég, Rövid leírás. A rendszer automatikusan jelzi a duplikációt és összeköti a céggel.</p>
+        <p>Mezők: Ügyfél, Kapcsolattartó, Forrás, Projekt típus, Státusz, Összefoglaló. Az ügyfelet és a kapcsolattartót a meglévő listából választod ki.</p>
+        <p className="text-xs text-muted-foreground">
+          Mentés előtt a rendszer ellenőrzi, hogy a kiválasztott ügyfélhez tartozik-e már nyitott érdeklődő — ha igen, jelzi és átirányít a meglévőre.
+        </p>
       </Section>
 
       <Section icon={CheckCircle2} title="2. Lead minősítése">
+        <p className="text-xs text-muted-foreground">A marketing nézetben látható státuszok:</p>
         <div className="grid gap-2 sm:grid-cols-2">
           <Status name="Új"                       desc="Még nem történt kapcsolatfelvétel." tone="info" />
           <Status name="Kapcsolatfelvétel alatt"  desc="Email vagy telefon megtörtént."     tone="primary" />
           <Status name="Átadható"                 desc="Az érdeklődő megfelelő."            tone="warning" />
+          <Status name="Átadva értékesítőnek"     desc="Sales megkapta a leadet."           tone="primary" />
           <Status name="Nem érdekes"              desc="Lezárt lead."                       tone="danger" />
         </div>
       </Section>
 
       <Section icon={ShieldCheck} title="3. Adatminőség ellenőrzése">
-        <p>Minden cégnél és kapcsolattartónál látható az adatminőségi mutató:</p>
+        <p>A cégek és kapcsolattartók listáján színes sávval jelenik meg az adatminőségi mutató:</p>
         <ul className="space-y-1.5">
           <li className="flex items-center gap-2">
             <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100">85% +</Badge>
-            <span>Zöld — átadható az értékesítőnek.</span>
+            <span>Zöld — elegendő adat az átadáshoz.</span>
           </li>
           <li className="flex items-center gap-2">
             <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">50–84%</Badge>
-            <span>Sárga — ajánlott pótolni a hiányzó adatokat.</span>
+            <span>Sárga — érdemes pótolni a hiányzó adatokat.</span>
           </li>
           <li className="flex items-center gap-2">
             <Badge variant="destructive">&lt; 50%</Badge>
-            <span>Piros — hiányos, csak felülbírálással adható át.</span>
+            <span>Piros — hiányos; az átadás panel figyelmeztetést ad.</span>
           </li>
         </ul>
         <p className="text-xs text-muted-foreground">
-          Részletes hiánylista: <Code><Link to="/data-quality" className="text-primary hover:underline">Adatminőség</Link></Code>.
+          Részletes hiánylista és duplikátum-jelöltek: <Code><Link to="/data-quality" className="text-primary hover:underline">Adatminőség</Link></Code>. Az összevonás és a mezők pótlása kézi munka.
         </p>
       </Section>
 
       <Section icon={ArrowRightCircle} title="4. Átadás salesnek">
+        <p className="text-xs text-muted-foreground">Az „Átadás értékesítőnek" panel csak akkor jelenik meg, ha a lead státusza <em>Minősített</em> (marketing nézetben: <em>Átadható</em>) és van hozzárendelt cég.</p>
         <ol className="ml-5 list-decimal space-y-0.5">
-          <li>Állítsd a státuszt <em>Átadható</em>-ra a lead részleteknél.</li>
-          <li>A jobb oldali panelen válassz értékesítőt.</li>
-          <li>Kattints az <em>Átadás és lezárás</em> gombra.</li>
+          <li>Nyisd meg a lead adatlapját és állítsd a státuszt <em>Átadható</em>-ra.</li>
+          <li>A jobb oldali <em>Átadás értékesítőnek</em> panelen válassz értékesítőt a legördülőből.</li>
+          <li>Kattints az <em>Átadás és lezárás</em> gombra. A rendszer egy handoff típusú utókövetést rögzít; a lead státusza <em>Minősített</em> marad, és bekerül az értékesítő listájába.</li>
         </ol>
       </Section>
 
