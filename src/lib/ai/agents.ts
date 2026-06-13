@@ -27,6 +27,7 @@ export type CrmResource =
   | "phone_calls"
   | "meetings"
   | "project_documents"
+  | "company_documents"
   | "project_notes";
 
 export type AgentCapability = "read" | "write";
@@ -66,6 +67,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
       phone_calls: ["read"],
       meetings: ["read"],
       project_documents: ["read"],
+      company_documents: ["read"],
       project_notes: ["read"],
     },
   },
@@ -86,6 +88,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
       emails: ["read"],
       phone_calls: ["read"],
       meetings: ["read"],
+      company_documents: ["read"],
     },
   },
   pm: {
@@ -103,6 +106,7 @@ export const AGENTS: Record<AgentId, AgentDefinition> = {
       followups: ["read", "write"],
       meetings: ["read", "write"],
       project_documents: ["read"],
+      company_documents: ["read"],
       project_notes: ["read", "write"],
     },
   },
