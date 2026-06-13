@@ -23,6 +23,7 @@ import {
   LayoutGrid,
   Activity,
   ShieldCheck,
+  BookOpen,
 } from "lucide-react";
 import {
   Sidebar,
@@ -84,6 +85,7 @@ const sys: Item[] = [
   { title: "Adatminőség", url: "/data-quality", icon: ShieldCheck },
   { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
   { title: "Aktivitás", url: "/activity", icon: Activity },
+  { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen },
   { title: "Beállítások", url: "/settings", icon: Settings },
 ];
 
