@@ -100,10 +100,11 @@ export function QuickCreateLeadButton({ onCreated }: { onCreated?: (row: any) =>
         submitting={upsert.isPending}
         onSubmit={async (values) => {
           const merged: Record<string, any> = { status: "new", ...(values as Record<string, any>) };
-          // Duplikáció ellenőrzés — ha van nyitott lead ugyanahhoz a céghez vagy emailhez, nyissuk meg azt.
+          // Duplikáció ellenőrzés — nyitott lead ugyanahhoz a céghez (a leads tábla
+          // nem tárol külön email mezőt, ezért company-alapon szűrünk).
           const dup = await findOpenLeadDuplicate({
             companyId: merged.company_id ?? null,
-            email: merged.email ?? null,
+            email: null,
           });
           if (dup) {
             toast.info("Már létezik nyitott érdeklődő", {
