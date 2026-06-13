@@ -21,6 +21,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
+import { Route as AuthenticatedDataQualityRouteImport } from './routes/_authenticated/data-quality'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
 import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
@@ -120,6 +121,12 @@ const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDataQualityRoute =
+  AuthenticatedDataQualityRouteImport.update({
+    id: '/data-quality',
+    path: '/data-quality',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -349,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/data-quality': typeof AuthenticatedDataQualityRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/followups': typeof AuthenticatedFollowupsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -401,6 +409,7 @@ export interface FileRoutesByTo {
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/data-quality': typeof AuthenticatedDataQualityRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/followups': typeof AuthenticatedFollowupsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -454,6 +463,7 @@ export interface FileRoutesById {
   '/_authenticated/ai-assistants': typeof AuthenticatedAiAssistantsRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/data-quality': typeof AuthenticatedDataQualityRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/followups': typeof AuthenticatedFollowupsRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
@@ -508,6 +518,7 @@ export interface FileRouteTypes {
     | '/ai-assistants'
     | '/calls'
     | '/dashboard'
+    | '/data-quality'
     | '/documents'
     | '/followups'
     | '/meetings'
@@ -560,6 +571,7 @@ export interface FileRouteTypes {
     | '/ai-assistants'
     | '/calls'
     | '/dashboard'
+    | '/data-quality'
     | '/documents'
     | '/followups'
     | '/meetings'
@@ -612,6 +624,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ai-assistants'
     | '/_authenticated/calls'
     | '/_authenticated/dashboard'
+    | '/_authenticated/data-quality'
     | '/_authenticated/documents'
     | '/_authenticated/followups'
     | '/_authenticated/meetings'
@@ -756,6 +769,13 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/data-quality': {
+      id: '/_authenticated/data-quality'
+      path: '/data-quality'
+      fullPath: '/data-quality'
+      preLoaderRoute: typeof AuthenticatedDataQualityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -1076,6 +1096,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiAssistantsRoute: typeof AuthenticatedAiAssistantsRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDataQualityRoute: typeof AuthenticatedDataQualityRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedFollowupsRoute: typeof AuthenticatedFollowupsRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
@@ -1105,6 +1126,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiAssistantsRoute: AuthenticatedAiAssistantsRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDataQualityRoute: AuthenticatedDataQualityRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedFollowupsRoute: AuthenticatedFollowupsRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,

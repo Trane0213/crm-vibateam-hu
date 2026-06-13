@@ -22,6 +22,7 @@ import {
   Radar,
   LayoutGrid,
   Activity,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -80,6 +81,7 @@ const comms: Item[] = [
 
 const sys: Item[] = [
   { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Adatminőség", url: "/data-quality", icon: ShieldCheck },
   { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
   { title: "Aktivitás", url: "/activity", icon: Activity },
   { title: "Beállítások", url: "/settings", icon: Settings },
