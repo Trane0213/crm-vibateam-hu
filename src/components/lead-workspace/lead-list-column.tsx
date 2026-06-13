@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useList } from "@/lib/db-hooks";
+import { supabase } from "@/integrations/supabase/client";
+import { computeLeadUrgency, urgencyOrder, LeadUrgencyDot, type FollowupLite } from "./lead-urgency-dot";
+import { relativeTime } from "@/components/marketing-ui";
 
 /** DB értékek érintetlenek; a `label` mező csak UI-felirat.
  *  Marketing UI a `marketingLabel`-t használja (ha definiált), különben a `label`-t. */
@@ -43,6 +47,36 @@ export function LeadListColumn({
     return Array.from(set).sort();
   }, [data]);
 
+  // Egyszeri followups lekérdezés a látható leadek company_id-i alapján,
+  // a sürgősség-pötty in-memory kiszámításához.
+  const companyIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const l of data ?? []) if (l.company_id) set.add(l.company_id);
+    return Array.from(set);
+  }, [data]);
+
+  const followups = useQuery({
+    queryKey: ["lead-workspace", "followups-by-company", companyIds.sort().join(",")],
+    enabled: companyIds.length > 0,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("followups")
+        .select("company_id, due_date, completed")
+        .in("company_id", companyIds)
+        .eq("completed", false);
+      if (error) throw error;
+      const map = new Map<string, FollowupLite[]>();
+      for (const r of (rows ?? []) as FollowupLite[]) {
+        if (!r.company_id) continue;
+        const arr = map.get(r.company_id) ?? [];
+        arr.push(r);
+        map.set(r.company_id, arr);
+      }
+      return map;
+    },
+  });
+
   const labelFor = (value: string) => {
     const o = STATUS_OPTIONS.find((x) => x.value === value);
     if (!o) return value;
@@ -51,7 +85,7 @@ export function LeadListColumn({
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return (data ?? []).filter((l: any) => {
+    const list = (data ?? []).filter((l: any) => {
       if (mode === "marketing") {
         // Marketing tabok: Aktív=new/contacted, Átadható=qualified, Nem érdekes=lost.
         // A `converted` státusz a marketingnek nem jelenik meg (értékesítő hatáskör).
@@ -66,7 +100,33 @@ export function LeadListColumn({
       const hay = `${l.summary ?? ""} ${l.source ?? ""} ${l.project_type ?? ""} ${l.email ?? ""}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [data, search, status, source, mode, marketingTab]);
+    if (mode === "marketing") {
+      // Marketingnek sürgősség szerint: piros → sárga → kék → szürke, majd created_at desc.
+      const map = followups.data;
+      return [...list].sort((a, b) => {
+        const oa = urgencyOrder(computeLeadUrgency(a, map));
+        const ob = urgencyOrder(computeLeadUrgency(b, map));
+        if (oa !== ob) return oa - ob;
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return tb - ta;
+      });
+    }
+    return list;
+  }, [data, search, status, source, mode, marketingTab, followups.data]);
+
+  // Mini-összegző a tab szám alá: hány lejárt / mai van a látható listából.
+  const summary = useMemo(() => {
+    if (mode !== "marketing") return null;
+    let overdue = 0, today = 0, fresh = 0;
+    for (const l of filtered) {
+      const u = computeLeadUrgency(l, followups.data);
+      if (u === "red") overdue++;
+      else if (u === "amber") today++;
+      else if (u === "blue") fresh++;
+    }
+    return { overdue, today, fresh };
+  }, [filtered, followups.data, mode]);
 
   // Auto-select first lead: belépés után rögtön mutassuk a legfrissebb érdeklődőt.
   useEffect(() => {
@@ -130,7 +190,16 @@ export function LeadListColumn({
             {allSources.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <div className="text-[11px] text-muted-foreground">{filtered.length} érdeklődő</div>
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>{filtered.length} érdeklődő</span>
+          {summary && (summary.overdue + summary.today + summary.fresh > 0) && (
+            <span className="flex items-center gap-2">
+              {summary.overdue > 0 && <span className="text-destructive">{summary.overdue} lejárt</span>}
+              {summary.today > 0   && <span className="text-[color:var(--status-warning)]">{summary.today} mai</span>}
+              {summary.fresh > 0   && <span className="text-[color:var(--status-info)]">{summary.fresh} új</span>}
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex-1 overflow-auto">
         {isLoading ? (
@@ -141,6 +210,9 @@ export function LeadListColumn({
           <ul className="divide-y">
             {filtered.map((l: any) => {
               const active = l.id === selectedId;
+              const urgency = mode === "marketing"
+                ? computeLeadUrgency(l, followups.data)
+                : "muted";
               return (
                 <li key={l.id}>
                   <button
@@ -150,9 +222,18 @@ export function LeadListColumn({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">{l.summary ?? `#${String(l.id).slice(0, 6)}`}</div>
-                        <div className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                          {l.source ?? "—"}{l.project_type ? ` · ${l.project_type}` : ""}
+                        <div className="flex items-center gap-1.5">
+                          {mode === "marketing" && <LeadUrgencyDot level={urgency} />}
+                          <div className="truncate text-sm font-medium">
+                            {l.summary ?? `#${String(l.id).slice(0, 6)}`}
+                          </div>
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-muted-foreground">
+                          <span className="truncate">
+                            {l.source ?? "—"}{l.project_type ? ` · ${l.project_type}` : ""}
+                          </span>
+                          <span className="opacity-60">·</span>
+                          <span className="shrink-0">{relativeTime(l.updated_at ?? l.created_at)}</span>
                         </div>
                       </div>
                       <Badge variant="outline" className={`shrink-0 text-[10px] ${STATUS_TONE[l.status] ?? ""}`}>

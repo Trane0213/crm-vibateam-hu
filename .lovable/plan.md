@@ -1,74 +1,71 @@
+## Cél
 
-# Marketing UX Overhaul Plan
+A marketinges a Lead Workspace-en belül egyetlen képernyőről végzi a teljes napi munkát: kiválasztás → értékelés → kapcsolatfelvétel → utánkövetés → átadás. Nincs oldalváltás, nincs új tábla, nincs új motor – csak a meglévő hookok és komponensek újrarendezése + hiányzó interakciók pótlása.
 
-A cél: a marketinges reggel belépve azonnal lássa, mit kell csinálnia. Nem új motor, nem backfill – a meglévő D1–D8 logikára épülő, marketinges szemléletű UI réteg.
+Lista oldalakat (companies / contacts / customers / today) ebben a sprintben **nem érintjük**.
 
-## 1. /today – Marketing napi munkafelület
-Három fő blokk, a technikai panelek (System Alerts, Backfill stb.) eltávolítva vagy admin nézetbe áthelyezve.
+## 1. Három-oszlopos váz finomítás
 
-- **Mai feladatok**: Lejárt utánkövetések · Ma esedékes · Új érdeklődők (24h) · Átadásra váró leadek. Minden sorban: lead név, cég, hőmérséklet pötty, gyors akciók (Email / Telefon / Megnyitás).
-- **Lead pipeline**: 6 oszlopos kanban-style badge sor (Új, Kapcsolatfelvétel, Minősítés, Átadható, Átadott, Elveszett) – darabszámok, kattintható.
-- **Marketing teljesítmény**: 7/30 napos új leadek, átadási arány %, email aktivitás, válaszadási arány.
+`src/components/lead-workspace/lead-workspace.tsx`
+- Magasság `h-[640px]` helyett `h-[calc(100vh-9rem)]` – teljes képernyős munkafelület.
+- Bal 300px / közép rugalmas / jobb 340px (jelenleg 280/–/300). A jobb oldali akció panel ma túl szűk, az átadás form nem fér ki.
+- Mobil: tabos váltás (Lista / Részletek / Akciók) – egyszerű state-alapú renderelés, nem új lib.
 
-Új komponens: `src/components/today/marketing-daily-board.tsx` (cseréli az eddigi homepage tartalmát; SystemAlertsPanel és HistoricalBackfillPanel eltűnik innen).
+## 2. Bal oszlop – Lead lista (kiválasztás)
 
-## 2. Lead Workspace – 3 oszlop
-Új layout `src/components/lead-workspace/lead-workspace-shell.tsx`:
-- **Bal**: lead lista (szűkebb, sürgősség szerint rendezve, hőmérséklet pötty + score badge).
-- **Közép**: lead adatlap (kompakt – cég, kapcsolat, score, adatminőség kis sávban, aktivitási timeline).
-- **Jobb**: Akció panel – Email küldés · Telefon · Utánkövetés ütemezése · Átadás értékesítésnek (gomb, ha átadható). Felül kis chip-sor: Score / Hőmérséklet / Adatminőség / Utolsó aktivitás.
+`src/components/lead-workspace/lead-list-column.tsx`
+- Új sürgősség-jel: minden lead sorban kis színes pötty a státusz badge mellett.
+  - Piros = lejárt utánkövetés van, sárga = mai utánkövetés, szürke = nincs esedékes.
+  - Adat: `useListWhere("followups", "company_id", ...)` helyett egyszeri `followups` lekérdezés a látható leadek `company_id` listájára, in-memory map.
+- Rendezés a marketing tabokban: lejárt → mai → új lead 24h → többi. (sales mód érintetlen).
+- Sor másodlagos sorában a forrás mellé: utolsó aktivitás relatív idő (`relativeTime(l.updated_at)`).
+- „X érdeklődő" alá mini-összefoglaló a tabhoz: pl. „3 lejárt · 2 mai".
 
-Auto-fixes és Quality block kerül a jobb oldali akció panel alá kollapszálva, ne dominálja a középső adatlapot.
+## 3. Közép oszlop – Lead adatlap (értékelés)
 
-## 3. AI Asszisztensek routing audit
-Hiba: George kártya Timothy chatet nyit. Átnézzük:
-- `src/components/ai-assistants/*` és bárhonnan, ahol agent kártya/avatár van.
-- Központosítjuk az agent definíciókat (`src/lib/ai/agents.ts`-be, ha még nincs): id, név, avatar, system prompt.
-- Minden kártya `agentId`-t ad át az opener-nek; opener ugyanazt az `agentId`-t használja a chat ablakhoz. Egyetlen forrás.
+`src/components/lead-workspace/lead-detail-column.tsx`
+- Fejléc kompaktabb: cím sor mellé jobbra chip-sor – **Score%** (LeadQualityBlock pct), **Hőmérséklet pötty** (lejárt/mai/új alapján), **Identity strength** (ha van), **Utolsó aktivitás**. A statisztikák így már a görgetés előtt láthatóak.
+- A jelenlegi nagy „Adatminőség" és „Automatikus javítások" szekciók egy összecsukható `<details>` blokkba kerülnek: **„Adatminőség és automatikus javítások"** – alapból zárva, hogy a jegyzet, cég/kapcsolat és időskála dominálja a középső területet.
+- Új inline mezők (mind autosave a `useUpdateLead`-en keresztül, új mező nélkül – meglévő `leads` oszlopok): `source`, `project_type` szerkeszthető kis input-ok a chip-sor alatt. Ma csak megjelennek, marketinges nem tudja javítani.
+- Időskála: csak handoff/email/meeting/call típusra ikonos render (Mail / Phone / UserCheck / Calendar). Ma minden szürke szövegként jelenik meg.
 
-## 4. Ügyfelek lista
-`src/routes/_authenticated/customers.index.tsx` oszlopok:
-- Cég · Kategória · Város · Weboldal · Kapcsolattartók # · Leadek # · Utolsó aktivitás.
-- Üres projekt/ajánlat oszlopok eltávolítva.
-- Adatminőség és duplikáció badge a sor végén kis ikonként, nem külön nagy oszlopként.
+## 4. Jobb oszlop – Akciópanel (kapcsolat, utánkövetés, átadás)
 
-## 5. Cégek lista
-`src/routes/_authenticated/companies.index.tsx`:
-- Keresősáv + szűrők: kategória, város, adatminőség (Jó / Hiányos / Konfliktus).
-- Oszlopok: Cégnév · Kategória · Weboldal · Város · Kapcsolattartók # · Leadek # · Adatminőség %.
+`src/components/lead-workspace/lead-action-panel.tsx`
+- A folyamat-szalag (ProcessStrip) megmarad, de **kattinthatóvá** válik: marketing módban a lépésre kattintva a megfelelő státuszt állítja (`new` → `contacted` → `qualified`). Új átmenet, de a státuszok már léteznek.
+- Email blokk: a „Levél írása" gomb mellé egy **„Sablon"** menü – 3 előre megírt rövid sablon (első megkeresés / emlékeztető / kvalifikáló kérdések). Csak frontend constants, a sablonok átadásra kerülnek az `EmailComposer`-be (`defaultBody` prop – ha még nincs, hozzáadjuk).
+- Followup blokk megmarad (FollowupQuickForm).
+- AI blokk megmarad.
+- **Új: Hívás rögzítése** mini-blokk: egy „Hívás megtörtént" gomb azonnal létrehoz egy `followup_type='call'`, `completed=true`, `due_date=now()` rekordot opcionális 1 soros eredménnyel. A meglévő `useCreateLeadFollowup`-ot használjuk.
+- **Átadás panel (LeadHandoffPanel)** marketing módban marad – de a megjelenési feltételt enyhítjük: `status === 'qualified' || status === 'contacted'`-nál is mutatja (egy kis figyelmeztetéssel, hogy minősítés ajánlott), hogy a marketinges ne ragadjon be – ha a minőség zöld, közvetlenül átadhassa.
 
-## 6. Kapcsolattartók
-`src/routes/_authenticated/contacts.index.tsx` átszerkesztés:
-- Oszlopok: Név · Cég · Email · Telefon · Szerepkör · Utolsó aktivitás · Leadek #.
-- Konfliktus / linkelési badge: kis ikon a név mellett, részletek a sor drawer-ben/detail oldalon.
+## 5. /leads útvonal: alapértelmezett a Workspace
 
-## 7. Adatminőség
-`src/routes/_authenticated/data-quality.tsx`:
-- Dashboard fejléc: 4 KPI kártya (Hiányzó cégek, Hiányzó kapcsolattartók, Duplikációk, Javítható rekordok).
-- A `HistoricalBackfillPanel` átkerül egy collapse-olt "Admin műveletek" szekcióba az oldal aljára.
-- Tab-ok megmaradnak, de tömörebb fejléccel.
+`src/routes/_authenticated/leads.index.tsx`
+- A jelenlegi táblázatos `ResourcePage` átkerül `/leads/table` (vagy „Lista" tab) – a `/leads` alapnézet a `LeadWorkspace mode="marketing"` lesz. A user explicit kérése: napi munkát itt végzi, ne tudjon véletlenül a lista nézetben elveszni.
+- Egyszerű top-bar két gombbal: **Munkafelület** (alap) / **Lista** (a régi tábla). Nem új route – `useState` váltó.
 
-## 8. Marketing Súgó
-`src/routes/_authenticated/help.marketing.tsx` átalakítás interaktív szekciókra (accordion + példa kártyák):
-- Lead feldolgozás lépésről lépésre
-- Minősítési kritériumok
-- Mikor add át értékesítésnek (checklist)
-- Email sablonok (kimásolható szövegblokkok)
-- Telefon script
-- Workflow ábra (egyszerű ASCII/SVG)
+## 6. Apró fixek
 
-## 9. Egységes design
-Új közös primitívek (`src/components/marketing-ui/`):
-- `KpiCard`, `StatusPill` (lead státusz színek), `TempDot` (hideg/meleg/forró), `ActionButton`, `SectionHeader`, `FilterBar`.
-- Alkalmazva minden marketing oldalon a konzisztencia érdekében.
+- `LeadActionPanel` jelenlegi `leadId == null` esete „üres workspace" üzenet a teljes középre is, ne csak a jobbra.
+- A `LeadDetailColumn`-ban a `min-w-0` mellé `max-w-full` – hosszú összefoglalók eltörik a layoutot bizonyos szélességeknél.
+- AutoEnrich status megjelenítés: ha 800ms után nincs result, ne mutassa végtelen „Meglévő adatok ellenőrzése…", inkább „Nincs javítható adat".
 
 ## Műszaki megjegyzések
-- Csak frontend / presentation változások. Üzleti logika, motorok, DB érintetlen.
-- Meglévő `useQualityOverview`, `crm-surface`, `lead-scoring` hookokat újrahasznosítjuk.
-- A HistoricalBackfillPanel megmarad (admin nézetben), nem töröljük.
-- A `data-lovable-blank-page-placeholder` és üres oszlopok a customers/contacts oldalakon eltűnnek.
+
+- Csak frontend / presentation. Nincs új tábla, nincs új mező, nincs új edge function.
+- Új komponensek:
+  - `src/components/lead-workspace/lead-urgency-dot.tsx` (közös pötty logika)
+  - `src/lib/lead-workspace/email-templates.ts` (3 hard-coded sablon)
+- Érintett fájlok: a 4 lead-workspace komponens + `EmailComposer` props bővítése (`defaultBody`) + `leads.index.tsx`.
 
 ## Elfogadási kritérium
-A marketinges /today oldalon belépve 5 másodperc alatt látja: lejárt followupjai, mai dolga, átadható leadjei és heti teljesítménye – további kattintás nélkül.
 
-Jóváhagyod, és nekiállhatok? Vagy van olyan blokk (pl. AI agent fix, /today, vagy lead workspace), amit előbbre vennél / kihagynál?
+A marketinges a `/leads` oldalon belépve:
+1. Bal oldalon látja a kiválasztott aktuális leadeket sürgősség szerint.
+2. Középen 1 másodperc alatt felméri a lead állapotát (score, hőmérséklet, identity, utolsó aktivitás chip-ekből).
+3. Jobb oldalon: email küld sablonnal, +3 nap auto-followup, hívás rögzítés egy kattintással, átadás értékesítőnek – oldalváltás nélkül.
+4. A státusz a folyamat-szalag kattintásával lép.
+5. A többi marketing oldalra csak akkor megy, ha valami atipikus dologra van szüksége.
+
+Jóváhagyod? Ha igen, nekiállok – csak ezt a sprintet csinálom végig, a listaoldalakat ezúttal nem nyúlom.
