@@ -1,13 +1,16 @@
 import { useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { RecordDialog, type Field } from "@/components/resource/resource-page";
 import { useUpsert } from "@/lib/db-hooks";
 import { toast } from "sonner";
+import { findOpenLeadDuplicate } from "@/lib/dedupe/detect";
 
 const LEAD_FIELDS: Field[] = [
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
   { name: "contact_id", label: "Kapcsolattartó", type: "ref", ref: { table: "contacts", labelColumn: "name" } },
+  { name: "email", label: "E-mail (duplikáció ellenőrzéshez)", type: "text" },
   { name: "source", label: "Forrás", type: "text", placeholder: "pl. Weboldal, Ajánlás" },
   { name: "project_type", label: "Projekt típus", type: "text" },
   { name: "status", label: "Státusz", type: "select", required: true, options: [
@@ -80,13 +83,47 @@ function QuickButton({
 }
 
 export function QuickCreateLeadButton({ onCreated }: { onCreated?: (row: any) => void }) {
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const upsert = useUpsert("leads");
   return (
-    <QuickButton
-      table="leads" label="Új érdeklődő" title="Új érdeklődő"
-      fields={LEAD_FIELDS}
-      defaults={{ status: "new" }}
-      onCreated={onCreated}
-    />
+    <>
+      <Button size="sm" onClick={() => setOpen(true)}>
+        <Plus className="mr-1 h-3.5 w-3.5" />
+        Új érdeklődő
+      </Button>
+      <RecordDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Új érdeklődő"
+        fields={LEAD_FIELDS}
+        defaults={{ status: "new" }}
+        submitting={upsert.isPending}
+        onSubmit={async (values) => {
+          const merged = { status: "new", ...values };
+          // Duplikáció ellenőrzés — ha van nyitott lead ugyanahhoz a céghez vagy emailhez, nyissuk meg azt.
+          const dup = await findOpenLeadDuplicate({
+            companyId: merged.company_id ?? null,
+            email: merged.email ?? null,
+          });
+          if (dup) {
+            toast.info("Már létezik nyitott érdeklődő", {
+              description: dup.reason === "company"
+                ? "Ennek az ügyfélnek már van aktív érdeklődője."
+                : "Erre az email címre már van aktív érdeklődő.",
+              action: { label: "Megnyitás", onClick: () => navigate({ to: "/leads/$id", params: { id: dup.id } }) },
+            });
+            setOpen(false);
+            navigate({ to: "/leads/$id", params: { id: dup.id } });
+            return;
+          }
+          const row = await upsert.mutateAsync(merged);
+          toast.success("Új érdeklődő mentve");
+          setOpen(false);
+          onCreated?.(row);
+        }}
+      />
+    </>
   );
 }
 
