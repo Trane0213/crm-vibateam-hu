@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserPlus, AlertTriangle, Mail } from "lucide-react";
 import { ResourcePage, useLookup } from "@/components/resource/resource-page";
-import { PersonalContactDialog } from "@/components/projects/personal-contact-dialog";
 import { loadContactSurfaceMap } from "@/lib/crm/crm-surface";
 import { FilterBar, FilterSelect, QualityBar, relativeTime } from "@/components/marketing-ui";
 
@@ -48,7 +47,6 @@ function ContactsPage() {
       table="contacts"
       order="name"
       ascending
-      extraActions={<PersonalContactDialog />}
       filter={filterFn}
       toolbar={
         <FilterBar
