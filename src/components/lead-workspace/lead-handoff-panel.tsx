@@ -100,6 +100,15 @@ export function LeadHandoffPanel({
   const isRed = score?.band === "red";
   const isYellow = score?.band === "yellow";
   const canSubmit = !!salesId && !handoff.isPending && (!isRed || override);
+  const chosenSales = (sales.data ?? []).find((s) => s.id === salesId);
+  const chosenName = chosenSales?.full_name?.trim() || chosenSales?.email || null;
+  const scoreTone = !score
+    ? "text-muted-foreground"
+    : score.band === "green"
+    ? "text-emerald-700"
+    : score.band === "yellow"
+    ? "text-amber-700"
+    : "text-destructive";
 
   return (
     <div className="rounded-md border border-primary/30 bg-primary/[0.04] p-3">
@@ -113,6 +122,20 @@ export function LeadHandoffPanel({
         </div>
       ) : (
         <div className="space-y-2">
+          <div className="rounded-md border bg-background p-2 text-[11px] space-y-1">
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Lead állapot</span>
+              <span className="font-medium text-emerald-700">Átadható</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Értékesítő</span>
+              <span className="font-medium">{chosenName ?? <span className="text-muted-foreground italic">nincs kiválasztva</span>}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-muted-foreground">Adatminőség</span>
+              <span className={`font-medium ${scoreTone}`}>{score ? `${score.pct}%` : "—"}</span>
+            </div>
+          </div>
           {score && (isRed || isYellow) && (
             <div className={
               "rounded-md border p-2 text-[11px] " +
