@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, Sparkles, Loader2, ExternalLink, UserPlus, Check, ListPlus, Info } from "lucide-react";
+import { Search, Sparkles, Loader2, ExternalLink, Check, ListPlus, Info, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { logAiAction, updateAiAction } from "@/lib/ai/action-log";
+import { logAiAction } from "@/lib/ai/action-log";
 import {
   researchCompanies,
   type ResearchCompany,
@@ -30,7 +30,6 @@ import {
 type Row = ResearchCompany & {
   _score: number;
   _matched: boolean;
-  _lead_id?: string;
   /** Igaz, ha a sor cégét hozzáadtuk a kampánylistához (companies.company_type='potencialis'). */
   _in_campaign?: boolean;
   /** A létrejött/talált companies.id, ha kampánylistára került. */
@@ -231,161 +230,6 @@ function ResearchPage() {
     },
   });
 
-  async function createLead(idx: number) {
-    const r = rows[idx];
-    if (!r) return;
-    try {
-      // 0. DUPLIKÁCIÓ ELLENŐRZÉS — cég név vagy contact email alapján.
-      let company_id: string | null = null;
-      let dupReason: string | null = null;
-      const { data: existing } = await supabase
-        .from("companies")
-        .select("id")
-        .ilike("name", r.company_name)
-        .limit(1)
-        .maybeSingle();
-      if (existing?.id) {
-        company_id = existing.id;
-        dupReason = "cég név egyezés";
-      } else if (r.email) {
-        const { data: existContact } = await supabase
-          .from("contacts")
-          .select("id, company_id")
-          .ilike("email", r.email)
-          .not("company_id", "is", null)
-          .limit(1)
-          .maybeSingle();
-        if (existContact?.company_id) {
-          company_id = existContact.company_id as string;
-          dupReason = "kapcsolattartó email egyezés";
-        }
-      }
-
-      // Ha a cég már létezik, nézzük meg, van-e nyitott lead.
-      if (company_id) {
-        const { data: openLead } = await supabase
-          .from("leads")
-          .select("id, status")
-          .eq("company_id", company_id)
-          .not("status", "in", "(won,lost,archived,closed)")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (openLead?.id) {
-          const lead_id = openLead.id as string;
-          setRows((prev) =>
-            prev.map((row, i) =>
-              i === idx ? { ...row, _matched: true, _lead_id: lead_id } : row,
-            ),
-          );
-          toast.info("Már szerepel a CRM-ben", {
-            description: `${r.company_name} (${dupReason ?? "egyezés"}) — meglévő lead megnyitása.`,
-            action: {
-              label: "Megnyitás",
-              onClick: () => navigate({ to: "/leads/$id", params: { id: lead_id } }),
-            },
-          });
-          navigate({ to: "/leads/$id", params: { id: lead_id } });
-          return;
-        }
-      }
-
-      // 1. Cég létrehozása, ha még nincs.
-      if (!company_id) {
-        const noteLines = [
-          r.city ? `Település: ${r.city}` : null,
-          r.phone ? `Telefon: ${r.phone}` : null,
-          r.email ? `Email: ${r.email}` : null,
-          r.reason ? `AI indok: ${r.reason}` : null,
-        ].filter(Boolean);
-        const { data: cIns, error: cErr } = await supabase
-          .from("companies")
-          .insert({
-            name: r.company_name,
-            website: r.website,
-            notes: noteLines.join("\n") || null,
-          } as any)
-          .select("id")
-          .single();
-        if (cErr) throw cErr;
-        company_id = (cIns as any).id;
-      }
-
-      // 2. Kapcsolattartó: ha van email vagy telefon, létrehoz egy „Iroda” kontaktot,
-      //    de csak akkor, ha még nincs ilyen email a céghez.
-      let contact_id: string | null = null;
-      if (r.email || r.phone) {
-        if (r.email) {
-          const { data: existContact } = await supabase
-            .from("contacts")
-            .select("id")
-            .eq("company_id", company_id)
-            .ilike("email", r.email)
-            .limit(1)
-            .maybeSingle();
-          if (existContact?.id) contact_id = existContact.id;
-        }
-        if (!contact_id) {
-          const { data: kIns, error: kErr } = await supabase
-            .from("contacts")
-            .insert({
-              name: "Iroda",
-              company_id,
-              email: r.email,
-              phone: r.phone,
-              position: null,
-            } as any)
-            .select("id")
-            .single();
-          if (kErr) throw kErr;
-          contact_id = (kIns as any).id;
-        }
-      }
-
-      // 3. Lead.
-      const summary = `${r.company_name}${r.city ? ` (${r.city})` : ""} — ${r.reason ?? "Marketing kutatás"}`;
-      const { data: lIns, error: lErr } = await supabase
-        .from("leads")
-        .insert({
-          summary,
-          source: "Marketing Agent",
-          project_type: keyword || null,
-          status: "new",
-          company_id,
-          contact_id,
-        } as any)
-        .select("id")
-        .single();
-      if (lErr) throw lErr;
-      const lead_id = (lIns as any).id as string;
-
-      const logId = await logAiAction({
-        agent_type: "sales",
-        action_type: "create_lead",
-        payload: { source: "marketing_agent", company_name: r.company_name },
-        approved: true,
-        executed: true,
-        result: { lead_id, company_id, contact_id },
-      });
-      if (logId) await updateAiAction(logId, { executed: true });
-
-      setRows((prev) =>
-        prev.map((row, i) =>
-          i === idx ? { ...row, _matched: true, _lead_id: lead_id } : row,
-        ),
-      );
-      toast.success("Érdeklődő létrehozva", {
-        description: r.company_name,
-        action: {
-          label: "Megnyitás",
-          onClick: () => navigate({ to: "/leads/$id", params: { id: lead_id } }),
-        },
-      });
-    } catch (e: any) {
-      toast.error("Érdeklődő létrehozás hiba", { description: humanizeSupabaseError(e) });
-    }
-  }
-
   return (
     <div className="flex flex-col">
       <PageHeader
@@ -559,19 +403,16 @@ function ResearchPage() {
                             {r._in_campaign ? <Check className="mr-1 h-3.5 w-3.5" /> : <ListPlus className="mr-1 h-3.5 w-3.5" />}
                             {r._in_campaign ? "Kampányban" : "Kampány"}
                           </Button>
-                          {r._matched && r._lead_id ? (
+                          {r._in_campaign && r._company_id && (
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() =>
-                                navigate({ to: "/leads/$id", params: { id: r._lead_id! } })
+                                navigate({ to: "/customers/$id", params: { id: r._company_id! } })
                               }
+                              title="Cég adatlap megnyitása"
                             >
-                              <Check className="mr-1 h-3.5 w-3.5" /> Megnyit
-                            </Button>
-                          ) : (
-                            <Button size="sm" onClick={() => createLead(idx)} title="Sales átadás — lead létrehozása">
-                              <UserPlus className="mr-1 h-3.5 w-3.5" /> Sales
+                              <Building2 className="mr-1 h-3.5 w-3.5" /> Megnyit
                             </Button>
                           )}
                         </div>
