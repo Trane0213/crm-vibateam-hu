@@ -292,9 +292,19 @@ function ResearchPage() {
         title="Scarlet – Marketing Stratéga"
         description="AI-alapú cégkutatás — találj potenciális ügyfeleket és hozz létre belőlük leadeket egy kattintással."
         actions={
-          <Badge variant="secondary">
-            <Sparkles className="mr-1 h-3 w-3" />MVP · Gemini
-          </Badge>
+          <div className="flex items-center gap-2">
+            {shortlist.length > 0 && (
+              <Badge className="border-primary/40 bg-primary/10 text-primary">
+                <ListPlus className="mr-1 h-3 w-3" />Kampánylista: {shortlist.length}
+              </Badge>
+            )}
+            {shortlist.length > 0 && (
+              <Button size="sm" variant="ghost" onClick={clearShortlist}>Lista törlése</Button>
+            )}
+            <Badge variant="secondary">
+              <Sparkles className="mr-1 h-3 w-3" />MVP · Gemini
+            </Badge>
+          </div>
         }
       />
       <div className="space-y-6 p-6">
