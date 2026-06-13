@@ -25,7 +25,12 @@ export function QuickAddMenu() {
     { key: "task",    label: "Új feladat",   icon: ListChecks, to: "/tasks" },
     { key: "lead",    label: "Új érdeklődő",      icon: Sparkles,   to: "/leads" },
     { key: "doc",     label: "Új dokumentum",icon: FolderOpen, to: "/documents" },
-  ].filter((i) => canAccessRoute(role, i.to));
+  ]
+    .filter((i) => canAccessRoute(role, i.to))
+    // Marketing szerepkörben CSAK „Új érdeklődő" jelenjen meg — a marketinges
+    // feladata kizárólag lead-rögzítés, minden más (ügyfél, projekt, ajánlat,
+    // feladat, utókövetés, dokumentum) értékesítői / PM hatáskör.
+    .filter((i) => (role === "marketing" ? i.key === "lead" : true));
 
   if (items.length === 0) return null;
 
