@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, Radar, BookOpen, AlertCircle, Clock, Sparkles, ArrowRightCircle, Phone, ExternalLink } from "lucide-react";
+import { Mail, Radar, BookOpen, AlertCircle, Clock, Sparkles, ArrowRightCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WelcomeHeader } from "@/components/welcome-header";
