@@ -10,6 +10,7 @@ import { PageHeader, EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDate } from "@/components/resource/resource-page";
 import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { CompanyQualityCell, CompanyDuplicateCell } from "@/components/customers/customer-quality-cell";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
   component: CustomersIndex,
@@ -79,6 +80,8 @@ function CustomersIndex() {
                 <TableRow>
                   <TableHead>Ügyfél</TableHead>
                   <TableHead>Típus</TableHead>
+                  <TableHead>Adatminőség</TableHead>
+                  <TableHead className="text-right">Duplikátum</TableHead>
                   <TableHead className="text-right">Projektek</TableHead>
                   <TableHead className="text-right">Nyitott ajánlat</TableHead>
                   <TableHead className="text-right">Lejárt utókövetés</TableHead>
@@ -107,6 +110,8 @@ function CustomersIndex() {
                           {isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[r.company_type] ?? "Cég")}
                         </Badge>
                       </TableCell>
+                      <TableCell><CompanyQualityCell companyId={r.id} /></TableCell>
+                      <TableCell className="text-right"><CompanyDuplicateCell companyId={r.id} /></TableCell>
                       <TableCell className="text-right tabular-nums">
                         {r.activeCount} / {r.projectCount}
                       </TableCell>
