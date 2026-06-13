@@ -74,7 +74,7 @@ function appendMarker(notes: string | null, marker: string): string {
 
 function CampaignListPage() {
   const [search, setSearch] = useState("");
-  const [composer, setComposer] = useState<{ to: string; company: string } | null>(null);
+  const [composer, setComposer] = useState<{ to: string; company: string; companyId: string; contactId?: string } | null>(null);
   const [rejecting, setRejecting] = useState<{ id: string; name: string; notes: string | null } | null>(null);
   const qc = useQueryClient();
 
@@ -249,7 +249,7 @@ function CampaignListPage() {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => setComposer({ to: k.email!, company: r.name })}
+                                  onClick={() => setComposer({ to: k.email!, company: r.name, companyId: r.id, contactId: k.id })}
                                   title="Egyszeri email küldése ennek a kapcsolattartónak"
                                 >
                                   <Send className="mr-1 h-3.5 w-3.5" /> Email
@@ -296,6 +296,8 @@ function CampaignListPage() {
         onOpenChange={(v) => { if (!v) setComposer(null); }}
         defaultTo={composer?.to ?? ""}
         defaultSubject={composer ? `${composer.company} — ajánlat` : ""}
+        companyId={composer?.companyId}
+        contactId={composer?.contactId}
         onSent={() => {
           if (!composer) return;
           const row = (q.data ?? []).find((r) => r.contacts.some((c) => c.email === composer.to));

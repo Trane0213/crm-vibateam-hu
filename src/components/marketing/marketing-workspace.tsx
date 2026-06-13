@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -50,8 +52,10 @@ import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
  */
 export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
-  const [composer, setComposer] = useState<{ to: string; subject: string } | null>(null);
+  const [composer, setComposer] = useState<{ to: string; subject: string; contactId?: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<any | null>(null);
   const [tab, setTab] = useState<string>("overview");
 
   const cust = useQuery({
@@ -127,6 +131,37 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
   });
 
+  const saveContact = useMutation({
+    mutationFn: async (input: { id?: string; name: string; email: string; phone: string; position: string }) => {
+      const payload: any = {
+        name: input.name.trim(),
+        email: input.email.trim() || null,
+        phone: input.phone.trim() || null,
+        position: input.position.trim() || null,
+      };
+      if (input.id) {
+        const { error } = await supabase.from("contacts").update(payload).eq("id", input.id);
+        if (error) throw error;
+        return input.id;
+      }
+      const { data, error } = await supabase
+        .from("contacts")
+        .insert({ ...payload, company_id: companyId })
+        .select("id")
+        .single();
+      if (error) throw error;
+      return (data as any).id as string;
+    },
+    onSuccess: () => {
+      toast.success(editingContact ? "Kapcsolattartó frissítve" : "Kapcsolattartó létrehozva");
+      setContactDialogOpen(false);
+      setEditingContact(null);
+      qc.invalidateQueries({ queryKey: ["contacts", "by_company", companyId] });
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+    },
+    onError: (e: any) => toast.error("Kapcsolattartó mentése sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
   const handoff = useMutation({
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null }) => {
       const payload: any = {
@@ -177,12 +212,22 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     if (targetTab) setTab(targetTab);
     switch (action) {
       case "add-contact":
+        setTab("contacts");
+        setEditingContact(null);
+        setContactDialogOpen(true);
+        return;
       case "edit-contact":
         setTab("contacts");
+        setEditingContact(primary ?? (contacts.data ?? [])[0] ?? null);
+        setContactDialogOpen(true);
         return;
       case "send-email":
-        if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — ` });
-        else setTab("contacts");
+        if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — `, contactId: primary.id });
+        else {
+          setTab("contacts");
+          setEditingContact(primary ?? null);
+          setContactDialogOpen(true);
+        }
         return;
       case "mark-contacted":
         setStatus.mutate("contacted");
@@ -342,7 +387,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <Row label="Telefon" value={primary.phone ?? "—"} />
                     {primary.email && (
                       <div className="pt-2">
-                        <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — ` })}>
+                        <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — `, contactId: primary.id })}>
                           <Send className="mr-1 h-3.5 w-3.5" />Email küldése
                         </Button>
                       </div>
@@ -379,7 +424,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           <TabsContent value="contacts" className="mt-4">
             <ContactsTable
               rows={contacts.data ?? []}
-              onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "" })}
+              onAdd={() => {
+                setEditingContact(null);
+                setContactDialogOpen(true);
+              }}
+              onEdit={(contact: any) => {
+                setEditingContact(contact);
+                setContactDialogOpen(true);
+              }}
+              onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "", contactId: c2.id })}
             />
           </TabsContent>
 
@@ -392,7 +445,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 oldalon vagy az alábbi gombbal indíthatod.
               </p>
               {primary?.email && (
-                <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — ` })}>
+                <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — `, contactId: primary.id })}>
                   <Send className="mr-1 h-3.5 w-3.5" />Új email
                 </Button>
               )}
@@ -461,7 +514,25 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         onOpenChange={(v) => { if (!v) setComposer(null); }}
         defaultTo={composer?.to ?? ""}
         defaultSubject={composer?.subject ?? ""}
-        onSent={() => setComposer(null)}
+        companyId={companyId}
+        contactId={composer?.contactId}
+        onSent={() => {
+          qc.invalidateQueries({ queryKey: ["email_threads", "by_company", companyId] });
+          qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+          setTab("emails");
+          setComposer(null);
+        }}
+      />
+
+      <ContactDialog
+        open={contactDialogOpen}
+        onOpenChange={(open: boolean) => {
+          setContactDialogOpen(open);
+          if (!open) setEditingContact(null);
+        }}
+        initial={editingContact}
+        saving={saveContact.isPending}
+        onSave={(data: { id?: string; name: string; email: string; phone: string; position: string }) => saveContact.mutate(data)}
       />
 
       <HandoffDialog
@@ -501,13 +572,31 @@ function Mini({ label, value, hint, icon: Icon }: { label: string; value: string
   );
 }
 
-function ContactsTable({ rows, onEmail }: { rows: any[]; onEmail: (c: any) => void }) {
+function ContactsTable({
+  rows,
+  onAdd,
+  onEdit,
+  onEmail,
+}: {
+  rows: any[];
+  onAdd: () => void;
+  onEdit: (c: any) => void;
+  onEmail: (c: any) => void;
+}) {
   if (rows.length === 0) return (
-    <EmptyState icon={UserPlus} title="Nincs kapcsolattartó"
-      description="Vegyél fel egy kapcsolattartót a Scarlet research oldalon vagy a /contacts felületen, hogy emailezni és átadni tudd a cégét." />
+    <EmptyState
+      icon={UserPlus}
+      title="Nincs kapcsolattartó"
+      description="Vegyél fel legalább egy kapcsolattartót, hogy emailt küldhess és végigvihesd az átadási folyamatot."
+      action={<Button size="sm" onClick={onAdd}><UserPlus className="mr-1.5 h-4 w-4" />Kapcsolattartó hozzáadása</Button>}
+    />
   );
   return (
-    <div className="rounded-md border bg-card overflow-hidden">
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={onAdd}><UserPlus className="mr-1.5 h-4 w-4" />Kapcsolattartó hozzáadása</Button>
+      </div>
+      <div className="rounded-md border bg-card overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
           <tr>
@@ -528,17 +617,90 @@ function ContactsTable({ rows, onEmail }: { rows: any[]; onEmail: (c: any) => vo
               <td className="px-3 py-2">{c.email ?? "—"}</td>
               <td className="px-3 py-2">{c.phone ?? "—"}</td>
               <td className="px-3 py-2 text-right">
-                {c.email && (
-                  <Button size="sm" variant="outline" onClick={() => onEmail(c)}>
-                    <Send className="mr-1 h-3.5 w-3.5" />Email
-                  </Button>
-                )}
+                <div className="flex items-center justify-end gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => onEdit(c)}>Szerkesztés</Button>
+                  {c.email && (
+                    <Button size="sm" variant="outline" onClick={() => onEmail(c)}>
+                      <Send className="mr-1 h-3.5 w-3.5" />Email
+                    </Button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
     </div>
+  );
+}
+
+function ContactDialog({
+  open,
+  onOpenChange,
+  initial,
+  saving,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initial: any | null;
+  saving: boolean;
+  onSave: (data: { id?: string; name: string; email: string; phone: string; position: string }) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [position, setPosition] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setName(initial?.name ?? "");
+    setEmail(initial?.email ?? "");
+    setPhone(initial?.phone ?? "");
+    setPosition(initial?.position ?? "");
+  }, [open, initial]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{initial?.id ? "Kapcsolattartó szerkesztése" : "Kapcsolattartó hozzáadása"}</DialogTitle>
+          <DialogDescription>
+            A marketing workflow innen megszakítás nélkül továbbvihető emailre és átadásra.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor="contact-name">Név *</Label>
+            <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="contact-email">E-mail</Label>
+            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="contact-phone">Telefon</Label>
+              <Input id="contact-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="contact-position">Beosztás</Label>
+              <Input id="contact-position" value={position} onChange={(e) => setPosition(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Mégse</Button>
+          <Button
+            onClick={() => onSave({ id: initial?.id, name, email, phone, position })}
+            disabled={saving || !name.trim()}
+          >
+            {saving ? "Mentés…" : "Mentés"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
