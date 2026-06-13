@@ -566,13 +566,31 @@ function Mini({ label, value, hint, icon: Icon }: { label: string; value: string
   );
 }
 
-function ContactsTable({ rows, onEmail }: { rows: any[]; onEmail: (c: any) => void }) {
+function ContactsTable({
+  rows,
+  onAdd,
+  onEdit,
+  onEmail,
+}: {
+  rows: any[];
+  onAdd: () => void;
+  onEdit: (c: any) => void;
+  onEmail: (c: any) => void;
+}) {
   if (rows.length === 0) return (
-    <EmptyState icon={UserPlus} title="Nincs kapcsolattartó"
-      description="Vegyél fel egy kapcsolattartót a Scarlet research oldalon vagy a /contacts felületen, hogy emailezni és átadni tudd a cégét." />
+    <EmptyState
+      icon={UserPlus}
+      title="Nincs kapcsolattartó"
+      description="Vegyél fel legalább egy kapcsolattartót, hogy emailt küldhess és végigvihesd az átadási folyamatot."
+      action={<Button size="sm" onClick={onAdd}><UserPlus className="mr-1.5 h-4 w-4" />Kapcsolattartó hozzáadása</Button>}
+    />
   );
   return (
-    <div className="rounded-md border bg-card overflow-hidden">
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button size="sm" onClick={onAdd}><UserPlus className="mr-1.5 h-4 w-4" />Kapcsolattartó hozzáadása</Button>
+      </div>
+      <div className="rounded-md border bg-card overflow-hidden">
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
           <tr>
@@ -593,17 +611,90 @@ function ContactsTable({ rows, onEmail }: { rows: any[]; onEmail: (c: any) => vo
               <td className="px-3 py-2">{c.email ?? "—"}</td>
               <td className="px-3 py-2">{c.phone ?? "—"}</td>
               <td className="px-3 py-2 text-right">
-                {c.email && (
-                  <Button size="sm" variant="outline" onClick={() => onEmail(c)}>
-                    <Send className="mr-1 h-3.5 w-3.5" />Email
-                  </Button>
-                )}
+                <div className="flex items-center justify-end gap-2">
+                  <Button size="sm" variant="ghost" onClick={() => onEdit(c)}>Szerkesztés</Button>
+                  {c.email && (
+                    <Button size="sm" variant="outline" onClick={() => onEmail(c)}>
+                      <Send className="mr-1 h-3.5 w-3.5" />Email
+                    </Button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      </div>
     </div>
+  );
+}
+
+function ContactDialog({
+  open,
+  onOpenChange,
+  initial,
+  saving,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initial: any | null;
+  saving: boolean;
+  onSave: (data: { id?: string; name: string; email: string; phone: string; position: string }) => void;
+}) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [position, setPosition] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setName(initial?.name ?? "");
+    setEmail(initial?.email ?? "");
+    setPhone(initial?.phone ?? "");
+    setPosition(initial?.position ?? "");
+  }, [open, initial]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{initial?.id ? "Kapcsolattartó szerkesztése" : "Kapcsolattartó hozzáadása"}</DialogTitle>
+          <DialogDescription>
+            A marketing workflow innen megszakítás nélkül továbbvihető emailre és átadásra.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor="contact-name">Név *</Label>
+            <Input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="contact-email">E-mail</Label>
+            <Input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2">
+              <Label htmlFor="contact-phone">Telefon</Label>
+              <Input id="contact-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="contact-position">Beosztás</Label>
+              <Input id="contact-position" value={position} onChange={(e) => setPosition(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Mégse</Button>
+          <Button
+            onClick={() => onSave({ id: initial?.id, name, email, phone, position })}
+            disabled={saving || !name.trim()}
+          >
+            {saving ? "Mentés…" : "Mentés"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
