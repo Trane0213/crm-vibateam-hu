@@ -125,20 +125,6 @@ export function MarketingHome() {
               }))}
             />
             <TaskColumn
-              tone="info"
-              icon={Sparkles}
-              title="Új érdeklődők (ma)"
-              count={newLeadsToday.length}
-              to="/leads"
-              empty="Ma még nem érkezett új lead."
-              items={newLeadsToday.slice(0, 5).map((l: any) => ({
-                key: l.id,
-                primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
-                secondary: [l.source, l.email].filter(Boolean).join(" · ") || "—",
-                to: `/leads/${l.id}`,
-              }))}
-            />
-            <TaskColumn
               tone="success"
               icon={ArrowRightCircle}
               title="Átadásra váró leadek"
@@ -149,6 +135,20 @@ export function MarketingHome() {
                 key: l.id,
                 primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
                 secondary: l.source ?? "—",
+                to: `/leads/${l.id}`,
+              }))}
+            />
+            <TaskColumn
+              tone="info"
+              icon={Sparkles}
+              title="Új érdeklődők (ma)"
+              count={newLeadsToday.length}
+              to="/leads"
+              empty="Ma még nem érkezett új lead."
+              items={newLeadsToday.slice(0, 5).map((l: any) => ({
+                key: l.id,
+                primary: l.summary ?? `#${String(l.id).slice(0,6)}`,
+                secondary: [l.source, l.email].filter(Boolean).join(" · ") || "—",
                 to: `/leads/${l.id}`,
               }))}
             />
