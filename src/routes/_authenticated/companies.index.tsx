@@ -3,6 +3,7 @@ import { Building2 } from "lucide-react";
 import { ResourcePage, fmtDate } from "@/components/resource/resource-page";
 import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { CompanyQualityCell, CompanyDuplicateCell } from "@/components/customers/customer-quality-cell";
+import { CompanyConflictBadgeCell, CompanyCrmCountCell } from "@/components/customers/company-crm-cells";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
   component: () => (
@@ -37,6 +38,11 @@ export const Route = createFileRoute("/_authenticated/companies/")({
         { key: "website", label: "Weboldal" },
         { key: "quality", label: "Adatminőség", render: (r) => <CompanyQualityCell companyId={r.id} /> },
         { key: "dups", label: "Duplikátum", render: (r) => <CompanyDuplicateCell companyId={r.id} /> },
+        { key: "contacts", label: "Kapcsolattartók", render: (r) => <CompanyCrmCountCell companyId={r.id} field="contactCount" /> },
+        { key: "leads", label: "Aktív leadek", render: (r) => <CompanyCrmCountCell companyId={r.id} field="activeLeadCount" /> },
+        { key: "emails", label: "Email aktivitás", render: (r) => <CompanyCrmCountCell companyId={r.id} field="emailActivityCount" /> },
+        { key: "conflicts", label: "Konfliktus", render: (r) => <CompanyConflictBadgeCell companyId={r.id} /> },
+        { key: "identity", label: "Identity", render: (r) => <CompanyCrmCountCell companyId={r.id} field="identityStrength" /> },
         {
           key: "created_at",
           label: "Létrehozva",
