@@ -222,13 +222,17 @@ function TaskColumn({
                          "text-[color:var(--status-info)]";
   return (
     <div className="bg-card p-4">
-      <div className="mb-2 flex items-center justify-between">
+      <Link
+        to={to as any}
+        className="group mb-2 flex items-center justify-between rounded-md px-1 py-1 -mx-1 transition hover:bg-muted/50"
+      >
         <div className={`flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider ${toneText}`}>
           <Icon className="h-3.5 w-3.5" />
           <span>{title}</span>
+          <ArrowRightCircle className="h-3 w-3 opacity-0 transition group-hover:opacity-100" />
         </div>
-        <Badge variant="outline" className="tabular-nums">{count}</Badge>
-      </div>
+        <Badge variant="outline" className={`tabular-nums ${count > 0 ? `border-current ${toneText}` : ""}`}>{count}</Badge>
+      </Link>
       {items.length === 0 ? (
         <p className="text-xs text-muted-foreground">{empty}</p>
       ) : (
