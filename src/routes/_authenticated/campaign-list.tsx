@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ListPlus, Radar, Mail, Phone, Building2, Search, Send } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ListPlus, Radar, Mail, Phone, Building2, Search, Send, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,18 @@ import { Input } from "@/components/ui/input";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
+import { toast } from "sonner";
+import { humanizeSupabaseError } from "@/lib/db-hooks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/campaign-list")({
   component: CampaignListPage,
@@ -34,9 +46,32 @@ function fmtDate(iso: string): string {
   catch { return iso; }
 }
 
+/**
+ * Aktív kampánylistából való kikerülés JELÖLŐI a companies.notes szövegben.
+ * Ezek meglévő mezőbe írott szöveges markerek — NEM séma-módosítás.
+ * - `[KAMPANY:EMAIL_SENT:YYYY-MM-DD]`  — email elment ennek a cégnek
+ * - `[KAMPANY:REJECTED:YYYY-MM-DD]`    — marketinges elutasította
+ * Az aktív lista mindkét marker hiányát megköveteli.
+ */
+const MARKER_EMAIL_SENT = "[KAMPANY:EMAIL_SENT:";
+const MARKER_REJECTED   = "[KAMPANY:REJECTED:";
+
+function isActiveCampaign(notes: string | null): boolean {
+  if (!notes) return true;
+  return !notes.includes(MARKER_EMAIL_SENT) && !notes.includes(MARKER_REJECTED);
+}
+
+function appendMarker(notes: string | null, marker: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  const line = `${marker}${today}]`;
+  return notes && notes.trim() ? `${notes}\n${line}` : line;
+}
+
 function CampaignListPage() {
   const [search, setSearch] = useState("");
   const [composer, setComposer] = useState<{ to: string; company: string } | null>(null);
+  const [rejecting, setRejecting] = useState<{ id: string; name: string; notes: string | null } | null>(null);
+  const qc = useQueryClient();
 
   const q = useQuery({
     queryKey: ["campaign-list", "potencialis"],
@@ -71,29 +106,63 @@ function CampaignListPage() {
     },
   });
 
+  const active = useMemo(
+    () => (q.data ?? []).filter((r) => isActiveCampaign(r.notes)),
+    [q.data],
+  );
+
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
-    if (!s) return q.data ?? [];
-    return (q.data ?? []).filter((r) => {
+    if (!s) return active;
+    return active.filter((r) => {
       const hay = [
         r.name, r.website,
         r.contacts.map((k) => `${k.name ?? ""} ${k.email ?? ""} ${k.phone ?? ""}`).join(" "),
       ].filter(Boolean).join(" ").toLowerCase();
       return hay.includes(s);
     });
-  }, [q.data, search]);
+  }, [active, search]);
 
-  const total = q.data?.length ?? 0;
+  const total = active.length;
+
+  async function markEmailSent(companyId: string, currentNotes: string | null) {
+    const next = appendMarker(currentNotes, MARKER_EMAIL_SENT);
+    const { error } = await supabase
+      .from("companies")
+      .update({ notes: next } as any)
+      .eq("id", companyId);
+    if (error) {
+      toast.error("Nem sikerült rögzíteni az email küldést", { description: humanizeSupabaseError(error) });
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["campaign-list", "potencialis"] });
+  }
+
+  async function rejectFromCampaign() {
+    if (!rejecting) return;
+    const next = appendMarker(rejecting.notes, MARKER_REJECTED);
+    const { error } = await supabase
+      .from("companies")
+      .update({ notes: next } as any)
+      .eq("id", rejecting.id);
+    if (error) {
+      toast.error("Elutasítás nem sikerült", { description: humanizeSupabaseError(error) });
+      return;
+    }
+    toast.success("Eltávolítva az aktív kampánylistából", { description: rejecting.name });
+    setRejecting(null);
+    qc.invalidateQueries({ queryKey: ["campaign-list", "potencialis"] });
+  }
 
   return (
     <div className="flex flex-col">
       <PageHeader
         title="Kampánylista"
-        description="Scarlet által felvett potenciális cégek. Itt még nincs lead — a sales pipeline-ba a Scarlet 'Sales' gombbal kerülnek át."
+        description="Aktív kampánylista — Scarlet által felvett potenciális cégek, akiknek még nem küldtünk emailt és nem lettek elutasítva. Lead csak manuális döntésből jöhet létre."
         actions={
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="tabular-nums">
-              <ListPlus className="mr-1 h-3 w-3" /> {total} cég
+              <ListPlus className="mr-1 h-3 w-3" /> {total} aktív
             </Badge>
             <Button size="sm" variant="outline" asChild>
               <Link to="/sales/research"><Radar className="mr-1 h-3.5 w-3.5" />Scarlet research</Link>
@@ -181,6 +250,15 @@ function CampaignListPage() {
                                   <Send className="mr-1 h-3.5 w-3.5" /> Email
                                 </Button>
                               )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setRejecting({ id: r.id, name: r.name, notes: r.notes })}
+                                title="Elutasítás — kikerül az aktív kampánylistából (a cég és kontakt megmarad)"
+                                aria-label="Elutasítás"
+                              >
+                                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
                               <Link
                                 to="/customers/$id"
                                 params={{ id: r.id }}
@@ -200,9 +278,12 @@ function CampaignListPage() {
         )}
 
         <p className="text-xs text-muted-foreground">
-          A kampánylista cégei a CRM-ben <Badge variant="outline" className="mx-1">company_type = potencialis</Badge>
-          jelöléssel találhatók. Leadet automatikusan nem hozunk létre — a sales pipeline-ba
-          átemelés mindig tudatos, manuális döntés a cég adatlapján.
+          Az aktív lista azokat a <Badge variant="outline" className="mx-1">company_type = potencialis</Badge>
+          cégeket mutatja, amelyek <code className="text-[11px]">notes</code>-ában még nincs sem
+          <code className="mx-1 text-[11px]">{MARKER_EMAIL_SENT}</code> sem
+          <code className="mx-1 text-[11px]">{MARKER_REJECTED}</code> jelölő. Email küldés és elutasítás
+          után a sor automatikusan kikerül innen, de a cég és a kapcsolattartó megmarad a CRM-ben.
+          Lead automatikusan soha nem jön létre.
         </p>
       </div>
       <EmailComposer
@@ -210,7 +291,28 @@ function CampaignListPage() {
         onOpenChange={(v) => { if (!v) setComposer(null); }}
         defaultTo={composer?.to ?? ""}
         defaultSubject={composer ? `${composer.company} — ajánlat` : ""}
+        onSent={() => {
+          if (!composer) return;
+          const row = (q.data ?? []).find((r) => r.contacts.some((c) => c.email === composer.to));
+          if (row) void markEmailSent(row.id, row.notes);
+          setComposer(null);
+        }}
       />
+      <AlertDialog open={!!rejecting} onOpenChange={(v) => { if (!v) setRejecting(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Elutasítás a kampánylistából</AlertDialogTitle>
+            <AlertDialogDescription>
+              <strong>{rejecting?.name}</strong> kikerül az aktív kampánylistából.
+              A cég és a kapcsolattartó <strong>nem törlődik</strong> a CRM-ből, csak megjelölésre kerül.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Mégse</AlertDialogCancel>
+            <AlertDialogAction onClick={rejectFromCampaign}>Elutasítás</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
