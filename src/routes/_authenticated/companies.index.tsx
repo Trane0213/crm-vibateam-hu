@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, ExternalLink } from "lucide-react";
+import { Building2, AlertTriangle, Copy, Mail, ArrowRightCircle } from "lucide-react";
 import { ResourcePage } from "@/components/resource/resource-page";
 import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
-import { FilterBar, FilterSelect, QualityBar, relativeTime } from "@/components/marketing-ui";
+import { FilterBar, FilterSelect, QualityBar } from "@/components/marketing-ui";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
@@ -73,30 +73,45 @@ function CompaniesIndex() {
         {
           key: "name", label: "Cégnév", className: "font-medium",
           render: (r) => (
-            <Link to="/customers/$id" params={{ id: r.id }} className="text-primary hover:underline">
-              {r.name}
-            </Link>
+            <div className="flex flex-col gap-0.5">
+              <Link to="/customers/$id" params={{ id: r.id }} className="text-primary hover:underline">
+                {r.name}
+              </Link>
+              {r.company_type && (
+                <span className="text-[11px] text-muted-foreground">
+                  {COMPANY_TYPE_LABEL[r.company_type] ?? r.company_type}
+                </span>
+              )}
+            </div>
           ),
         },
         {
-          key: "company_type", label: "Kategória",
-          render: (r) => r.company_type
-            ? <Badge variant="secondary" className="font-normal">{COMPANY_TYPE_LABEL[r.company_type] ?? r.company_type}</Badge>
-            : <span className="text-muted-foreground">—</span>,
+          key: "quality", label: "Adatminőség",
+          render: (r) => <QualityBar pct={surface?.get(r.id)?.qualityPct ?? 0} />,
         },
         {
-          key: "website", label: "Weboldal",
-          render: (r) => r.website
-            ? <a href={r.website.startsWith("http") ? r.website : `https://${r.website}`} target="_blank" rel="noreferrer"
-                 className="inline-flex items-center gap-1 text-primary hover:underline">
-                {r.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                <ExternalLink className="h-3 w-3" />
-              </a>
-            : <span className="text-muted-foreground">—</span>,
+          key: "duplicates", label: "Duplikátum",
+          render: (r) => {
+            const n = surface?.get(r.id)?.duplicateCount ?? 0;
+            return n > 0 ? (
+              <Link to="/data-quality" className="inline-flex items-center gap-1 text-[color:var(--status-warning)] hover:underline" title="Duplikátum-jelöltek a Data Quality-ben">
+                <Copy className="h-3.5 w-3.5" />
+                <span className="tabular-nums font-medium">{n}</span>
+              </Link>
+            ) : <span className="text-muted-foreground tabular-nums">0</span>;
+          },
         },
         {
-          key: "contacts", label: "Kapcsolat",
-          render: (r) => <span className="tabular-nums">{surface?.get(r.id)?.contactCount ?? 0}</span>,
+          key: "conflicts", label: "Konfliktus",
+          render: (r) => {
+            const n = surface?.get(r.id)?.conflictCount ?? 0;
+            return n > 0 ? (
+              <Link to="/data-quality" className="inline-flex items-center gap-1 text-destructive hover:underline" title="Kapcsolattartó-konfliktus">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span className="tabular-nums font-medium">{n}</span>
+              </Link>
+            ) : <span className="text-muted-foreground tabular-nums">0</span>;
+          },
         },
         {
           key: "leads", label: "Aktív lead",
@@ -108,18 +123,26 @@ function CompaniesIndex() {
           },
         },
         {
-          key: "last_activity", label: "Utolsó aktivitás", className: "text-muted-foreground",
+          key: "email_activity", label: "Email akt.",
           render: (r) => {
-            // egyszerű heurisztika: created_at fallback — pontosabb mező a customer_kpi_v-ben.
-            const ts = r.updated_at ?? r.created_at;
-            return <span className="text-xs">{relativeTime(ts)}</span>;
+            const n = surface?.get(r.id)?.emailActivityCount ?? 0;
+            return n > 0 ? (
+              <span className="inline-flex items-center gap-1 tabular-nums text-foreground">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground" />{n}
+              </span>
+            ) : <span className="text-muted-foreground tabular-nums">0</span>;
           },
         },
         {
-          key: "quality", label: "Adatminőség",
+          key: "sales_ready", label: "Sales ready",
           render: (r) => {
-            const pct = surface?.get(r.id)?.qualityPct ?? 0;
-            return <QualityBar pct={pct} />;
+            const s = surface?.get(r.id);
+            const ready = (s?.activeLeadCount ?? 0) > 0 && (s?.qualityPct ?? 0) >= 70;
+            return ready ? (
+              <Badge className="border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 text-[color:var(--status-success)]">
+                <ArrowRightCircle className="mr-1 h-3 w-3" />Átadható
+              </Badge>
+            ) : <span className="text-muted-foreground">—</span>;
           },
         },
       ]}

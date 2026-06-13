@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { UserPlus, AlertTriangle } from "lucide-react";
+import { UserPlus, AlertTriangle, Mail } from "lucide-react";
 import { ResourcePage, useLookup } from "@/components/resource/resource-page";
 import { PersonalContactDialog } from "@/components/projects/personal-contact-dialog";
 import { loadContactSurfaceMap } from "@/lib/crm/crm-surface";
-import { FilterBar, FilterSelect, StatusPill, relativeTime } from "@/components/marketing-ui";
+import { FilterBar, FilterSelect, QualityBar, relativeTime } from "@/components/marketing-ui";
 
 function ContactsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -35,13 +35,6 @@ function ContactsPage() {
       const hay = `${r.name ?? ""} ${r.email ?? ""} ${r.phone ?? ""} ${r.position ?? ""}`.toLowerCase();
       return hay.includes(s);
     });
-  }
-
-  function rowStatus(r: any): "active" | "neutral" | "inactive" {
-    const m = surface?.get(r.id);
-    if (m && (m.activeLeadCount > 0 || m.emailActivityCount > 0)) return "active";
-    if (r.email || r.phone) return "neutral";
-    return "inactive";
   }
 
   return (
@@ -85,11 +78,39 @@ function ContactsPage() {
           render: (r) => {
             const conflicts = surface?.get(r.id)?.conflictBadges ?? [];
             return (
-              <div className="flex items-center gap-1.5">
-                <Link to="/contacts/$id" params={{ id: r.id }} className="text-primary hover:underline">{r.name}</Link>
-                {conflicts.length > 0 && (
-                  <span title={`Adatkonfliktus: ${conflicts.join(", ")}`}>
-                    <AlertTriangle className="h-3.5 w-3.5 text-[color:var(--status-warning)]" />
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5">
+                  <Link to="/contacts/$id" params={{ id: r.id }} className="text-primary hover:underline">{r.name}</Link>
+                  {conflicts.length > 0 && (
+                    <span title={`Adatkonfliktus: ${conflicts.join(", ")}`}>
+                      <AlertTriangle className="h-3.5 w-3.5 text-[color:var(--status-warning)]" />
+                    </span>
+                  )}
+                </div>
+                {r.company_id && (
+                  <Link to="/customers/$id" params={{ id: r.company_id }} className="text-[11px] text-muted-foreground hover:text-primary hover:underline">
+                    {companyLabel(r.company_id)}
+                  </Link>
+                )}
+              </div>
+            );
+          },
+        },
+        { key: "position", label: "Beosztás", render: (r) => r.position || <span className="text-muted-foreground">—</span> },
+        {
+          key: "quality", label: "Quality score",
+          render: (r) => <QualityBar pct={surface?.get(r.id)?.qualityPct ?? 0} />,
+        },
+        {
+          key: "last_activity", label: "Utolsó aktivitás", className: "text-muted-foreground text-xs",
+          render: (r) => {
+            const emails = surface?.get(r.id)?.emailActivityCount ?? 0;
+            return (
+              <div className="flex items-center gap-2">
+                <span>{relativeTime(r.updated_at ?? r.created_at)}</span>
+                {emails > 0 && (
+                  <span className="inline-flex items-center gap-0.5 text-foreground" title={`${emails} email szál`}>
+                    <Mail className="h-3 w-3" />{emails}
                   </span>
                 )}
               </div>
@@ -97,30 +118,26 @@ function ContactsPage() {
           },
         },
         {
-          key: "company", label: "Cég",
-          render: (r) => r.company_id
-            ? <Link to="/customers/$id" params={{ id: r.company_id }} className="text-primary hover:underline">{companyLabel(r.company_id)}</Link>
-            : <span className="text-muted-foreground">—</span>,
-        },
-        { key: "position", label: "Beosztás", render: (r) => r.position || <span className="text-muted-foreground">—</span> },
-        { key: "email", label: "E-mail", render: (r) => r.email || <span className="text-muted-foreground">—</span> },
-        { key: "phone", label: "Telefon", render: (r) => r.phone || <span className="text-muted-foreground">—</span> },
-        {
-          key: "leads", label: "Leadek",
+          key: "leads", label: "Lead kapcsolat",
           render: (r) => {
             const n = surface?.get(r.id)?.activeLeadCount ?? 0;
             return n > 0
-              ? <span className="tabular-nums font-medium text-primary">{n}</span>
+              ? <span className="tabular-nums font-medium text-primary">{n} aktív</span>
               : <span className="text-muted-foreground tabular-nums">0</span>;
           },
         },
         {
-          key: "last_activity", label: "Utolsó aktivitás", className: "text-muted-foreground text-xs",
-          render: (r) => relativeTime(r.updated_at ?? r.created_at),
-        },
-        {
-          key: "status", label: "Állapot",
-          render: (r) => <StatusPill status={rowStatus(r)} />,
+          key: "conflict", label: "Konfliktus",
+          render: (r) => {
+            const conflicts = surface?.get(r.id)?.conflictBadges ?? [];
+            if (conflicts.length === 0) return <span className="text-muted-foreground">—</span>;
+            return (
+              <Link to="/data-quality" className="inline-flex items-center gap-1 text-[color:var(--status-warning)] hover:underline" title={`Konfliktus: ${conflicts.join(", ")}`}>
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span className="text-xs">{conflicts.join(", ")}</span>
+              </Link>
+            );
+          },
         },
       ]}
     />

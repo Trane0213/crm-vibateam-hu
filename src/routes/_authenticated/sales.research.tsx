@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Search, Sparkles, Loader2, ExternalLink, UserPlus, Check } from "lucide-react";
+import { Search, Sparkles, Loader2, ExternalLink, UserPlus, Check, ListPlus, Info } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +45,28 @@ function scoreRow(r: ResearchCompany, keyword: string, area: string | null): num
   return Math.min(s, 100);
 }
 
+function scoreBreakdown(r: ResearchCompany, keyword: string, area: string | null) {
+  const kw = keyword.toLowerCase();
+  const hay = `${r.company_name} ${r.reason ?? ""}`.toLowerCase();
+  return [
+    { label: "Email cím",        got: !!r.email,                            pts: 30 },
+    { label: "Telefon",          got: !!r.phone,                            pts: 20 },
+    { label: "Weboldal",         got: !!r.website,                          pts: 20 },
+    { label: "Kulcsszó egyezés", got: !!kw && hay.includes(kw),             pts: 15 },
+    { label: "Terület egyezés",  got: !!area && !!r.city && r.city.toLowerCase().includes((area ?? "").toLowerCase()), pts: 15 },
+  ];
+}
+
+const SHORTLIST_KEY = "marketing.research.shortlist.v1";
+function loadShortlist(): ResearchCompany[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(SHORTLIST_KEY) ?? "[]"); } catch { return []; }
+}
+function saveShortlist(list: ResearchCompany[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(SHORTLIST_KEY, JSON.stringify(list));
+}
+
 function scoreTone(score: number): string {
   if (score >= 70) return "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30";
   if (score >= 40) return "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30";
@@ -59,6 +81,25 @@ function ResearchPage() {
   const [area, setArea] = useState("");
   const [count, setCount] = useState(15);
   const [rows, setRows] = useState<Row[]>([]);
+  const [shortlist, setShortlist] = useState<ResearchCompany[]>(() => loadShortlist());
+
+  function addToShortlist(r: ResearchCompany) {
+    const key = (r.website || r.company_name).toLowerCase();
+    const exists = shortlist.some((x) => (x.website || x.company_name).toLowerCase() === key);
+    if (exists) {
+      toast.info("Már a kampánylistán van");
+      return;
+    }
+    const next = [...shortlist, r];
+    setShortlist(next);
+    saveShortlist(next);
+    toast.success("Hozzáadva a kampánylistához", { description: `${r.company_name} — ${next.length} cég a listán.` });
+  }
+  function clearShortlist() {
+    setShortlist([]);
+    saveShortlist([]);
+    toast.success("Kampánylista törölve");
+  }
 
   const search = useMutation({
     mutationFn: async () => {
@@ -251,9 +292,19 @@ function ResearchPage() {
         title="Scarlet – Marketing Stratéga"
         description="AI-alapú cégkutatás — találj potenciális ügyfeleket és hozz létre belőlük leadeket egy kattintással."
         actions={
-          <Badge variant="secondary">
-            <Sparkles className="mr-1 h-3 w-3" />MVP · Gemini
-          </Badge>
+          <div className="flex items-center gap-2">
+            {shortlist.length > 0 && (
+              <Badge className="border-primary/40 bg-primary/10 text-primary">
+                <ListPlus className="mr-1 h-3 w-3" />Kampánylista: {shortlist.length}
+              </Badge>
+            )}
+            {shortlist.length > 0 && (
+              <Button size="sm" variant="ghost" onClick={clearShortlist}>Lista törlése</Button>
+            )}
+            <Badge variant="secondary">
+              <Sparkles className="mr-1 h-3 w-3" />MVP · Gemini
+            </Badge>
+          </div>
         }
       />
       <div className="space-y-6 p-6">
@@ -344,7 +395,7 @@ function ResearchPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Település</TableHead>
                     <TableHead className="w-20">Score</TableHead>
-                    <TableHead className="w-32 text-right">CRM Lead</TableHead>
+                    <TableHead className="w-[230px] text-right">Akciók</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -353,8 +404,9 @@ function ResearchPage() {
                       <TableCell className="font-medium">
                         <div>{r.company_name}</div>
                         {r.reason && (
-                          <div className="text-xs text-muted-foreground line-clamp-2">
-                            {r.reason}
+                          <div className="mt-1 flex items-start gap-1 rounded border-l-2 border-primary/40 bg-primary/5 px-2 py-1 text-xs text-muted-foreground">
+                            <Sparkles className="mt-0.5 h-3 w-3 shrink-0 text-primary" />
+                            <span className="line-clamp-2"><span className="font-medium text-foreground">Scarlet:</span> {r.reason}</span>
                           </div>
                         )}
                       </TableCell>
@@ -385,26 +437,45 @@ function ResearchPage() {
                       </TableCell>
                       <TableCell>{r.city ?? <span className="text-muted-foreground">—</span>}</TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={scoreTone(r._score)}>
-                          {r._score}
-                        </Badge>
+                        {(() => {
+                          const parts = scoreBreakdown(r, keyword, area || null);
+                          const tip = parts
+                            .map((p) => `${p.got ? "✓" : "·"} ${p.label} (+${p.pts})`)
+                            .join("\n");
+                          return (
+                            <span title={`Score-bontás:\n${tip}`} className="inline-flex items-center gap-1 cursor-help">
+                              <Badge variant="outline" className={scoreTone(r._score)}>{r._score}</Badge>
+                              <Info className="h-3 w-3 text-muted-foreground" />
+                            </span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="text-right">
-                        {r._matched && r._lead_id ? (
+                        <div className="flex justify-end gap-1.5">
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() =>
-                              navigate({ to: "/leads/$id", params: { id: r._lead_id! } })
-                            }
+                            onClick={() => addToShortlist(r)}
+                            title="Hozzáadás a marketing kampánylistához"
                           >
-                            <Check className="mr-1 h-3.5 w-3.5" /> Megnyit
+                            <ListPlus className="mr-1 h-3.5 w-3.5" />Kampány
                           </Button>
-                        ) : (
-                          <Button size="sm" onClick={() => createLead(idx)}>
-                            <UserPlus className="mr-1 h-3.5 w-3.5" /> Lead
-                          </Button>
-                        )}
+                          {r._matched && r._lead_id ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() =>
+                                navigate({ to: "/leads/$id", params: { id: r._lead_id! } })
+                              }
+                            >
+                              <Check className="mr-1 h-3.5 w-3.5" /> Megnyit
+                            </Button>
+                          ) : (
+                            <Button size="sm" onClick={() => createLead(idx)} title="Sales átadás — lead létrehozása">
+                              <UserPlus className="mr-1 h-3.5 w-3.5" /> Sales
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
