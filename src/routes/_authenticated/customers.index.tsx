@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Users, Building2, User, Sparkles, RotateCcw, Briefcase, Mail } from "lucide-react";
+import { Users, Building2, User, Sparkles, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -178,9 +178,6 @@ function CustomersIndex() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Ügyfél</TableHead>
-                  <TableHead className="text-right">Pipeline érték</TableHead>
-                  <TableHead className="text-right">Projekt</TableHead>
-                  <TableHead>Utolsó email</TableHead>
                   <TableHead>Utolsó aktivitás</TableHead>
                   <TableHead>Szegmens</TableHead>
                 </TableRow>
@@ -205,26 +202,6 @@ function CustomersIndex() {
                             {isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[r.company_type] ?? "Cég")}
                           </span>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {r.pipelineValue > 0
-                          ? <span className="font-medium text-foreground">{fmtHuf(r.pipelineValue)}</span>
-                          : <span className="text-muted-foreground">—</span>}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span className="inline-flex items-center gap-1 tabular-nums">
-                          <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="font-medium">{r.activeProjects}</span>
-                          <span className="text-muted-foreground">/ {r.totalProjects}</span>
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-xs">
-                        {r.lastEmailAt ? (
-                          <span className="inline-flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {relativeTime(r.lastEmailAt)}
-                          </span>
-                        ) : "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {relativeTime(r.lastActivity)}
