@@ -20,7 +20,6 @@ SELECT
   c.name,
   c.company_type,
   c.website,
-  c.domain,
   c.tax_number,
   c.city,
   c.created_at,
