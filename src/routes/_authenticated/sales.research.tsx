@@ -393,14 +393,11 @@ function ResearchPage() {
         description="AI-alapú cégkutatás — találj potenciális ügyfeleket és hozz létre belőlük leadeket egy kattintással."
         actions={
           <div className="flex items-center gap-2">
-            {shortlist.length > 0 && (
-              <Badge className="border-primary/40 bg-primary/10 text-primary">
-                <ListPlus className="mr-1 h-3 w-3" />Kampánylista: {shortlist.length}
-              </Badge>
-            )}
-            {shortlist.length > 0 && (
-              <Button size="sm" variant="ghost" onClick={clearShortlist}>Lista törlése</Button>
-            )}
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/campaign-list">
+                <ListPlus className="mr-1 h-3.5 w-3.5" />Kampánylista
+              </Link>
+            </Button>
             <Badge variant="secondary">
               <Sparkles className="mr-1 h-3 w-3" />MVP · Gemini
             </Badge>
@@ -555,10 +552,12 @@ function ResearchPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => addToShortlist(r)}
-                            title="Hozzáadás a marketing kampánylistához"
+                            onClick={() => addToCampaign(idx)}
+                            disabled={r._in_campaign}
+                            title="Hozzáadás a CRM kampánylistájához (céget hoz létre, leadet nem)"
                           >
-                            <ListPlus className="mr-1 h-3.5 w-3.5" />Kampány
+                            {r._in_campaign ? <Check className="mr-1 h-3.5 w-3.5" /> : <ListPlus className="mr-1 h-3.5 w-3.5" />}
+                            {r._in_campaign ? "Kampányban" : "Kampány"}
                           </Button>
                           {r._matched && r._lead_id ? (
                             <Button
