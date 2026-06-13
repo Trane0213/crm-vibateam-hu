@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
   Send, ArrowRightCircle, Globe, Phone, Calendar, CheckCircle2,
-  AlertCircle, Sparkles,
+  AlertCircle, Sparkles, MoreHorizontal,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -31,6 +35,9 @@ import {
   readMarketingMeta, stripMarkers, withMarketingStatus, withSalesNote,
   type MarketingStatus,
 } from "@/lib/marketing-status";
+import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
+import { NextBestAction } from "@/components/marketing/next-best-action";
+import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
@@ -45,6 +52,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
   const [composer, setComposer] = useState<{ to: string; subject: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [tab, setTab] = useState<string>("overview");
 
   const cust = useQuery({
     queryKey: ["customers", "detail", companyId],
@@ -156,6 +164,42 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const lastEmail = threads.data?.[0]?.last_message_at ?? null;
   const isHandoff = meta.status === "handoff";
 
+  const wfInput = {
+    company: { name: c.name, created_at: c.created_at },
+    contacts: (contacts.data ?? []) as any[],
+    threadCount,
+    meta,
+  };
+  const step = computeNextStep(wfInput);
+  const checklist = computeChecklist(wfInput);
+
+  const handleAction = (action: StepActionKind, targetTab?: string) => {
+    if (targetTab) setTab(targetTab);
+    switch (action) {
+      case "add-contact":
+      case "edit-contact":
+        setTab("contacts");
+        return;
+      case "send-email":
+        if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — ` });
+        else setTab("contacts");
+        return;
+      case "mark-contacted":
+        setStatus.mutate("contacted");
+        return;
+      case "write-sales-note":
+        setTab("sales-note");
+        return;
+      case "open-handoff":
+        setHandoffOpen(true);
+        return;
+      case "open-lead":
+      case "none":
+      default:
+        return;
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {/* ───── Fejléc ───── */}
@@ -186,45 +230,66 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
             </div>
           </div>
 
-          {/* Saleshez átadás akcióblokk */}
-          <div className="flex flex-col items-end gap-2">
-            {isHandoff ? (
-              <Badge variant="outline" className="border-[color:var(--status-success)]/40 text-[color:var(--status-success)]">
-                <CheckCircle2 className="mr-1 h-3 w-3" />
-                Átadva sales-nek {meta.statusDate ? `· ${meta.statusDate}` : ""}
-              </Badge>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => setHandoffOpen(true)}
-                disabled={(contacts.data ?? []).length === 0}
-                title={(contacts.data ?? []).length === 0 ? "Előbb vegyél fel legalább egy kapcsolattartót" : "Lead létrehozása és átadás a sales pipeline-nak"}
-              >
-                <ArrowRightCircle className="mr-1 h-4 w-4" />
-                Saleshez átadás
-              </Button>
-            )}
+          {/* Saleshez átadás + diszkrét státusz override */}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => setHandoffOpen(true)}
+              disabled={isHandoff || (contacts.data ?? []).length === 0 || step.id !== "ready-handoff"}
+              title={
+                isHandoff
+                  ? "A cég már átadva"
+                  : step.id !== "ready-handoff"
+                    ? 'Nézd meg a „Következő lépés" kártyát — még hiányoznak feltételek'
+                    : "Lead létrehozása és átadás a sales pipeline-nak"
+              }
+            >
+              <ArrowRightCircle className="mr-1 h-4 w-4" />
+              Saleshez átadás
+            </Button>
+
             {!isHandoff && (
-              <div className="flex items-center gap-1">
-                {(["new", "contacted", "qualified"] as const).map((s) => (
-                  <Button
-                    key={s}
-                    size="sm"
-                    variant={meta.status === s ? "default" : "outline"}
-                    className="h-7 px-2 text-xs"
-                    disabled={setStatus.isPending}
-                    onClick={() => setStatus.mutate(s)}
-                  >
-                    {MARKETING_STATUS_LABEL[s]}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-8 w-8 p-0" title="Státusz felülírása">
+                    <MoreHorizontal className="h-4 w-4" />
                   </Button>
-                ))}
-              </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                    Státusz felülírása (haladó)
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {(["new", "contacted", "qualified"] as const).map((s) => (
+                    <DropdownMenuItem
+                      key={s}
+                      disabled={setStatus.isPending || meta.status === s}
+                      onClick={() => setStatus.mutate(s)}
+                    >
+                      {meta.status === s && <CheckCircle2 className="mr-2 h-3.5 w-3.5" />}
+                      {meta.status !== s && <span className="mr-2 inline-block h-3.5 w-3.5" />}
+                      {MARKETING_STATUS_LABEL[s]}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
 
-        {/* Mini KPI sor */}
-        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {/* Workflow vezérlés: Next Best Action + checklist */}
+        <div className="mt-4 grid gap-3 lg:grid-cols-[1.4fr_1fr]">
+          <NextBestAction
+            step={step}
+            handoffLeadId={meta.handoffLeadId}
+            pending={setStatus.isPending || handoff.isPending}
+            onAction={handleAction}
+          />
+          <WorkflowChecklist items={checklist} onAction={handleAction} />
+        </div>
+
+        {/* Kompakt KPI csík — informatív, nem akciógomb */}
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} />
           <Mini label="Email szálak" value={String(threadCount)} icon={Mail}
                 hint={lastEmail ? `utolsó: ${fmtDate(lastEmail)}` : "nincs üzenet"} />
@@ -235,7 +300,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
       {/* ───── Tartalom ───── */}
       <div className="p-6">
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
