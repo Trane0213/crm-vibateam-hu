@@ -23,6 +23,7 @@ import { CrmHealthSummaryCard } from "@/components/customers/crm-health-summary-
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 import { usePermissions } from "@/hooks/use-permissions";
+import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -98,6 +99,18 @@ function CustomerDetail() {
       const { data, error } = await supabase.from("project_documents").select("*").in("project_id", projectIds).order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+  // Cég-szintű dokumentumok (project-független — marketing fázis is használja).
+  const companyDocs = useQuery({
+    queryKey: ["company_documents", "list", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_documents" as any)
+        .select("id")
+        .eq("company_id", id);
+      if (error) throw error;
+      return (data ?? []) as any[];
     },
   });
   const notes = useQuery({
@@ -191,7 +204,7 @@ function CustomerDetail() {
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threads.data?.length ?? 0})</TabsTrigger>
             {!isMarketing && <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>}
             {!isMarketing && <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>}
-            {!isMarketing && <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>}
+            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({(companyDocs.data?.length ?? 0) + (isMarketing ? 0 : (docs.data?.length ?? 0))})</TabsTrigger>
             <TabsTrigger value="notes"><StickyNote className="mr-1.5 h-3.5 w-3.5" />Jegyzetek ({notes.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
           </TabsList>
@@ -345,11 +358,28 @@ function CustomerDetail() {
             ]} empty="Nincs találkozó." emptyIcon={Calendar} />
           </TabsContent>
           <TabsContent value="docs" className="mt-4">
-            <SimpleList rows={docs.data} cols={[
-              { label: "Név", get: (r) => r.name ?? "—" },
-              { label: "Típus", get: (r) => r.document_type ?? "—" },
-              { label: "Feltöltve", get: (r) => fmtDateTime(r.created_at) },
-            ]} empty="Nincs dokumentum." emptyIcon={FolderOpen} />
+            <div className="space-y-6">
+              <section>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">Cég dokumentumok</h3>
+                  <span className="text-xs text-muted-foreground">Marketing fázisban is elérhető (projekt-független)</span>
+                </div>
+                <CompanyDocumentManager companyId={id} />
+              </section>
+              {!isMarketing && (
+                <section>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-sm font-semibold">Projekt dokumentumok ({docs.data?.length ?? 0})</h3>
+                    <span className="text-xs text-muted-foreground">A cég projektjeihez tartozó fájlok</span>
+                  </div>
+                  <SimpleList rows={docs.data} cols={[
+                    { label: "Név", get: (r) => r.name ?? "—" },
+                    { label: "Típus", get: (r) => r.document_type ?? "—" },
+                    { label: "Feltöltve", get: (r) => fmtDateTime(r.created_at) },
+                  ]} empty="Nincs projekt dokumentum." emptyIcon={FolderOpen} />
+                </section>
+              )}
+            </div>
           </TabsContent>
           <TabsContent value="notes" className="mt-4">
             <div className="grid gap-4 lg:grid-cols-2">
