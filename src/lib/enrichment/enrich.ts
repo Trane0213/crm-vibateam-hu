@@ -43,6 +43,26 @@ function uniqueBusinessDomain(values: (string | null | undefined)[]): string | n
   return set.size === 1 ? [...set][0] : null;
 }
 
+/**
+ * Cégkeresés a `companies.website`-ből származtatott domain alapján.
+ * Az élő sémában nincs külön `domain` oszlop, ezért client-side szűrünk.
+ * Limit: 2000 cég (CRM-méretre bőven elég).
+ */
+export async function findCompaniesByDerivedDomain(domain: string): Promise<{ id: string }[]> {
+  const d = String(domain ?? "").toLowerCase().trim();
+  if (!d) return [];
+  const { data } = await supabase
+    .from("companies")
+    .select("id,website")
+    .not("website", "is", null)
+    .limit(2000);
+  const out: { id: string }[] = [];
+  for (const c of (data ?? []) as Array<{ id: string; website: string | null }>) {
+    if (extractDomain(c.website) === d) out.push({ id: c.id });
+  }
+  return out;
+}
+
 export type EnrichResult = {
   ok: boolean;
   patch: Record<string, any>;
