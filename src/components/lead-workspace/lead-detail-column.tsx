@@ -21,6 +21,16 @@ import { computeLeadScore } from "@/lib/dedupe/lead-scoring";
 import { computeLeadUrgency, LeadUrgencyDot, type FollowupLite } from "./lead-urgency-dot";
 import { relativeTime } from "@/components/marketing-ui";
 
+function labelForFollowupType(t?: string | null): string {
+  switch (t) {
+    case "email":   return "E-mail";
+    case "call":    return "Telefon";
+    case "meeting": return "Találkozó";
+    case "handoff": return "Átadás";
+    default:        return t ?? "—";
+  }
+}
+
 export function LeadDetailColumn({
   leadId,
   mode = "sales",
