@@ -143,7 +143,14 @@ function AiAssistantPage() {
 
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads());
   const [activeId, setActiveId] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const sp = new URLSearchParams(window.location.search);
+    const urlA = sp.get("agent");
     const all = loadThreads();
+    // Ha az URL agentet kér, csak az adott agenthez tartozó thread induljon aktívként.
+    if (urlA === "crm" || urlA === "sales" || urlA === "pm") {
+      return all.find((t) => t.agent === urlA)?.id ?? null;
+    }
     return all[0]?.id ?? null;
   });
   const [agent, setAgent] = useState<AgentId>(() => {
@@ -177,7 +184,14 @@ function AiAssistantPage() {
   const active = useMemo(() => threads.find((t) => t.id === activeId) ?? null, [threads, activeId]);
 
   // Beszélgetés váltáskor állítsuk be az agentet a thread agentjére.
-  useEffect(() => { if (active?.agent) setAgent(active.agent); /* eslint-disable-next-line */ }, [activeId]);
+  // FONTOS: ha az URL kifejezetten megad agentet (`?agent=...`), az felülír mindent.
+  // Enélkül egy régi (pl. Timothy/sales) thread automatikusan átkapcsolná az
+  // agentet George helyett — ez okozta a "George kártyán Timothy nyílik meg" hibát.
+  useEffect(() => {
+    if (urlAgent) return; // URL az igazságforrás
+    if (active?.agent) setAgent(active.agent);
+    /* eslint-disable-next-line */
+  }, [activeId, urlAgent]);
 
   function newThread(initial?: string, agentId: AgentId = agent): Thread {
     const t: Thread = { id: uid(), title: initial?.slice(0, 60) || "Új beszélgetés", agent: agentId, updatedAt: Date.now(), messages: [] };
