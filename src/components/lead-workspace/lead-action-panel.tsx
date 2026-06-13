@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2, FileSignature } from "lucide-react";
+import { Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2, FileSignature, UserCheck, Sparkles, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
@@ -8,6 +8,7 @@ import { FollowupQuickForm } from "./followup-quick-form";
 import { AiSheet } from "./ai-sheet";
 import { useCreateLeadFollowup } from "./use-lead-mutations";
 import { QuickCreateQuoteButton } from "@/components/today/quick-create";
+import { LeadHandoffPanel } from "./lead-handoff-panel";
 import { toast } from "sonner";
 
 type Mode = "marketing" | "sales";
@@ -131,6 +132,17 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
             Dialog itt nyílik, oldalváltás nélkül.
           </div>
         </div>
+      )}
+
+      {/* 5. Átadás értékesítőnek — csak Marketing, qualified státusznál */}
+      {mode === "marketing" && lead.data && (
+        <LeadHandoffPanel
+          lead={{
+            id: lead.data.id,
+            status: lead.data.status ?? null,
+            company_id: lead.data.company_id ?? null,
+          }}
+        />
       )}
 
       <EmailComposer
