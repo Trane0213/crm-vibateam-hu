@@ -17,19 +17,19 @@ export async function findCompanyDuplicates(companyId: string): Promise<CompanyD
   if (!companyId) return [];
   const { data: self } = await supabase
     .from("companies")
-    .select("id,name,domain,tax_number")
+    .select("id,name,website,tax_number")
     .eq("id", companyId)
     .maybeSingle();
   if (!self) return [];
 
   const normSelf = normalizeCompanyName(self.name);
   const taxSelf  = normalizeTaxNumber(self.tax_number);
-  const dom      = self.domain?.toLowerCase() ?? null;
+  const dom      = extractDomain(self.website);
 
   // Mintavétel: legfeljebb 1000 cég. Marketing CRM-méretben elég.
   const { data: rows } = await supabase
     .from("companies")
-    .select("id,name,domain,tax_number")
+    .select("id,name,website,tax_number")
     .neq("id", companyId)
     .limit(1000);
 
@@ -40,8 +40,9 @@ export async function findCompanyDuplicates(companyId: string): Promise<CompanyD
       out.push({ id: r.id, name: r.name, reason: "tax_number", confidence: 1 });
       continue;
     }
-    // domain egyezés
-    if (dom && r.domain && r.domain.toLowerCase() === dom && !isPublicDomain(dom)) {
+    // domain egyezés — website-ből származtatva
+    const rDom = extractDomain(r.website);
+    if (dom && rDom && rDom === dom && !isPublicDomain(dom)) {
       out.push({ id: r.id, name: r.name, reason: "domain", confidence: 0.95 });
       continue;
     }
