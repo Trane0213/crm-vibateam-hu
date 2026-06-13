@@ -281,12 +281,6 @@ function ProcessStrip({
 
   // Aktív lépés a lead státuszából.
   const active: StepKey =
-
-  // Marketingben a lépés → status mapping (csak amire értelmes a klikk).
-  const stepToStatus: Partial<Record<StepKey, string>> =
-    mode === "marketing"
-      ? { lead: "new", email: "contacted", qualify: "contacted", handoff: "qualified" }
-      : {};
     mode === "sales"
       ? (status === "converted" ? "contract"
         : status === "qualified" ? "quote"
@@ -297,6 +291,12 @@ function ProcessStrip({
         : status === "contacted" ? "qualify"
         : status === "lost"      ? "qualify"
         : "lead");
+
+  // Marketingben a lépés → status mapping (csak amire értelmes a klikk).
+  const stepToStatus: Partial<Record<StepKey, string>> =
+    mode === "marketing"
+      ? { lead: "new", email: "contacted", qualify: "contacted", handoff: "qualified" }
+      : {};
 
   return (
     <div className="rounded-md border bg-muted/30 p-2">
