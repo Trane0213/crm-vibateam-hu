@@ -30,6 +30,9 @@ export function EmailComposer({
   threadId,
   inReplyTo,
   references,
+  companyId,
+  contactId,
+  leadId,
   onSent,
 }: {
   open: boolean;
@@ -40,6 +43,9 @@ export function EmailComposer({
   threadId?: string;
   inReplyTo?: string;
   references?: string;
+  companyId?: string;
+  contactId?: string;
+  leadId?: string;
   onSent?: () => void;
 }) {
   const [to, setTo] = useState(defaultTo ?? "");
@@ -125,6 +131,9 @@ export function EmailComposer({
           threadId,
           inReplyTo,
           references,
+          company_id: companyId,
+          contact_id: contactId,
+          lead_id: leadId,
         }),
       });
       const j = await r.json();
