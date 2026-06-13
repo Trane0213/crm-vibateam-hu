@@ -1,75 +1,130 @@
-# Sprint 3 — Customer 360, Timeline, Dashboard, Jogosultságok
+# Marketing modul refaktor — végrehajtási terv
 
-## Cél
-Négy egymásra épülő modul kiszállítása. Minden adatbázis változtatás SQL-blokként kerül átadásra a felhasználónak (manuálisan futtatja). Frontend a Lovable buildben.
+A korábbi körök elemzései (komponens-térkép, dedup audit, séma vizsgálat) alapján az alábbi fázisokra bontom a munkát. Minden fázis külön zárható, és **egyik sem érinti a Supabase sémát**.
 
-## Hatásvizsgálat (DB)
+## Előzetes megállapítás (kritikus)
 
-### Új objektumok
-| Típus | Név | Cél |
-|---|---|---|
-| VIEW | `customer_360_v` | Customer fejléchez összesített adatok (cégadat + KPI + főbb kontakt) egy lekérésre |
-| VIEW | `dashboard_pipeline_v` | Projekt státusz pipeline összesítés (státusz, darabszám, összérték) |
-| VIEW | `dashboard_user_workload_v` | Felelős → nyitott taskok / followupok / projektek |
-| VIEW | `dashboard_revenue_monthly_v` | Hónap × elfogadott ajánlat érték (utolsó 12 hónap) |
-| VIEW | `activity_timeline_v` | Globális idővonal (a `customer_activity_v` mintájára, de minden modul, customer szűkítés nélkül, `user_id` annotálva) |
-| TABLE | `route_permissions` | Per-route × role engedélyek dinamikus szerkesztéshez (Settings → Permissions) |
-| FUNCTION | `public.has_route_access(_user uuid, _path text)` | SECURITY DEFINER, role + route_permissions alapján |
+A 6. pontban szereplő „Lead átadás" workflow esetén a `followups` insert **kötelezi a `company_id` mezőt** ahhoz, hogy az átadás megjelenjen a lead idővonalán (`LeadDetailColumn` `useListWhere("followups","company_id",…)`). **Cég nélküli lead nem adható át** ezzel a megoldással — ez UI-szintű validációval lesz kezelve („Átadás előtt cég szükséges").
 
-### Meglévő táblák érintve
-- `companies`, `projects`, `quotes`, `leads`, `followups`, `tasks`, `phone_calls`, `meetings`, `email_threads`, `project_notes`, `project_documents`, `contacts` — **csak olvasás** (view-kon keresztül). Nincs séma változás rajtuk.
-- `roles`, `user_roles` (ha van) / `users_profile` — olvasás a `has_route_access` függvényben.
-
-### Új oszlopok
-Nincs — a Sprint 3 view-alapú, nem ír meglévő táblákba.
-
-### RLS / policy
-- Új view-k mind `security_invoker = on` → meglévő RLS érvényesül.
-- `route_permissions`: RLS engedélyezve, `SELECT` minden `authenticated`-nek (mindenkinek tudnia kell a saját menüjét), `INSERT/UPDATE/DELETE` csak `owner` role-nak (via `has_role`).
-- `has_route_access` SECURITY DEFINER, `search_path=public` rögzítve.
-
-A teljes futtatható SQL blokkot a következő üzenetben adom át, lépésenként (1. view-k, 2. route_permissions + function), hogy ne legyen monstre.
-
-## Frontend változások
-
-### 1. Customer 360 (`/customers/$id`)
-- Jelenlegi `customers.$id.tsx` bővítése: header KPI sáv (`customer_360_v`), tabok: **Áttekintés / Projektek / Ajánlatok / Aktivitás / Kapcsolat / Dokumentumok**.
-- Új komponens: `src/components/customers/customer-360-header.tsx`.
-- Aktivitás tab a meglévő `customer_activity_v`-t használja, csoportosítva nap szerint.
-
-### 2. Activity Timeline (új route)
-- `src/routes/_authenticated/activity.tsx` — globális idővonal `activity_timeline_v`-ből, szűrőkkel (esemény típus, felhasználó, dátum, customer).
-- Sidebar menüpont (Pulse mellé): „Aktivitás".
-
-### 3. Vezetői Dashboard
-- `src/routes/_authenticated/dashboard.tsx` bővítése (nem új route):
-  - Pipeline blokk: `dashboard_pipeline_v` → bar chart státuszonként.
-  - Bevétel blokk: `dashboard_revenue_monthly_v` → line chart 12 hónap.
-  - Workload tábla: `dashboard_user_workload_v`.
-  - Meglévő `CustomerKpiWidgets` megmarad alul.
-- Új komponens: `src/components/dashboard/exec-widgets.tsx` (3 kártya + recharts).
-
-### 4. Jogosultság audit & finomhangolás
-- `src/lib/permissions.ts` — `canAccessRoute` átállítása async lookup-ra ELLENI: marad sync default, DE új hook: `useRoutePermissions()` → `route_permissions` táblát olvas, fallback a kódban lévő `ROUTE_ACCESS`-re. Így DB nélkül is működik.
-- `src/routes/_authenticated/route.tsx` — child-route gate hozzáadása (jelenleg csak auth, role check nincs).
-- `src/routes/_authenticated/settings.permissions-audit.tsx` — már létezik; bővítés szerkeszthető mátrix-szá (role × route checkbox), írás a `route_permissions` táblába (owner only).
-
-## Sorrend
-1. **DB SQL #1** — view-k (`customer_360_v`, `dashboard_*`, `activity_timeline_v`) — átadás → user futtatja.
-2. **DB SQL #2** — `route_permissions` tábla + `has_route_access` function + RLS + GRANT-ok.
-3. **Frontend** — fenti 4 modul, parallel fájl írással.
-4. **Sanity build** — verify, majd rövid teszt útmutató.
-
-## Technikai részletek
-- Charts: `recharts` (már a projektben szerepel a `src/components/ui/chart.tsx` miatt).
-- Query keys: `["customer_360", id]`, `["dashboard","pipeline"]`, `["activity","timeline", filters]`, `["route_permissions"]`.
-- Minden lekérdezés `useQuery`-vel, staleTime 30s a dashboard kártyákon.
-- Nincs új npm dependency.
-
-## Kockázatok
-- Ha a `tasks.assigned_user` nem `users_profile.id`-re mutat (Sprint 2-ben tisztáztuk: `auth.users.id`), a workload view-ban `JOIN users_profile ON up.auth_user_id = t.assigned_user` használat — ezt a SQL-ben kezelem.
-- `route_permissions` séma változás esetén a frontend fallback marad (`ROUTE_ACCESS` const), tehát nem törik el a UI ha a tábla még nincs migrálva.
+Ha ez nem elfogadható, az egyetlen alternatíva séma-módosítás (`followups.lead_id` mező), amit a feladat tilt — ebben az esetben megállok és jelzem.
 
 ---
 
-**Jóváhagyás után küldöm sorrendben:** SQL #1 → SQL #2 → frontend kód.
+## Fázis A — Menü és jogosultság tisztítás (kis, alacsony kockázat)
+
+**Pontok:** 1, 2
+
+- `src/lib/permissions.ts` — `/dashboard` és `/activity` levétele a `marketing` role-ról a `ROUTE_ACCESS` listában.
+- `src/components/app-sidebar.tsx` — a sidebar menüpontjai már a `canAccessRoute`-ot használják, így automatikusan eltűnnek; ellenőrzés.
+- `src/components/quick-add-menu.tsx` — kiegészítés egy explicit `marketingAllowed` szűrővel: marketing role-nál csak `lead` jelenik meg.
+- Marketing user manuális belépéssel se férjen a `/dashboard`/`/activity` route-okhoz — `canAccessRoute` fail-closed már most blokkolja.
+
+## Fázis B — Lead Workspace marketing-tisztítás (kis–közepes)
+
+**Pontok:** 3, 4, 5
+
+- `LeadDetailColumn` és `LeadActionPanel` kap egy `mode: "marketing" | "sales"` prop-ot (a `LeadActionPanel`-nek már van). A `mode==="marketing"` ágban:
+  - „Konvertált projektek" szekció elrejtve
+  - „Ajánlat" blokk elrejtve (már most is `mode==='sales'` only — megerősítés)
+  - Folyamat-szalag címkék: **Új lead → Kapcsolat → Minősítés → Átadás**
+- Lead státusz dropdown (a `LEAD_STATUS_OPTIONS` és a `LeadDetailColumn` selectje) **marketing UI feliratokat** kap: `new=Új`, `contacted=Kapcsolatfelvétel alatt`, `qualified=Átadható`, `lost=Nem érdekes`. A `converted` érték marketing UI-ban nem választható (csak olvasáskor mutatjuk a meglévő értéket). DB értékek érintetlenek.
+
+## Fázis C — Lead átadás értékesítőnek (közepes)
+
+**Pontok:** 6, 7
+
+- Új komponens: `src/components/lead-workspace/lead-handoff-panel.tsx`
+  - Lekérdezés: `users_profile` + `roles` JOIN, `roles.name='sales'` szűréssel
+  - Megjegyzés textarea + „Átadás" gomb
+  - Akció: `followups` insert (`followup_type='handoff'`, `result='Átadva: <név> — <megjegyzés>'`, `company_id=lead.company_id`, `completed=true`, `due_date=now()`) + `leads.status='qualified'` update
+  - Csak akkor jelenik meg, ha `lead.status === 'qualified'` ÉS `lead.company_id != null`
+  - Toast: „Átadva: <név>"
+- `LeadListColumn` szűrő-tabok: **Aktív** (status in `new`,`contacted`), **Átadható** (`qualified` ami még nincs handoff-olva), **Átadott** (`qualified` + van `handoff` típusú followup) — marketingnek az „Átadott" read-only.
+
+## Fázis D — Cég adat-hiány jelző (új feature, közepes–nagy)
+
+**Pont:** 8
+
+- Új komponens: `src/components/customers/company-completeness-panel.tsx`
+- Megjelenés: `/customers/$id` oldalon, a meglévő read-only kártyák mellett
+- Hiány-detektálás a `companies` rekord mezői alapján: `name`, `website`, `email` (nincs ilyen oszlop a `companies`-on — **megállás-pont, lásd lent**), `phone` (szintén nincs), `address` (nincs), `tax_number`, `company_type`, kapcsolattartó léte
+- Automatikus javaslat (csak meglévő adatokból):
+  - email → a leg-aktívabb `contacts.email` ehhez a céghez, vagy `email_threads` from_email leggyakoribb értéke
+  - telefon → `contacts.phone` leggyakoribb értéke
+  - weboldal → `contacts.email` domain részéből
+- „Elfogadás" gombbal az érintett mező a meglévő mezőkbe íródik
+
+**⚠️ MEGÁLLÁS-PONT:** a `companies` séma a kód alapján csak `name, company_type, tax_number, website, notes, domain, city` mezőket használ — **nincs `email`, `phone`, `address` oszlop a `companies`-on**. Ezek a hiányadatok jelenleg a `contacts`-ban élnek. Ez azt jelenti:
+- vagy „cég-szintű email/telefon/cím" megjelenítését az aggregált `contacts` adatokból csináljuk (séma-módosítás nélkül),
+- vagy új mezők kellenek a `companies`-on (a feladat tilt).
+
+**Javaslat:** csak a meglévő `companies` mezőkre (`website`, `tax_number`, `company_type`, `city`, `notes`) + „van-e legalább egy kapcsolattartó" jelzőre korlátozzuk a Fázis D-t. Az email/telefon „hiánya" mint cég-attribútum nem értelmezhető séma nélkül.
+
+## Fázis E — Duplikáció riport (új feature, közepes)
+
+**Pont:** 9
+
+- Új route: `src/routes/_authenticated/settings.dedup-report.tsx` (vagy `/customers` aloldal)
+- Három szekció:
+  - **Cégek**: azonos `name` (lower+trim) csoportok; hasonló név (Levenshtein vagy `pg_trgm` nélkül — kliens-oldalon `JS` egyszerű hasonlóság)
+  - **Kapcsolattartók**: azonos `email` (lower+trim), azonos `phone` (normalizált)
+  - **Leadek**: azonos `company_id`-hez tartozó több nyitott lead
+- Csak listázás, link a rekordra. **Nem töröl semmit.**
+
+## Fázis F — Dokumentáció (csak markdown)
+
+**Pont:** 10 — már elkészült a korábbi körökben. Lezárhatóként frissítem a `.lovable/plan.md`-t a fenti A-E fázisokkal és a kockázat-listával.
+
+---
+
+## Részletes érintettség (A-C fázisokra)
+
+### Módosított fájlok
+- `src/lib/permissions.ts` — `ROUTE_ACCESS` szűkítés
+- `src/components/quick-add-menu.tsx` — marketing-specifikus szűrő
+- `src/components/lead-workspace/lead-detail-column.tsx` — `mode` prop, projekt-szekció rejtés
+- `src/components/lead-workspace/lead-action-panel.tsx` — folyamat-szalag címkék
+- `src/components/lead-workspace/lead-list-column.tsx` — státusz feliratok + új tabok
+- `src/components/lead-workspace/lead-workspace.tsx` — `mode` átadás
+- `src/components/today/marketing-home.tsx` — handoff-panel hely megerősítése
+
+### Új fájlok
+- `src/components/lead-workspace/lead-handoff-panel.tsx`
+- (Fázis D–E csak ha jóváhagyod)
+
+### Nem érintett
+- `src/integrations/supabase/*` — nincs auth/middleware/séma változás
+- Bármely `*.functions.ts` / `*.server.ts` — nincs server fn módosítás
+- `database/*.sql` — nincs új migráció
+
+---
+
+## Kockázatok
+
+1. **Cég nélküli lead átadás** — UI-szintű blokk; a marketinges csak akkor lát „Átadás" gombot, ha van cég. (Korlát, nem hiba.)
+2. **`converted` státusz** — marketing UI-ban nem választható, de ha másik szerepkör beállította, megjelenik (read-only badge-ként). Nem viszi vissza a marketinghez.
+3. **„Átadott" tab szűrés** — jelenleg nincs strukturált jel arra, hogy egy `qualified` lead már át lett-e adva; a szűrés a `followups.followup_type='handoff'` léte alapján működik, ami csak akkor zárt, ha a `company_id` is van. Cég nélküli `qualified` lead-ek a klasszikus „Átadható" tabban ragadnak (egyik szerepkör sem tudja átvenni a jelenlegi modellel).
+4. **Fázis D email/telefon/cím a `companies` szintjén** — nem létezik a sémában, csak `contacts`-ban. Vagy aggregálva mutatjuk, vagy később séma-módosítás kell.
+5. **Permissions szűkítés** — ha más szerepkörök (PM, sales) ugyanazokat a tabokat használják, gondoskodni kell hogy ők ne sérüljenek.
+
+---
+
+## Helyek, ahol később séma-módosítás indokolt lehet (nem most)
+
+- `leads.assigned_to uuid` → `users_profile.id` — strukturált lead-tulajdonos szűréshez, értesítéshez
+- `followups.lead_id uuid` — cég nélküli leadek átadásához és pontos idővonalhoz
+- `companies.email`, `companies.phone`, `companies.address` — cég-szintű elsődleges kapcsolat-adatokhoz
+- `companies` unique index a `lower(name)`-re — adatbázis-szintű dedup
+- `contacts` unique index a `lower(email)`-re
+
+---
+
+## Kérdés mielőtt nekiállok
+
+Három döntést kérek:
+
+1. **Fázis bontás:** csak A+B+C menjen most (kis-közepes scope, ~1-2 óra munka), vagy D+E is (jelentősen nagyobb, új feature komponensek)?
+2. **Fázis D scope:** elfogadod, hogy email/telefon/cím nem a `companies`-on van, és csak a meglévő `companies` mezőkre + kapcsolattartó-jelenlétre szűkítjük?
+3. **Cég nélküli lead átadás:** elfogadod a UI-szintű blokkot („Átadás előtt cég szükséges"), vagy ez megálljt jelent?
+
+Jóváhagyás után csak a választott fázisokat valósítom meg, lépésről lépésre, és a végén egy rövid sprint-záró összefoglalót adok.
