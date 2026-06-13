@@ -37,7 +37,7 @@ export function useAutoEnrich(kind: Kind, id: string | null | undefined) {
         if (kind === "company") qc.invalidateQueries({ queryKey: ["customers", "detail", id] });
         if (kind === "contact") qc.invalidateQueries({ queryKey: ["contacts", "detail", id] });
         if (kind === "lead") {
-          qc.invalidateQueries({ queryKey: ["lead", id] });
+          qc.invalidateQueries({ queryKey: ["leads", "detail", id] });
           qc.invalidateQueries({ queryKey: ["leads"] });
         }
       } catch {
