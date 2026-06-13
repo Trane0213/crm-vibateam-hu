@@ -160,15 +160,14 @@ export function MarketingHome() {
           <SectionHeader title="Lead pipeline" subtitle="Hol állnak a leadjeid a marketing-funnelben." />
           <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 lg:grid-cols-5">
             {(["new","contacted","qualified","converted","lost"] as const).map((k) => (
-              <Link
+              <div
                 key={k}
-                to="/leads"
-                className={`rounded-lg border p-3 transition hover:brightness-105 ${STATUS_TONE[k]}`}
+                className={`rounded-lg border p-3 ${STATUS_TONE[k]}`}
               >
                 <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{STATUS_LABEL[k]}</div>
                 <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{pipeline[k]}</div>
                 <div className="mt-1 text-[11px] opacity-70">{k === "qualified" ? "értékesítőre vár" : k === "converted" ? "átadva sales-nek" : ""}</div>
-              </Link>
+              </div>
             ))}
           </div>
         </section>
