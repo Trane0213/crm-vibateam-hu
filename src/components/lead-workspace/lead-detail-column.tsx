@@ -10,7 +10,13 @@ import { useLookup, fmtDateTime } from "@/components/resource/resource-page";
 import { LEAD_STATUS_OPTIONS } from "./lead-list-column";
 import { useUpdateLead } from "./use-lead-mutations";
 
-export function LeadDetailColumn({ leadId }: { leadId: string | null }) {
+export function LeadDetailColumn({
+  leadId,
+  mode = "sales",
+}: {
+  leadId: string | null;
+  mode?: "marketing" | "sales";
+}) {
   const companyLabel = useLookup("companies", "name");
   const contactLabel = useLookup("contacts", "name");
   const lead = useQuery({
@@ -25,7 +31,10 @@ export function LeadDetailColumn({ leadId }: { leadId: string | null }) {
   const followups = useListWhere<any>("followups", "company_id", lead.data?.company_id, {
     order: "due_date", ascending: false, enabled: !!lead.data?.company_id,
   });
-  const projects = useListWhere<any>("projects", "lead_id", leadId, { order: "created_at", ascending: false });
+  // Projekteket csak nem-marketing módban kérdezzük le — marketingnek nem releváns.
+  const projects = useListWhere<any>("projects", "lead_id", leadId, {
+    order: "created_at", ascending: false, enabled: mode !== "marketing",
+  });
 
   const updateLead = useUpdateLead(leadId);
 
@@ -87,9 +96,15 @@ export function LeadDetailColumn({ leadId }: { leadId: string | null }) {
             onChange={(e) => updateLead.mutate({ status: e.target.value })}
             className="h-8 rounded-md border bg-background px-2 text-xs font-medium"
           >
-            {LEAD_STATUS_OPTIONS.filter((o) => o.value).map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
+            {LEAD_STATUS_OPTIONS
+              .filter((o) => o.value)
+              // Marketing UI nem ajánl fel `converted`-et — az értékesítői hatáskör.
+              .filter((o) => (mode === "marketing" ? o.value !== "converted" : true))
+              .map((o) => (
+                <option key={o.value} value={o.value}>
+                  {mode === "marketing" ? ((o as any).marketingLabel ?? o.label) : o.label}
+                </option>
+              ))}
           </select>
           {l.source && <Badge variant="outline" className="font-normal">{l.source}</Badge>}
           {l.project_type && <Badge variant="outline" className="font-normal">{l.project_type}</Badge>}
@@ -176,27 +191,29 @@ export function LeadDetailColumn({ leadId }: { leadId: string | null }) {
           )}
         </section>
 
-        <section>
-          <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <Briefcase className="h-3 w-3" /> Konvertált projektek
-          </div>
-          {(projects.data ?? []).length === 0 ? (
-            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-              Még nincs projekt ehhez a leadhez.
+        {mode !== "marketing" && (
+          <section>
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <Briefcase className="h-3 w-3" /> Konvertált projektek
             </div>
-          ) : (
-            <ul className="space-y-1.5">
-              {(projects.data ?? []).map((p: any) => (
-                <li key={p.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
-                  <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
-                    {p.title ?? p.name ?? "—"}
-                  </Link>
-                  <span className="text-muted-foreground">{p.status ?? "—"}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            {(projects.data ?? []).length === 0 ? (
+              <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                Még nincs projekt ehhez a leadhez.
+              </div>
+            ) : (
+              <ul className="space-y-1.5">
+                {(projects.data ?? []).map((p: any) => (
+                  <li key={p.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
+                    <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
+                      {p.title ?? p.name ?? "—"}
+                    </Link>
+                    <span className="text-muted-foreground">{p.status ?? "—"}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );

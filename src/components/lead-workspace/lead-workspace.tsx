@@ -23,10 +23,10 @@ export function LeadWorkspace({
       }
     >
       <div className="border-r">
-        <LeadListColumn selectedId={selectedId} onSelect={setSelectedId} />
+        <LeadListColumn selectedId={selectedId} onSelect={setSelectedId} mode={mode} />
       </div>
       <div className="border-r min-w-0">
-        <LeadDetailColumn leadId={selectedId} />
+        <LeadDetailColumn leadId={selectedId} mode={mode} />
       </div>
       <div>
         <LeadActionPanel leadId={selectedId} mode={mode} />
