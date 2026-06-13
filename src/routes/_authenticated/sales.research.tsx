@@ -403,19 +403,16 @@ function ResearchPage() {
                             {r._in_campaign ? <Check className="mr-1 h-3.5 w-3.5" /> : <ListPlus className="mr-1 h-3.5 w-3.5" />}
                             {r._in_campaign ? "Kampányban" : "Kampány"}
                           </Button>
-                          {r._matched && r._lead_id ? (
+                          {r._in_campaign && r._company_id && (
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() =>
-                                navigate({ to: "/leads/$id", params: { id: r._lead_id! } })
+                                navigate({ to: "/customers/$id", params: { id: r._company_id! } })
                               }
+                              title="Cég adatlap megnyitása"
                             >
-                              <Check className="mr-1 h-3.5 w-3.5" /> Megnyit
-                            </Button>
-                          ) : (
-                            <Button size="sm" onClick={() => createLead(idx)} title="Sales átadás — lead létrehozása">
-                              <UserPlus className="mr-1 h-3.5 w-3.5" /> Sales
+                              <Building2 className="mr-1 h-3.5 w-3.5" /> Megnyit
                             </Button>
                           )}
                         </div>
