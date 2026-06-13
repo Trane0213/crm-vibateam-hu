@@ -101,7 +101,7 @@ function IncompleteCompaniesTable({ q }: { q: ReturnType<typeof useQuery<any>> }
                 <td className="px-3 py-2 font-medium">
                   <Link to="/customers/$id" params={{ id: r.id }} className="text-primary hover:underline">{r.name}</Link>
                 </td>
-                <td className="px-3 py-2"><Badge variant={bandTone(r.score.band)}>{SCORE_BAND_LABEL[r.score.band]}</Badge></td>
+                <td className="px-3 py-2"><Badge variant={bandTone(r.score.band)}>{SCORE_BAND_LABEL[r.score.band as "green" | "yellow" | "red"]}</Badge></td>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
                     <Progress value={r.score.pct} className="h-1.5 flex-1" />
