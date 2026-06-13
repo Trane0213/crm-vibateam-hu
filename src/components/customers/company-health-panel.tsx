@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, AlertCircle, Sparkles, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Sparkles, Loader2, Copy, AlertTriangle } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { findCompanyDuplicates, findContactConflicts } from "@/lib/dedupe/detect";
 
 type Company = {
   id: string;
@@ -144,14 +146,40 @@ export function CompanyHealthPanel({
 
   const tone = checks.pct >= 80 ? "success" : checks.pct >= 50 ? "warning" : "danger";
 
+  // Duplikátum- és konfliktus-kereső lekérdezések (csak adatlap megnyitásakor).
+  const dupQ = useQuery({
+    queryKey: ["company", company.id, "duplicates"],
+    queryFn: () => findCompanyDuplicates(company.id),
+    staleTime: 60_000,
+  });
+  const conflictsQ = useQuery({
+    queryKey: ["company", company.id, "contact-conflicts"],
+    queryFn: () => findContactConflicts(company.id),
+    staleTime: 60_000,
+  });
+  const dupCount = dupQ.data?.length ?? 0;
+  const conflictCount = conflictsQ.data?.length ?? 0;
+
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center justify-between gap-2">
+        <CardTitle className="text-sm flex items-center justify-between gap-2 flex-wrap">
           <span>Adatminőség</span>
-          <Badge variant={tone === "success" ? "default" : tone === "warning" ? "secondary" : "destructive"}>
-            {checks.pct}%
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge variant={tone === "success" ? "default" : tone === "warning" ? "secondary" : "destructive"}>
+              {checks.pct}%
+            </Badge>
+            {dupCount > 0 && (
+              <Badge variant="outline" className="gap-1 border-amber-500 text-amber-700">
+                <Copy className="h-3 w-3" /> {dupCount} duplikátum
+              </Badge>
+            )}
+            {conflictCount > 0 && (
+              <Badge variant="outline" className="gap-1 border-destructive text-destructive">
+                <AlertTriangle className="h-3 w-3" /> {conflictCount} konfliktus
+              </Badge>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
@@ -211,7 +239,64 @@ export function CompanyHealthPanel({
             Nincs automatikusan kitölthető mező – a hiányzó adatokat kézzel kell pótolni.
           </div>
         )}
+
+        {dupCount > 0 && (
+          <div className="border-t pt-3 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-amber-700">
+              <Copy className="h-3.5 w-3.5" />
+              Potenciális duplikátum ({dupCount})
+            </div>
+            {(dupQ.data ?? []).slice(0, 5).map((d) => (
+              <div key={d.id} className="flex items-center gap-2 rounded-md border bg-amber-50 p-2 text-xs">
+                <div className="flex-1 min-w-0">
+                  <Link
+                    to="/customers/$id"
+                    params={{ id: d.id }}
+                    className="font-medium text-primary hover:underline truncate block"
+                  >
+                    {d.name}
+                  </Link>
+                  <div className="text-muted-foreground">
+                    {dupReasonLabel(d.reason)} · {(d.confidence * 100).toFixed(0)}%
+                  </div>
+                </div>
+              </div>
+            ))}
+            <p className="text-[11px] text-muted-foreground">
+              Csak jelzés — összevonáshoz kézi áttekintés szükséges.
+            </p>
+          </div>
+        )}
+
+        {conflictCount > 0 && (
+          <div className="border-t pt-3 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-destructive">
+              <AlertTriangle className="h-3.5 w-3.5" />
+              Adatkonfliktus ({conflictCount})
+            </div>
+            {(conflictsQ.data ?? []).slice(0, 5).map((c, i) => (
+              <div key={i} className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-xs">
+                <div className="font-medium">{conflictKeyLabel(c.key)}: <span className="font-mono">{c.value}</span></div>
+                <div className="text-muted-foreground">
+                  {c.names.filter(Boolean).join(", ") || `${c.ids.length} kapcsolattartón`}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
+}
+
+function dupReasonLabel(r: "name_exact" | "name_similar" | "domain" | "tax_number") {
+  switch (r) {
+    case "name_exact":    return "azonos cégnév";
+    case "name_similar":  return "hasonló cégnév";
+    case "domain":        return "azonos domain";
+    case "tax_number":    return "azonos adószám";
+  }
+}
+function conflictKeyLabel(k: "email" | "phone" | "name") {
+  return k === "email" ? "azonos email" : k === "phone" ? "azonos telefon" : "azonos név";
 }
