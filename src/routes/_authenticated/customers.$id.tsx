@@ -185,6 +185,13 @@ function CustomerDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="lg:col-span-2">
+              <CompanyHealthPanel
+                company={c}
+                contacts={contacts.data ?? []}
+                leads={leads.data ?? []}
+              />
+            </div>
             <Card>
               <CardHeader><CardTitle className="text-sm">Alapadatok</CardTitle></CardHeader>
               <CardContent className="space-y-1.5 text-sm">
@@ -197,11 +204,6 @@ function CustomerDetail() {
                 <Row label="Létrejött" value={fmtDate(c.created_at)} />
               </CardContent>
             </Card>
-            <CompanyHealthPanel
-              company={c}
-              contacts={contacts.data ?? []}
-              leads={leads.data ?? []}
-            />
             {c.notes && (
               <Card>
                 <CardHeader><CardTitle className="text-sm">Megjegyzés</CardTitle></CardHeader>
