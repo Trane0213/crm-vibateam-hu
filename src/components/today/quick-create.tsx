@@ -10,7 +10,6 @@ import { findOpenLeadDuplicate } from "@/lib/dedupe/detect";
 const LEAD_FIELDS: Field[] = [
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
   { name: "contact_id", label: "Kapcsolattartó", type: "ref", ref: { table: "contacts", labelColumn: "name" } },
-  { name: "email", label: "E-mail (duplikáció ellenőrzéshez)", type: "text" },
   { name: "source", label: "Forrás", type: "text", placeholder: "pl. Weboldal, Ajánlás" },
   { name: "project_type", label: "Projekt típus", type: "text" },
   { name: "status", label: "Státusz", type: "select", required: true, options: [
@@ -101,10 +100,11 @@ export function QuickCreateLeadButton({ onCreated }: { onCreated?: (row: any) =>
         submitting={upsert.isPending}
         onSubmit={async (values) => {
           const merged: Record<string, any> = { status: "new", ...(values as Record<string, any>) };
-          // Duplikáció ellenőrzés — ha van nyitott lead ugyanahhoz a céghez vagy emailhez, nyissuk meg azt.
+          // Duplikáció ellenőrzés — nyitott lead ugyanahhoz a céghez (a leads tábla
+          // nem tárol külön email mezőt, ezért company-alapon szűrünk).
           const dup = await findOpenLeadDuplicate({
             companyId: merged.company_id ?? null,
-            email: merged.email ?? null,
+            email: null,
           });
           if (dup) {
             toast.info("Már létezik nyitott érdeklődő", {

@@ -81,10 +81,12 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
   };
 
   // CRM cache (kicsi tábla, ritkán fut, percenkénti hívásnak ez bőven elég).
+  // A leads tábla nem tárol email mezőt; lead → email kapcsolatot a contact_id-n
+  // keresztül oldjuk meg (contacts.email → leads via contact_id).
   const [contactsRes, companiesRes, leadsRes] = await Promise.all([
     admin.from("contacts").select("id,email").not("email", "is", null),
     admin.from("companies").select("id,website").not("website", "is", null),
-    admin.from("leads").select("id,email").not("email", "is", null),
+    admin.from("leads").select("id,contact_id").not("contact_id", "is", null),
   ]);
   const contactByEmail = new Map<string, string>();
   for (const c of (contactsRes.data ?? []) as any[]) {
@@ -101,10 +103,14 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
       .split("/")[0];
     if (d) companyByDomain.set(d, c.id);
   }
-  const leadByEmail = new Map<string, string>();
+  const leadByContactId = new Map<string, string>();
   for (const l of (leadsRes.data ?? []) as any[]) {
-    const e = String(l.email ?? "").toLowerCase().trim();
-    if (e) leadByEmail.set(e, l.id);
+    if (l.contact_id) leadByContactId.set(l.contact_id, l.id);
+  }
+  const leadByEmail = new Map<string, string>();
+  for (const [email, contactId] of contactByEmail.entries()) {
+    const leadId = leadByContactId.get(contactId);
+    if (leadId) leadByEmail.set(email, leadId);
   }
   function matchCrm(addresses: string[]): { contact_id: string | null; company_id: string | null; lead_id: string | null } {
     let contact_id: string | null = null;
