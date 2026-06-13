@@ -1,0 +1,650 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
+import {
+  Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
+  Send, ArrowRightCircle, Globe, Phone, Calendar, CheckCircle2,
+  AlertCircle, Sparkles,
+} from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { EmptyState } from "@/components/page-header";
+import { supabase } from "@/integrations/supabase/client";
+import { humanizeSupabaseError } from "@/lib/db-hooks";
+import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
+import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
+import { EmailComposer } from "@/components/emails/email-composer";
+import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import {
+  MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
+  readMarketingMeta, stripMarkers, withMarketingStatus, withSalesNote,
+  type MarketingStatus,
+} from "@/lib/marketing-status";
+
+/**
+ * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
+ *
+ * NINCS séma-módosítás. Minden marketing állapot a meglévő
+ * `companies.notes` mezőben tárolódik fenced markerekkel
+ * (`src/lib/marketing-status.ts`). A "Saleshez átadás" gomb a
+ * meglévő `leads` táblába szúr egy sort és átállítja a state-et
+ * `handoff`-ra — innentől a sales látja a leadet a saját pipeline-jában.
+ */
+export function MarketingWorkspace({ companyId }: { companyId: string }) {
+  const qc = useQueryClient();
+  const [composer, setComposer] = useState<{ to: string; subject: string } | null>(null);
+  const [handoffOpen, setHandoffOpen] = useState(false);
+
+  const cust = useQuery({
+    queryKey: ["customers", "detail", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("*").eq("id", companyId).maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
+  const contacts = useQuery({
+    queryKey: ["contacts", "by_company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contacts").select("*").eq("company_id", companyId).order("name");
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  const threads = useQuery({
+    queryKey: ["email_threads", "by_company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_threads")
+        .select("id,subject,participants,message_count,last_message_at,created_at")
+        .eq("company_id", companyId)
+        .order("last_message_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  const docsCount = useQuery({
+    queryKey: ["company_documents", "count", companyId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("company_documents" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", companyId);
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
+  const meta = useMemo(() => readMarketingMeta(cust.data?.notes ?? null), [cust.data?.notes]);
+  const visibleNotes = useMemo(() => stripMarkers(cust.data?.notes ?? null), [cust.data?.notes]);
+
+  const setStatus = useMutation({
+    mutationFn: async (status: MarketingStatus) => {
+      const next = withMarketingStatus(cust.data?.notes ?? null, status);
+      const { error } = await supabase.from("companies").update({ notes: next }).eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, status) => {
+      toast.success(`Státusz: ${MARKETING_STATUS_LABEL[status]}`);
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+    },
+    onError: (e: any) => toast.error("Státusz mentése sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
+  const saveSalesNote = useMutation({
+    mutationFn: async (text: string) => {
+      const next = withSalesNote(cust.data?.notes ?? null, text);
+      const { error } = await supabase.from("companies").update({ notes: next }).eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Salesnek szánt jegyzet mentve");
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+    },
+    onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
+  const handoff = useMutation({
+    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null }) => {
+      const payload: any = {
+        company_id: companyId,
+        contact_id: input.contact_id,
+        summary: input.summary,
+        source: "marketing_handoff",
+        project_type: input.project_type,
+        status: "new",
+      };
+      const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
+      if (error) throw error;
+      const leadId = (data as any).id as string;
+      const nextNotes = withMarketingStatus(cust.data?.notes ?? null, "handoff", leadId);
+      const { error: e2 } = await supabase.from("companies").update({ notes: nextNotes }).eq("id", companyId);
+      if (e2) throw e2;
+      return leadId;
+    },
+    onSuccess: () => {
+      toast.success("Sikeresen átadva a salesnek", { description: "A lead megjelent a sales pipeline-ban." });
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+      setHandoffOpen(false);
+    },
+    onError: (e: any) => toast.error("Átadás sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
+  if (cust.isLoading) return <div className="p-6 text-sm text-muted-foreground">Cég betöltése…</div>;
+  if (cust.error || !cust.data) {
+    return <div className="p-6"><EmptyState icon={Building2} title="Cég nem található" description={(cust.error as any)?.message} /></div>;
+  }
+
+  const c = cust.data;
+  const primary = (contacts.data ?? [])[0] ?? null;
+  const threadCount = threads.data?.length ?? 0;
+  const lastEmail = threads.data?.[0]?.last_message_at ?? null;
+  const isHandoff = meta.status === "handoff";
+
+  return (
+    <div className="flex flex-col">
+      {/* ───── Fejléc ───── */}
+      <div className="border-b bg-background px-6 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Marketing minősítés
+            </div>
+            <h1 className="mt-1 flex flex-wrap items-center gap-2 text-xl font-semibold">
+              <Building2 className="h-5 w-5 text-muted-foreground" />
+              <span className="truncate">{c.name}</span>
+              <Badge variant="outline">{COMPANY_TYPE_LABEL[c.company_type] ?? "Cég"}</Badge>
+              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${MARKETING_STATUS_TONE[meta.status]}`}>
+                {MARKETING_STATUS_LABEL[meta.status]}
+                {meta.statusDate && <span className="ml-1 opacity-70">· {meta.statusDate}</span>}
+              </span>
+            </h1>
+            <div className="mt-1 flex flex-wrap gap-3 text-sm text-muted-foreground">
+              {primary?.email && <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{primary.email}</span>}
+              {primary?.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{primary.phone}</span>}
+              {c.website && (
+                <a href={c.website.startsWith("http") ? c.website : `https://${c.website}`} target="_blank" rel="noreferrer"
+                   className="inline-flex items-center gap-1 text-primary hover:underline">
+                  <Globe className="h-3 w-3" />{c.website}
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Saleshez átadás akcióblokk */}
+          <div className="flex flex-col items-end gap-2">
+            {isHandoff ? (
+              <Badge variant="outline" className="border-[color:var(--status-success)]/40 text-[color:var(--status-success)]">
+                <CheckCircle2 className="mr-1 h-3 w-3" />
+                Átadva sales-nek {meta.statusDate ? `· ${meta.statusDate}` : ""}
+              </Badge>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => setHandoffOpen(true)}
+                disabled={(contacts.data ?? []).length === 0}
+                title={(contacts.data ?? []).length === 0 ? "Előbb vegyél fel legalább egy kapcsolattartót" : "Lead létrehozása és átadás a sales pipeline-nak"}
+              >
+                <ArrowRightCircle className="mr-1 h-4 w-4" />
+                Saleshez átadás
+              </Button>
+            )}
+            {!isHandoff && (
+              <div className="flex items-center gap-1">
+                {(["new", "contacted", "qualified"] as const).map((s) => (
+                  <Button
+                    key={s}
+                    size="sm"
+                    variant={meta.status === s ? "default" : "outline"}
+                    className="h-7 px-2 text-xs"
+                    disabled={setStatus.isPending}
+                    onClick={() => setStatus.mutate(s)}
+                  >
+                    {MARKETING_STATUS_LABEL[s]}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Mini KPI sor */}
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} />
+          <Mini label="Email szálak" value={String(threadCount)} icon={Mail}
+                hint={lastEmail ? `utolsó: ${fmtDate(lastEmail)}` : "nincs üzenet"} />
+          <Mini label="Dokumentumok" value={String(docsCount.data ?? 0)} icon={FolderOpen} />
+          <Mini label="Felvéve" value={fmtDate(c.created_at)} icon={Calendar} />
+        </div>
+      </div>
+
+      {/* ───── Tartalom ───── */}
+      <div className="p-6">
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="flex flex-wrap h-auto">
+            <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
+            <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Email aktivitás ({threadCount})</TabsTrigger>
+            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
+            <TabsTrigger value="sales-note">
+              <StickyNote className="mr-1.5 h-3.5 w-3.5" />
+              Jegyzet salesnek
+              {meta.salesNote && <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-primary" />}
+            </TabsTrigger>
+            <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
+          </TabsList>
+
+          {/* Áttekintés */}
+          <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader><CardTitle className="text-sm">Cég adatok</CardTitle></CardHeader>
+              <CardContent className="space-y-1.5 text-sm">
+                <Row label="Cégnév" value={c.name} />
+                <Row label="Típus" value={COMPANY_TYPE_LABEL[c.company_type] ?? "—"} />
+                {c.tax_number && <Row label="Adószám" value={c.tax_number} />}
+                {c.website && <Row label="Web" value={c.website} />}
+                <Row label="Létrejött" value={fmtDate(c.created_at)} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  Elsődleges kapcsolattartó
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1.5 text-sm">
+                {primary ? (
+                  <>
+                    <Row label="Név" value={primary.name ?? "—"} />
+                    {primary.position && <Row label="Beosztás" value={primary.position} />}
+                    <Row label="E-mail" value={primary.email ?? "—"} />
+                    <Row label="Telefon" value={primary.phone ?? "—"} />
+                    {primary.email && (
+                      <div className="pt-2">
+                        <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — ` })}>
+                          <Send className="mr-1 h-3.5 w-3.5" />Email küldése
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Nincs kapcsolattartó. A „Kapcsolattartók" fülön vegyél fel egyet, mielőtt átadnád a salesnek.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {visibleNotes && (
+              <Card className="lg:col-span-2">
+                <CardHeader><CardTitle className="text-sm">Megjegyzés / forrás</CardTitle></CardHeader>
+                <CardContent className="whitespace-pre-wrap text-sm">{visibleNotes}</CardContent>
+              </Card>
+            )}
+
+            {meta.salesNote && (
+              <Card className="lg:col-span-2 border-primary/40 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <StickyNote className="h-4 w-4" /> Salesnek szánt jegyzet (vázlat)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="whitespace-pre-wrap text-sm">{meta.salesNote}</CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Kapcsolattartók */}
+          <TabsContent value="contacts" className="mt-4">
+            <ContactsTable
+              rows={contacts.data ?? []}
+              onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "" })}
+            />
+          </TabsContent>
+
+          {/* Email aktivitás */}
+          <TabsContent value="emails" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                A céghez rendelt email szálak. Az új üzeneteket az
+                <Link to="/emails" className="mx-1 text-primary hover:underline">Emailek</Link>
+                oldalon vagy az alábbi gombbal indíthatod.
+              </p>
+              {primary?.email && (
+                <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — ` })}>
+                  <Send className="mr-1 h-3.5 w-3.5" />Új email
+                </Button>
+              )}
+            </div>
+            {(threads.data ?? []).length === 0 ? (
+              <EmptyState icon={Mail} title="Nincs email aktivitás"
+                description="Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül." />
+            ) : (
+              <div className="rounded-md border bg-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Tárgy</th>
+                      <th className="px-3 py-2 text-left">Résztvevők</th>
+                      <th className="px-3 py-2 text-left">Üzenet</th>
+                      <th className="px-3 py-2 text-left whitespace-nowrap">Utolsó</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(threads.data ?? []).map((t) => (
+                      <tr key={t.id} className="border-t hover:bg-muted/30">
+                        <td className="px-3 py-2">
+                          <Link to="/emails/$threadId" params={{ threadId: t.id }} className="text-primary hover:underline">
+                            {t.subject ?? "(nincs tárgy)"}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground">
+                          {(t.participants ?? []).slice(0, 3).join(", ") || "—"}
+                          {(t.participants ?? []).length > 3 && ` +${(t.participants ?? []).length - 3}`}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums">{t.message_count ?? 1}</td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDateTime(t.last_message_at)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Dokumentumok — cég-szintű */}
+          <TabsContent value="docs" className="mt-4">
+            <CompanyDocumentManager companyId={companyId} />
+          </TabsContent>
+
+          {/* Salesnek szánt jegyzet */}
+          <TabsContent value="sales-note" className="mt-4">
+            <SalesNoteEditor
+              initial={meta.salesNote}
+              saving={saveSalesNote.isPending}
+              onSave={(t) => saveSalesNote.mutate(t)}
+              isHandoff={isHandoff}
+              handoffLeadId={meta.handoffLeadId}
+            />
+          </TabsContent>
+
+          {/* Idővonal — egyszerűsített marketing nézet */}
+          <TabsContent value="timeline" className="mt-4">
+            <SimpleTimeline threads={threads.data ?? []} createdAt={c.created_at} statusDate={meta.statusDate} status={meta.status} />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <EmailComposer
+        open={!!composer}
+        onOpenChange={(v) => { if (!v) setComposer(null); }}
+        defaultTo={composer?.to ?? ""}
+        defaultSubject={composer?.subject ?? ""}
+        onSent={() => setComposer(null)}
+      />
+
+      <HandoffDialog
+        open={handoffOpen}
+        onOpenChange={setHandoffOpen}
+        companyName={c.name}
+        contacts={contacts.data ?? []}
+        defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
+        submitting={handoff.isPending}
+        onSubmit={(d) => handoff.mutate(d)}
+      />
+    </div>
+  );
+}
+
+/* ───────── helpers ───────── */
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium text-right truncate">{value}</span>
+    </div>
+  );
+}
+
+function Mini({ label, value, hint, icon: Icon }: { label: string; value: string; hint?: string; icon?: React.ComponentType<{ className?: string }> }) {
+  return (
+    <div className="rounded-md border bg-card px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        {Icon && <Icon className="h-3 w-3" />}
+        {label}
+      </div>
+      <div className="mt-0.5 text-base font-semibold tabular-nums">{value}</div>
+      {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
+    </div>
+  );
+}
+
+function ContactsTable({ rows, onEmail }: { rows: any[]; onEmail: (c: any) => void }) {
+  if (rows.length === 0) return (
+    <EmptyState icon={UserPlus} title="Nincs kapcsolattartó"
+      description="Vegyél fel egy kapcsolattartót a Scarlet research oldalon vagy a /contacts felületen, hogy emailezni és átadni tudd a cégét." />
+  );
+  return (
+    <div className="rounded-md border bg-card overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
+          <tr>
+            <th className="px-3 py-2 text-left">Név</th>
+            <th className="px-3 py-2 text-left">Beosztás</th>
+            <th className="px-3 py-2 text-left">E-mail</th>
+            <th className="px-3 py-2 text-left">Telefon</th>
+            <th className="px-3 py-2 text-right">Művelet</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((c) => (
+            <tr key={c.id} className="border-t hover:bg-muted/30">
+              <td className="px-3 py-2">
+                <Link to="/contacts/$id" params={{ id: c.id }} className="text-primary hover:underline">{c.name ?? "—"}</Link>
+              </td>
+              <td className="px-3 py-2">{c.position ?? "—"}</td>
+              <td className="px-3 py-2">{c.email ?? "—"}</td>
+              <td className="px-3 py-2">{c.phone ?? "—"}</td>
+              <td className="px-3 py-2 text-right">
+                {c.email && (
+                  <Button size="sm" variant="outline" onClick={() => onEmail(c)}>
+                    <Send className="mr-1 h-3.5 w-3.5" />Email
+                  </Button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SalesNoteEditor({
+  initial, saving, onSave, isHandoff, handoffLeadId,
+}: {
+  initial: string;
+  saving: boolean;
+  onSave: (text: string) => void;
+  isHandoff: boolean;
+  handoffLeadId: string | null;
+}) {
+  const [value, setValue] = useState(initial);
+  const dirty = value !== initial;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm flex items-center gap-2">
+          <StickyNote className="h-4 w-4" />
+          Salesnek szánt jegyzet
+          <span className="ml-auto text-xs font-normal text-muted-foreground">
+            ez a szöveg lesz az átadás idő pontján a Lead összefoglalója
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {isHandoff && handoffLeadId && (
+          <div className="rounded-md border border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5 px-3 py-2 text-xs text-[color:var(--status-success)]">
+            Ez a cég már át lett adva. A létrejött lead:{" "}
+            <Link to="/leads/$id" params={{ id: handoffLeadId }} className="font-mono underline">
+              #{handoffLeadId.slice(0, 8)}
+            </Link>{" "}
+            (a sales pipeline-ban dolgoznak rajta).
+          </div>
+        )}
+        <Textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Mit kell tudni a salesnek? Pl. milyen projektre keresnek partnert, mikor érdemes felhívni, korábbi beszélgetések, döntéshozó neve…"
+          rows={14}
+          className="text-sm"
+        />
+        <div className="flex justify-end gap-2">
+          {dirty && <Button variant="ghost" size="sm" onClick={() => setValue(initial)}>Mégse</Button>}
+          <Button size="sm" disabled={!dirty || saving} onClick={() => onSave(value)}>
+            {saving ? "Mentés…" : "Mentés"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SimpleTimeline({
+  threads, createdAt, statusDate, status,
+}: {
+  threads: any[]; createdAt: string; statusDate: string | null; status: MarketingStatus;
+}) {
+  const events: { at: string; label: string; icon: any; tone: string }[] = [];
+  events.push({ at: createdAt, label: "Cég felvéve a kampánylistára", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
+  if (statusDate) {
+    events.push({
+      at: `${statusDate}T00:00:00`,
+      label: `Marketing státusz: ${MARKETING_STATUS_LABEL[status]}`,
+      icon: status === "handoff" ? ArrowRightCircle : AlertCircle,
+      tone: status === "handoff" ? "text-[color:var(--status-success)]" : "text-primary",
+    });
+  }
+  for (const t of threads.slice(0, 20)) {
+    events.push({
+      at: t.last_message_at ?? t.created_at,
+      label: `Email szál — ${t.subject ?? "(nincs tárgy)"} (${t.message_count ?? 1} üzenet)`,
+      icon: Mail,
+      tone: "text-muted-foreground",
+    });
+  }
+  events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+  if (events.length === 0) return <EmptyState icon={History} title="Nincs esemény" />;
+  return (
+    <ol className="space-y-2">
+      {events.map((e, i) => (
+        <li key={i} className="flex items-start gap-3 rounded-md border bg-card p-3 text-sm">
+          <e.icon className={`mt-0.5 h-4 w-4 shrink-0 ${e.tone}`} />
+          <div className="min-w-0 flex-1">
+            <div className="truncate">{e.label}</div>
+            <div className="text-[11px] text-muted-foreground">{fmtDateTime(e.at)}</div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function HandoffDialog({
+  open, onOpenChange, companyName, contacts, defaultSummary, submitting, onSubmit,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  companyName: string;
+  contacts: any[];
+  defaultSummary: string;
+  submitting: boolean;
+  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null }) => void;
+}) {
+  const [summary, setSummary] = useState(defaultSummary);
+  const [projectType, setProjectType] = useState<string>("");
+  const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
+  // resync default when reopened
+  useMemo(() => {
+    if (open) {
+      setSummary(defaultSummary);
+      setContactId(contacts[0]?.id ?? "");
+    }
+  }, [open, defaultSummary, contacts]);
+
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="max-w-lg">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <ArrowRightCircle className="h-5 w-5 text-[color:var(--status-success)]" />
+            Saleshez átadás — {companyName}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            Ez létrehoz egy <strong>új leadet</strong> ehhez a céghez, és a marketing státuszt
+            „Átadva sales-nek" állapotra állítja. A sales pipeline-ban innentől látható.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Lead összefoglaló</label>
+            <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="mt-1" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Projekt típus (opcionális)</label>
+              <Input value={projectType} onChange={(e) => setProjectType(e.target.value)} placeholder="pl. lakásfelújítás"
+                     className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">Kapcsolattartó</label>
+              <Select value={contactId} onValueChange={setContactId}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Válassz kontaktot" /></SelectTrigger>
+                <SelectContent>
+                  {contacts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name ?? c.email ?? c.id.slice(0, 8)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={submitting}>Mégse</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={submitting || !summary.trim()}
+            onClick={(e) => {
+              e.preventDefault();
+              onSubmit({
+                summary: summary.trim(),
+                project_type: projectType.trim() || null,
+                contact_id: contactId || null,
+              });
+            }}
+          >
+            {submitting ? "Átadás…" : "Lead létrehozása és átadás"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
