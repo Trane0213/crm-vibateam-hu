@@ -78,15 +78,19 @@ function ContactsPage() {
             return (
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-1.5">
-                  <Link to="/contacts/$id" params={{ id: r.id }} className="text-primary hover:underline">{r.name}</Link>
+                  <Link to="/contacts/$id" params={{ id: r.id }} className="text-[15px] font-semibold text-primary hover:underline">{r.name}</Link>
                   {conflicts.length > 0 && (
-                    <span title={`Adatkonfliktus: ${conflicts.join(", ")}`}>
-                      <AlertTriangle className="h-3.5 w-3.5 text-[color:var(--status-warning)]" />
+                    <span
+                      title={`Adatkonfliktus: ${conflicts.join(", ")}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[color:var(--status-warning)]"
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      konfliktus
                     </span>
                   )}
                 </div>
                 {r.company_id && (
-                  <Link to="/customers/$id" params={{ id: r.company_id }} className="text-[11px] text-muted-foreground hover:text-primary hover:underline">
+                  <Link to="/customers/$id" params={{ id: r.company_id }} className="text-xs text-muted-foreground hover:text-primary hover:underline">
                     {companyLabel(r.company_id)}
                   </Link>
                 )}
@@ -96,8 +100,12 @@ function ContactsPage() {
         },
         { key: "position", label: "Beosztás", render: (r) => r.position || <span className="text-muted-foreground">—</span> },
         {
-          key: "quality", label: "Quality score",
-          render: (r) => <QualityBar pct={surface?.get(r.id)?.qualityPct ?? 0} />,
+          key: "quality", label: "Adatminőség",
+          render: (r) => (
+            <div className="opacity-70">
+              <QualityBar pct={surface?.get(r.id)?.qualityPct ?? 0} />
+            </div>
+          ),
         },
         {
           key: "last_activity", label: "Utolsó aktivitás", className: "text-muted-foreground text-xs",
