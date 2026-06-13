@@ -20,6 +20,7 @@ import { formatHuf } from "@/lib/format";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { CompanyHealthPanel } from "@/components/customers/company-health-panel";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
+import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -58,6 +59,13 @@ function CustomerDetail() {
   const calls     = useListWhere<any>("phone_calls",   "company_id", id, { order: "created_at",   ascending: false });
   const meetings  = useListWhere<any>("meetings",      "company_id", id, { order: "meeting_date", ascending: false });
   const threads   = useListWhere<any>("email_threads", "company_id", id, { order: "last_message_at", ascending: false });
+
+  // D7 — Identity Strength a CRM Egészség blokkhoz.
+  const identity = useQuery({
+    queryKey: ["customers", "detail", id, "identity"],
+    queryFn: () => resolveCompanyIdentity(id),
+    staleTime: 60_000,
+  });
 
   const projectIds = (projects.data ?? []).map((p) => p.id);
 
