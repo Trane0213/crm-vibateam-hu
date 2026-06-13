@@ -129,9 +129,6 @@ function CustomersIndex() {
     return searched;
   }, [companies.data, kpis.data, surface, search, segment, pipeline.data, lastEmail.data]);
 
-  const fmtHuf = (n: number) =>
-    n > 0 ? new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 0 }).format(n) + " Ft" : "—";
-
   return (
     <div className="flex flex-col">
       <PageHeader
