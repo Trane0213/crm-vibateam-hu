@@ -6,6 +6,7 @@ import {
   useLookup,
 } from "@/components/resource/resource-page";
 import { PersonalContactDialog } from "@/components/projects/personal-contact-dialog";
+import { ContactQualityCell, ContactLinkStateCell } from "@/components/customers/contact-quality-cell";
 
 function ContactsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -52,6 +53,16 @@ function ContactsPage() {
         },
         { key: "email", label: "E-mail" },
         { key: "phone", label: "Telefon" },
+        {
+          key: "quality",
+          label: "Kapcsolat állapot",
+          render: (r) => <ContactQualityCell row={r} />,
+        },
+        {
+          key: "link_state",
+          label: "Összekapcsolás",
+          render: (r) => <ContactLinkStateCell row={r} />,
+        },
         {
           key: "created_at",
           label: "Létrehozva",
