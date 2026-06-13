@@ -43,15 +43,6 @@ function uniqueBusinessDomain(values: (string | null | undefined)[]): string | n
   return set.size === 1 ? [...set][0] : null;
 }
 
-/** „Település: X” minta. */
-function extractCity(text?: string | null): string | null {
-  if (!text) return null;
-  const m = String(text).match(/Telep[üu]l[ée]s\s*:\s*([^\n,;]+)/i);
-  if (!m?.[1]) return null;
-  const city = m[1].trim().replace(/[.\s]+$/, "");
-  return city.length >= 2 && city.length <= 60 ? city : null;
-}
-
 export type EnrichResult = {
   ok: boolean;
   patch: Record<string, any>;
@@ -66,7 +57,7 @@ const EMPTY: EnrichResult = { ok: true, patch: {}, changed: [] };
 export async function enrichCompanyFromExistingData(companyId: string): Promise<EnrichResult> {
   if (!companyId) return EMPTY;
   const [{ data: company }, contacts, threads, emails, leads] = await Promise.all([
-    supabase.from("companies").select("id,name,domain,website,city,notes").eq("id", companyId).maybeSingle(),
+    supabase.from("companies").select("id,name,website,notes").eq("id", companyId).maybeSingle(),
     supabase.from("contacts").select("email").eq("company_id", companyId),
     supabase.from("email_threads").select("participants").eq("company_id", companyId).limit(50),
     supabase.from("emails").select("from_email").eq("company_id", companyId).limit(50),
@@ -77,33 +68,16 @@ export async function enrichCompanyFromExistingData(companyId: string): Promise<
   const patch: Record<string, any> = {};
   const changed: string[] = [];
 
-  // 1) Domain
-  if (!company.domain) {
+  // 1) Website — domain alapú származtatás kontakt/thread/email/lead forrásokból.
+  //    A `companies` táblában nincs külön `domain` mező; a hivatalos forrás a `website`.
+  if (!company.website) {
     const candidates: (string | null | undefined)[] = [];
     for (const c of contacts.data ?? []) candidates.push(c.email);
     for (const t of threads.data ?? []) for (const p of t.participants ?? []) candidates.push(p);
     for (const e of emails.data ?? []) candidates.push(e.from_email);
     for (const l of leads.data ?? []) candidates.push(l.email);
-    candidates.push(company.website);
     const d = uniqueBusinessDomain(candidates);
-    if (d) { patch.domain = d; changed.push("domain"); }
-  }
-
-  // 2) Website (domain alapján — patch.domain is forrás!)
-  if (!company.website) {
-    const d = company.domain ?? patch.domain ?? extractDomain(
-      uniqueBusinessDomain((contacts.data ?? []).map((c) => c.email)),
-    );
     if (d && !isPublicDomain(d)) { patch.website = `https://${d}`; changed.push("website"); }
-  }
-
-  // 3) City
-  if (!company.city) {
-    const texts = [company.notes, ...(leads.data ?? []).flatMap((l) => [l.summary, l.notes])];
-    for (const t of texts) {
-      const city = extractCity(t);
-      if (city) { patch.city = city; changed.push("city"); break; }
-    }
   }
 
   if (Object.keys(patch).length === 0) return EMPTY;
@@ -126,16 +100,12 @@ export async function enrichContactFromExistingData(contactId: string): Promise<
   const patch: Record<string, any> = {};
   const changed: string[] = [];
 
-  // 1) company_id email domain alapján
+  // 1) company_id email domain alapján — companies.website-ből származtatva.
   if (!contact.company_id && contact.email) {
     const d = extractDomain(contact.email);
     if (d && !isPublicDomain(d)) {
-      const { data: matches } = await supabase
-        .from("companies")
-        .select("id")
-        .eq("domain", d)
-        .limit(2);
-      if (matches && matches.length === 1) {
+      const matches = await findCompaniesByDerivedDomain(d);
+      if (matches.length === 1) {
         patch.company_id = matches[0].id;
         changed.push("company_id");
       }
@@ -183,16 +153,12 @@ export async function enrichLeadLinks(leadId: string): Promise<EnrichResult> {
   const patch: Record<string, any> = {};
   const changed: string[] = [];
 
-  // 1) company_id — email domain → companies.domain
+  // 1) company_id — email domain → companies.website-ből származtatott domain
   if (!lead.company_id && lead.email) {
     const d = extractDomain(lead.email);
     if (d && !isPublicDomain(d)) {
-      const { data: matches } = await supabase
-        .from("companies")
-        .select("id")
-        .eq("domain", d)
-        .limit(2);
-      if (matches && matches.length === 1) {
+      const matches = await findCompaniesByDerivedDomain(d);
+      if (matches.length === 1) {
         patch.company_id = matches[0].id;
         changed.push("company_id");
       }
@@ -220,9 +186,7 @@ export async function enrichLeadLinks(leadId: string): Promise<EnrichResult> {
 /* ────────────────── AUTO-RUN HOOK ────────────────── */
 
 const FIELD_LABELS: Record<string, string> = {
-  domain: "domain",
   website: "weboldal",
-  city: "település",
   company_id: "cég",
   contact_id: "kapcsolattartó",
   email: "email",
