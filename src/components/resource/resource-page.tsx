@@ -296,26 +296,51 @@ export function RecordDialog({
   onSubmit: (values: Record<string, any>) => Promise<void>;
   submitting?: boolean;
 }) {
-  const [values, setValues] = useState<Record<string, any>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            Töltsd ki a kötelező mezőket, majd kattints a Mentés gombra.
+          </DialogDescription>
+        </DialogHeader>
+        {open ? (
+          <RecordDialogForm
+            fields={fields}
+            defaults={defaults}
+            submitting={submitting}
+            onCancel={() => onOpenChange(false)}
+            onSubmit={onSubmit}
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
-  useEffect(() => {
-    // FONTOS: csak a dialog megnyitásakor inicializálunk.
-    // A `fields` és `defaults` propok gyakran új referenciaként érkeznek
-    // minden renderkor (inline tömb / spread-elt `seed` objektum), ezért
-    // ha őket is deps-be vennénk, végtelen render-loopba esnénk
-    // (setValues → re-render → új fields ref → effect újrafut → …),
-    // ami „Maximum update depth exceeded" crash-t okozna a dialog első
-    // megnyitásakor (B1 + B2 crash).
-    if (!open) return;
+function RecordDialogForm({
+  fields,
+  defaults,
+  submitting,
+  onCancel,
+  onSubmit,
+}: {
+  fields: Field[];
+  defaults: Record<string, any> | null;
+  submitting?: boolean;
+  onCancel: () => void;
+  onSubmit: (values: Record<string, any>) => Promise<void>;
+}) {
+  // Synchronous initialization: első rendernél már a végleges értékek vannak,
+  // így a Radix Select-ek nem futnak át üres→default tranzíción, ami React 19
+  // alatt `removeChild` NotFoundError crash-t okozott.
+  const [values, setValues] = useState<Record<string, any>>(() => {
     const init: Record<string, any> = {};
-    for (const f of fields) {
-      init[f.name] = toInput(defaults?.[f.name], f.type);
-    }
-    setValues(init);
-    setErrors({});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    for (const f of fields) init[f.name] = toInput(defaults?.[f.name], f.type);
+    return init;
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -336,39 +361,25 @@ export function RecordDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            Töltsd ki a kötelező mezőket, majd kattints a Mentés gombra.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {fields.map((f) => (
-            <FieldRow
-              key={f.name}
-              field={f}
-              value={values[f.name]}
-              error={errors[f.name]}
-              onChange={(v) => setValues((s) => ({ ...s, [f.name]: v }))}
-            />
-          ))}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Mégse
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Mentés…" : "Mentés"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      {fields.map((f) => (
+        <FieldRow
+          key={f.name}
+          field={f}
+          value={values[f.name]}
+          error={errors[f.name]}
+          onChange={(v) => setValues((s) => ({ ...s, [f.name]: v }))}
+        />
+      ))}
+      <DialogFooter>
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Mégse
+        </Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Mentés…" : "Mentés"}
+        </Button>
+      </DialogFooter>
+    </form>
   );
 }
 
