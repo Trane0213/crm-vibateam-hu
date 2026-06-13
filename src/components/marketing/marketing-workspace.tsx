@@ -164,6 +164,42 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const lastEmail = threads.data?.[0]?.last_message_at ?? null;
   const isHandoff = meta.status === "handoff";
 
+  const wfInput = {
+    company: { name: c.name, created_at: c.created_at },
+    contacts: (contacts.data ?? []) as any[],
+    threadCount,
+    meta,
+  };
+  const step = computeNextStep(wfInput);
+  const checklist = computeChecklist(wfInput);
+
+  const handleAction = (action: StepActionKind, targetTab?: string) => {
+    if (targetTab) setTab(targetTab);
+    switch (action) {
+      case "add-contact":
+      case "edit-contact":
+        setTab("contacts");
+        return;
+      case "send-email":
+        if (primary?.email) setComposer({ to: primary.email, subject: `${c.name} — ` });
+        else setTab("contacts");
+        return;
+      case "mark-contacted":
+        setStatus.mutate("contacted");
+        return;
+      case "write-sales-note":
+        setTab("sales-note");
+        return;
+      case "open-handoff":
+        setHandoffOpen(true);
+        return;
+      case "open-lead":
+      case "none":
+      default:
+        return;
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {/* ───── Fejléc ───── */}
