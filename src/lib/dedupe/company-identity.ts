@@ -21,6 +21,7 @@ export type CompanyIdentity = {
   taxNumber: string | null;
   /** Normalizált adószám-törzs (8 jegy), illesztéshez. */
   taxTrunk: string | null;
+  /** `companies.website`-ből származtatott domain (nincs külön DB-oszlop). */
   domain: string | null;
   website: string | null;
   /** A céghez kötött email címek (contacts + threads.participants), publikusak nélkül. */
@@ -40,7 +41,7 @@ export type CompanyIdentity = {
 export async function resolveCompanyIdentity(companyId: string): Promise<CompanyIdentity | null> {
   if (!companyId) return null;
   const [{ data: c }, contacts, threads] = await Promise.all([
-    supabase.from("companies").select("id,name,domain,website,tax_number").eq("id", companyId).maybeSingle(),
+    supabase.from("companies").select("id,name,website,tax_number").eq("id", companyId).maybeSingle(),
     supabase.from("contacts").select("email").eq("company_id", companyId),
     supabase.from("email_threads").select("participants").eq("company_id", companyId).limit(50),
   ]);
@@ -54,21 +55,22 @@ export async function resolveCompanyIdentity(companyId: string): Promise<Company
   }
 
   const taxTrunk = normalizeTaxNumber(c.tax_number) || null;
-  const filled = [c.tax_number, c.domain, c.website].filter(Boolean).length;
+  const derivedDomain = extractDomain(c.website);
+  const filled = [c.tax_number, c.website].filter(Boolean).length;
 
   // Súlyozott identity-strength (0..100):
-  //   név 20, adószám 30, domain 25, website 15, min. 1 ismert email 10.
+  //   név 20, adószám 30, website 25, weboldal-domain 15, min. 1 ismert email 10.
   let strength = 0;
   if (c.name)        strength += 20;
   if (c.tax_number)  strength += 30;
-  if (c.domain)      strength += 25;
-  if (c.website)     strength += 15;
+  if (c.website)     strength += 25;
+  if (derivedDomain) strength += 15;
   if (emails.size > 0) strength += 10;
 
   // Következő javasolt külső lekérés (prioritás: legpontosabb azonosító → leggyengébb).
   const lastEnrichmentCandidate: CompanyIdentity["lastEnrichmentCandidate"] =
     taxTrunk ? "tax_lookup"
-    : (c.domain ? "domain_lookup"
+    : (derivedDomain ? "domain_lookup"
     : (c.name ? "name_lookup"
     : "none"));
 
@@ -78,7 +80,7 @@ export async function resolveCompanyIdentity(companyId: string): Promise<Company
     canonicalName: normalizeCompanyName(c.name),
     taxNumber: c.tax_number ?? null,
     taxTrunk,
-    domain: c.domain ?? null,
+    domain: derivedDomain ?? null,
     website: c.website ?? null,
     knownEmails: [...emails],
     isStrongIdentity: filled >= 2,
