@@ -12,7 +12,7 @@ const TABLES = [
   "companies", "contacts", "leads", "projects",
   "quotes", "quote_items", "followups", "followup_events",
   "tasks", "emails", "email_threads", "phone_calls", "meetings", "reminders",
-  "project_documents", "project_notes", "project_status_history",
+  "project_documents", "company_documents", "project_notes", "project_status_history",
   "agents", "agent_tasks", "agent_memories", "agent_activity", "agent_permissions",
   "knowledge_documents", "knowledge_chunks",
   "email_campaigns", "google_ads_keywords", "google_ads_recommendations",
