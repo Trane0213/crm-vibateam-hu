@@ -130,16 +130,29 @@ export async function scanContactConflicts(): Promise<ContactGlobalConflict[]> {
 export type UnlinkedLeadRow = { id: string; email: string; summary: string | null; suggestedCompany: { id: string; name: string } };
 
 export async function scanUnlinkedLeads(): Promise<UnlinkedLeadRow[]> {
+  // A leads tábla nem tárol közvetlen email mezőt — a kapcsolt contact emailjéből
+  // domain-egyezés alapján próbálunk céget javasolni.
   const { data: leads } = await supabase
     .from("leads")
-    .select("id,email,summary,company_id")
+    .select("id,summary,company_id,contact_id")
     .is("company_id", null)
-    .not("email", "is", null)
+    .not("contact_id", "is", null)
     .limit(500);
   if (!leads?.length) return [];
+  const contactIds = [...new Set(leads.map((l) => l.contact_id).filter(Boolean) as string[])];
+  if (contactIds.length === 0) return [];
+  const { data: contacts } = await supabase
+    .from("contacts")
+    .select("id,email")
+    .in("id", contactIds);
+  const contactEmail = new Map<string, string>();
+  for (const c of contacts ?? []) if (c.email) contactEmail.set(c.id, c.email);
+
   const domains = new Map<string, string>();
   for (const l of leads) {
-    const d = extractDomain(l.email);
+    const email = l.contact_id ? contactEmail.get(l.contact_id) : null;
+    if (!email) continue;
+    const d = extractDomain(email);
     if (d && !isPublicDomain(d)) domains.set(l.id, d);
   }
   const uniqueDomains = [...new Set(domains.values())];
@@ -161,9 +174,11 @@ export async function scanUnlinkedLeads(): Promise<UnlinkedLeadRow[]> {
   for (const l of leads) {
     const d = domains.get(l.id);
     if (!d) continue;
+    const email = l.contact_id ? contactEmail.get(l.contact_id) : null;
+    if (!email) continue;
     const matches = byDomain.get(d) ?? [];
     if (matches.length === 1) {
-      out.push({ id: l.id, email: l.email!, summary: l.summary, suggestedCompany: matches[0] });
+      out.push({ id: l.id, email, summary: l.summary, suggestedCompany: matches[0] });
     }
   }
   return out;
