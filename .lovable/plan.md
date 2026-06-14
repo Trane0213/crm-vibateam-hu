@@ -1,11 +1,17 @@
-# Sales modul – Végleges backend terv
+# Sales modul – Végleges backend specifikáció (jóváhagyott)
+
+> Ez a dokumentum a sales modul **végleges backend specifikációja**. A sikeres első
+> migráció után a tervtől eltérni csak külön jóváhagyással lehet.
 
 Jóváhagyott döntések beépítve:
 - Legacy lead-ek grandfathered módon maradhatnak (`assigned_to NULL` engedélyezett a régieken, új sorra trigger kötelez)
 - Marketing → sales átadás egyirányú
 - Hívás-naplózás marad `followups.followup_type='call'`
 - `won` terminal állapot, projekt létrejötte után is `won`
-- **`assigned` mint külön státusz ELHAGYVA** — indoklás: az „kiosztva, még nem kontaktált" állapot pontosan kifejezhető `status='new' AND assigned_to IS NOT NULL`-lal. Egy állapottal kevesebb a state machine-ben, kevesebb a migrációs hibalehetőség, és a dashboard / lista szűrése továbbra is egyértelmű (lásd 4. szakasz). Eggyel kevesebb szabály, eggyel kevesebb átmenet.
+- **`assigned` mint külön státusz ELHAGYVA** — a „kiosztva, még nem kontaktált" állapot pontosan kifejezhető `status='new' AND assigned_to IS NOT NULL`-lal.
+- **`assigned_to` FK célja: `auth.users(id)`** — a megjelenítéshez `users_profile`-t JOIN-oljuk a view-kban (`auth_user_id`).
+- **`source` mező marad szabad `text`** — CHECK constraint NINCS. UI-soft-list javasolt értékekkel.
+- **Marketing átadáskor csak `assigned_to` kötelező.** `next_step_type` és `next_step_due_at` a sales felelőssége, UI-szintű kötelezőség a státuszváltáshoz, plus dashboard SLA-tile a hiány követésére.
 
 ---
 
@@ -36,15 +42,14 @@ status CHECK IN (
   'follow_up','contract','won','lost'
 )
 
-source CHECK IN (
-  'marketing_handoff','phone','web_form','email_inbound',
-  'tender_invite','manual','referral','other'
-)
+source: szabad text, CHECK NINCS. UI soft-list javasolja:
+  marketing_handoff, phone, web_form, email_inbound,
+  tender_invite, manual, referral, other
 ```
 
 Új sorokra (trigger BEFORE INSERT OR UPDATE):
 - ha `status NOT IN ('won','lost')` és új sor / `status` változott / `assigned_to` változott → `assigned_to IS NOT NULL` kötelező
-- ha `status NOT IN ('won','lost')` → `next_step_type IS NOT NULL` és `next_step_due_at IS NOT NULL` kötelező
+- `next_step_*` DB-szinten NEM kötelező — UI-szintű validáció (`new → contacted` váltáshoz kell), és dashboard SLA-tile figyeli a hiányt
 - ha `status='lost'` → `lost_reason IS NOT NULL` kötelező
 - legacy kivétel: ha a sor `created_at < migration_cutoff_ts` és NEM most változott a státusz vagy assigned_to → nem dobunk hibát (grandfathering)
 
@@ -99,6 +104,7 @@ user_id, full_name, email, active_lead_count
 ```
 
 A `user_roles` táblából `role='sales'` user-ek + `LEFT JOIN leads ON assigned_to AND status NOT IN ('won','lost')` aggregálva.
+`full_name` és `email` a `users_profile` táblából JOIN-olva (`auth_user_id = user_roles.user_id`).
 
 ### 1.9 Új view — `v_lead_due_buckets`
 
