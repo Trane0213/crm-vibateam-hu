@@ -15,9 +15,9 @@ export type LeadStatus = (typeof LEAD_STATUSES)[number];
 
 export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   new: "Új",
-  contacted: "Kontaktált",
-  quote_prep: "Ajánlat-előkészítés",
-  quote_sent: "Ajánlat kiküldve",
+  contacted: "Kapcsolat alatt",
+  quote_prep: "Ajánlat előkészítés",
+  quote_sent: "Ajánlat kiadva",
   follow_up: "Utánkövetés",
   contract: "Szerződés",
   won: "Megnyert",
