@@ -42,6 +42,7 @@ import {
 import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
 import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
+import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
