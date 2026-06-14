@@ -1,216 +1,115 @@
+## Lead Workspace V2 — gap analízis és terv
 
-# Sales UI v1 — váz (skeleton) terv
+A jóváhagyott szerepkör-elosztás szerint a **Lead Workspace** az egyetlen helye minden értékesítési műveletnek. A jelenlegi `/leads/$id` oldal a backend v1 struktúrából csak részben olvas, és gyakorlatilag **semmit nem ír**. Ez az iteráció ezt zárja le — új oldalak nélkül, kizárólag a workspace-en belül.
 
-A végleges Sales Backend v1-re épülő, **csak struktúra** szintű UI. Cél: végigjárható
-napi workflow oldalak, layoutok, státuszok, gombok, tabok, kártyák — komplex
-automatizmusok, AI flow-k, valós mutációk és értesítések nélkül. A részletes
-funkciók külön körökben jönnek (Sales UI v2, v3…).
+---
 
-## Szerepkörök és felelősségek
+### 1. Gap analízis — backend v1 mezők támogatása
 
-| Oldal / nézet           | Szerepkör a napi munkában          | Jelleg |
-|------------------------ |----------------------------------- |--------|
-| **Lead Workspace**      | **Operatív munkafelület**          | Aktív  |
-| Dashboard               | Prioritás és KPI áttekintés        | Riport |
-| Teendők                 | Napi belépési pont                 | Belépő |
-| Lead lista              | Keresés és szűrés                  | Belépő |
-| Ajánlatok               | Riport és verziókövetés            | Riport |
-| Átadás                  | Riport és ellenőrzés               | Riport |
+Jelzések: ✅ használva (olvasás + írás), 🟡 csak olvasva, 🔵 csak UI placeholder, ❌ hiányzik.
 
-Minden tényleges művelet — státuszváltás, next-step szerkesztés, jegyzet,
-ajánlatverzió létrehozása, projekt átadás — a **Lead Workspace-ben** történik.
-A többi nézet csak navigációs, riport vagy ellenőrzési célt szolgál.
+| Mező / entitás | Állapot | Részletek |
+|---|---|---|
+| `assigned_to` | 🟡 | Header `KeyFact` UUID-rövidítést mutat, nincs név, nincs assign picker, nincs „magamhoz veszem" gomb |
+| `assigned_at` | 🟡 | Adatok kártyán formázva, írás nincs (auto a backend trigger felelőssége) |
+| `next_step_type` | 🟡 | Header + Áttekintés kártya read-only, nincs szerkesztő |
+| `next_step_due_at` | 🟡 | Read-only kijelzés, nincs date/time picker, nincs „kész / halaszt" akció |
+| `next_step_note` | 🟡 | Read-only szöveg, nincs inline szerkesztés |
+| `lost_reason` | 🟡 | Csak `status='lost'` esetén jelenik meg, nincs választó a Lost flow-ban |
+| `lost_note` | 🟡 | Olvasva, nem írható |
+| `won_at` | ❌ | Sehol nincs megjelenítve, nincs Won confirm |
+| `lost_at` | ❌ | Sehol nincs megjelenítve |
+| `lead_status_history` | 🟡 | Aktivitás tab listázza (from→to, changed_at), `changed_by` nincs feloldva névre |
+| `quotes` (`version`, `is_current`) | 🟡 | Ajánlatok tab listáz, link megnyitásra; nincs „új verzió", nincs `set current` |
+| `projects` handoff (`handoff_at`, `handoff_payload`) | 🔵 | Tab csak `/sales/handoff` oldalra dob; sem `handoff_at`, sem `handoff_payload` nem jelenik meg, és a workspace nem tud projektet indítani |
+| Státuszváltás (state machine) | 🔵 | `LeadActionBar` mutatja az engedélyezett átmeneteket, de minden gomb `toast.info("hamarosan")` — **nincs valós UPDATE** |
+| `STATUS_TRANSITIONS` guard | ✅ | Konstans és UI-tiltás kész |
+| `assigned_to` lookup (név) | ❌ | Nincs `useLookup("profiles","display_name")` használat |
+| `v_lead_activity` view | ❌ | Workspace-en nem használjuk (Dashboard használja) |
 
-## Hatókör
+**Összegzés:** a workspace ma egy szépen strukturált *olvasó* nézet. Az operatív munkához három dolog hiányzik: (a) **next-step szerkesztés**, (b) **valódi státuszváltás** confirm dialogokkal (Won / Lost / általános), (c) **handoff indítás helyben**.
 
-Belekerül (váz szinten):
-1. Sales Dashboard
-2. Lead lista
-3. Lead workspace (detail)
-4. Teendők nézet (Today/Followups sales szemmel)
-5. Ajánlatok nézet (váz)
-6. Megnyert → Projekt átadás felület (váz)
+---
 
-NEM kerül bele ebben a körben:
-- Valós státuszváltó mutációk és state machine guard-ok a UI-ban (csak gombok + diabled állapotok látszanak)
-- `won` / `lost` confirm dialogok valódi írása
-- AI asszisztens (`Timothy`) átalakítása
-- Push / email értesítés
-- Quote szerkesztő, PDF, küldés
-- Auto-assign
+### 2. Lead Workspace V2 — cél
 
-## Útvonalstruktúra (TanStack Router, file-based)
+Minden napi értékesítési művelet itt történjen meg, mutációkkal együtt, a backend v1 állapotgépét és mező-szabályait pontosan betartva. Más oldalak (Dashboard, Todo, Leads, Quotes, Handoff) változatlanul csak belépési pont / riport maradnak — kódot rajtuk nem módosítunk.
 
-Mind az `_authenticated` layout alá kerül. A meglévő `leads.index.tsx` és
-`leads.$id.tsx` a Sales workspace alapja marad; mellé új sales-specifikus
-oldalak.
+---
 
-```
-src/routes/_authenticated/
-  sales.index.tsx              -> /sales              Sales Dashboard
-  sales.leads.tsx              -> /sales/leads        Lead lista (sales nézet)
-  sales.todo.tsx               -> /sales/todo         Teendők (mai/lejárt/holnap)
-  sales.quotes.tsx             -> /sales/quotes       Ajánlatok (váz)
-  sales.handoff.tsx            -> /sales/handoff      Megnyert → Projekt átadás (váz)
-  leads.$id.tsx                (meglévő, Lead workspace — sales tabokkal bővül)
-```
+### 3. Hatókör (mit építünk meg ebben az iterációban)
 
-A bal oldali navigációban új „Sales" csoport: Dashboard, Leadek, Teendők,
-Ajánlatok, Átadás.
+**A) Header és státuszsáv**
+- `assigned_to` feloldása névre (`profiles.display_name`); ha nincs név, fallback rövid UUID.
+- `won_at` / `lost_at` megjelenítése a `KeyFact` sávban, ha a státusz `won` / `lost`.
+- `LeadStatusStepper` változatlan, csak a `lost` ágat jelölje meg vizuálisan, ha aktív.
 
-## Komponensfa (új fájlok, csak váz)
+**B) Action Bar — valós mutációk**
+- Általános **státuszváltás** dropdown: a `STATUS_TRANSITIONS`-ben engedélyezett célok élesek, többi disabled tooltip-pel.
+- **Megnyerés** gomb → `WonConfirmDialog` (csak akkor enabled, ha `contract → won` engedélyezett). Megerősítésre: `status='won'`, `won_at=now()`. A `lead_status_history` rekordot a meglévő backend trigger írja.
+- **Elveszett** gomb → `LostConfirmDialog`: kötelező `lost_reason` (select a `LOST_REASONS`-ből), opcionális `lost_note`. Mentésre: `status='lost'`, `lost_at=now()`, `lost_reason`, `lost_note`.
+- Minden mutáció `useMutation` + `queryClient.invalidateQueries(['leads','detail',id])` + `['lead-status-history',id]`. Optimista frissítés nincs (állapotgép biztonság).
 
-```
-src/components/sales/
-  sales-shell.tsx                  közös header (cím, szűrők, "Új lead" gomb)
-  dashboard/
-    pipeline-tiles.tsx             8 státusz tile (új…lost), darab + kattintható
-    due-buckets-card.tsx           overdue / today / tomorrow / later
-    my-load-card.tsx               saját aktív lead db + v_sales_user_load átlag
-    recent-activity-card.tsx       v_lead_activity utolsó 10 esemény
-  leads/
-    lead-filters-bar.tsx           assigned_to (én/mind), státusz multi, source, bucket
-    lead-row.tsx                   sor: cég, kontakt, státusz-chip, next_step ikon+due,
-                                   last_activity_at, assigned_to avatar
-    status-chip.tsx                8 státusz színkódolva (semantic tokens)
-    next-step-cell.tsx             ikon (phone/email/meeting/…) + due badge
-  workspace/
-    lead-header.tsx                cég, kontakt, source, assigned_to picker (disabled)
-    lead-status-stepper.tsx        state machine vizualizáció, aktuális kiemelve
-    lead-tabs.tsx                  Áttekintés | Aktivitás | Ajánlatok | Átadás
-    tab-overview.tsx               next_step blokk, lost_reason form (lost esetén)
-    tab-activity.tsx               lead_status_history timeline + followups + emails lista
-    tab-quotes.tsx                 quotes verziólista (read-only, version + is_current)
-    tab-handoff.tsx                won állapot esetén "Projekt indítása" kártya
-    action-bar.tsx                 Státuszváltás dropdown (engedélyezett átmenetek
-                                   disabled-en megjelenítve), Won / Lost gomb (no-op)
-  todo/
-    todo-tabs.tsx                  Lejárt | Ma | Holnap | Később | Hiányzó next_step
-    todo-row.tsx                   lead-link + next_step típus + due + cég
-  quotes/
-    quote-skeleton-list.tsx        leadenként csoportosított quote verziók
-    quote-version-row.tsx          v1/v2…, is_current badge, státusz placeholder
-  handoff/
-    won-leads-list.tsx             won, még projekt nélkül
-    handoff-skeleton-dialog.tsx    kötelező mezők preview (contact, tel, email, cím,
-                                   doc URL, start_date, megjegyzés) — gombok no-op
-```
+**C) Next-step inline szerkesztő**
+- Az Áttekintés tab „Következő lépés" kártyája szerkeszthetővé válik:
+  - `next_step_type` select (`NEXT_STEP_LABEL`),
+  - `next_step_due_at` datetime input,
+  - `next_step_note` textarea.
+- Két gomb: **Mentés** (`UPDATE leads SET next_step_*`), **Töröl** (mindhárom mező `NULL`).
+- Quick-actions: „Ma délután 16:00", „Holnap 9:00", „+3 nap" — csak `due_at`-ot állítják.
+- A „nincs következő lépés" amber banner megmarad, amíg üres.
 
-Minden komponens csak **mock vagy egyszerű DB SELECT** adatból dolgozik
-(`v_lead_activity`, `v_lead_due_buckets`, `v_sales_user_load`, `leads`,
-`lead_status_history`, `quotes`). Mutációk nincsenek.
+**D) Aktivitás tab**
+- `changed_by` feloldása `profiles.display_name`-re.
+- Sor mellé esemény ikon (státusz-bázisú szín).
+- Megmarad limit 50.
 
-## Oldalak — tartalom váz
+**E) Ajánlatok tab**
+- Új gomb: **„Új verzió"** — `INSERT INTO quotes (lead_id, version = max+1, is_current=true)`, korábbi `is_current=false` (egy tranzakció: `createServerFn` `mutateQuoteCurrent`).
+- Sor végén **„Aktuálissá tesz"** gomb (nem-aktuálison) — ugyanaz a serverFn `set_current` módban.
+- Mindkét akció csak akkor enabled, ha a lead `status` ∈ {quote_prep, quote_sent, follow_up, contract}.
 
-### 1) `/sales` — Sales Dashboard
-- Felül: `pipeline-tiles` (8 státusz, click → `/sales/leads?status=…`)
-- Bal: `due-buckets-card` (overdue piros, today amber, tomorrow, later)
-- Jobb: `my-load-card` (saját aktív leadek, csapat-átlag a `v_sales_user_load`-ból)
-- Alul: `recent-activity-card` (utolsó 10 státuszváltás / email / call)
-- Header: „Új lead" gomb (jelenleg a meglévő `quick-create`-re mutat)
+**F) Átadás tab**
+- Csak `status='won'` esetén aktív.
+- Ha **van** kapcsolódó `projects` rekord: olvasott projekt-kártya `handoff_at` és a `handoff_payload` strukturált megjelenítésével (contact, tel, email, cím, doc URL, start_date, megjegyzés). Link a projektre.
+- Ha **nincs**: helyben nyíló `HandoffDialog` (a `handoff-skeleton-dialog`-ból teljes form), kötelező mezők validációval. Mentés: `INSERT projects (lead_id, title, status='planned', handoff_at=now(), handoff_payload=jsonb)` — `createServerFn` `createProjectFromLead`.
+- A `/sales/handoff` oldalra mutató link megmarad listanézetnek, de a tényleges átadás itt történik.
 
-### 2) `/sales/leads` — Lead lista
-- `lead-filters-bar`: alap szűrő = „assigned_to = én ÉS status NOT IN (won,lost)"
-- Gyorsszűrők: „Kiosztatlan", „Kiosztva, nem kontaktált" (`status=new AND assigned_to IS NOT NULL`), „Lejárt next_step"
-- Táblázat: `lead-row` komponensekkel. Kattintásra `/leads/$id`.
-- Üres állapot kártya minden szűrőkombinációra.
+**G) Vizuális egységesítés**
+- Semantic tokenek (`--status-*`, `--due-*`) bevezetése `src/styles.css`-ben (eddig direkt Tailwind színek a `LEAD_STATUS_TONE`-ban). Az új tokeneket a `StatusChip` és a stepper használja. Más oldalakon a meglévő utility-osztályok érintetlenül maradnak.
 
-### 3) `/leads/$id` — Lead workspace (bővítés)
-- A meglévő layout marad (3 oszlop), a középső detail oszlopba új tab-rendszer:
-  `Áttekintés | Aktivitás | Ajánlatok | Átadás`.
-- `lead-status-stepper` a header alatt, a state machine sorrendben: new →
-  contacted → quote_prep → quote_sent → follow_up → contract → won (lost külön).
-- `action-bar`: státuszváltás dropdown a 4-es szekcióból (engedélyezett átmenetek
-  enabled, többi disabled+tooltip). Won/Lost gombok megjelennek, kattintás nyit
-  egy „hamarosan" toast-ot — nincs valós írás.
-- `tab-overview`: next_step_type / next_step_due_at / next_step_note kártya
-  (read-only most), figyelmeztető banner ha hiányzik. `lost` esetén lost_reason +
-  lost_note kártya.
-- `tab-activity`: `lead_status_history` timeline + meglévő followups/emails.
-- `tab-quotes`: `quotes` lista `version DESC`, `is_current` badge.
-- `tab-handoff`: `status='won'` esetén „Projekt indítása" CTA → `handoff-skeleton-dialog`.
+---
 
-### 4) `/sales/todo` — Teendők
-- `todo-tabs` a `v_lead_due_buckets` alapján.
-- Minden tab egy egyszerű listát ad: lead link, cég, next_step típus + due, állapot.
-- 5. tab: „Hiányzó next_step" — open leadek `next_step_due_at IS NULL`-lal.
+### 4. Hatókörön kívül (nem most)
 
-### 5) `/sales/quotes` — Ajánlatok (váz)
-- Leadenként csoportosítva: `quote-skeleton-list`.
-- Minden quote sor: verzió, is_current chip, létrehozás dátuma, összeg placeholder.
-- Header: „Új ajánlat" gomb disabled + tooltip „Quote modul: hamarosan".
+- Auto-assign, SLA push, email/Slack értesítés.
+- Quote PDF, küldés, AI generálás.
+- Lead lista / Dashboard / Todo / Quotes / Handoff oldalak átalakítása — kódot nem nyitunk meg rajtuk.
+- Mobil reszponzív finomhangolás.
+- `lead_status_history` manuális szerkesztés (csak trigger írja).
 
-### 6) `/sales/handoff` — Megnyert → Projekt átadás (váz)
-- `won-leads-list`: `status='won'` ÉS nincs hozzá `projects.lead_id`.
-- Sor végén „Projekt indítása" → `handoff-skeleton-dialog`.
-- A dialog megmutatja a kötelező handoff_payload mezőket (contact, tel, email,
-  cím, doc URL, start_date, megjegyzés) — minden mező read-only placeholder,
-  „Létrehozás" gomb disabled + tooltip „Hamarosan".
+---
 
-## Státuszok és színek (semantic tokens)
+### 5. Technikai részletek
 
-A 8 státusz egységes színkódolása a `status-chip.tsx`-ben, `src/styles.css`-ben
-új tokenek (HSL alapú, nem hardcoded osztály):
+- Új `createServerFn` modulok (`requireSupabaseAuth` middleware-rel):
+  - `src/lib/sales/lead-mutations.functions.ts` — `updateLeadStatus`, `updateNextStep`, `clearNextStep`, `markLeadWon`, `markLeadLost`.
+  - `src/lib/sales/quote-mutations.functions.ts` — `createQuoteVersion`, `setCurrentQuote`.
+  - `src/lib/sales/handoff.functions.ts` — `createProjectFromLead` (validálja a `handoff_payload` kötelező mezőit Zoddal, ellenőrzi `lead.status='won'`-t és hogy nincs még projekt).
+- Kliens-side `useMutation` minden gomb mögött; közös `invalidateLeadCaches(id)` helper.
+- Új komponensek: `WonConfirmDialog`, `LostConfirmDialog`, `NextStepEditor`, `HandoffDialog` (a meglévő skeleton kibővítve), `AssigneeName` (profilnév lookup).
+- Engedélyezés: minden mutáció ellenőrzi a `STATUS_TRANSITIONS`-t szerver oldalon is (UI guard + backend guard).
+- `quotes.is_current` egyértelműsége: a `createQuoteVersion` és `setCurrentQuote` egyetlen tranzakcióban frissít (RPC vagy két UPDATE `auth` user kontextusban).
+- A `handoff_payload` JSON sémája Zod-ban definiált, és a `HandoffDialog` form ugyanazt használja.
 
-```
---status-new, --status-contacted, --status-quote-prep, --status-quote-sent,
---status-follow-up, --status-contract, --status-won, --status-lost
-```
+---
 
-Due bucket színek:
-```
---due-overdue  (piros)
---due-today    (amber)
---due-tomorrow (kék)
---due-later    (muted)
-```
+### 6. Akceptancia kritériumok
 
-Minden komponens ezeket használja, soha nem közvetlen hex / Tailwind szín.
-
-## Navigáció és sidebar
-
-`src/components/app-sidebar.tsx`: új „Sales" csoport, csak `sales` és `admin`
-szerepkörnek látszik (`use-permissions` alapján). Items:
-- Dashboard → `/sales`
-- Leadek → `/sales/leads`
-- Teendők → `/sales/todo`
-- Ajánlatok → `/sales/quotes`
-- Átadás → `/sales/handoff`
-
-A meglévő „Leads" menüpont marad (az általános lead workspace-re), a Sales
-csoport ennek a szerepkör-specifikus belépője.
-
-## Adat-hozzáférés
-
-- Csak SELECT-ek, közvetlenül a Supabase kliensből (`@/integrations/supabase/client`).
-- Forrásnézetek: `v_lead_activity`, `v_lead_due_buckets`, `v_sales_user_load`,
-  `leads`, `lead_status_history`, `quotes`, `projects` (won handoff listához).
-- Nincs új createServerFn ebben a körben.
-- Loading: skeleton komponensek minden kártyán / sorlistán.
-- Üres állapot: minden listának saját üres-kártyája magyar copy-val.
-
-## Mit NEM csinálunk most (kifejezetten)
-
-- Nincs valódi UPDATE `leads.status`-on a UI-ból (csak a meglévő detail oszlop
-  mutáció marad, sales action-bar gombjai no-op + toast).
-- Nincs valódi INSERT `projects`-be a handoff dialogból.
-- Nincs valódi quote create / edit.
-- Nincs auto-assign, nincs SLA push, nincs AI ajánlás.
-- Nincs reszponzív mobil finomhangolás (desktop-first váz; mobil később).
-- Nincs i18n bővítés a magyar copy-n túl.
-
-## Jóváhagyás után az implementáció lépései
-
-1. Sidebar + 5 új útvonalfájl (üres shell + `sales-shell.tsx`).
-2. Semantic tokenek (`src/styles.css`) + `status-chip`, `next-step-cell`,
-   `due-bucket` komponensek.
-3. Lead lista + filters bar (DB SELECT-tel, mutáció nélkül).
-4. Sales dashboard 4 kártya.
-5. Lead workspace tab-rendszer (4 tab) + status stepper + action-bar (no-op).
-6. Todo oldal + Quotes váz + Handoff váz.
-7. Manuális end-to-end végigjárás minden szerepkörrel (admin / sales /
-   marketing / pm) — csak vizuális/navigációs check, mutáció nem fut.
-
-A backend specifikációtól nem térünk el; a UI a 8 státuszt, a state machine
-átmeneteket, a `next_step_*` / `lost_*` mezőket és a `won → projekt` szabályt
-pontosan a backend szerint vizualizálja, akkor is, ha most még nem ír.
+- Egy `new` leadből a workspace-ből végig lehet menni `contacted → quote_prep → quote_sent → contract → won` útvonalon, **nem nyitva meg másik oldalt**.
+- A Won confirm után a workspace-ben azonnal látszik a `won_at` és az Átadás tab aktívvá válik.
+- A HandoffDialog mentése után a `projects` rekord létrejön, a tab read-only riport módra vált.
+- A Lost confirm után a `lost_reason` + `lost_note` kártya megjelenik, a státusz dropdown bezárul.
+- A next-step szerkesztő mentés után frissíti a header `KeyFact`-eket és az Áttekintés kártyát egy lekérdezésen belül.
+- Új ajánlat verzió létrehozása után az előző `is_current=false`, az új `true`.
+- Tiltott állapotátmenetnél a UI gomb disabled, a serverFn 4xx-szel utasít vissza.
