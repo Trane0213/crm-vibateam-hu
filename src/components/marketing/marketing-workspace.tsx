@@ -236,14 +236,39 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
   const c = cust.data;
   const primary = (contacts.data ?? [])[0] ?? null;
-  const threadCount = threads.data?.length ?? 0;
-  // Egységes mérőszám: "Email aktivitás" = email darabszám (nem szál).
-  const emailCount = emails.data?.length ?? 0;
-  const lastEmail =
-    emails.data?.[0]?.internal_date ??
-    emails.data?.[0]?.created_at ??
-    threads.data?.[0]?.last_message_at ??
-    null;
+  // EGYSÉGES mérőszám és lista forrás: a cég-szintű emailek (`emails` tábla
+  // `company_id = X`). A szálak ebből derivált csoportosítások — sosem külön
+  // forrás. Ez biztosítja, hogy a KPI, a tab badge és a tab tartalma mindig
+  // ugyanazt mutassa.
+  const emailRows = emails.data ?? [];
+  const emailCount = emailRows.length;
+  const lastEmail = emailRows[0]?.internal_date ?? emailRows[0]?.created_at ?? null;
+  const derivedThreads = useMemo(() => {
+    const byThread = new Map<string, {
+      id: string; subject: string | null;
+      last_message_at: string | null; count: number;
+      participants: string[];
+    }>();
+    for (const e of emailRows as any[]) {
+      const key = e.thread_id ?? e.id;
+      const at = e.internal_date ?? e.created_at;
+      const cur = byThread.get(key) ?? {
+        id: key, subject: e.subject ?? null, last_message_at: at,
+        count: 0, participants: [] as string[],
+      };
+      cur.count++;
+      if (!cur.subject && e.subject) cur.subject = e.subject;
+      if (!cur.last_message_at || (at && at > cur.last_message_at)) cur.last_message_at = at;
+      for (const a of [e.from_email, e.to_email].filter(Boolean) as string[]) {
+        if (!cur.participants.includes(a)) cur.participants.push(a);
+      }
+      byThread.set(key, cur);
+    }
+    return Array.from(byThread.values()).sort((a, b) =>
+      (b.last_message_at ?? "").localeCompare(a.last_message_at ?? ""),
+    );
+  }, [emailRows]);
+  const threadCount = derivedThreads.length;
   const isHandoff = meta.status === "handoff";
 
   const wfInput = {
@@ -252,6 +277,14 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     threadCount,
     meta,
   };
+
+  const timeline = buildTimeline({
+    company: { name: c.name, created_at: c.created_at },
+    contacts: (contacts.data ?? []) as any[],
+    emails: emailRows as any[],
+    docs: (docs.data ?? []) as any[],
+    meta,
+  }, c.notes ?? null);
   const step = computeNextStep(wfInput);
   const checklist = computeChecklist(wfInput);
 
