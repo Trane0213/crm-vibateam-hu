@@ -1,12 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, AlertTriangle, Copy, Mail, ArrowRightCircle } from "lucide-react";
+import { Building2, AlertTriangle, Copy, Mail } from "lucide-react";
 import { ResourcePage } from "@/components/resource/resource-page";
 import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
 import { FilterBar, FilterSelect, QualityBar } from "@/components/marketing-ui";
-import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
   component: CompaniesIndex,
