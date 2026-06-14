@@ -170,16 +170,25 @@ export async function syncInbox(
   async function saveAttachments(emailDbId: string, gmailMessageId: string, m: any) {
     const parts = listAttachmentParts(m);
     if (!parts.length) return;
-    // melyik attachmentId-k vannak már mentve?
-    const ids = parts.map((p) => p.attachmentId);
+    // FONTOS: a Gmail API minden messages.get hivasnal UJ attachmentId-t ad
+    // ugyanahhoz a fizikai csatolmanyhoz. Ezert NEM a gmail_attachment_id
+    // alapjan dedupelunk, hanem a (filename, size_bytes, content_id, inline)
+    // stabil kulccsal — ugyanaz, mint a DB UNIQUE indexben.
     const { data: existing } = await admin
       .from("email_attachments")
-      .select("gmail_attachment_id")
-      .eq("email_id", emailDbId)
-      .in("gmail_attachment_id", ids);
-    const have = new Set((existing ?? []).map((r: any) => r.gmail_attachment_id));
+      .select("filename,size_bytes,content_id,inline")
+      .eq("email_id", emailDbId);
+    const keyOf = (a: { filename: string; size_bytes: number | null; content_id: string | null; inline: boolean }) =>
+      `${a.filename}|${a.size_bytes ?? 0}|${a.content_id ?? ""}|${a.inline ? 1 : 0}`;
+    const have = new Set((existing ?? []).map((r: any) => keyOf(r)));
     for (const att of parts) {
-      if (have.has(att.attachmentId)) continue;
+      const k = keyOf({
+        filename: att.filename,
+        size_bytes: att.size,
+        content_id: att.contentId,
+        inline: att.inline,
+      });
+      if (have.has(k)) continue;
       if (att.size && att.size > MAX_ATTACHMENT_BYTES) {
         result.errors.push(`${gmailMessageId}: ${att.filename} túl nagy (${att.size}B), kihagyva`);
         continue;
