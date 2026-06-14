@@ -81,7 +81,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_threads")
-        .select("id,subject,participants,message_count,last_message_at,created_at")
+        .select("id,subject,participants,last_message_at,created_at")
         .eq("company_id", companyId)
         .order("last_message_at", { ascending: false })
         .limit(50);
@@ -460,7 +460,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <tr>
                       <th className="px-3 py-2 text-left">Tárgy</th>
                       <th className="px-3 py-2 text-left">Résztvevők</th>
-                      <th className="px-3 py-2 text-left">Üzenet</th>
                       <th className="px-3 py-2 text-left whitespace-nowrap">Utolsó</th>
                     </tr>
                   </thead>
@@ -476,7 +475,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                           {(t.participants ?? []).slice(0, 3).join(", ") || "—"}
                           {(t.participants ?? []).length > 3 && ` +${(t.participants ?? []).length - 3}`}
                         </td>
-                        <td className="px-3 py-2 tabular-nums">{t.message_count ?? 1}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDateTime(t.last_message_at)}</td>
                       </tr>
                     ))}
@@ -760,7 +758,7 @@ function SimpleTimeline({
   threads: any[]; createdAt: string; statusDate: string | null; status: MarketingStatus;
 }) {
   const events: { at: string; label: string; icon: any; tone: string }[] = [];
-  events.push({ at: createdAt, label: "Cég felvéve a kampánylistára", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
+      events.push({ at: createdAt, label: "Cég létrehozva", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
   if (statusDate) {
     events.push({
       at: `${statusDate}T00:00:00`,
@@ -772,7 +770,7 @@ function SimpleTimeline({
   for (const t of threads.slice(0, 20)) {
     events.push({
       at: t.last_message_at ?? t.created_at,
-      label: `Email szál — ${t.subject ?? "(nincs tárgy)"} (${t.message_count ?? 1} üzenet)`,
+      label: `Email szál — ${t.subject ?? "(nincs tárgy)"}`,
       icon: Mail,
       tone: "text-muted-foreground",
     });
