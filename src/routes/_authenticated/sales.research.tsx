@@ -22,6 +22,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { logAiAction } from "@/lib/ai/action-log";
+import { withMarketingStatus } from "@/lib/marketing-status";
 import {
   researchCompanies,
   type ResearchCompany,
@@ -30,7 +31,7 @@ import {
 type Row = ResearchCompany & {
   _score: number;
   _matched: boolean;
-  /** Igaz, ha a sor cégét hozzáadtuk a kampánylistához (companies.company_type='potencialis'). */
+  /** Igaz, ha a sor cégét hozzáadtuk a kampánylistához. */
   _in_campaign?: boolean;
   /** A létrejött/talált companies.id, ha kampánylistára került. */
   _company_id?: string;
@@ -64,7 +65,7 @@ const SHORTLIST_KEY = "marketing.research.shortlist.v1";
 /**
  * Régi localStorage shortlist takarítása: ha a felhasználó böngészőjében
  * még van adat, töröljük, hogy ne maradjon árva állapot.
- * (Az új Kampánylista valós CRM-rekord — companies.company_type='potencialis'.)
+ * (Az új Kampánylista valós CRM-rekord, explicit marketing markerrel.)
  */
 function purgeLegacyShortlist() {
   if (typeof window === "undefined") return;
@@ -89,8 +90,8 @@ function ResearchPage() {
   if (typeof window !== "undefined") purgeLegacyShortlist();
 
   /**
-   * Kampány gomb — a céget bevezeti a CRM-be `company_type='potencialis'`
-   * (Kampány) jelöléssel, opcionálisan kapcsolattartóval, DE leadet
+   * Kampány gomb — a céget bevezeti a CRM-be explicit marketing státusz
+   * markerrel, opcionálisan kapcsolattartóval, DE leadet
    * NEM hoz létre. Így a marketing nem nyom rá sales pipeline-ra.
    */
   async function addToCampaign(idx: number) {
@@ -141,13 +142,13 @@ function ResearchPage() {
         r.email ? `Email: ${r.email}` : null,
         r.reason ? `AI indok: ${r.reason}` : null,
       ].filter(Boolean);
+      const notes = withMarketingStatus(noteLines.join("\n") || null, "new");
       const { data: cIns, error: cErr } = await supabase
         .from("companies")
         .insert({
           name: r.company_name,
           website: r.website,
-          company_type: "potencialis",
-          notes: noteLines.join("\n") || null,
+          notes,
         } as any)
         .select("id")
         .single();
