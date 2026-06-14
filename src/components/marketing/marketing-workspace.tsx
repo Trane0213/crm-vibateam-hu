@@ -81,7 +81,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_threads")
-        .select("id,subject,participants,message_count,last_message_at,created_at")
+        .select("id,subject,participants,last_message_at,created_at")
         .eq("company_id", companyId)
         .order("last_message_at", { ascending: false })
         .limit(50);
@@ -760,7 +760,7 @@ function SimpleTimeline({
   threads: any[]; createdAt: string; statusDate: string | null; status: MarketingStatus;
 }) {
   const events: { at: string; label: string; icon: any; tone: string }[] = [];
-  events.push({ at: createdAt, label: "Cég felvéve a kampánylistára", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
+      events.push({ at: createdAt, label: "Cég létrehozva", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
   if (statusDate) {
     events.push({
       at: `${statusDate}T00:00:00`,
@@ -772,7 +772,7 @@ function SimpleTimeline({
   for (const t of threads.slice(0, 20)) {
     events.push({
       at: t.last_message_at ?? t.created_at,
-      label: `Email szál — ${t.subject ?? "(nincs tárgy)"} (${t.message_count ?? 1} üzenet)`,
+      label: `Email szál — ${t.subject ?? "(nincs tárgy)"}`,
       icon: Mail,
       tone: "text-muted-foreground",
     });
