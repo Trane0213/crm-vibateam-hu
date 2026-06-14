@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
+import { readMarketingMeta } from "@/lib/marketing-status";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,15 +56,16 @@ function fmtDate(iso: string): string {
  */
 const MARKER_EMAIL_SENT = "[KAMPANY:EMAIL_SENT:";
 const MARKER_REJECTED   = "[KAMPANY:REJECTED:";
-const MARKER_HANDOFF    = "[MKT:STATUS:handoff";
 
+/**
+ * Egységesített aktív-kampány definíció: az a cég aktív, amelynek a
+ * unified marketing státusza `new`. Bármi más (contacted / qualified /
+ * handoff / rejected) kikerül az aktív kampánylistából, így a
+ * marketing-home pipeline és a campaign-list ugyanazt a rekordot
+ * ugyanabban az állapotban mutatja.
+ */
 function isActiveCampaign(notes: string | null): boolean {
-  if (!notes) return true;
-  return (
-    !notes.includes(MARKER_EMAIL_SENT) &&
-    !notes.includes(MARKER_REJECTED) &&
-    !notes.includes(MARKER_HANDOFF)
-  );
+  return readMarketingMeta(notes).status === "new";
 }
 
 function appendMarker(notes: string | null, marker: string): string {
