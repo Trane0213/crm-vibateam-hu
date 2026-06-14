@@ -42,6 +42,7 @@ import {
 import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
 import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
+import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
@@ -73,29 +74,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     queryKey: ["contacts", "by_company", companyId],
     queryFn: async () => {
       const { data, error } = await supabase.from("contacts").select("*").eq("company_id", companyId).order("name");
-      if (error) throw error;
-      return (data ?? []) as any[];
-    },
-  });
-
-  const threads = useQuery({
-    queryKey: ["email_threads", "by_company", companyId],
-    queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      const token = session.session?.access_token;
-      if (token) {
-        await fetch("/api/gmail/sync", {
-          method: "POST",
-          headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
-          body: JSON.stringify({ max: 25 }),
-        }).catch(() => null);
-      }
-      const { data, error } = await supabase
-        .from("email_threads")
-        .select("id,subject,participants,last_message_at,created_at")
-        .eq("company_id", companyId)
-        .order("last_message_at", { ascending: false })
-        .limit(50);
       if (error) throw error;
       return (data ?? []) as any[];
     },
@@ -244,14 +222,39 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
   const c = cust.data;
   const primary = (contacts.data ?? [])[0] ?? null;
-  const threadCount = threads.data?.length ?? 0;
-  // Egységes mérőszám: "Email aktivitás" = email darabszám (nem szál).
-  const emailCount = emails.data?.length ?? 0;
-  const lastEmail =
-    emails.data?.[0]?.internal_date ??
-    emails.data?.[0]?.created_at ??
-    threads.data?.[0]?.last_message_at ??
-    null;
+  // EGYSÉGES mérőszám és lista forrás: a cég-szintű emailek (`emails` tábla
+  // `company_id = X`). A szálak ebből derivált csoportosítások — sosem külön
+  // forrás. Ez biztosítja, hogy a KPI, a tab badge és a tab tartalma mindig
+  // ugyanazt mutassa.
+  const emailRows = emails.data ?? [];
+  const emailCount = emailRows.length;
+  const lastEmail = emailRows[0]?.internal_date ?? emailRows[0]?.created_at ?? null;
+  const derivedThreads = useMemo(() => {
+    const byThread = new Map<string, {
+      id: string; subject: string | null;
+      last_message_at: string | null; count: number;
+      participants: string[];
+    }>();
+    for (const e of emailRows as any[]) {
+      const key = e.thread_id ?? e.id;
+      const at = e.internal_date ?? e.created_at;
+      const cur = byThread.get(key) ?? {
+        id: key, subject: e.subject ?? null, last_message_at: at,
+        count: 0, participants: [] as string[],
+      };
+      cur.count++;
+      if (!cur.subject && e.subject) cur.subject = e.subject;
+      if (!cur.last_message_at || (at && at > cur.last_message_at)) cur.last_message_at = at;
+      for (const a of [e.from_email, e.to_email].filter(Boolean) as string[]) {
+        if (!cur.participants.includes(a)) cur.participants.push(a);
+      }
+      byThread.set(key, cur);
+    }
+    return Array.from(byThread.values()).sort((a, b) =>
+      (b.last_message_at ?? "").localeCompare(a.last_message_at ?? ""),
+    );
+  }, [emailRows]);
+  const threadCount = derivedThreads.length;
   const isHandoff = meta.status === "handoff";
 
   const wfInput = {
@@ -260,6 +263,14 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     threadCount,
     meta,
   };
+
+  const timeline = buildTimeline({
+    company: { name: c.name, created_at: c.created_at },
+    contacts: (contacts.data ?? []) as any[],
+    emails: emailRows as any[],
+    docs: (docs.data ?? []) as any[],
+    meta,
+  }, c.notes ?? null);
   const step = computeNextStep(wfInput);
   const checklist = computeChecklist(wfInput);
 
@@ -508,7 +519,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 </Button>
               )}
             </div>
-            {(threads.data ?? []).length === 0 ? (
+            {emailCount === 0 ? (
               <EmptyState icon={Mail} title="Nincs email aktivitás"
                 description="Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül." />
             ) : (
@@ -518,11 +529,12 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <tr>
                       <th className="px-3 py-2 text-left">Tárgy</th>
                       <th className="px-3 py-2 text-left">Résztvevők</th>
+                      <th className="px-3 py-2 text-center">Üzenet</th>
                       <th className="px-3 py-2 text-left whitespace-nowrap">Utolsó</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(threads.data ?? []).map((t) => (
+                    {derivedThreads.map((t) => (
                       <tr key={t.id} className="border-t hover:bg-muted/30">
                         <td className="px-3 py-2">
                           <Link to="/emails/$threadId" params={{ threadId: t.id }} className="text-primary hover:underline">
@@ -533,6 +545,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                           {(t.participants ?? []).slice(0, 3).join(", ") || "—"}
                           {(t.participants ?? []).length > 3 && ` +${(t.participants ?? []).length - 3}`}
                         </td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground text-center tabular-nums">{t.count}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDateTime(t.last_message_at)}</td>
                       </tr>
                     ))}
@@ -560,7 +573,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
           {/* Idővonal — egyszerűsített marketing nézet */}
           <TabsContent value="timeline" className="mt-4">
-            <SimpleTimeline threads={threads.data ?? []} createdAt={c.created_at} statusDate={meta.statusDate} status={meta.status} />
+            <SimpleTimeline events={timeline} />
           </TabsContent>
         </Tabs>
       </div>
@@ -573,7 +586,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         companyId={companyId}
         contactId={composer?.contactId}
         onSent={() => {
-          qc.invalidateQueries({ queryKey: ["email_threads", "by_company", companyId] });
+          qc.invalidateQueries({ queryKey: ["emails", "by_company", companyId] });
           qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
           setTab("emails");
           setComposer(null);
@@ -810,42 +823,43 @@ function SalesNoteEditor({
   );
 }
 
-function SimpleTimeline({
-  threads, createdAt, statusDate, status,
-}: {
-  threads: any[]; createdAt: string; statusDate: string | null; status: MarketingStatus;
-}) {
-  const events: { at: string; label: string; icon: any; tone: string }[] = [];
-      events.push({ at: createdAt, label: "Cég létrehozva", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
-  if (statusDate) {
-    events.push({
-      at: `${statusDate}T00:00:00`,
-      label: `Marketing státusz: ${MARKETING_STATUS_LABEL[status]}`,
-      icon: status === "handoff" ? ArrowRightCircle : AlertCircle,
-      tone: status === "handoff" ? "text-[color:var(--status-success)]" : "text-primary",
-    });
-  }
-  for (const t of threads.slice(0, 20)) {
-    events.push({
-      at: t.last_message_at ?? t.created_at,
-      label: `Email szál — ${t.subject ?? "(nincs tárgy)"}`,
-      icon: Mail,
-      tone: "text-muted-foreground",
-    });
-  }
-  events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) return <EmptyState icon={History} title="Nincs esemény" />;
+  const iconFor = (k: TimelineEvent["kind"]) => {
+    switch (k) {
+      case "company_created": return Sparkles;
+      case "contact_added":   return UserPlus;
+      case "email_sent":      return Send;
+      case "email_received":  return Mail;
+      case "doc_uploaded":    return FolderOpen;
+      case "handoff":         return ArrowRightCircle;
+      case "status_change":   return AlertCircle;
+      default:                return History;
+    }
+  };
+  const toneFor = (k: TimelineEvent["kind"]) => {
+    if (k === "handoff") return "text-[color:var(--status-success)]";
+    if (k === "status_change") return "text-primary";
+    if (k === "company_created") return "text-[color:var(--status-info)]";
+    return "text-muted-foreground";
+  };
   return (
     <ol className="space-y-2">
-      {events.map((e, i) => (
-        <li key={i} className="flex items-start gap-3 rounded-md border bg-card p-3 text-sm">
-          <e.icon className={`mt-0.5 h-4 w-4 shrink-0 ${e.tone}`} />
-          <div className="min-w-0 flex-1">
-            <div className="truncate">{e.label}</div>
-            <div className="text-[11px] text-muted-foreground">{fmtDateTime(e.at)}</div>
-          </div>
-        </li>
-      ))}
+      {events.map((e, i) => {
+        const Icon = iconFor(e.kind);
+        return (
+          <li key={i} className="flex items-start gap-3 rounded-md border bg-card p-3 text-sm">
+            <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${toneFor(e.kind)}`} />
+            <div className="min-w-0 flex-1">
+              <div className="truncate">
+                {e.label}
+                {e.detail && <span className="ml-2 text-muted-foreground">— {e.detail}</span>}
+              </div>
+              <div className="text-[11px] text-muted-foreground">{fmtDateTime(e.at)}</div>
+            </div>
+          </li>
+        );
+      })}
     </ol>
   );
 }
