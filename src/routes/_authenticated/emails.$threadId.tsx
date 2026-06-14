@@ -96,7 +96,7 @@ function EmailThread() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_threads")
-        .select("id,subject,company_id,contact_id,lead_id")
+        .select("id,subject,gmail_thread_id,company_id,contact_id,lead_id")
         .eq("id", threadId)
         .maybeSingle();
       if (error) throw error;
@@ -333,7 +333,11 @@ function EmailThread() {
           onOpenChange={setReplyOpen}
           defaultTo={defaultReplyTo}
           defaultSubject={replySubject}
-          threadId={threadId}
+          gmailThreadId={thread.data?.gmail_thread_id ?? undefined}
+          companyId={thread.data?.company_id ?? undefined}
+          contactId={thread.data?.contact_id ?? undefined}
+          leadId={thread.data?.lead_id ?? undefined}
+          onSent={() => window.location.reload()}
         />
       )}
     </div>

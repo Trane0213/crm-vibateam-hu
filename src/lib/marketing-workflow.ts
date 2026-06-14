@@ -14,6 +14,7 @@ export type StepActionKind =
   | "add-contact"
   | "edit-contact"
   | "send-email"
+  | "open-emails"
   | "mark-contacted"
   | "write-sales-note"
   | "open-handoff"
@@ -114,7 +115,7 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       title: "Első kapcsolatfelvétel szükséges",
       description: `Küldj bemutatkozó emailt ${primaryName(contacts)} részére. Az elküldött szál automatikusan ide kerül.`,
       primary: { label: "Email küldése", action: "send-email" },
-      secondary: { label: "Email szálak megnyitása", action: "send-email", targetTab: "emails" },
+      secondary: { label: "Email szálak megnyitása", action: "open-emails", targetTab: "emails" },
       why: ["Még nem indult email szál ezzel a céggel"],
     };
   }
@@ -126,7 +127,7 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       title: "Minősítés folyamatban",
       description: 'Már elindult a kommunikáció. Ha a kapcsolattartó válaszolt és párbeszéd indult, jelöld „Kapcsolatban" állapotra.',
       primary: { label: "Megjelölés: Kapcsolatban", action: "mark-contacted" },
-      secondary: { label: "Email szálak átnézése", action: "send-email", targetTab: "emails" },
+        secondary: { label: "Email szálak átnézése", action: "open-emails", targetTab: "emails" },
       why: ["Van email aktivitás", 'Státusz még „Új"'],
     };
   }

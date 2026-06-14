@@ -31,7 +31,9 @@ import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
 import { EmailComposer } from "@/components/emails/email-composer";
+import { logActivity } from "@/lib/activity-log";
 import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { normalizeRole } from "@/lib/permissions";
 import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
   readMarketingMeta, stripMarkers, withMarketingStatus, withSalesNote,
@@ -79,6 +81,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const threads = useQuery({
     queryKey: ["email_threads", "by_company", companyId],
     queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (token) {
+        await fetch("/api/gmail/sync", {
+          method: "POST",
+          headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+          body: JSON.stringify({ max: 25 }),
+        }).catch(() => null);
+      }
       const { data, error } = await supabase
         .from("email_threads")
         .select("id,subject,participants,last_message_at,created_at")
@@ -87,6 +98,44 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         .limit(50);
       if (error) throw error;
       return (data ?? []) as any[];
+    },
+  });
+
+  const emails = useQuery({
+    queryKey: ["emails", "by_company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("emails")
+        .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound")
+        .eq("company_id", companyId)
+        .order("internal_date", { ascending: false, nullsFirst: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  const docs = useQuery({
+    queryKey: ["company_documents", "list", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_documents" as any)
+        .select("id,name,created_at")
+        .eq("company_id", companyId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
+  const salesUsers = useQuery({
+    queryKey: ["users_profile", "sales-handoff-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("users_profile")
+        .select("id,full_name,email,roles(name)");
+      if (error) throw error;
+      return ((data ?? []) as any[]).filter((row) => normalizeRole(row.roles?.name) === "sales");
     },
   });
 
@@ -228,6 +277,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           setEditingContact(primary ?? null);
           setContactDialogOpen(true);
         }
+        return;
+      case "open-emails":
+        setTab("emails");
         return;
       case "mark-contacted":
         setStatus.mutate("contacted");
