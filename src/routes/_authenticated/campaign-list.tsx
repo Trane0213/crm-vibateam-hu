@@ -86,7 +86,7 @@ function CampaignListPage() {
     queryFn: async (): Promise<CampaignRow[]> => {
       const companies = await selectMarketingCompanies(
         supabase,
-        "id,name,website,notes,created_at,company_type",
+        "id,name,website,notes,created_at",
         { limit: 500 },
       );
       const ids = (companies ?? []).map((c) => c.id);
@@ -164,7 +164,7 @@ function CampaignListPage() {
     <div className="flex flex-col">
       <PageHeader
         title="Kampánylista"
-        description="Aktív kampánylista — Scarlet által felvett potenciális cégek, akiknek még nem küldtünk emailt és nem lettek elutasítva. Lead csak manuális döntésből jöhet létre."
+        description="Aktív kampánylista — a marketing workflow Új állapotú cégei. Lead csak manuális döntésből jöhet létre."
         actions={
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="tabular-nums">
