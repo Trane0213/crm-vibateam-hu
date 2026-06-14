@@ -6,6 +6,21 @@ napi workflow oldalak, layoutok, státuszok, gombok, tabok, kártyák — komple
 automatizmusok, AI flow-k, valós mutációk és értesítések nélkül. A részletes
 funkciók külön körökben jönnek (Sales UI v2, v3…).
 
+## Szerepkörök és felelősségek
+
+| Oldal / nézet           | Szerepkör a napi munkában          | Jelleg |
+|------------------------ |----------------------------------- |--------|
+| **Lead Workspace**      | **Operatív munkafelület**          | Aktív  |
+| Dashboard               | Prioritás és KPI áttekintés        | Riport |
+| Teendők                 | Napi belépési pont                 | Belépő |
+| Lead lista              | Keresés és szűrés                  | Belépő |
+| Ajánlatok               | Riport és verziókövetés            | Riport |
+| Átadás                  | Riport és ellenőrzés               | Riport |
+
+Minden tényleges művelet — státuszváltás, next-step szerkesztés, jegyzet,
+ajánlatverzió létrehozása, projekt átadás — a **Lead Workspace-ben** történik.
+A többi nézet csak navigációs, riport vagy ellenőrzési célt szolgál.
+
 ## Hatókör
 
 Belekerül (váz szinten):
