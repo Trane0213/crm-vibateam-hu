@@ -79,6 +79,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const threads = useQuery({
     queryKey: ["email_threads", "by_company", companyId],
     queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session.session?.access_token;
+      if (token) {
+        await fetch("/api/gmail/sync", {
+          method: "POST",
+          headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+          body: JSON.stringify({ max: 25 }),
+        }).catch(() => null);
+      }
       const { data, error } = await supabase
         .from("email_threads")
         .select("id,subject,participants,last_message_at,created_at")
@@ -228,6 +237,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           setEditingContact(primary ?? null);
           setContactDialogOpen(true);
         }
+        return;
+      case "open-emails":
+        setTab("emails");
         return;
       case "mark-contacted":
         setStatus.mutate("contacted");
