@@ -2,15 +2,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Briefcase, BellRing, Building2, UserRound, ExternalLink, Save,
+  Briefcase, BellRing, Building2, UserRound, Save,
   Sparkles, Mail, Phone, Calendar, UserCheck, ChevronDown,
+  User, CalendarClock, ListChecks, Clock, Trophy, XCircle, Activity,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
-import { useLookup, fmtDateTime } from "@/components/resource/resource-page";
+import { useLookup, fmtDate, fmtDateTime } from "@/components/resource/resource-page";
 import { LEAD_STATUS_OPTIONS } from "./lead-list-column";
 import { useUpdateLead } from "./use-lead-mutations";
 import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
@@ -20,6 +21,33 @@ import { LeadAutoFixesBlock } from "./lead-auto-fixes-block";
 import { computeLeadScore } from "@/lib/dedupe/lead-scoring";
 import { computeLeadUrgency, LeadUrgencyDot, type FollowupLite } from "./lead-urgency-dot";
 import { relativeTime } from "@/components/marketing-ui";
+import { StatusChip } from "@/components/sales/status-chip";
+import { LeadStatusStepper } from "@/components/sales/lead-status-stepper";
+import { AssigneePicker } from "@/components/sales/assignee-picker";
+import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import {
+  LOST_REASON_LABEL, NEXT_STEP_LABEL,
+  type LeadStatus, type LostReason, type NextStepType,
+} from "@/lib/sales/constants";
+
+function KeyFact({
+  icon: Icon, label, value, muted,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: React.ReactNode;
+  muted?: boolean;
+}) {
+  return (
+    <div className="rounded-md border bg-muted/30 px-2 py-1.5">
+      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        {label}
+      </div>
+      <div className={`mt-0.5 truncate text-xs font-medium ${muted ? "italic text-muted-foreground" : ""}`}>{value}</div>
+    </div>
+  );
+}
 
 function labelForFollowupType(t?: string | null): string {
   switch (t) {
@@ -41,6 +69,7 @@ export function LeadDetailColumn({
   const enrichmentResult = useAutoEnrich("lead", leadId);
   const companyLabel = useLookup("companies", "name");
   const contactLabel = useLookup("contacts", "name");
+  const assigneeName = useAssigneeLookup();
   const lead = useQuery({
     queryKey: ["leads", "detail", leadId],
     enabled: !!leadId,
@@ -56,6 +85,22 @@ export function LeadDetailColumn({
   // Projekteket csak nem-marketing módban kérdezzük le — marketingnek nem releváns.
   const projects = useListWhere<any>("projects", "lead_id", leadId, {
     order: "created_at", ascending: false, enabled: mode !== "marketing",
+  });
+
+  // V2 — lead_status_history a sales/teljes előélethez. Csak sales módban kell.
+  const statusHistory = useQuery({
+    queryKey: ["lead-status-history", leadId],
+    enabled: !!leadId && mode === "sales",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lead_status_history")
+        .select("id, from_status, to_status, changed_at, changed_by")
+        .eq("lead_id", leadId!)
+        .order("changed_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const updateLead = useUpdateLead(leadId);
@@ -168,6 +213,9 @@ export function LeadDetailColumn({
   if (!lead.data) return <div className="p-4 text-sm text-muted-foreground">Nem található.</div>;
 
   const l = lead.data;
+  const currentStatus = (l.status ?? "new") as LeadStatus;
+  const lastActivityAt =
+    (statusHistory.data ?? [])[0]?.changed_at ?? l.assigned_at ?? l.updated_at ?? l.created_at;
   const noteBadge =
     noteState === "dirty"  ? <span className="text-[11px] text-muted-foreground">Mentésre vár…</span> :
     noteState === "saving" ? <span className="text-[11px] text-muted-foreground">Mentés…</span> :
@@ -193,30 +241,38 @@ export function LeadDetailColumn({
               {l.summary ? l.summary.slice(0, 120) : `#${String(l.id).slice(0, 8)}`}
             </h2>
           </div>
-          <Link
-            to="/leads/$id" params={{ id: l.id }}
-            className="shrink-0 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
-          >
-            Teljes oldal <ExternalLink className="h-3 w-3" />
-          </Link>
+          <StatusChip status={currentStatus} className="shrink-0" />
         </div>
 
-        {/* Chip-sor: státusz + score + hőmérséklet + identity + utolsó aktivitás */}
+        {/* V2 státusz-stepper — sales módban a teljes pipeline lépéssor látszik. */}
+        {mode === "sales" && (
+          <div className="mt-2">
+            <LeadStatusStepper status={currentStatus} />
+          </div>
+        )}
+
+        {/* Marketing-mód: státusz dropdown megmarad (marketing állapotgép más). */}
+        {mode === "marketing" && (
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <select
+              value={l.status ?? ""}
+              onChange={(e) => updateLead.mutate({ status: e.target.value })}
+              className="h-7 rounded-md border bg-background px-2 text-xs font-medium"
+            >
+              {LEAD_STATUS_OPTIONS
+                .filter((o) => o.value)
+                .filter((o) => o.value !== "converted")
+                .map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {((o as any).marketingLabel ?? o.label)}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
+
+        {/* Chip-sor: score + hőmérséklet + identity + utolsó aktivitás */}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <select
-            value={l.status ?? ""}
-            onChange={(e) => updateLead.mutate({ status: e.target.value })}
-            className="h-7 rounded-md border bg-background px-2 text-xs font-medium"
-          >
-            {LEAD_STATUS_OPTIONS
-              .filter((o) => o.value)
-              .filter((o) => (mode === "marketing" ? o.value !== "converted" : true))
-              .map((o) => (
-                <option key={o.value} value={o.value}>
-                  {mode === "marketing" ? ((o as any).marketingLabel ?? o.label) : o.label}
-                </option>
-              ))}
-          </select>
           {score && (
             <Badge variant="outline" className={`font-medium ${scoreToneCls}`}>
               Score {score.pct}%
@@ -239,6 +295,61 @@ export function LeadDetailColumn({
             Utolsó: {relativeTime(l.updated_at ?? l.created_at)}
           </Badge>
         </div>
+
+        {/* V2 KeyFacts (sales mód): Felelős + AssigneePicker, Következő lépés, Határidő, Utolsó aktivitás. */}
+        {mode === "sales" && (
+          <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+            <div className="rounded-md border bg-muted/30 px-2 py-1.5">
+              <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                <User className="h-3 w-3" /> Felelős
+              </div>
+              <div className="mt-0.5 flex items-center justify-between gap-1">
+                <span className={`truncate text-xs font-medium ${!l.assigned_to ? "italic text-muted-foreground" : ""}`}>
+                  {assigneeName(l.assigned_to)}
+                </span>
+                <AssigneePicker
+                  assigneeId={l.assigned_to}
+                  assigneeLabel={assigneeName(l.assigned_to)}
+                  busy={updateLead.isPending}
+                  onAssign={(next) => updateLead.mutate({ assigned_to: next })}
+                />
+              </div>
+            </div>
+            <KeyFact
+              icon={ListChecks}
+              label="Következő lépés"
+              value={l.next_step_type ? (NEXT_STEP_LABEL[l.next_step_type as NextStepType] ?? l.next_step_type) : "Nincs"}
+              muted={!l.next_step_type}
+            />
+            <KeyFact
+              icon={CalendarClock}
+              label="Határidő"
+              value={l.next_step_due_at ? fmtDate(l.next_step_due_at) : "—"}
+              muted={!l.next_step_due_at}
+            />
+            <KeyFact
+              icon={Clock}
+              label="Utolsó aktivitás"
+              value={lastActivityAt ? fmtDate(lastActivityAt) : "—"}
+              muted={!lastActivityAt}
+            />
+            {currentStatus === "won" && (
+              <KeyFact icon={Trophy} label="Megnyert" value={l.won_at ? fmtDateTime(l.won_at) : "—"} />
+            )}
+            {currentStatus === "lost" && (
+              <>
+                <KeyFact icon={XCircle} label="Elveszett" value={l.lost_at ? fmtDateTime(l.lost_at) : "—"} />
+                {l.lost_reason && (
+                  <KeyFact
+                    icon={XCircle}
+                    label="Indok"
+                    value={LOST_REASON_LABEL[l.lost_reason as LostReason] ?? l.lost_reason}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        )}
 
         {/* Inline source / project_type szerkesztés */}
         <div className="mt-3 grid grid-cols-2 gap-2">
@@ -277,6 +388,37 @@ export function LeadDetailColumn({
             className="text-sm"
           />
         </section>
+
+        {/* V2 — lead_status_history mini-timeline a teljes előélethez. */}
+        {mode === "sales" && (
+          <section>
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <Activity className="h-3 w-3" /> Státusz idővonal
+            </div>
+            {statusHistory.isLoading ? (
+              <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Betöltés…</div>
+            ) : (statusHistory.data ?? []).length === 0 ? (
+              <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                Még nincs státuszváltás.
+              </div>
+            ) : (
+              <ul className="space-y-1">
+                {(statusHistory.data ?? []).slice(0, 6).map((h: any) => (
+                  <li key={h.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
+                    <span className="flex items-center gap-2">
+                      <StatusChip status={h.from_status ?? "new"} />
+                      <span className="text-muted-foreground">→</span>
+                      <StatusChip status={h.to_status} />
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {fmtDateTime(h.changed_at)} · {assigneeName(h.changed_by)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         <section className="grid grid-cols-2 gap-3">
           <div className="rounded-md border p-3">
