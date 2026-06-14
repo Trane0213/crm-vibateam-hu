@@ -133,18 +133,6 @@ function CompaniesIndex() {
             ) : <span className="text-muted-foreground tabular-nums">0</span>;
           },
         },
-        {
-          key: "sales_ready", label: "Sales ready",
-          render: (r) => {
-            const s = surface?.get(r.id);
-            const ready = (s?.activeLeadCount ?? 0) > 0 && (s?.qualityPct ?? 0) >= 70;
-            return ready ? (
-              <Badge className="border-[color:var(--status-success)]/60 bg-[color:var(--status-success)]/15 px-2.5 py-1 text-[color:var(--status-success)] font-semibold shadow-sm">
-                <ArrowRightCircle className="mr-1 h-3.5 w-3.5" />Átadható
-              </Badge>
-            ) : <span className="text-muted-foreground">—</span>;
-          },
-        },
       ]}
     />
   );
