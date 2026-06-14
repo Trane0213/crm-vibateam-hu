@@ -460,7 +460,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <tr>
                       <th className="px-3 py-2 text-left">Tárgy</th>
                       <th className="px-3 py-2 text-left">Résztvevők</th>
-                      <th className="px-3 py-2 text-left">Üzenet</th>
                       <th className="px-3 py-2 text-left whitespace-nowrap">Utolsó</th>
                     </tr>
                   </thead>
@@ -476,7 +475,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                           {(t.participants ?? []).slice(0, 3).join(", ") || "—"}
                           {(t.participants ?? []).length > 3 && ` +${(t.participants ?? []).length - 3}`}
                         </td>
-                        <td className="px-3 py-2 tabular-nums">{t.message_count ?? 1}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDateTime(t.last_message_at)}</td>
                       </tr>
                     ))}
