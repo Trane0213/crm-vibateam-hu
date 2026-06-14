@@ -292,7 +292,14 @@ export async function syncInbox(
           ...toList, ...ccList, ...bccList,
         ].filter((a) => a && a.toLowerCase() !== myMailbox);
         const crm = matchCrm(allAddrs);
-        const threadDbId = await ensureThread(m.threadId, subject, crm);
+        const thread = await ensureThread(m.threadId, subject, crm);
+        const threadDbId = thread.id;
+        // Az email mindig örökli a thread CRM mezőit, ha az adott email nem matchelt
+        const effective = {
+          contact_id: crm.contact_id ?? thread.contact_id,
+          company_id: crm.company_id ?? thread.company_id,
+          lead_id: crm.lead_id ?? thread.lead_id,
+        };
         const labels = (m.labelIds ?? []) as string[];
         const isOutbound =
           labels.includes("SENT") ||
@@ -315,9 +322,9 @@ export async function syncInbox(
           gmail_label_ids: labels,
           is_outbound: isOutbound,
           owner_user_id: userId,
-          contact_id: crm.contact_id,
-          company_id: crm.company_id,
-          lead_id: crm.lead_id,
+          contact_id: effective.contact_id,
+          company_id: effective.company_id,
+          lead_id: effective.lead_id,
         };
         const { data: inserted, error } = await admin
           .from("emails")
