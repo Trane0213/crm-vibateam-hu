@@ -107,6 +107,55 @@ export function LeadDetailColumn({
     },
   });
 
+  // ───── Marketing előélet a cégről (kapcsolattartók / emailek / dokumentumok / cég.notes) ─────
+  const companyId = lead.data?.company_id ?? null;
+  const company = useQuery({
+    queryKey: ["leads", "detail", "company", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies").select("id,name,notes,created_at,website").eq("id", companyId!).maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+  const companyContacts = useQuery({
+    queryKey: ["leads", "detail", "contacts", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contacts").select("id,name,email,phone,position,created_at")
+        .eq("company_id", companyId!).order("name");
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const companyEmails = useQuery({
+    queryKey: ["leads", "detail", "emails", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("emails")
+        .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound")
+        .eq("company_id", companyId!)
+        .order("internal_date", { ascending: false, nullsFirst: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const companyDocs = useQuery({
+    queryKey: ["leads", "detail", "docs", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_documents" as any).select("id,name,created_at")
+        .eq("company_id", companyId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
   const updateLead = useUpdateLead(leadId);
 
   // Inline mezők: source / project_type — debounced autosave.
