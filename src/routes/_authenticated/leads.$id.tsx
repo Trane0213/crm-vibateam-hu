@@ -19,6 +19,7 @@ import { WonDialog } from "@/components/sales/won-dialog";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { HandoffDialog, type HandoffPayload } from "@/components/sales/handoff-dialog";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import { AssigneePicker } from "@/components/sales/assignee-picker";
 import { LOST_REASON_LABEL, NEXT_STEP_LABEL, type LeadStatus, type LostReason, type NextStepType } from "@/lib/sales/constants";
 
 export const Route = createFileRoute("/_authenticated/leads/$id")({
@@ -113,7 +114,22 @@ function LeadDetail() {
           <LeadStatusStepper status={currentStatus} />
         </div>
         <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
-          <KeyFact icon={User} label="Felelős" value={assigneeName(lead.assigned_to)} muted={!lead.assigned_to} />
+          <div className="rounded-md border bg-muted/30 px-3 py-2">
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <User className="h-3 w-3" /> Felelős
+            </div>
+            <div className="mt-0.5 flex items-center justify-between gap-2">
+              <span className={`text-sm font-medium ${!lead.assigned_to ? "italic text-muted-foreground" : ""}`}>
+                {assigneeName(lead.assigned_to)}
+              </span>
+              <AssigneePicker
+                assigneeId={lead.assigned_to}
+                assigneeLabel={assigneeName(lead.assigned_to)}
+                busy={updateLead.isPending}
+                onAssign={(next) => updateLead.mutate({ assigned_to: next })}
+              />
+            </div>
+          </div>
           <KeyFact icon={ListChecks} label="Következő lépés" value={lead.next_step_type ? NEXT_STEP_LABEL[lead.next_step_type as NextStepType] ?? lead.next_step_type : "Nincs megadva"} muted={!lead.next_step_type} />
           <KeyFact icon={CalendarClock} label="Határidő" value={lead.next_step_due_at ? fmtDate(lead.next_step_due_at) : "—"} muted={!lead.next_step_due_at} />
           <KeyFact icon={Clock} label="Utolsó aktivitás" value={lastActivityAt ? fmtDate(lastActivityAt) : "—"} muted={!lastActivityAt} />
