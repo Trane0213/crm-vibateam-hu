@@ -21,6 +21,7 @@ const ACTION_ICON: Record<StepActionKind, any> = {
   "add-contact":      UserPlus,
   "edit-contact":     UserPlus,
   "send-email":       Mail,
+  "open-emails":      Mail,
   "mark-contacted":   CheckCircle2,
   "write-sales-note": StickyNote,
   "open-handoff":     ArrowRightCircle,
