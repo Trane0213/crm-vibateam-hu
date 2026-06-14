@@ -1,139 +1,113 @@
-# Marketing Workspace — Workflow-vezérelt redesign
 
-A jelenlegi képernyő státusz-központú: a marketinges látja a 4 státuszt és próbálja kitalálni, mit kéne tennie. Az új koncepció ezt megfordítja: **a rendszer mondja meg a következő lépést**, a státusz csak származtatott melléktermék.
+# Marketing modul — adatkonzisztencia lezárás
 
-## 1. Központi elem: „Next Best Action" kártya
+Cél: ugyanaz a cég, ugyanaz az email, ugyanaz a státusz **minden** képernyőn ugyanazt mutassa. Új funkció nincs, új tábla nincs, séma változás nincs.
 
-A fejléc alatt, a tabok fölött egyetlen, nagy, vizuálisan domináns kártya. Ez a képernyő szíve.
+---
 
-Felépítése:
-- **Lépés címe** (pl. „Kapcsolattartó felvétele szükséges")
-- **Egy mondatos magyarázat** miért ez a következő lépés
-- **Elsődleges CTA gomb** ami pontosan oda navigál / azt a dialógust nyitja (pl. „Kapcsolattartó hozzáadása")
-- **Másodlagos link** („Miért ez a lépés?" → tooltip a feltételekkel)
-- Bal oldalon ikon + szín a lépés jellegéhez (info / warning / success)
+## Root cause (egy mondatban)
 
-## 2. A workflow szabályai (determinisztikus, sorrendben kiértékelve)
+A marketing modul **két** különböző „igazságból" dolgozik:
 
-```text
-ha status === 'handoff'
-   → ÁTADVA   „Sales-nek átadva {dátum}. Lead: {link}"
-                CTA: „Lead megnyitása" (másodlagos)
+1. **Univerzum**: `companies.company_type = 'potencialis'` (kampánylista, marketing dashboard ezt nézi).
+2. **Státusz**: `companies.notes` MKT/KAMPANY markerek (workspace, pipeline kártyák ebből vezetik le).
 
-különben ha contacts.length === 0
-   → ADAT     „Kapcsolattartó felvétele szükséges"
-                „A salesnek átadáshoz legalább egy kapcsolattartó kell."
-                CTA: „Kapcsolattartó hozzáadása" → contacts tab + new dialog
+Ez két helyen szakad el:
+- Viba-Team `company_type = 'generalkivitelezo'`, viszont `notes`-ban `[MKT:STATUS:handoff:...]` → **a státusz handoff, de a dashboard-on nem látszik sehol** (kimarad mindkét bucketből, mert nem `potencialis`).
+- Workspace KPI az `emails` táblát nézi (company_id-ra), a tab listája az `email_threads` táblát — eltérő backfill állapot eltérő számokat ad.
+- Idővonal külön sorrendezi a saját eseményeit, nem a kanonikus aktivitás-listából.
 
-különben ha primaryContact.email hiányzik
-   → ADAT     „Email cím hiányzik a kapcsolattartónál"
-                CTA: „Kapcsolattartó szerkesztése"
+---
 
-különben ha threadCount === 0
-   → AKCIÓ    „Első kapcsolatfelvétel szükséges"
-                „Küldj bemutatkozó emailt {primary.name} részére."
-                CTA: „Email küldése" → composer
+## Megoldás: egyetlen kanonikus adatréteg
 
-különben ha status === 'new'  (van email, de még nincs minősítve)
-   → MINŐSÍTÉS „Minősítés folyamatban"
-                „Vártok válaszra? Jelöld „Kapcsolatban" állapotra, ha párbeszéd indult."
-                CTA: „Kapcsolatban" gomb (státuszváltás inline)
-
-különben ha status === 'contacted' és !meta.salesNote
-   → ADAT     „Jegyzet a salesnek szükséges az átadáshoz"
-                „Foglald össze 2-3 mondatban a sales számára a fontos tudnivalókat."
-                CTA: „Jegyzet írása" → sales-note tab
-
-különben ha status === 'contacted' és meta.salesNote
-   → KÉSZ     „Átadható sales-nek"
-                „Minden adat megvan. Hozz létre leadet és add át."
-                CTA: „Saleshez átadás" (elsődleges, hangsúlyos)
-
-különben (status === 'qualified')
-   → KÉSZ     „Átadható sales-nek"
-                CTA: „Saleshez átadás"
-```
-
-## 3. „Mi hiányzik az átadáshoz?" checklist panel
-
-A Next Best Action kártya alatt egy kompakt csekklista, ami **vizuálisan megmutatja, hol tart a folyamat**. Minden tételnél: ikon (✓ teljesült / ○ hátralévő), címke, kis link a javításhoz.
+### 1. Marketing univerzum — `src/lib/marketing-universe.ts` (új, kis fájl)
 
 ```text
-✓  Cég adatok kitöltve
-✓  Kapcsolattartó felvéve  (2)
-○  Email cím a kapcsolattartónál         [Szerkesztés]
-○  Első emailt küldve                    [Email küldése]
-○  Jegyzet sales-nek                     [Megírom]
-○  Saleshez átadva
+isMarketingCompany(row) =
+  row.company_type === 'potencialis'
+  OR row.notes tartalmaz bármely [MKT:STATUS:…] vagy [KAMPANY:…] markert
 ```
 
-Ez egyszerre **progress bar és teendőlista** — a marketinges egy pillantással látja a teljes minősítési útvonalat.
+Egy SELECT, egy szűrő. Minden marketing képernyő ezt hívja, semmi mást.
 
-## 4. Státusz lefokozása
+Kiegészül egy `MARKETING_NOTES_FILTER` PostgREST szűrővel (`notes=ilike.*[MKT:STATUS:*` `or` `notes=ilike.*[KAMPANY:*` `or` `company_type=eq.potencialis`) — egy konstans, importálva mindenhol.
 
-A jelenlegi 4 színes státuszgomb a fejlécben **eltűnik mint elsődleges UI**. Helyettük:
-- A státusz badge marad a fejlécben (informatív címke, nem akció).
-- A státuszváltás **csak az adott lépés CTA-jából** történik (pl. „Megjelölés: Kapcsolatban").
-- Egy „Részletek" linkben elérhető marad a kézi státuszváltás haladóknak (`Override státusz`), de alapból rejtett — ne ez legyen a fő interakció.
+### 2. Státusz forrás — `readMarketingMeta(notes)` (már létezik)
 
-## 5. Az „Átadás" gomb viselkedése
+Marad az egyetlen igazság a státuszhoz. Senki nem következtet máshonnan (sem `company_type`-ból, sem lead létezéséből).
 
-Jelenleg: tiltva, ha nincs kapcsolattartó, tooltip elmagyarázza.
-Új: a gomb **mindig látható ugyanott** (fejléc jobb felső), de:
-- ha nem teljesülnek a feltételek → **disabled + a Next Best Action kártya megmondja, mi hiányzik**;
-- ha teljesülnek → **enabled, pulse-effect**, és a Next Best Action is ugyanezt javasolja.
-Így a két elem (kártya + gomb) sosem mond ellent egymásnak.
+### 3. Aktivitás forrás — `emails` tábla `company_id`-ra
 
-## 6. Státuszváltás visszajelzése
+„Email aktivitás" minden képernyőn = `SELECT count(*) FROM emails WHERE company_id = X` (és időablak, ahol releváns).
+A „szál" csak megjelenítési csoportosítás, nem mérőszám.
 
-Jelenleg: toast „Státusz: Kapcsolatban", ennyi.
-Új:
-- Toast marad.
-- A Next Best Action kártya **azonnal újraszámol** és új lépést mutat (pl. „Most már írj jegyzetet sales-nek").
-- Az „Idővonal" tabon kis bejegyzés jelenik meg (`Marketinges → státusz: Kapcsolatban, {időpont}`) — már most is van timeline, ezt használjuk.
+### 4. Idővonal forrás — `src/lib/marketing-timeline.ts` (új, vékony)
 
-## 7. Vizuális prioritáshierarchia (új layout)
+Egy függvény, ami a workspace-en összerakja az események listáját egységesen:
+- cég létrejött (`companies.created_at`)
+- kapcsolattartók (`contacts.created_at`)
+- emailek (`emails.internal_date ?? created_at`, irány alapján "küldve" / "érkezett")
+- dokumentumok (`company_documents.created_at`)
+- státusz váltások (`MKT:STATUS:*` markerek dátumai a `notes`-ból)
+- handoff (`MKT:STATUS:handoff` marker → lead létrejött)
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│  Cég neve · típus · státusz badge       [Saleshez átadás]│   ← fejléc (visszafogottabb)
-│  email · telefon · web                                   │
-├─────────────────────────────────────────────────────────┤
-│  ┌──────────────────────────────────────────────────┐   │
-│  │ 🟡  KÖVETKEZŐ LÉPÉS                              │   │   ← NBA kártya (domináns)
-│  │     Első kapcsolatfelvétel szükséges             │   │
-│  │     Küldj bemutatkozó emailt Kovács Anna részére.│   │
-│  │     [ Email küldése ]    Miért ez a lépés? ⓘ     │   │
-│  └──────────────────────────────────────────────────┘   │
-│                                                          │
-│  Hol tart a folyamat:  ✓✓○○○○  2/6                       │   ← progress checklist
-│   ✓ Cég adatok    ✓ Kapcsolattartó    ○ Email küldve …  │
-├─────────────────────────────────────────────────────────┤
-│  [Áttekintés] [Kapcsolattartók] [Emailek] [Dokumentumok]│   ← tabok (változatlanok)
-│  ...                                                     │
-└─────────────────────────────────────────────────────────┘
-```
+Minden képernyő ami idővonalat mutat ezt használja.
 
-A KPI mini-kártyák (Kapcsolattartók / Email szálak / Dokumentumok / Felvéve) **átkerülnek a checklist mellé** vagy az Áttekintés tabba — a fejlécben már nem versenyeznek a NBA kártyával.
+---
 
-## 8. Technikai megvalósítás (vázlat)
+## Konkrét fájl-szintű változások
 
-- Új tiszta függvény: `src/lib/marketing-workflow.ts`
-  - `computeNextStep(company, contacts, threads, meta) → NextStep`
-  - `computeChecklist(company, contacts, threads, meta) → ChecklistItem[]`
-  - Tisztán determinisztikus, unit-tesztelhető, nincs DB hívás benne.
-- Új komponens: `src/components/marketing/next-best-action.tsx`
-  - Megkapja a `NextStep`-et + callback-eket (onSendEmail, onAddContact, onWriteSalesNote, onOpenHandoff, onMarkContacted).
-- Új komponens: `src/components/marketing/workflow-checklist.tsx`
-  - Egyszerű lista a `ChecklistItem[]`-ből.
-- `marketing-workspace.tsx` átszervezése: új fejléc-blokk + NBA + checklist beillesztése a tabok fölé; státusz-gombsor eltávolítása a fejlécből (átkerül egy diszkrét „⋯ Státusz felülírása" menübe).
-- Nincs új tábla, új RPC, új migráció. Minden adat a meglévő `companies.notes` markerekből + `contacts` / `email_threads` / `company_documents` lekérdezésekből származik (már mind elérhető a komponensben).
+### Új fájlok
+- `src/lib/marketing-universe.ts` — `isMarketingCompany`, `MARKETING_NOTES_OR_FILTER`, `selectMarketingCompanies(supabase)` segéd.
+- `src/lib/marketing-timeline.ts` — `buildTimeline({ company, contacts, emails, docs, meta })` egy típusos eseménylistát ad.
 
-## 9. Amit ez a kör NEM tartalmaz
+### Módosítások
+- `src/components/today/marketing-home.tsx`
+  - Lecseréli a `company_type=eq.potencialis` szűrőt a `selectMarketingCompanies()`-re.
+  - Pipeline kártyák ugyanazon `readMarketingMeta` alapján.
+  - „Email aktivitás · 7 nap" = emails count (már így van).
+- `src/routes/_authenticated/campaign-list.tsx`
+  - Univerzum-szűrés `selectMarketingCompanies()`. Az „aktív" továbbra is `meta.status === 'new'`.
+  - A leírás szöveg frissül („minden marketing cég" / „aktív = új").
+- `src/components/marketing/marketing-workspace.tsx`
+  - Mini KPI és tab badge: `emails.data.length` (már így van) — `threadCount` csak megjelenítési hint.
+  - „Email aktivitás" tab lista: ha `emails.data.length > 0` ne mutassa az „üres" állapotot. A meglévő thread-csoportosítás `emails.data`-ból derivált.
+  - Idővonal a `buildTimeline()`-ből.
+- `src/components/today/marketing-home.tsx` „Friss email szálak" szekció: marad threadre csoportosítva (vizualizáció), de a számláló email-darabszám.
 
-- Új funkció (pl. emlékeztető, automatikus emailezés, AI javaslat).
-- Új státusz a marketing-status enumban.
-- Sidebar / route gating / `/customers` lista refaktor (külön audit, későbbi kör).
-- Backend / séma változás.
+### Nem változik
+- DB séma — nincs migráció.
+- Status modell, marker formátum, workflow lépések.
+- Sales pipeline / leads tábla (külön univerzum, marad).
 
-Ha jóváhagyod, a következő körben pontosan ezt a 8 pontot vágom le egyetlen PR-ben, screenshotokkal a végén.
+---
+
+## Elfogadási kritérium (manuális teszt)
+
+Egy „handoff" állapotban lévő cégen ellenőrizzük végig:
+
+| Képernyő | Elvárt érték |
+|---|---|
+| `/today` Marketing pipeline · „Átadva sales-nek" | tartalmazza (számláló ≥ 1) |
+| `/today` Mai prioritás · „Ma átadva" | tartalmazza, ha statusDate = ma |
+| `/campaign-list` | NEM jelenik meg az aktívak közt (status ≠ new) |
+| Workspace státusz badge | „Átadva sales-nek" |
+| Workspace „Email aktivitás (N)" tab | N = `emails` darabszám a company_id-ra |
+| Workspace KPI „Email aktivitás" | ugyanaz az N |
+| Workspace tab tartalom | ha N>0, nem mutatja az „üres" állapotot |
+| Idővonal | tartalmazza a „handoff" eseményt + minden emailt és dokumentumot |
+| `/leads` (sales) | a `handoffLeadId` megjelenik a pipeline-ban |
+
+Ezt a táblázatot a befejezés után tényleges DB lekérdezéssel + screenshot-tal igazolom.
+
+---
+
+## Technikai részletek (fejlesztőknek)
+
+- Egyetlen helyen definiált PostgREST `or=(…)` szűrő, hogy a klienseknek ne kelljen ismételten összeállítani.
+- A workspace `threads` query lecseréli a side-effect `fetch('/api/gmail/sync')` hívást egy explicit „sync most" gombra (különben minden tab váltáskor sync fut, ami random késleltetésű inkonzisztenciát ad). A sync háttérben futhat, de nem blokkolja a UI-t és nem cseréli adat alatt a számokat.
+- `readMarketingMeta` `STATUS_RX` regex globális — egy modul szintű `.lastIndex` reset bugot is megszüntet egy lokális `new RegExp(…, 'g')` használatával.
+- Idővonal egyetlen sorted lista, stabil rendezéssel (dátum DESC, kategória tie-breaker).
+- Nincs új index szükséges; minden szűrés a meglévő `companies(company_type)` + `companies(notes)` mezőkön megy (kis tábla, jelenleg 4+ rekord).
+
