@@ -33,7 +33,7 @@ function SalesLeadsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["sales", "leads", filter, status, user?.id ?? null],
     queryFn: async () => {
-      let q = supabase
+      let q: any = supabase
         .from("leads")
         .select(
           "id, status, source, summary, assigned_to, assigned_at, next_step_type, next_step_due_at, created_at, company_id, pipeline_entered_at",
