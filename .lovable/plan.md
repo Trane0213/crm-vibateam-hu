@@ -113,3 +113,22 @@ Minden napi értékesítési művelet itt történjen meg, mutációkkal együtt
 - A next-step szerkesztő mentés után frissíti a header `KeyFact`-eket és az Áttekintés kártyát egy lekérdezésen belül.
 - Új ajánlat verzió létrehozása után az előző `is_current=false`, az új `true`.
 - Tiltott állapotátmenetnél a UI gomb disabled, a serverFn 4xx-szel utasít vissza.
+
+---
+
+## Lead Workspace V2 — implementáció státusza
+
+Megvalósítva ebben az iterációban:
+
+- **Header**: `assigned_to` névfeloldás `users_profile`-ból (`useAssigneeLookup`), `won_at` / `lost_at` `KeyFact` megjelenés.
+- **Action bar (`lead-action-bar.tsx`)**: valós `UPDATE leads` mutáció a státuszváltáshoz, a `STATUS_TRANSITIONS` szerint disabled/enabled. Won/Lost külön gombok dialogokat nyitnak.
+- **WonDialog**: `status='won'` megerősítés (trigger állítja a `won_at`-ot).
+- **LostDialog**: kötelező `lost_reason` + opcionális `lost_note`, `status='lost'` mentés (trigger állítja a `lost_at`-ot).
+- **NextStepEditor**: inline szerkesztő (`next_step_type` / `next_step_due_at` / `next_step_note`), quick-actions („Ma 16:00", „Holnap 9:00", „+3 nap"), Mentés és Lépés törlése.
+- **Aktivitás tab**: `changed_by` névre feloldva.
+- **Ajánlatok tab**: „Új verzió" (`max(version)+1`, `is_current=true`, többi `false`) és „Aktuálissá tesz" gombok. Csak `quote_prep` / `quote_sent` / `follow_up` / `contract` státuszban aktívak.
+- **Átadás tab**: `won` és nincs projekt → `HandoffDialog` (kötelező mezők: cím, kapcsolattartó, telefon, helyszín, kezdés). Mentés `projects` insert-tel, `handoff_at` triggerből. Ha van projekt: strukturált `handoff_payload` riport.
+
+Mutációk a Supabase böngészőkliensen keresztül, a meglévő RLS és üzleti-trigger szabályok mellett (`leads_business_rules`, `leads_status_history_write`, `projects_lead_handoff_guard`). Cache invalidáció: `leads/detail/$id`, `lead-status-history/$id`, `projects`, `quotes`.
+
+Nem épült be (szándékosan): auto-assign, SLA push, AI ajánlás, quote PDF/küldés, mobil reszponzív finomhangolás, semantic CSS tokenek (`--status-*`) — ez utóbbiak a következő körben jönnek.
