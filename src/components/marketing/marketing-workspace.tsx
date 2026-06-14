@@ -533,7 +533,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 </Button>
               )}
             </div>
-            {(threads.data ?? []).length === 0 ? (
+            {emailCount === 0 ? (
               <EmptyState icon={Mail} title="Nincs email aktivitás"
                 description="Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül." />
             ) : (
@@ -543,11 +543,12 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <tr>
                       <th className="px-3 py-2 text-left">Tárgy</th>
                       <th className="px-3 py-2 text-left">Résztvevők</th>
+                      <th className="px-3 py-2 text-center">Üzenet</th>
                       <th className="px-3 py-2 text-left whitespace-nowrap">Utolsó</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(threads.data ?? []).map((t) => (
+                    {derivedThreads.map((t) => (
                       <tr key={t.id} className="border-t hover:bg-muted/30">
                         <td className="px-3 py-2">
                           <Link to="/emails/$threadId" params={{ threadId: t.id }} className="text-primary hover:underline">
@@ -558,6 +559,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                           {(t.participants ?? []).slice(0, 3).join(", ") || "—"}
                           {(t.participants ?? []).length > 3 && ` +${(t.participants ?? []).length - 3}`}
                         </td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground text-center tabular-nums">{t.count}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDateTime(t.last_message_at)}</td>
                       </tr>
                     ))}
