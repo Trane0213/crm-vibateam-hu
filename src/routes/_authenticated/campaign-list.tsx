@@ -12,6 +12,7 @@ import { EmailComposer } from "@/components/emails/email-composer";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { readMarketingMeta } from "@/lib/marketing-status";
+import { selectMarketingCompanies } from "@/lib/marketing-universe";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,15 +82,13 @@ function CampaignListPage() {
   const qc = useQueryClient();
 
   const q = useQuery({
-    queryKey: ["campaign-list", "potencialis"],
+    queryKey: ["campaign-list", "marketing-universe"],
     queryFn: async (): Promise<CampaignRow[]> => {
-      const { data: companies, error } = await supabase
-        .from("companies")
-        .select("id,name,website,notes,created_at")
-        .eq("company_type", "potencialis")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
+      const companies = await selectMarketingCompanies(
+        supabase,
+        "id,name,website,notes,created_at,company_type",
+        { limit: 500 },
+      );
       const ids = (companies ?? []).map((c) => c.id);
       if (ids.length === 0) return [];
       const { data: contacts } = await supabase
@@ -142,7 +141,7 @@ function CampaignListPage() {
       toast.error("Nem sikerült rögzíteni az email küldést", { description: humanizeSupabaseError(error) });
       return;
     }
-    qc.invalidateQueries({ queryKey: ["campaign-list", "potencialis"] });
+    qc.invalidateQueries({ queryKey: ["campaign-list", "marketing-universe"] });
   }
 
   async function rejectFromCampaign() {
@@ -158,7 +157,7 @@ function CampaignListPage() {
     }
     toast.success("Eltávolítva az aktív kampánylistából", { description: rejecting.name });
     setRejecting(null);
-    qc.invalidateQueries({ queryKey: ["campaign-list", "potencialis"] });
+    qc.invalidateQueries({ queryKey: ["campaign-list", "marketing-universe"] });
   }
 
   return (
@@ -285,11 +284,10 @@ function CampaignListPage() {
         )}
 
         <p className="text-xs text-muted-foreground">
-          Az aktív lista azokat a <Badge variant="outline" className="mx-1">company_type = potencialis</Badge>
-          cégeket mutatja, amelyek <code className="text-[11px]">notes</code>-ában még nincs sem
-          <code className="mx-1 text-[11px]">{MARKER_EMAIL_SENT}</code> sem
-          <code className="mx-1 text-[11px]">{MARKER_REJECTED}</code> jelölő. Email küldés és elutasítás
-          után a sor automatikusan kikerül innen, de a cég és a kapcsolattartó megmarad a CRM-ben.
+          Az aktív lista a marketing univerzum azon cégeit mutatja, amelyek marketing státusza
+          <Badge variant="outline" className="mx-1">Új</Badge>. Email küldés, elutasítás vagy
+          sales-átadás után a cég automatikusan kikerül az aktív listáról, de a marketing
+          dashboardon és a riportokban tovább látszik a saját bucketjében.
           Lead automatikusan soha nem jön létre.
         </p>
       </div>
