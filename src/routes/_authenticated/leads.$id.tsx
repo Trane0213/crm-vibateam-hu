@@ -1,29 +1,9 @@
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Sparkles, Briefcase, Send, FileText, Activity, User, CalendarClock, ListChecks, Clock, Trophy, XCircle, Plus, Check } from "lucide-react";
-import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/page-header";
-import { supabase } from "@/integrations/supabase/client";
-import { useListWhere } from "@/lib/db-hooks";
-import { fmtDate, fmtDateTime, useLookup } from "@/components/resource/resource-page";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { StatusChip } from "@/components/sales/status-chip";
-import { LeadStatusStepper } from "@/components/sales/lead-status-stepper";
-import { LeadActionBar } from "@/components/sales/lead-action-bar";
-import { NextStepEditor } from "@/components/sales/next-step-editor";
-import { WonDialog } from "@/components/sales/won-dialog";
-import { LostDialog } from "@/components/sales/lost-dialog";
-import { HandoffDialog, type HandoffPayload } from "@/components/sales/handoff-dialog";
-import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
-import { AssigneePicker } from "@/components/sales/assignee-picker";
-import { LOST_REASON_LABEL, NEXT_STEP_LABEL, type LeadStatus, type LostReason, type NextStepType } from "@/lib/sales/constants";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 
+// A jóváhagyott architektúra szerint a Lead Workspace (3 oszlop) az egyetlen
+// operatív felület. Régi `/leads/:id` mély-link átirányít a workspace-re.
 export const Route = createFileRoute("/_authenticated/leads/$id")({
-  component: LeadDetail,
+  component: () => <Navigate to="/leads" replace />,
 });
 
 const QUOTE_EDITABLE_STATUSES: LeadStatus[] = ["quote_prep", "quote_sent", "follow_up", "contract"];
