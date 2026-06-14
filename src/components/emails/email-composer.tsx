@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Paperclip, Send, X, Bold, Italic, Link as LinkIcon, List, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { r2PresignUpload } from "@/lib/r2.functions";
 
 type Attachment = { key: string; filename: string; mime_type: string; size_bytes: number };
 
@@ -97,9 +96,21 @@ export function EmailComposer({
         }
         const safe = f.name.replace(/[^\w.\-]+/g, "_");
         const key = `outbound-attachments/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`;
-        const { url } = await r2PresignUpload({ data: { key, contentType: f.type || "application/octet-stream" } });
-        const put = await fetch(url, { method: "PUT", body: f, headers: { "content-type": f.type || "application/octet-stream" } });
-        if (!put.ok) throw new Error(`R2 feltöltés (${put.status})`);
+        const fd = new FormData();
+        fd.append("file", f, f.name);
+        fd.append("key", key);
+        fd.append("contentType", f.type || "application/octet-stream");
+        const { data: sess } = await supabase.auth.getSession();
+        const token = sess.session?.access_token;
+        const put = await fetch("/api/r2-upload", {
+          method: "POST",
+          body: fd,
+          headers: token ? { authorization: `Bearer ${token}` } : {},
+        });
+        if (!put.ok) {
+          const j = await put.json().catch(() => ({}));
+          throw new Error(`R2 feltöltés (${put.status}) ${j?.error ?? ""}`.trim());
+        }
         next.push({ key, filename: f.name, mime_type: f.type || "application/octet-stream", size_bytes: f.size });
       }
       setAttachments((a) => [...a, ...next]);
