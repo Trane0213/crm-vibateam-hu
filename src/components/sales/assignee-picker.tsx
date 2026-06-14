@@ -1,21 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
-import { Check, UserPlus, UserX } from "lucide-react";
+import { Check, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 
 type SalesUser = { user_id: string; full_name: string; email: string; active_lead_count: number };
 
 /**
  * Header inline picker a `leads.assigned_to` mezőhöz.
- * - Sales user csak magához rendelhet (RLS `leads_update_sales` WITH CHECK).
- * - Owner/admin bármelyik sales user-hez rendelhet a `v_sales_user_load`-ból.
- * - Aki éppen a felelős, lekérheti magáról is.
+ * - A lead a marketing átadáskor mindig ki van osztva — nincs "Magamhoz veszem"
+ *   és nincs "Lemondom" / kiosztás-törlés a sales folyamatban.
+ * - Sales user csak olvasásra látja a felelőst (a saját nevét).
+ * - Owner/admin másik sales user-re tudja átrendelni a `v_sales_user_load`-ból.
  */
 export function AssigneePicker({
   assigneeId,
@@ -28,7 +28,6 @@ export function AssigneePicker({
   onAssign: (next: string | null) => void;
   busy?: boolean;
 }) {
-  const { user } = useAuth();
   const { role } = usePermissions();
   const isOwner = role === "owner";
 
@@ -46,50 +45,26 @@ export function AssigneePicker({
     },
   });
 
-  const meId = user?.id ?? null;
-  const isMine = !!meId && meId === assigneeId;
-
-  // Sales szerepkör: nincs dropdown, csak claim/unassign saját magához.
+  // Sales szerepkör: read-only felelős cimke.
   if (!isOwner) {
-    if (!meId) return null;
-    if (!assigneeId) {
-      return (
-        <Button size="sm" variant="outline" disabled={busy} onClick={() => onAssign(meId)}>
-          <UserPlus className="mr-1 h-4 w-4" /> Magamhoz veszem
-        </Button>
-      );
-    }
-    if (isMine) {
-      return (
-        <Button size="sm" variant="ghost" disabled={busy} onClick={() => onAssign(null)}>
-          <UserX className="mr-1 h-4 w-4" /> Lemondom
-        </Button>
-      );
-    }
-    return null;
+    return (
+      <Button size="sm" variant="ghost" disabled className="pointer-events-none">
+        <Users className="mr-1 h-4 w-4" /> Felelős: {assigneeLabel}
+      </Button>
+    );
   }
 
-  // Owner: full picker
+  // Owner: csak átrendelés másik sales userre (nincs unassign).
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button size="sm" variant="outline" disabled={busy}>
-          <UserPlus className="mr-1 h-4 w-4" /> Felelős: {assigneeLabel}
+          <Users className="mr-1 h-4 w-4" /> Felelős: {assigneeLabel}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>Hozzárendelés</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-[11px] uppercase text-muted-foreground">Átrendelés sales csapaton belül</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {meId && (
-          <DropdownMenuItem onClick={() => onAssign(meId)}>
-            <UserPlus className="mr-2 h-4 w-4" /> Magamhoz veszem
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem disabled={!assigneeId} onClick={() => onAssign(null)}>
-          <UserX className="mr-2 h-4 w-4" /> Kiosztás törlése
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[11px] uppercase text-muted-foreground">Sales csapat</DropdownMenuLabel>
         {sales.isLoading && <DropdownMenuItem disabled>Betöltés…</DropdownMenuItem>}
         {(sales.data ?? []).map((u) => (
           <DropdownMenuItem key={u.user_id} onClick={() => onAssign(u.user_id)}>
