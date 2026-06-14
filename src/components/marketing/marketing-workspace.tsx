@@ -588,6 +588,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         onSent={() => {
           qc.invalidateQueries({ queryKey: ["emails", "by_company", companyId] });
           qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+          qc.invalidateQueries({ queryKey: ["mkt-home", "marketing-companies"] });
+          qc.invalidateQueries({ queryKey: ["campaign-list", "marketing-universe"] });
           setTab("emails");
           setComposer(null);
         }}
