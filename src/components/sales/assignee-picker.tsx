@@ -30,7 +30,7 @@ export function AssigneePicker({
 }) {
   const { user } = useAuth();
   const { role } = usePermissions();
-  const isOwner = role === "owner" || role === "admin";
+  const isOwner = role === "owner";
 
   const sales = useQuery({
     queryKey: ["v_sales_user_load"],
