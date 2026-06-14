@@ -47,7 +47,7 @@ export function SalesShell({
             return (
               <Link
                 key={n.to}
-                to={n.to}
+                to={n.to as "/sales"}
                 className={cn(
                   "rounded-t-md border-b-2 px-3 py-1.5 text-sm transition",
                   active
