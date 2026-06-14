@@ -417,58 +417,104 @@ DROP POLICY IF EXISTS leads_delete_admin        ON public.leads;
 
 CREATE POLICY leads_select_admin
   ON public.leads FOR SELECT TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
+  USING (public.is_owner_role(auth.uid()));
 
 CREATE POLICY leads_select_marketing
   ON public.leads FOR SELECT TO authenticated
-  USING (public.has_role(auth.uid(), 'marketing'));
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'marketing'
+    )
+  );
 
 CREATE POLICY leads_select_sales
   ON public.leads FOR SELECT TO authenticated
   USING (
-    public.has_role(auth.uid(), 'sales')
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'sales'
+    )
     AND (assigned_to = auth.uid() OR assigned_to IS NULL OR status = 'new')
   );
 
 CREATE POLICY leads_select_pm
   ON public.leads FOR SELECT TO authenticated
   USING (
-    public.has_role(auth.uid(), 'pm')
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'pm'
+    )
     AND EXISTS (SELECT 1 FROM public.projects p WHERE p.lead_id = leads.id)
   );
 
 CREATE POLICY leads_insert_authz
   ON public.leads FOR INSERT TO authenticated
   WITH CHECK (
-    public.has_role(auth.uid(), 'admin')
-    OR public.has_role(auth.uid(), 'marketing')
-    OR public.has_role(auth.uid(), 'sales')
+    public.is_owner_role(auth.uid())
+    OR EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) IN ('marketing','sales','crm')
+    )
   );
 
 CREATE POLICY leads_update_admin
   ON public.leads FOR UPDATE TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'))
-  WITH CHECK (public.has_role(auth.uid(), 'admin'));
+  USING (public.is_owner_role(auth.uid()))
+  WITH CHECK (public.is_owner_role(auth.uid()));
 
 CREATE POLICY leads_update_marketing
   ON public.leads FOR UPDATE TO authenticated
-  USING (public.has_role(auth.uid(), 'marketing') AND status = 'new')
-  WITH CHECK (public.has_role(auth.uid(), 'marketing'));
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'marketing'
+    )
+    AND status = 'new'
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'marketing'
+    )
+  );
 
 CREATE POLICY leads_update_sales
   ON public.leads FOR UPDATE TO authenticated
   USING (
-    public.has_role(auth.uid(), 'sales')
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'sales'
+    )
     AND (assigned_to = auth.uid() OR assigned_to IS NULL)
   )
   WITH CHECK (
-    public.has_role(auth.uid(), 'sales')
+    EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) = 'sales'
+    )
     AND assigned_to = auth.uid()
   );
 
 CREATE POLICY leads_delete_admin
   ON public.leads FOR DELETE TO authenticated
-  USING (public.has_role(auth.uid(), 'admin'));
+  USING (public.is_owner_role(auth.uid()));
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.leads TO authenticated;
 GRANT ALL ON public.leads TO service_role;
