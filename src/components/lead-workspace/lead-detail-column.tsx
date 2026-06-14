@@ -5,6 +5,7 @@ import {
   Briefcase, BellRing, Building2, UserRound, Save,
   Sparkles, Mail, Phone, Calendar, UserCheck, ChevronDown,
   User, CalendarClock, ListChecks, Clock, Trophy, XCircle, Activity,
+  FolderOpen, Inbox, Send, StickyNote, History, MessageSquareText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,9 @@ import { StatusChip } from "@/components/sales/status-chip";
 import { LeadStatusStepper } from "@/components/sales/lead-status-stepper";
 import { AssigneePicker } from "@/components/sales/assignee-picker";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { readMarketingMeta, MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE } from "@/lib/marketing-status";
+import { buildTimeline } from "@/lib/marketing-timeline";
 import {
   LOST_REASON_LABEL, NEXT_STEP_LABEL,
   type LeadStatus, type LostReason, type NextStepType,
