@@ -38,6 +38,25 @@ export function MarketingHome() {
     },
   });
 
+  // „Új cég" számláló forrása: MINDEN cég, függetlenül attól, hogy
+  // Scarlet, marketing workflow, vagy manuálisan került be. Egy cég egy cég.
+  // A marketing markerek csak a pipeline-státuszt mutatják, nem a beszámolást.
+  const allCompaniesQ = useQuery({
+    queryKey: ["mkt-home", "all-companies-30d"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id,name,notes,created_at")
+        .gte("created_at", monthAgo)
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      if (error) throw error;
+      return (data ?? []) as {
+        id: string; name: string; notes: string | null; created_at: string;
+      }[];
+    },
+  });
+
   const threadsQ = useQuery({
     queryKey: ["mkt-home", "recent-threads"],
     queryFn: async () => {
@@ -83,13 +102,19 @@ export function MarketingHome() {
   };
 
   const qualified  = byStatus("qualified");
-  const newToday   = decorated.filter((c) => c.created_at >= todayStart && c.meta.status !== "handoff");
+  // Minden ma létrehozott cég — Scarlet és manuális is ide tartozik.
+  const allDecorated = (allCompaniesQ.data ?? []).map((c) => ({
+    ...c, meta: readMarketingMeta(c.notes),
+  }));
+  const newToday   = allDecorated.filter(
+    (c) => c.created_at >= todayStart && c.meta.status !== "handoff",
+  );
   const handoffToday = decorated.filter(
     (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= todayStart.slice(0, 10),
   );
 
-  const newCompanies7  = decorated.filter((c) => c.created_at >= weekAgo).length;
-  const newCompanies30 = decorated.filter((c) => c.created_at >= monthAgo).length;
+  const newCompanies7  = allDecorated.filter((c) => c.created_at >= weekAgo).length;
+  const newCompanies30 = allDecorated.length;
   const handoff30 = decorated.filter(
     (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= monthAgo.slice(0, 10),
   ).length;
@@ -111,7 +136,7 @@ export function MarketingHome() {
     return Math.round((replied / recentThreads.length) * 100);
   })();
 
-  const loading = companiesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
+  const loading = companiesQ.isLoading || allCompaniesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
 
   return (
     <div className="flex flex-col">
