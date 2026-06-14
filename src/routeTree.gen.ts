@@ -52,6 +52,7 @@ import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedSettingsAgentVisibilityRouteImport } from './routes/_authenticated/settings.agent-visibility'
+import { Route as AuthenticatedSalesTodoRouteImport } from './routes/_authenticated/sales.todo'
 import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
 import { Route as AuthenticatedSalesLeadsRouteImport } from './routes/_authenticated/sales.leads'
 import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
@@ -301,6 +302,11 @@ const AuthenticatedSettingsAgentVisibilityRoute =
     path: '/agent-visibility',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSalesTodoRoute = AuthenticatedSalesTodoRouteImport.update({
+  id: '/sales/todo',
+  path: '/sales/todo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSalesResearchRoute =
   AuthenticatedSalesResearchRouteImport.update({
     id: '/sales/research',
@@ -401,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
   '/sales/leads': typeof AuthenticatedSalesLeadsRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
+  '/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
@@ -457,6 +464,7 @@ export interface FileRoutesByTo {
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
   '/sales/leads': typeof AuthenticatedSalesLeadsRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
+  '/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
@@ -516,6 +524,7 @@ export interface FileRoutesById {
   '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
   '/_authenticated/sales/leads': typeof AuthenticatedSalesLeadsRoute
   '/_authenticated/sales/research': typeof AuthenticatedSalesResearchRoute
+  '/_authenticated/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/_authenticated/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
@@ -575,6 +584,7 @@ export interface FileRouteTypes {
     | '/quotes/$id'
     | '/sales/leads'
     | '/sales/research'
+    | '/sales/todo'
     | '/settings/agent-visibility'
     | '/settings/audit'
     | '/settings/dashboard-status'
@@ -631,6 +641,7 @@ export interface FileRouteTypes {
     | '/quotes/$id'
     | '/sales/leads'
     | '/sales/research'
+    | '/sales/todo'
     | '/settings/agent-visibility'
     | '/settings/audit'
     | '/settings/dashboard-status'
@@ -689,6 +700,7 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes/$id'
     | '/_authenticated/sales/leads'
     | '/_authenticated/sales/research'
+    | '/_authenticated/sales/todo'
     | '/_authenticated/settings/agent-visibility'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/dashboard-status'
@@ -1038,6 +1050,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAgentVisibilityRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/sales/todo': {
+      id: '/_authenticated/sales/todo'
+      path: '/sales/todo'
+      fullPath: '/sales/todo'
+      preLoaderRoute: typeof AuthenticatedSalesTodoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sales/research': {
       id: '/_authenticated/sales/research'
       path: '/sales/research'
@@ -1192,6 +1211,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
   AuthenticatedSalesLeadsRoute: typeof AuthenticatedSalesLeadsRoute
   AuthenticatedSalesResearchRoute: typeof AuthenticatedSalesResearchRoute
+  AuthenticatedSalesTodoRoute: typeof AuthenticatedSalesTodoRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -1226,6 +1246,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
   AuthenticatedSalesLeadsRoute: AuthenticatedSalesLeadsRoute,
   AuthenticatedSalesResearchRoute: AuthenticatedSalesResearchRoute,
+  AuthenticatedSalesTodoRoute: AuthenticatedSalesTodoRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
