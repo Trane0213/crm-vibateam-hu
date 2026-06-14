@@ -63,6 +63,7 @@ export function MarketingHome() {
     contacted: byStatus("contacted").length,
     qualified: byStatus("qualified").length,
     handoff:   byStatus("handoff").length,
+    rejected:  byStatus("rejected").length,
   };
 
   const qualified  = byStatus("qualified");
@@ -103,8 +104,8 @@ export function MarketingHome() {
         <section className="rounded-lg border bg-card">
           <SectionHeader title="Marketing pipeline"
             subtitle="Cégek állapota a kampánylistán. Lead csak manuális átadásból jön létre." />
-          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-4">
-            {(["new","contacted","qualified","handoff"] as const).map((k) => (
+          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-5">
+            {(["new","contacted","qualified","handoff","rejected"] as const).map((k) => (
               <div
                 key={k}
                 className={`rounded-lg border p-3 ${MARKETING_STATUS_TONE[k]}`}
@@ -112,7 +113,11 @@ export function MarketingHome() {
                 <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{MARKETING_STATUS_LABEL[k]}</div>
                 <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{pipeline[k]}</div>
                 <div className="mt-1 text-[11px] opacity-70">
-                  {k === "qualified" ? "átadásra vár" : k === "handoff" ? "sales pipeline-ban" : ""}
+                  {k === "qualified" ? "átadásra vár"
+                    : k === "handoff" ? "sales pipeline-ban"
+                    : k === "contacted" ? "email kiment / felvettük"
+                    : k === "rejected" ? "kampánylistából eltávolítva"
+                    : "aktív kampánylistán"}
                 </div>
               </div>
             ))}
