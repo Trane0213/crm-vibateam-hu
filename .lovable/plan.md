@@ -3,6 +3,19 @@
 > Ez a dokumentum a sales modul **végleges backend specifikációja**. A sikeres első
 > migráció után a tervtől eltérni csak külön jóváhagyással lehet.
 
+## STÁTUSZ — Sales Backend v1 LEZÁRVA (2026-06-23)
+
+- Migráció `database/2026-06-23_sales_module_v1.sql` sikeresen lefutott a VIBA adatbázison.
+- Strukturális audit: minden új oszlop, CHECK, trigger, view, RLS policy és FK létrejött (assigned_to → auth.users(id)).
+- Funkcionális tesztek eredménye:
+  - T1 marketing_handoff assigned_to nélkül → EXCEPTION (PASS)
+  - T2 web_form assigned_to nélkül → INSERT OK (PASS)
+  - T3 lost lost_reason nélkül → EXCEPTION (PASS)
+  - T4 won lead → projekt létrehozható (PASS)
+  - T5 non-won lead → handoff trigger blokkolja (PASS)
+- A backend specifikáció innentől **véglegesítve**; módosítás csak külön jóváhagyással.
+- A következő fejlesztési fázis a Sales UI (külön terv).
+
 Jóváhagyott döntések beépítve:
 - Legacy lead-ek grandfathered módon maradhatnak (`assigned_to NULL` engedélyezett a régieken, új sorra trigger kötelez)
 - Marketing → sales átadás egyirányú
