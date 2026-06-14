@@ -29,6 +29,7 @@ import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
@@ -168,6 +169,11 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSalesIndexRoute = AuthenticatedSalesIndexRouteImport.update({
+  id: '/sales/',
+  path: '/sales/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedQuotesIndexRoute =
   AuthenticatedQuotesIndexRouteImport.update({
     id: '/quotes/',
@@ -410,6 +416,7 @@ export interface FileRoutesByFullPath {
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
+  '/sales/': typeof AuthenticatedSalesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
@@ -464,6 +471,7 @@ export interface FileRoutesByTo {
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/quotes': typeof AuthenticatedQuotesIndexRoute
+  '/sales': typeof AuthenticatedSalesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
@@ -521,6 +529,7 @@ export interface FileRoutesById {
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
+  '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
@@ -578,6 +587,7 @@ export interface FileRouteTypes {
     | '/leads/'
     | '/projects/'
     | '/quotes/'
+    | '/sales/'
     | '/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
@@ -632,6 +642,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/projects'
     | '/quotes'
+    | '/sales'
     | '/settings'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
@@ -688,6 +699,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leads/'
     | '/_authenticated/projects/'
     | '/_authenticated/quotes/'
+    | '/_authenticated/sales/'
     | '/_authenticated/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
@@ -852,6 +864,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/'
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/sales/': {
+      id: '/_authenticated/sales/'
+      path: '/sales'
+      fullPath: '/sales/'
+      preLoaderRoute: typeof AuthenticatedSalesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/quotes/': {
       id: '/_authenticated/quotes/'
@@ -1160,6 +1179,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedQuotesIndexRoute: typeof AuthenticatedQuotesIndexRoute
+  AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1192,6 +1212,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedQuotesIndexRoute: AuthenticatedQuotesIndexRoute,
+  AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
