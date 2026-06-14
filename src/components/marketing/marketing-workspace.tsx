@@ -587,7 +587,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
           {/* Idővonal — egyszerűsített marketing nézet */}
           <TabsContent value="timeline" className="mt-4">
-            <SimpleTimeline threads={threads.data ?? []} createdAt={c.created_at} statusDate={meta.statusDate} status={meta.status} />
+            <SimpleTimeline events={timeline} />
           </TabsContent>
         </Tabs>
       </div>
