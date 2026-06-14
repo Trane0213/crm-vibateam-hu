@@ -427,7 +427,43 @@ export function LeadDetailColumn({
         </div>
       </div>
 
-      <div className="space-y-4 p-5">
+      <Tabs defaultValue="overview" className="flex-1">
+        <TabsList className="mx-5 mt-3 flex h-auto flex-wrap gap-1 bg-transparent p-0">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-muted">
+            <StickyNote className="mr-1 h-3.5 w-3.5" /> Áttekintés
+          </TabsTrigger>
+          <TabsTrigger value="emails" className="data-[state=active]:bg-muted">
+            <Mail className="mr-1 h-3.5 w-3.5" /> Emailek
+          </TabsTrigger>
+          <TabsTrigger value="contacts" className="data-[state=active]:bg-muted">
+            <UserRound className="mr-1 h-3.5 w-3.5" /> Kapcsolattartók
+          </TabsTrigger>
+          <TabsTrigger value="docs" className="data-[state=active]:bg-muted">
+            <FolderOpen className="mr-1 h-3.5 w-3.5" /> Dokumentumok
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="data-[state=active]:bg-muted">
+            <History className="mr-1 h-3.5 w-3.5" /> Idővonal
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4 p-5 pt-3">
+        {/* Marketing által hagyott sales-jegyzet — kiemelten, ha van. */}
+        {(() => {
+          const meta = readMarketingMeta(company.data?.notes ?? null);
+          if (!meta.salesNote) return null;
+          return (
+            <section className="rounded-md border border-primary/40 bg-primary/5 p-3">
+              <div className="mb-1 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-primary">
+                <MessageSquareText className="h-3 w-3" /> Marketing üzenet a salesnek
+                <span className={`ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium ${MARKETING_STATUS_TONE[meta.status]}`}>
+                  {MARKETING_STATUS_LABEL[meta.status]}
+                  {meta.statusDate && <span className="ml-1 opacity-70">· {meta.statusDate}</span>}
+                </span>
+              </div>
+              <p className="whitespace-pre-wrap text-sm">{meta.salesNote}</p>
+            </section>
+          );
+        })()}
         <section>
           <div className="mb-1.5 flex items-center justify-between">
             <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Jegyzet</div>
