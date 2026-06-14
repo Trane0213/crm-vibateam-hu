@@ -245,7 +245,13 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const c = cust.data;
   const primary = (contacts.data ?? [])[0] ?? null;
   const threadCount = threads.data?.length ?? 0;
-  const lastEmail = threads.data?.[0]?.last_message_at ?? null;
+  // Egységes mérőszám: "Email aktivitás" = email darabszám (nem szál).
+  const emailCount = emails.data?.length ?? 0;
+  const lastEmail =
+    emails.data?.[0]?.internal_date ??
+    emails.data?.[0]?.created_at ??
+    threads.data?.[0]?.last_message_at ??
+    null;
   const isHandoff = meta.status === "handoff";
 
   const wfInput = {
