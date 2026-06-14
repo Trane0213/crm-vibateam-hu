@@ -4,6 +4,7 @@ import { getValidAccessToken } from "@/lib/gmail/oauth.server";
 import { buildRawMimeMessage, sendMessage, parseAddressList } from "@/lib/gmail/gmail-api.server";
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
+import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
 
 export const Route = createFileRoute("/api/gmail/send")({
   server: {
@@ -116,6 +117,21 @@ export const Route = createFileRoute("/api/gmail/send")({
               last_message_at: new Date().toISOString(),
             })
             .eq("id", threadDbId);
+
+          if (body.company_id) {
+            const { data: company } = await admin
+              .from("companies")
+              .select("notes")
+              .eq("id", body.company_id)
+              .maybeSingle();
+            const currentNotes = (company as any)?.notes ?? null;
+            const meta = readMarketingMeta(currentNotes);
+            if (meta.status === "new") {
+              const nextNotes = withMarketingStatus(currentNotes, "contacted");
+              await admin.from("companies").update({ notes: nextNotes }).eq("id", body.company_id);
+            }
+          }
+
           // csatolmányok metaadat mentése (a fájlok már R2-ben vannak az outbound-attachments/ prefix alatt)
           if (insEmail?.id && (body.attachments?.length ?? 0) > 0) {
             const rows = (body.attachments ?? []).map((a) => ({

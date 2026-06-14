@@ -22,19 +22,18 @@ export function MarketingHome() {
   const monthAgo = isoMonthAgo();
 
   // A marketing univerzum egységes definíciója: minden olyan cég ide
-  // tartozik, amely company_type='potencialis' VAGY rendelkezik [MKT:STATUS:…]
-  // vagy [KAMPANY:…] markerrel a notes-ban. Lásd: src/lib/marketing-universe.ts
+  // tartozik, amelyen a marketing workflow nyomot hagyott a notes-ban.
+  // A company_type itt NEM workflow-feltétel. Lásd: src/lib/marketing-universe.ts
   const companiesQ = useQuery({
     queryKey: ["mkt-home", "marketing-companies"],
     queryFn: async () => {
       const rows = await selectMarketingCompanies(
         supabase,
-        "id,name,notes,created_at,company_type",
+        "id,name,notes,created_at",
         { limit: 500 },
       );
       return rows as {
-        id: string; name: string; notes: string | null;
-        created_at: string; company_type: string | null;
+        id: string; name: string; notes: string | null; created_at: string;
       }[];
     },
   });

@@ -25,12 +25,12 @@ function MarketingHelpPage() {
 
       <Section icon={Sparkles} title="1. Új cégek begyűjtése — Scarlet">
         <p>Nyisd meg: <Code><Link to="/sales/research" className="text-primary hover:underline">Scarlet – Marketing Stratéga</Link></Code></p>
-        <p>Scarlet kutatás után a találatokat kampányba lehet menteni. Mentéskor minden találatból egy <em>potenciális</em> státuszú cég jön létre (és ha van, egy kapcsolattartó is). Lead ekkor még NEM jön létre — a lead csak a sales-átadáskor keletkezik.</p>
+        <p>Scarlet kutatás után a találatokat kampányba lehet menteni. Mentéskor minden találatból marketing workflow-ba bekerülő cég jön létre (és ha van, egy kapcsolattartó is), explicit marketing státusz-jelöléssel. Lead ekkor még NEM jön létre — a lead csak a sales-átadáskor keletkezik.</p>
       </Section>
 
       <Section icon={Mail} title="2. Kampánylista — email kiküldés">
         <p>Nyisd meg: <Code><Link to="/campaign-list" className="text-primary hover:underline">Kampánylista</Link></Code></p>
-        <p>Itt látod az összes aktív kampány-céget (a kihagyottak és a már kiküldöttek nem jelennek meg). A sor mellől tudsz email-t küldeni a kapcsolattartónak; sikeres küldés után a cég kikerül a listából (<Code>[KAMPANY:EMAIL_SENT]</Code> marker).</p>
+        <p>Itt látod az összes aktív kampány-céget, vagyis a marketing workflow <em>Új</em> állapotú rekordjait. A sor mellől tudsz email-t küldeni a kapcsolattartónak; sikeres küldés után a cég <em>Kapcsolatban</em> állapotba kerül, ezért kikerül az aktív listából.</p>
       </Section>
 
       <Section icon={CheckCircle2} title="3. Cég adatlap — Marketing Munkafelület">
