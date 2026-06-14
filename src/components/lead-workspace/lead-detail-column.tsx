@@ -5,6 +5,7 @@ import {
   Briefcase, BellRing, Building2, UserRound, Save,
   Sparkles, Mail, Phone, Calendar, UserCheck, ChevronDown,
   User, CalendarClock, ListChecks, Clock, Trophy, XCircle, Activity,
+  FolderOpen, Inbox, Send, StickyNote, History, MessageSquareText,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,9 @@ import { StatusChip } from "@/components/sales/status-chip";
 import { LeadStatusStepper } from "@/components/sales/lead-status-stepper";
 import { AssigneePicker } from "@/components/sales/assignee-picker";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { readMarketingMeta, MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE } from "@/lib/marketing-status";
+import { buildTimeline } from "@/lib/marketing-timeline";
 import {
   LOST_REASON_LABEL, NEXT_STEP_LABEL,
   type LeadStatus, type LostReason, type NextStepType,
@@ -100,6 +104,55 @@ export function LeadDetailColumn({
         .limit(20);
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+  // ───── Marketing előélet a cégről (kapcsolattartók / emailek / dokumentumok / cég.notes) ─────
+  const companyId = lead.data?.company_id ?? null;
+  const company = useQuery({
+    queryKey: ["leads", "detail", "company", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies").select("id,name,notes,created_at,website").eq("id", companyId!).maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+  const companyContacts = useQuery({
+    queryKey: ["leads", "detail", "contacts", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contacts").select("id,name,email,phone,position,created_at")
+        .eq("company_id", companyId!).order("name");
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const companyEmails = useQuery({
+    queryKey: ["leads", "detail", "emails", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("emails")
+        .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound")
+        .eq("company_id", companyId!)
+        .order("internal_date", { ascending: false, nullsFirst: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const companyDocs = useQuery({
+    queryKey: ["leads", "detail", "docs", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_documents" as any).select("id,name,created_at")
+        .eq("company_id", companyId!).order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
     },
   });
 
@@ -374,7 +427,43 @@ export function LeadDetailColumn({
         </div>
       </div>
 
-      <div className="space-y-4 p-5">
+      <Tabs defaultValue="overview" className="flex-1">
+        <TabsList className="mx-5 mt-3 flex h-auto flex-wrap gap-1 bg-transparent p-0">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-muted">
+            <StickyNote className="mr-1 h-3.5 w-3.5" /> Áttekintés
+          </TabsTrigger>
+          <TabsTrigger value="emails" className="data-[state=active]:bg-muted">
+            <Mail className="mr-1 h-3.5 w-3.5" /> Emailek
+          </TabsTrigger>
+          <TabsTrigger value="contacts" className="data-[state=active]:bg-muted">
+            <UserRound className="mr-1 h-3.5 w-3.5" /> Kapcsolattartók
+          </TabsTrigger>
+          <TabsTrigger value="docs" className="data-[state=active]:bg-muted">
+            <FolderOpen className="mr-1 h-3.5 w-3.5" /> Dokumentumok
+          </TabsTrigger>
+          <TabsTrigger value="timeline" className="data-[state=active]:bg-muted">
+            <History className="mr-1 h-3.5 w-3.5" /> Idővonal
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-4 p-5 pt-3">
+        {/* Marketing által hagyott sales-jegyzet — kiemelten, ha van. */}
+        {(() => {
+          const meta = readMarketingMeta(company.data?.notes ?? null);
+          if (!meta.salesNote) return null;
+          return (
+            <section className="rounded-md border border-primary/40 bg-primary/5 p-3">
+              <div className="mb-1 flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-primary">
+                <MessageSquareText className="h-3 w-3" /> Marketing üzenet a salesnek
+                <span className={`ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium ${MARKETING_STATUS_TONE[meta.status]}`}>
+                  {MARKETING_STATUS_LABEL[meta.status]}
+                  {meta.statusDate && <span className="ml-1 opacity-70">· {meta.statusDate}</span>}
+                </span>
+              </div>
+              <p className="whitespace-pre-wrap text-sm">{meta.salesNote}</p>
+            </section>
+          );
+        })()}
         <section>
           <div className="mb-1.5 flex items-center justify-between">
             <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Jegyzet</div>
@@ -536,7 +625,128 @@ export function LeadDetailColumn({
             )}
           </section>
         )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="emails" className="space-y-2 p-5 pt-3">
+          {!companyId ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+              Cég nincs hozzárendelve — az emailek céghez kötődnek.
+            </div>
+          ) : companyEmails.isLoading ? (
+            <div className="text-xs text-muted-foreground">Betöltés…</div>
+          ) : (companyEmails.data ?? []).length === 0 ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+              Még nincs email a céggel.
+            </div>
+          ) : (
+            <ul className="space-y-1.5">
+              {(companyEmails.data ?? []).map((e: any) => (
+                <li key={e.id} className="rounded border px-3 py-2 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="flex min-w-0 items-start gap-1.5">
+                      {e.is_outbound
+                        ? <Send className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                        : <Inbox className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
+                      <span className="min-w-0">
+                        <Link
+                          to="/emails/$threadId"
+                          params={{ threadId: e.thread_id ?? e.id }}
+                          className="block truncate font-medium text-foreground hover:underline"
+                        >
+                          {e.subject || "(tárgy nélkül)"}
+                        </Link>
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {e.is_outbound ? `→ ${e.to_email ?? ""}` : `← ${e.from_email ?? ""}`}
+                        </span>
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                      {fmtDateTime(e.internal_date ?? e.created_at)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+
+        <TabsContent value="contacts" className="space-y-2 p-5 pt-3">
+          {!companyId ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Cég nincs hozzárendelve.</div>
+          ) : (companyContacts.data ?? []).length === 0 ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Nincs kapcsolattartó.</div>
+          ) : (
+            <ul className="space-y-1.5">
+              {(companyContacts.data ?? []).map((c: any) => (
+                <li key={c.id} className="rounded border px-3 py-2 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <Link to="/contacts/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
+                      {c.name ?? c.email ?? "—"}
+                    </Link>
+                    {c.position && <span className="text-[11px] text-muted-foreground">{c.position}</span>}
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    {c.email && <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{c.email}</span>}
+                    {c.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{c.phone}</span>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+
+        <TabsContent value="docs" className="space-y-2 p-5 pt-3">
+          {!companyId ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Cég nincs hozzárendelve.</div>
+          ) : (companyDocs.data ?? []).length === 0 ? (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Nincs dokumentum.</div>
+          ) : (
+            <ul className="space-y-1.5">
+              {(companyDocs.data ?? []).map((d: any) => (
+                <li key={d.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="truncate">{d.name ?? "—"}</span>
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">{fmtDate(d.created_at)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+
+        <TabsContent value="timeline" className="space-y-2 p-5 pt-3">
+          {(() => {
+            if (!companyId || !company.data) {
+              return <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Cég nincs hozzárendelve.</div>;
+            }
+            const meta = readMarketingMeta(company.data?.notes ?? null);
+            const events = buildTimeline({
+              company: { name: company.data.name, created_at: company.data.created_at },
+              contacts: (companyContacts.data ?? []) as any[],
+              emails: (companyEmails.data ?? []) as any[],
+              docs: (companyDocs.data ?? []) as any[],
+              meta,
+            }, company.data?.notes ?? null);
+            if (events.length === 0) {
+              return <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Még nincs esemény.</div>;
+            }
+            return (
+              <ul className="space-y-1.5">
+                {events.map((ev, i) => (
+                  <li key={i} className="flex items-start justify-between gap-2 rounded border px-3 py-1.5 text-xs">
+                    <span className="min-w-0">
+                      <span className="font-medium">{ev.label}</span>
+                      {ev.detail && <span className="block truncate text-[11px] text-muted-foreground">{ev.detail}</span>}
+                    </span>
+                    <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{fmtDateTime(ev.at)}</span>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
