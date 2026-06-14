@@ -79,20 +79,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     },
   });
 
-  const threads = useQuery({
-    queryKey: ["email_threads", "by_company", companyId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("email_threads")
-        .select("id,subject,participants,last_message_at,created_at")
-        .eq("company_id", companyId)
-        .order("last_message_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data ?? []) as any[];
-    },
-  });
-
   const emails = useQuery({
     queryKey: ["emails", "by_company", companyId],
     queryFn: async () => {
