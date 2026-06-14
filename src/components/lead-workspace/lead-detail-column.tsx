@@ -30,6 +30,25 @@ import {
   type LeadStatus, type LostReason, type NextStepType,
 } from "@/lib/sales/constants";
 
+function KeyFact({
+  icon: Icon, label, value, muted,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: React.ReactNode;
+  muted?: boolean;
+}) {
+  return (
+    <div className="rounded-md border bg-muted/30 px-2 py-1.5">
+      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        {label}
+      </div>
+      <div className={`mt-0.5 truncate text-xs font-medium ${muted ? "italic text-muted-foreground" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
 function labelForFollowupType(t?: string | null): string {
   switch (t) {
     case "email":   return "E-mail";
