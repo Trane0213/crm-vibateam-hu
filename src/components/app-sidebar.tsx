@@ -25,6 +25,9 @@ import {
   ShieldCheck,
   BookOpen,
   ListPlus,
+  Target,
+  CheckSquare,
+  Send,
 } from "lucide-react";
 import {
   Sidebar,
@@ -89,6 +92,14 @@ const sys: Item[] = [
   { title: "Aktivitás", url: "/activity", icon: Activity },
   { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen },
   { title: "Beállítások", url: "/settings", icon: Settings },
+];
+
+const sales: Item[] = [
+  { title: "Áttekintés", url: "/sales", icon: LayoutDashboard, highlight: true },
+  { title: "Leadek", url: "/sales/leads", icon: Target },
+  { title: "Teendők", url: "/sales/todo", icon: CheckSquare },
+  { title: "Ajánlatok", url: "/sales/quotes", icon: FileText },
+  { title: "Átadás", url: "/sales/handoff", icon: Send },
 ];
 
 export function AppSidebar() {
@@ -207,6 +218,7 @@ export function AppSidebar() {
       <SidebarContent className="gap-0 px-2 py-2">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
         {renderAiGroup()}
+        {visible(sales).length > 0 && renderGroup("Sales", visible(sales))}
         {visible(pipeline).length > 0 && renderGroup("Pipeline", visible(pipeline))}
         {visible(contacts).length > 0 && renderGroup("Ügyfelek", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
