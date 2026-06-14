@@ -260,7 +260,7 @@ export async function syncInbox(
           if (m.threadId) {
             const { data: tr } = await admin
               .from("email_threads")
-              .select("id")
+              .select("id,contact_id,company_id,lead_id")
               .eq("gmail_thread_id", m.threadId)
               .maybeSingle();
             if (tr?.id) {
@@ -268,6 +268,21 @@ export async function syncInbox(
                 { thread_id: tr.id, user_id: userId, mailbox_email: myMailbox },
                 { onConflict: "thread_id,user_id" },
               );
+              // Email CRM backfill a threadről, ha hiányzik
+              const { data: erow } = await admin
+                .from("emails")
+                .select("company_id,contact_id,lead_id")
+                .eq("id", knownId)
+                .maybeSingle();
+              if (erow) {
+                const patch: Record<string, string> = {};
+                if (!erow.company_id && tr.company_id) patch.company_id = tr.company_id;
+                if (!erow.contact_id && tr.contact_id) patch.contact_id = tr.contact_id;
+                if (!erow.lead_id && tr.lead_id) patch.lead_id = tr.lead_id;
+                if (Object.keys(patch).length) {
+                  await admin.from("emails").update(patch).eq("id", knownId);
+                }
+              }
             }
           }
         } catch {}
