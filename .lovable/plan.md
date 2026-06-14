@@ -1,85 +1,104 @@
+# Sales Workspace — 2. és 3. oszlop végleges működés
 
-## Eltérés-elemzés — jóváhagyott architektúra vs. jelenlegi megvalósítás
+A bal oszlop (pipeline + lead lista) változatlan. Ez a terv csak a középső és jobb oszlopot rögzíti, fejlesztés NEM indul a jóváhagyásig.
 
-### A jóváhagyott működés (rögzített)
-
-A **`/sales/leads` 3 oszlopos Sales Workspace** az egyetlen operatív munkafelület:
+## Képernyő vázlat
 
 ```text
-┌───────────────────┬───────────────────────────────┬─────────────────────────┐
-│ 1) Pipeline +     │ 2) Lead — marketingtől átvett │ 3) Sales művelet panel  │
-│    lead lista     │    teljes előélettel          │                         │
-│ (LeadListColumn)  │ (LeadDetailColumn)            │ (LeadActionPanel)       │
-└───────────────────┴───────────────────────────────┴─────────────────────────┘
+┌─ 1. OSZLOP ──────────┬─ 2. OSZLOP — LEAD ELŐÉLET (READ-ONLY) ────────────┬─ 3. OSZLOP — SALES MŰVELET ─┐
+│ Pipeline szűrő       │ ╔═══════════════════════════════════════════════╗ │  KÖVETKEZŐ LÉPÉS            │
+│ [Új] [Kapcs] [Aj]    │ ║ Cégnév             [Marketing: Átadható] ║ │  ┌───────────────────────┐  │
+│ [Utánk] [Megny]      │ ║ Kapcsolattartó · telefon · email          ║ │  │ Típus: [ ▼ telefon ]  │  │
+│ ───────────────────  │ ╚═══════════════════════════════════════════╝ │  │ Mikor: [📅 ___ ]      │  │
+│ ● Acme Kft.          │                                                   │  │ Jegyzet:              │  │
+│   következő: hívás   │ [Áttekintés][Kapcsolatok][Emailek][Dok.][Idővonal]│  │ [____________________]│  │
+│   ma 14:00           │                                                   │  └───────────────────────┘  │
+│ ○ Béta Bt.           │ ÁTTEKINTÉS                                        │   [Mentés következő lépés]  │
+│   nincs lépés        │ • Iparág, méret, web, cím                         │                             │
+│ ○ Gamma Zrt.         │ • Marketing minősítés (badge + dátum)             │  ─────────────────────────  │
+│ ...                  │ • Marketing jegyzet (sales note régió)            │  ELSŐ AKTIVITÁS RÖGZÍTÉSE   │
+│                      │ • Felelős sales (read-only)                       │  (csak amíg a lead "új")    │
+│                      │                                                   │  [📞 Telefon] [✉ Email]    │
+│                      │ KAPCSOLATTARTÓK                                   │  [👥 Találkozó][📄 Ajánlat] │
+│                      │ • lista (név, pozíció, email, tel)                │  → ez lépteti pipeline-ra   │
+│                      │                                                   │                             │
+│                      │ EMAILEK                                           │  ─────────────────────────  │
+│                      │ • cég-szintű thread lista (in/out, tárgy, dátum)  │  EREDMÉNY RÖGZÍTÉSE         │
+│                      │                                                   │  (ha van nyitott lépés)     │
+│                      │ DOKUMENTUMOK                                      │  ○ Sikeres / megtörtént     │
+│                      │ • fájllista (név, méret, dátum)                   │  ○ Nem sikerült             │
+│                      │                                                   │  ○ Áttéve                   │
+│                      │ IDŐVONAL                                          │  Jegyzet: [____________]    │
+│                      │ • minden esemény időrendben                       │  [Lezárás + új következő]   │
+│                      │   (cég létrejött, email, doc, státusz, handoff,   │                             │
+│                      │    sales aktivitások)                             │  ─────────────────────────  │
+│                      │                                                   │  STÁTUSZ                    │
+│                      │                                                   │  [Megnyerés] [Elveszett]    │
+└──────────────────────┴───────────────────────────────────────────────────┴─────────────────────────────┘
 ```
 
-A 2. oszlop = ugyanaz a lead, amit a marketing minősített és átadott (jegyzet, minősítő blokk, identity, score, emailek, hívások, dokumentumok, idővonal). A 3. oszlop = kötelező következő lépés + státuszváltás + ajánlat + utánkövetés + szerződés + handoff.
+## 2. oszlop — szabályok
 
-### Mit építettünk valójában — és miben tért el
+- **Csak olvasás.** Nincs mentés gomb, nincs inline szerkesztés, nincs akció gomb sehol.
+- **Fejléc:** cégnév + marketing státusz badge + elsődleges kapcsolat egy sorban.
+- **5 fül, ebben a sorrendben:** Áttekintés · Kapcsolatok · Emailek · Dokumentumok · Idővonal.
+- **Áttekintés** tartalma: cégadatok, marketing minősítés + dátum, marketing sales-note (a `[MKT:SALES_NOTE]` régió tartalma), felelős sales neve (read-only).
+- **Idővonal** a meglévő `buildTimeline()`-ból jön, plusz a sales aktivitások (lásd 3. oszlop).
+- Nincs benne: státuszváltó, hozzárendelő dropdown, "magamhoz veszem", handoff panel, AI sheet, quality block, auto-fix block — ezek mind eltűnnek innen.
 
-| # | Eltérés | Hatás |
-|---|---|---|
-| 1 | Új **`/leads/$id` route** lett az operatív V2 felület (saját header, tabok: Áttekintés / Aktivitás / Ajánlatok / Átadás). | Második operatív munkaterület jött létre a jóváhagyott egyetlen helyett. A `LeadDetailColumn` fejléce „Teljes oldal" linkkel **kifelé navigál** belőle. |
-| 2 | `LeadActionBar`, `AssigneePicker`, `NextStepEditor`, `WonDialog`, `LostDialog`, `HandoffDialog`, `LeadStatusStepper`, V2 Quotes verziókezelés — **mindezek csak a `/leads/$id`-n** vannak bekötve. | A 3 oszlopos workspace ezekből semmit nem lát. A 3. oszlop (`LeadActionPanel`) továbbra is a régi „Email / Followup / AI / QuickCreateQuote" sablon, **nincs valós státuszváltás, nincs Won/Lost flow, nincs handoff helyben**. |
-| 3 | `LeadDetailColumn` státusz `<select>`-je egy egyszerű dropdown — a `STATUS_TRANSITIONS` állapotgépet **nem** ismeri, a `lost_reason` / `won_at` / `lost_at` mezőket nem kezeli. | A workspace-en belüli státuszváltás megkerüli a Won/Lost confirm dialógust, így `lost_reason` sosem íródik a workspace-ből. |
-| 4 | A `LeadDetailColumn` **nem mutatja** a marketing által rögzített minősítő-blokk fő mezőit (felelős név, következő lépés típus / határidő / jegyzet, utolsó státuszváltás). Ezek csak a `/leads/$id` headerében jelennek meg. | A sales a 3 oszlopos workspace-ben nem látja a lead operatív állapotát — kénytelen átnavigálni a `/leads/$id`-re. |
-| 5 | `quotes.version` / `is_current` UI **nincs** a 3 oszlopos workspace-ben — csak `QuickCreateQuoteButton` (új ajánlat dialog), a verziókezelés a `/leads/$id` Ajánlatok tabján él. | Két helyen kell ajánlatot kezelni. |
-| 6 | Handoff: `LeadActionPanel`-ben csak a **marketing** módú `LeadHandoffPanel` van (átadás értékesítőnek). Sales módban a projekt-handoff (`HandoffDialog` + `projects` insert + `handoff_payload`) **nincs** a panelen. | Sales nem tud helyben projektet indítani megnyert leadből — csak a `/leads/$id` Átadás tabjáról. |
-| 7 | `lead_status_history` timeline **nincs** a 3 oszlopos workspace-ben (a `LeadDetailColumn`-ban csak a `followups` idővonal van). | A „teljes előélet" hiányos a fő felületen. |
+## 3. oszlop — szabályok
 
-### Összegzés — egyetlen mondatban
+Három fix blokk, fentről lefelé, semmi más:
 
-A V2 funkciók **megépültek és működnek**, de **rossz helyre**: egy új `/leads/$id` oldalra, a jóváhagyott 3 oszlopos Workspace 2. és 3. oszlopa helyett. A teendő **nem új fejlesztés**, hanem a meglévő V2 komponensek **áthelyezése** a `LeadDetailColumn` (2. oszlop) és a `LeadActionPanel` (3. oszlop) megfelelő szakaszaiba, hogy a `/leads/$id` redundánssá váljon (a jelenlegi „Teljes oldal" link kivezethető).
+### 1) Következő lépés (mindig látszik)
+- Típus (telefon / email / találkozó / ajánlat), időpont, jegyzet.
+- Egy mentés gomb. A `leads.next_step_*` mezőkbe ír (már létezik).
 
----
+### 2) Első aktivitás (csak amíg nincs sales aktivitás)
+- 4 gomb: Telefon · Email · Találkozó · Ajánlat.
+- Kattintásra rögzít egy aktivitást (dátum = most, típus = választott), és **ekkor lép a lead a "kapcsolat alatt" pipeline-ba** (status: `contacted`).
+- Ez a "pipeline mikor indul" szabály egyetlen érvényesítési pontja. Marketing handoff önmagában nem rakja pipeline-ba.
 
-## Javasolt fejlesztési lépések — összhangba hozás
+### 3) Eredmény + lezárás (csak ha van nyitott következő lépés vagy aktivitás)
+- Sikeres / Nem sikerült / Áttéve + jegyzet.
+- Lezárja az aktuális lépést és egyből új "következő lépés" űrlapot kínál.
 
-Minden lépés **meglévő komponensek áthelyezése / bekötése**, nem új felület.
+Alul két végállapot gomb: **Megnyerés** és **Elveszett** (a meglévő `LeadActionBar` logika átemelve, csak ez a két állapot marad gombként; köztes státuszok a sales aktivitásokból automatikusan adódnak).
 
-### Lépés 1 — `LeadDetailColumn` (2. oszlop) kibővítése a V2 fej-blokkal
+## Pipeline átmenetek (rögzített szabály)
 
-A meglévő header alá, a jegyzet fölé bekerül **a `/leads/$id` headerből már ismert blokk**, ugyanazokkal a komponensekkel:
+| Trigger | Új státusz |
+|---|---|
+| Marketing handoff | `new` (még NEM pipeline) |
+| Első sales aktivitás rögzítve | `contacted` |
+| Ajánlat-aktivitás rögzítve | `proposal` |
+| Utánkövetés aktivitás | `followup` |
+| Megnyerés gomb | `won` |
+| Elveszett gomb | `lost` |
 
-- `LeadStatusStepper` (vízszintes, kompakt)
-- 4 darab `KeyFact` cella: **Felelős** (`AssigneePicker` inline), **Következő lépés** típus, **Határidő**, **Utolsó aktivitás**; `won` / `lost` esetén `won_at` / `lost_at`
-- `lead_status_history` timeline szakasz beillesztve a meglévő „Utókövetés idővonal" mellé (vagy összevont „Idővonal" alá, marketing-tab stílusban)
-- A jelenlegi nyers státusz `<select>` lecserélve a `LeadActionBar` mini-változatára (vagy elrejtve, a 3. oszlopra hagyva)
+Sales nem vált státuszt kézzel dropdown-ból. A státusz a rögzített aktivitásokból következik.
 
-A meglévő marketing minősítő blokk (`LeadQualityBlock`, `LeadAutoFixesBlock`, identity, score, jegyzet, cég/kapcsolattartó) **változatlan** — ez adja a „marketing által átadott előélet" részt.
+## Mit törlünk / mit hagyunk
 
-### Lépés 2 — `LeadActionPanel` (3. oszlop) sales-mód kibővítése V2 műveletekkel
+**Törlendő a workspace-ből (külön route-on maradhat info-nézetnek):**
+- `lead-action-panel.tsx` jelenlegi tartalma (kvalitás, auto-fix, handoff, AI) — szétszedjük.
+- `lead-quality-block`, `lead-auto-fixes-block`, `lead-handoff-panel`, `ai-sheet` — nem jelennek meg a workspace-ben.
+- Státuszváltó dropdown a workspace-ből kikerül.
 
-A meglévő ProcessStrip + Email + Followup + Hívás + AI panel **megmarad**. Sales módban ezek alatt új szekciók:
+**Marad külön menüpontként, info-nézetként:** Ajánlatok, Emailek, Hívások, Találkozók, Dokumentumok. Ezek nem munkafelületek, csak listák.
 
-- **„Kötelező következő lépés"** — `NextStepEditor` beillesztve (kötelezően nyitott, ha nincs `next_step_type` megadva: a meglévő amber banner ide kerül).
-- **„Státusz"** — `LeadActionBar` (állapotgép szerinti gombok) + `WonDialog` / `LostDialog` trigger.
-- **„Ajánlat"** szekció kibővítése: meglévő `QuickCreateQuoteButton` mellé a V2 **verzió-lista** és **„Új verzió" / „Aktuálissá tesz"** gombok (a `/leads/$id` Ajánlatok tabjából átemelve).
-- **„Projekt átadás"** — sales módban a meglévő `LeadHandoffPanel` helyett (vagy mellett, `status='won'` esetén) a V2 `HandoffDialog` trigger + ha már van projekt, a strukturált `handoff_payload` riport.
+## Technikai vázlat (csak jóváhagyás után)
 
-### Lépés 3 — `/leads/$id` redundancia megszüntetése
+- `LeadDetailColumn` újraírva: header + 5 tab, mind read-only. Adatforrások már megvannak (`companies`, `contacts`, `emails`, `company_documents`, `buildTimeline`).
+- `LeadActionPanel` újraírva: 3 blokk (NextStep / FirstActivity / Outcome) + Won/Lost lábléc.
+- Új tábla NEM kell. Sales aktivitás a meglévő `followups` táblába megy (`followup_type` + `result` + `completed`), és egy szerver-oldali trigger / mutation lépteti a `leads.status`-t a fenti táblázat szerint.
+- `next_step_*` mezők változatlanok.
 
-- A `LeadDetailColumn` fejlécében lévő **„Teljes oldal" link eltávolítása** (vagy a `/leads/$id` route redirect a `/sales/leads?lead=<id>`-ra, hogy régi bookmarkok ne 404-ezzenek).
-- A `/leads/$id` route fájl **megmarad** átmenetileg, de minden V2 komponens már az 1–2. lépésben a workspace-ből hivatkozott — a route csak `Navigate` redirectet tartalmaz.
-- A duplikáció megszűnése **után**, külön körben törölhető a fájl és a `lookup` URL-ek átírása. Ezt nem keverem ebbe a sprintbe, mert az „eltérés helyrehozása" a cél, nem a takarítás.
+## Mit kérek jóváhagyásra
 
-### Lépés 4 — Cache- és állapot-egységesítés
+1. A fenti 2. oszlop tartalom és sorrend (5 tab, read-only) — OK?
+2. A fenti 3. oszlop 3 blokkos szerkezet — OK?
+3. A pipeline-trigger szabály (első aktivitás = `contacted`) — OK?
+4. Marad-e a Megnyerés/Elveszett gomb a 3. oszlop alján, vagy az is csak aktivitásból következik?
 
-- A V2 mutációk már `["leads","detail",id]`, `["lead-status-history",id]`, `["projects"]`, `["quotes"]` kulcsokat invalidálnak — a `LeadDetailColumn` és `LeadActionPanel` ugyanezeket a kulcsokat használja (`useQuery(["leads","detail",leadId])`), így automatikusan frissülnek, nincs új hook szükséges.
-- A `LeadDetailColumn` saját státusz `<select>`-jének `updateLead.mutate({ status })` hívását le kell cserélni a `LeadActionBar`-on belüli állapotgép-aware hívásra, hogy ne lehessen érvénytelen átmenetet kezdeményezni.
-
-### Mit NEM csinálunk ebben a körben (szándékosan)
-
-- Nem nyitunk meg új route-ot, nem hozunk létre új tabos felületet.
-- Nem nyúlunk a Dashboard / Todo / `/sales/leads` listához / Quotes / Handoff oldalakhoz (csak belépési pont marad).
-- Nem írjuk át a backend mutációkat — a V2 komponensek a meglévő `supabase.from(...).update(...)` hívásokat hozzák magukkal.
-- Nem törlünk fájlt — a `/leads/$id` route redirectté egyszerűsítése külön takarítási kör.
-
----
-
-## Akceptancia
-
-- A `/sales/leads` 3 oszlopos workspace-ben a 2. oszlopon látszik: státusz-stepper, felelős (assignee picker), következő lépés, határidő, utolsó aktivitás, `won_at`/`lost_at`, és a `lead_status_history` timeline — a marketing minősítő blokk és a jegyzet érintetlenül.
-- A 3. oszlopon (sales mód) elérhető: `NextStepEditor`, `LeadActionBar` állapotgéppel, `WonDialog`, `LostDialog`, ajánlat verziókezelés, `HandoffDialog` projekt-indítással — minden a workspace-en belül, oldalváltás nélkül.
-- A workspace-ből végigvihető a `new → contacted → quote_prep → quote_sent → contract → won → handoff` folyamat, **anélkül**, hogy a `/leads/$id` oldalra kellene menni.
-- A `LeadDetailColumn` „Teljes oldal" linkje eltűnik; aki mégis `/leads/$id`-re navigál, a workspace-re kerül.
+Jóváhagyás után indul a fejlesztés, addig egyetlen sor kód sem változik.
