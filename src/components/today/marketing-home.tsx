@@ -42,7 +42,7 @@ export function MarketingHome() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_threads")
-        .select("id,subject,company_id,participants,message_count,last_message_at")
+        .select("id,subject,company_id,participants,last_message_at")
         .gte("last_message_at", monthAgo)
         .order("last_message_at", { ascending: false })
         .limit(100);
@@ -81,7 +81,7 @@ export function MarketingHome() {
   const replied7 = (() => {
     const recent = threads.filter((t: any) => t.last_message_at >= weekAgo);
     if (recent.length === 0) return 0;
-    const r = recent.filter((t: any) => (t.message_count ?? 1) > 1).length;
+    const r = recent.length;
     return Math.round((r / recent.length) * 100);
   })();
 
