@@ -96,7 +96,7 @@ function EmailThread() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("email_threads")
-        .select("id,subject,company_id,contact_id,lead_id")
+        .select("id,subject,gmail_thread_id,company_id,contact_id,lead_id")
         .eq("id", threadId)
         .maybeSingle();
       if (error) throw error;
