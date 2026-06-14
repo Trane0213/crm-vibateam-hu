@@ -45,6 +45,17 @@ GRANT SELECT ON public.sales_module_meta TO authenticated;
 GRANT ALL    ON public.sales_module_meta TO service_role;
 
 -- ---------------------------------------------------------------------
+-- 0/b) followups.lead_id — a CRM-ben a followups eddig company_id /
+--      project_id / quote_id alapján kapcsolódott. A sales modul a
+--      lead-szintű hívásnaplózáshoz közvetlen FK-t igényel. Idempotens.
+-- ---------------------------------------------------------------------
+ALTER TABLE public.followups
+  ADD COLUMN IF NOT EXISTS lead_id uuid REFERENCES public.leads(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS idx_followups_lead_due
+  ON public.followups(lead_id, due_date);
+
+-- ---------------------------------------------------------------------
 -- 1) leads — új oszlopok
 -- ---------------------------------------------------------------------
 ALTER TABLE public.leads
@@ -97,6 +108,34 @@ UPDATE public.leads
 UPDATE public.leads
    SET assigned_at = COALESCE(assigned_at, created_at)
  WHERE assigned_to IS NOT NULL AND assigned_at IS NULL;
+
+-- 2/b) Fail-fast pre-check: ha a backfill után is marad a whitelistről
+--      lemaradó status érték, listázzuk őket és azonnal állítsuk meg a
+--      migrációt egyértelmű hibaüzenettel. Így a VALIDATE CONSTRAINT
+--      nem ad cryptic hibát, és az üzemeltető tudja, mit kell mappelni.
+DO $pre$
+DECLARE
+  unknown_list text;
+BEGIN
+  SELECT string_agg(DISTINCT format('%L (%s db)', status, cnt), ', ')
+    INTO unknown_list
+  FROM (
+    SELECT status, COUNT(*) AS cnt
+      FROM public.leads
+     WHERE status IS NULL
+        OR status NOT IN ('new','contacted','quote_prep','quote_sent',
+                          'follow_up','contract','won','lost')
+     GROUP BY status
+  ) s;
+
+  IF unknown_list IS NOT NULL THEN
+    RAISE EXCEPTION
+      'leads.status contains values outside the approved whitelist: %. '
+      'Map them in this migration (UPDATE public.leads SET status=... WHERE status=...) '
+      'before VALIDATE CONSTRAINT runs.', unknown_list;
+  END IF;
+END
+$pre$;
 
 -- ---------------------------------------------------------------------
 -- 3) leads.status — szigorú CHECK
