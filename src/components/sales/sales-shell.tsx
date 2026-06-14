@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
-const NAV = [
+const NAV: { to: string; label: string; exact?: boolean }[] = [
   { to: "/sales", label: "Áttekintés", exact: true },
   { to: "/sales/leads", label: "Leadek" },
   { to: "/sales/todo", label: "Teendők" },
   { to: "/sales/quotes", label: "Ajánlatok" },
   { to: "/sales/handoff", label: "Átadás" },
-] as const;
+];
 
 export function SalesShell({
   title,
