@@ -10,6 +10,7 @@ import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
   readMarketingMeta, type MarketingStatus,
 } from "@/lib/marketing-status";
+import { selectMarketingCompanies } from "@/lib/marketing-universe";
 
 const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
 const isoWeekAgo = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
@@ -20,20 +21,21 @@ export function MarketingHome() {
   const weekAgo = isoWeekAgo();
   const monthAgo = isoMonthAgo();
 
-  // A marketing kizárólag a `companies` (company_type='potencialis') és a
-  // `email_threads` adattal dolgozik. A leadek itt SOHA nem jelennek meg —
-  // azokat a sales pipeline tartalmazza.
+  // A marketing univerzum egységes definíciója: minden olyan cég ide
+  // tartozik, amely company_type='potencialis' VAGY rendelkezik [MKT:STATUS:…]
+  // vagy [KAMPANY:…] markerrel a notes-ban. Lásd: src/lib/marketing-universe.ts
   const companiesQ = useQuery({
-    queryKey: ["mkt-home", "potencialis-companies"],
+    queryKey: ["mkt-home", "marketing-companies"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
-        .select("id,name,notes,created_at")
-        .eq("company_type", "potencialis")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string; notes: string | null; created_at: string }[];
+      const rows = await selectMarketingCompanies(
+        supabase,
+        "id,name,notes,created_at,company_type",
+        { limit: 500 },
+      );
+      return rows as {
+        id: string; name: string; notes: string | null;
+        created_at: string; company_type: string | null;
+      }[];
     },
   });
 
