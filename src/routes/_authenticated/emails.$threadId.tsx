@@ -450,7 +450,9 @@ function MessageCard({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full text-left px-3 py-2 flex items-start gap-2.5 hover:bg-muted/30 transition-colors"
+        className="group w-full text-left px-3 py-2 flex items-start gap-2.5 cursor-pointer hover:bg-muted/60 transition-colors"
+        title={open ? "Üzenet összecsukása" : "Üzenet megnyitása"}
+        aria-expanded={open}
       >
         <div
           className="h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0"
@@ -485,7 +487,7 @@ function MessageCard({
             </div>
           )}
         </div>
-        <span className="text-muted-foreground shrink-0 mt-1">
+        <span className="text-muted-foreground group-hover:text-foreground shrink-0 mt-1 transition-colors">
           {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </span>
       </button>
@@ -510,9 +512,14 @@ function MessageCard({
               </div>
             )}
             <div className="px-3 py-3">
-              {refreshing && !isHtml ? (
-                <div className="text-sm text-muted-foreground italic">Eredeti HTML betöltése…</div>
-              ) : isHtml ? (
+              {refreshing && (
+                <div className="mb-2 inline-flex items-center gap-1.5 rounded border bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                  Eredeti HTML frissítése…
+                </div>
+              )}
+              {effectiveBody && effectiveBody.trim() ? (
+                isHtml ? (
                 <>
                   <EmailHtmlFrame
                     html={mainHtml}
@@ -541,8 +548,13 @@ function MessageCard({
                     </div>
                   )}
                 </>
-              ) : (
+                ) : (
                 <EmailBody body={effectiveBody} inlineByCid={inlineByCid} />
+                )
+              ) : refreshing ? (
+                <div className="text-sm text-muted-foreground italic">Tartalom betöltése…</div>
+              ) : (
+                <div className="text-sm text-muted-foreground italic">(nincs tartalom)</div>
               )}
             </div>
           </div>
