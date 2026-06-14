@@ -333,7 +333,7 @@ function EmailThread() {
           onOpenChange={setReplyOpen}
           defaultTo={defaultReplyTo}
           defaultSubject={replySubject}
-          threadId={threadId}
+          gmailThreadId={thread.data?.id ? undefined : undefined}
         />
       )}
     </div>
