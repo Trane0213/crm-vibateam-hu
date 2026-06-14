@@ -7,29 +7,29 @@
  *
  * Definíció:
  *   marketing univerzum =
- *     companies.company_type = 'potencialis'
- *     OR companies.notes tartalmaz [MKT:STATUS:…] markert
- *     OR companies.notes tartalmaz [KAMPANY:…] markert
+ *     companies.notes tartalmaz bármilyen marketing workflow markert
+ *     ([MKT:…] vagy [KAMPANY:…])
+ *     VAGY tartalmazza a Scarlet kampány forrás sort.
  *
- * Indok: a `company_type` átírható (pl. sales kapcsolatba lépett →
- * generalkivitelezo), de a marketing státusz markerek megmaradnak. Ha csak
- * company_type alapján szűrnénk, az átadott / már kapcsolatba lépett cégek
- * kiesnének a marketing dashboardról és a riportokból.
+ * Indok: a `company_type` tisztán információ, nem workflow-logika. Egy rekord
+ * marketing-beli láthatóságát kizárólag a marketing adatfolyam nyomai
+ * határozhatják meg, nem a cégtípus.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+const MARKETING_SOURCE_TEXT_RX = /Forrás:\s*Scarlet kampány/i;
+
 /** PostgREST `or=` szűrő része — minden marketinghez tartozó cégre matchel. */
 export const MARKETING_OR_FILTER =
-  "company_type.eq.potencialis,notes.ilike.*[MKT:STATUS:*,notes.ilike.*[KAMPANY:*";
+  "notes.ilike.*[MKT:*,notes.ilike.*[KAMPANY:*,notes.ilike.*Forrás: Scarlet kampány*";
 
 /** JavaScript-oldali predikátum ugyanezzel a definícióval. */
 export function isMarketingCompany(row: {
   company_type?: string | null;
   notes?: string | null;
 }): boolean {
-  if (row.company_type === "potencialis") return true;
   const n = row.notes ?? "";
-  return /\[MKT:STATUS:/.test(n) || /\[KAMPANY:/.test(n);
+  return /\[MKT:/.test(n) || /\[KAMPANY:/.test(n) || MARKETING_SOURCE_TEXT_RX.test(n);
 }
 
 /**
