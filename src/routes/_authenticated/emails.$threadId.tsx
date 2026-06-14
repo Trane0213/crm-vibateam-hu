@@ -90,6 +90,22 @@ function EmailThread() {
     order: "created_at",
     ascending: true,
   });
+  // Megnyitas utan a szal osszes email-jet jelöljük olvasottnak (UNREAD label
+  // levetele a DB-ben). Ezzel a lista, a workspace es a thread nezet ugyanazt
+  // mutatja. Gmail-szinkron kulonalo lepes.
+  useEffect(() => {
+    const rows = emails.data ?? [];
+    const unread = rows.filter((e: any) =>
+      Array.isArray(e.gmail_label_ids) && e.gmail_label_ids.includes("UNREAD"),
+    );
+    if (unread.length === 0) return;
+    void (async () => {
+      for (const e of unread) {
+        const next = (e.gmail_label_ids ?? []).filter((l: string) => l !== "UNREAD");
+        await supabase.from("emails").update({ gmail_label_ids: next }).eq("id", e.id);
+      }
+    })();
+  }, [emails.data]);
   const thread = useQuery({
     queryKey: ["email_threads", threadId],
     enabled: !!threadId,
