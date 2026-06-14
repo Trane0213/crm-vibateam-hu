@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { readMarketingMeta } from "@/lib/marketing-status";
+import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
 import { selectMarketingCompanies } from "@/lib/marketing-universe";
 import {
   AlertDialog,
@@ -49,16 +49,6 @@ function fmtDate(iso: string): string {
 }
 
 /**
- * Aktív kampánylistából való kikerülés JELÖLŐI a companies.notes szövegben.
- * Ezek meglévő mezőbe írott szöveges markerek — NEM séma-módosítás.
- * - `[KAMPANY:EMAIL_SENT:YYYY-MM-DD]`  — email elment ennek a cégnek
- * - `[KAMPANY:REJECTED:YYYY-MM-DD]`    — marketinges elutasította
- * Az aktív lista mindkét marker hiányát megköveteli.
- */
-const MARKER_EMAIL_SENT = "[KAMPANY:EMAIL_SENT:";
-const MARKER_REJECTED   = "[KAMPANY:REJECTED:";
-
-/**
  * Egységesített aktív-kampány definíció: az a cég aktív, amelynek a
  * unified marketing státusza `new`. Bármi más (contacted / qualified /
  * handoff / rejected) kikerül az aktív kampánylistából, így a
@@ -67,12 +57,6 @@ const MARKER_REJECTED   = "[KAMPANY:REJECTED:";
  */
 function isActiveCampaign(notes: string | null): boolean {
   return readMarketingMeta(notes).status === "new";
-}
-
-function appendMarker(notes: string | null, marker: string): string {
-  const today = new Date().toISOString().slice(0, 10);
-  const line = `${marker}${today}]`;
-  return notes && notes.trim() ? `${notes}\n${line}` : line;
 }
 
 function CampaignListPage() {
@@ -132,7 +116,7 @@ function CampaignListPage() {
   const total = active.length;
 
   async function markEmailSent(companyId: string, currentNotes: string | null) {
-    const next = appendMarker(currentNotes, MARKER_EMAIL_SENT);
+    const next = withMarketingStatus(currentNotes, "contacted");
     const { error } = await supabase
       .from("companies")
       .update({ notes: next } as any)
@@ -146,7 +130,7 @@ function CampaignListPage() {
 
   async function rejectFromCampaign() {
     if (!rejecting) return;
-    const next = appendMarker(rejecting.notes, MARKER_REJECTED);
+    const next = withMarketingStatus(rejecting.notes, "rejected");
     const { error } = await supabase
       .from("companies")
       .update({ notes: next } as any)
