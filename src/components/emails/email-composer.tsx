@@ -27,7 +27,7 @@ export function EmailComposer({
   defaultTo,
   defaultSubject,
   defaultBody,
-  threadId,
+  gmailThreadId,
   inReplyTo,
   references,
   companyId,
@@ -40,7 +40,7 @@ export function EmailComposer({
   defaultTo?: string;
   defaultSubject?: string;
   defaultBody?: string;
-  threadId?: string;
+  gmailThreadId?: string;
   inReplyTo?: string;
   references?: string;
   companyId?: string;
@@ -128,7 +128,7 @@ export function EmailComposer({
           subject: subject.trim(),
           html,
           attachments,
-          threadId,
+          threadId: gmailThreadId,
           inReplyTo,
           references,
           company_id: companyId,
@@ -155,7 +155,7 @@ export function EmailComposer({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{threadId ? "Válasz" : "Új email"}</DialogTitle>
+          <DialogTitle>{gmailThreadId ? "Válasz" : "Új email"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid gap-2">
