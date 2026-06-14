@@ -139,9 +139,13 @@ CREATE POLICY lead_status_history_select
   ON public.lead_status_history
   FOR SELECT TO authenticated
   USING (
-    public.has_role(auth.uid(), 'admin')
-    OR public.has_role(auth.uid(), 'marketing')
-    OR public.has_role(auth.uid(), 'sales')
+    public.is_owner_role(auth.uid())
+    OR EXISTS (
+      SELECT 1 FROM public.users_profile up
+      JOIN public.roles r ON r.id = up.role_id
+      WHERE up.auth_user_id = auth.uid()
+        AND lower(r.name) IN ('marketing','sales','crm','pm')
+    )
   );
 
 -- ---------------------------------------------------------------------
