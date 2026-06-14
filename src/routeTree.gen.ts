@@ -29,6 +29,7 @@ import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
@@ -51,7 +52,11 @@ import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedSettingsAgentVisibilityRouteImport } from './routes/_authenticated/settings.agent-visibility'
+import { Route as AuthenticatedSalesTodoRouteImport } from './routes/_authenticated/sales.todo'
 import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
+import { Route as AuthenticatedSalesQuotesRouteImport } from './routes/_authenticated/sales.quotes'
+import { Route as AuthenticatedSalesLeadsRouteImport } from './routes/_authenticated/sales.leads'
+import { Route as AuthenticatedSalesHandoffRouteImport } from './routes/_authenticated/sales.handoff'
 import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
@@ -168,6 +173,11 @@ const AuthenticatedSettingsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSalesIndexRoute = AuthenticatedSalesIndexRouteImport.update({
+  id: '/sales/',
+  path: '/sales/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedQuotesIndexRoute =
   AuthenticatedQuotesIndexRouteImport.update({
     id: '/quotes/',
@@ -294,10 +304,32 @@ const AuthenticatedSettingsAgentVisibilityRoute =
     path: '/agent-visibility',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSalesTodoRoute = AuthenticatedSalesTodoRouteImport.update({
+  id: '/sales/todo',
+  path: '/sales/todo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSalesResearchRoute =
   AuthenticatedSalesResearchRouteImport.update({
     id: '/sales/research',
     path: '/sales/research',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSalesQuotesRoute =
+  AuthenticatedSalesQuotesRouteImport.update({
+    id: '/sales/quotes',
+    path: '/sales/quotes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSalesLeadsRoute = AuthenticatedSalesLeadsRouteImport.update({
+  id: '/sales/leads',
+  path: '/sales/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalesHandoffRoute =
+  AuthenticatedSalesHandoffRouteImport.update({
+    id: '/sales/handoff',
+    path: '/sales/handoff',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedQuotesIdRoute = AuthenticatedQuotesIdRouteImport.update({
@@ -387,7 +419,11 @@ export interface FileRoutesByFullPath {
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/sales/handoff': typeof AuthenticatedSalesHandoffRoute
+  '/sales/leads': typeof AuthenticatedSalesLeadsRoute
+  '/sales/quotes': typeof AuthenticatedSalesQuotesRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
+  '/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
@@ -410,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
+  '/sales/': typeof AuthenticatedSalesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
@@ -441,7 +478,11 @@ export interface FileRoutesByTo {
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/sales/handoff': typeof AuthenticatedSalesHandoffRoute
+  '/sales/leads': typeof AuthenticatedSalesLeadsRoute
+  '/sales/quotes': typeof AuthenticatedSalesQuotesRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
+  '/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
@@ -464,6 +505,7 @@ export interface FileRoutesByTo {
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/quotes': typeof AuthenticatedQuotesIndexRoute
+  '/sales': typeof AuthenticatedSalesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
@@ -498,7 +540,11 @@ export interface FileRoutesById {
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
+  '/_authenticated/sales/handoff': typeof AuthenticatedSalesHandoffRoute
+  '/_authenticated/sales/leads': typeof AuthenticatedSalesLeadsRoute
+  '/_authenticated/sales/quotes': typeof AuthenticatedSalesQuotesRoute
   '/_authenticated/sales/research': typeof AuthenticatedSalesResearchRoute
+  '/_authenticated/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/_authenticated/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
@@ -521,6 +567,7 @@ export interface FileRoutesById {
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
+  '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
@@ -555,7 +602,11 @@ export interface FileRouteTypes {
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
+    | '/sales/handoff'
+    | '/sales/leads'
+    | '/sales/quotes'
     | '/sales/research'
+    | '/sales/todo'
     | '/settings/agent-visibility'
     | '/settings/audit'
     | '/settings/dashboard-status'
@@ -578,6 +629,7 @@ export interface FileRouteTypes {
     | '/leads/'
     | '/projects/'
     | '/quotes/'
+    | '/sales/'
     | '/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
@@ -609,7 +661,11 @@ export interface FileRouteTypes {
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
+    | '/sales/handoff'
+    | '/sales/leads'
+    | '/sales/quotes'
     | '/sales/research'
+    | '/sales/todo'
     | '/settings/agent-visibility'
     | '/settings/audit'
     | '/settings/dashboard-status'
@@ -632,6 +688,7 @@ export interface FileRouteTypes {
     | '/leads'
     | '/projects'
     | '/quotes'
+    | '/sales'
     | '/settings'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
@@ -665,7 +722,11 @@ export interface FileRouteTypes {
     | '/_authenticated/leads/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/quotes/$id'
+    | '/_authenticated/sales/handoff'
+    | '/_authenticated/sales/leads'
+    | '/_authenticated/sales/quotes'
     | '/_authenticated/sales/research'
+    | '/_authenticated/sales/todo'
     | '/_authenticated/settings/agent-visibility'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/dashboard-status'
@@ -688,6 +749,7 @@ export interface FileRouteTypes {
     | '/_authenticated/leads/'
     | '/_authenticated/projects/'
     | '/_authenticated/quotes/'
+    | '/_authenticated/sales/'
     | '/_authenticated/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
@@ -853,6 +915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/sales/': {
+      id: '/_authenticated/sales/'
+      path: '/sales'
+      fullPath: '/sales/'
+      preLoaderRoute: typeof AuthenticatedSalesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/quotes/': {
       id: '/_authenticated/quotes/'
       path: '/quotes'
@@ -1007,11 +1076,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAgentVisibilityRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/sales/todo': {
+      id: '/_authenticated/sales/todo'
+      path: '/sales/todo'
+      fullPath: '/sales/todo'
+      preLoaderRoute: typeof AuthenticatedSalesTodoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sales/research': {
       id: '/_authenticated/sales/research'
       path: '/sales/research'
       fullPath: '/sales/research'
       preLoaderRoute: typeof AuthenticatedSalesResearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/quotes': {
+      id: '/_authenticated/sales/quotes'
+      path: '/sales/quotes'
+      fullPath: '/sales/quotes'
+      preLoaderRoute: typeof AuthenticatedSalesQuotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/leads': {
+      id: '/_authenticated/sales/leads'
+      path: '/sales/leads'
+      fullPath: '/sales/leads'
+      preLoaderRoute: typeof AuthenticatedSalesLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/handoff': {
+      id: '/_authenticated/sales/handoff'
+      path: '/sales/handoff'
+      fullPath: '/sales/handoff'
+      preLoaderRoute: typeof AuthenticatedSalesHandoffRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/quotes/$id': {
@@ -1152,7 +1249,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
+  AuthenticatedSalesHandoffRoute: typeof AuthenticatedSalesHandoffRoute
+  AuthenticatedSalesLeadsRoute: typeof AuthenticatedSalesLeadsRoute
+  AuthenticatedSalesQuotesRoute: typeof AuthenticatedSalesQuotesRoute
   AuthenticatedSalesResearchRoute: typeof AuthenticatedSalesResearchRoute
+  AuthenticatedSalesTodoRoute: typeof AuthenticatedSalesTodoRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -1160,6 +1261,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedQuotesIndexRoute: typeof AuthenticatedQuotesIndexRoute
+  AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1184,7 +1286,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
+  AuthenticatedSalesHandoffRoute: AuthenticatedSalesHandoffRoute,
+  AuthenticatedSalesLeadsRoute: AuthenticatedSalesLeadsRoute,
+  AuthenticatedSalesQuotesRoute: AuthenticatedSalesQuotesRoute,
   AuthenticatedSalesResearchRoute: AuthenticatedSalesResearchRoute,
+  AuthenticatedSalesTodoRoute: AuthenticatedSalesTodoRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
@@ -1192,6 +1298,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedQuotesIndexRoute: AuthenticatedQuotesIndexRoute,
+  AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
