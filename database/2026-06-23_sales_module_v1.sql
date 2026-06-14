@@ -80,16 +80,18 @@ ALTER TABLE public.leads
 --    qualified  -> quote_prep
 --    converted  -> won
 --    Régen meglévő won/lost sorokon a won_at / lost_at kitöltése.
+--    Megjegyzés: a leads táblában nincs updated_at oszlop, ezért a
+--    won_at / lost_at fallback csak created_at-re megy.
 -- ---------------------------------------------------------------------
 UPDATE public.leads SET status = 'quote_prep' WHERE status = 'qualified';
 UPDATE public.leads SET status = 'won'        WHERE status = 'converted';
 
 UPDATE public.leads
-   SET won_at = COALESCE(won_at, updated_at, created_at)
+   SET won_at = COALESCE(won_at, created_at)
  WHERE status = 'won' AND won_at IS NULL;
 
 UPDATE public.leads
-   SET lost_at = COALESCE(lost_at, updated_at, created_at)
+   SET lost_at = COALESCE(lost_at, created_at)
  WHERE status = 'lost' AND lost_at IS NULL;
 
 UPDATE public.leads
