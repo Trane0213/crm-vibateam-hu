@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import {
   Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2,
   FileSignature, UserCheck, Sparkles, Filter, Phone, ChevronDown,
+  ListChecks, Send, Briefcase, Plus, Check,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
@@ -17,7 +20,16 @@ import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { LEAD_EMAIL_TEMPLATES, type LeadEmailTemplate } from "@/lib/lead-workspace/email-templates";
-import { useLookup } from "@/components/resource/resource-page";
+import { useLookup, fmtDate } from "@/components/resource/resource-page";
+import { useListWhere } from "@/lib/db-hooks";
+import { LeadActionBar } from "@/components/sales/lead-action-bar";
+import { NextStepEditor } from "@/components/sales/next-step-editor";
+import { WonDialog } from "@/components/sales/won-dialog";
+import { LostDialog } from "@/components/sales/lost-dialog";
+import { HandoffDialog } from "@/components/sales/handoff-dialog";
+import type { LeadStatus } from "@/lib/sales/constants";
+
+const QUOTE_EDITABLE_STATUSES: LeadStatus[] = ["quote_prep", "quote_sent", "follow_up", "contract"];
 
 type Mode = "marketing" | "sales";
 
@@ -35,6 +47,14 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
   const companyLabel = useLookup("companies", "name");
   const contactLabel = useLookup("contacts", "name");
   const updateLead = useUpdateLead(leadId);
+  const qc = useQueryClient();
+
+  const quotes = useListWhere<any>("quotes", "lead_id", leadId, {
+    order: "version", ascending: false, enabled: !!leadId && mode === "sales",
+  });
+  const projects = useListWhere<any>("projects", "lead_id", leadId, {
+    order: "created_at", ascending: false, enabled: !!leadId && mode === "sales",
+  });
 
   // Kapcsolattartó email-je (a contacts.email mezőből, ha létezik)
   const contact = useQuery({
@@ -51,6 +71,52 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
   const [emailOpen, setEmailOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [emailDefaults, setEmailDefaults] = useState<{ subject?: string; body?: string } | null>(null);
+  const [wonOpen, setWonOpen] = useState(false);
+  const [lostOpen, setLostOpen] = useState(false);
+  const [handoffOpen, setHandoffOpen] = useState(false);
+  const [quotesBusy, setQuotesBusy] = useState(false);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["leads"] });
+    qc.invalidateQueries({ queryKey: ["lead-status-history", leadId] });
+    qc.invalidateQueries({ queryKey: ["quotes"] });
+    qc.invalidateQueries({ queryKey: ["projects"] });
+  };
+
+  const currentStatus = (lead.data?.status ?? "new") as LeadStatus;
+  const quotesEditable = QUOTE_EDITABLE_STATUSES.includes(currentStatus);
+
+  const setCurrentQuote = async (quoteId: string) => {
+    if (!leadId) return;
+    setQuotesBusy(true);
+    try {
+      const off = await supabase.from("quotes").update({ is_current: false }).eq("lead_id", leadId).neq("id", quoteId);
+      if (off.error) throw off.error;
+      const on = await supabase.from("quotes").update({ is_current: true }).eq("id", quoteId);
+      if (on.error) throw on.error;
+      toast.success("Aktuális verzió frissítve");
+      invalidate();
+    } catch (e: any) {
+      toast.error(e.message ?? "Hiba");
+    } finally { setQuotesBusy(false); }
+  };
+
+  const createQuoteVersion = async () => {
+    if (!leadId) return;
+    setQuotesBusy(true);
+    try {
+      const list = quotes.data ?? [];
+      const maxV = list.reduce((m: number, q: any) => Math.max(m, q.version ?? 0), 0);
+      const off = await supabase.from("quotes").update({ is_current: false }).eq("lead_id", leadId);
+      if (off.error) throw off.error;
+      const ins = await supabase.from("quotes").insert({ lead_id: leadId, version: maxV + 1, is_current: true });
+      if (ins.error) throw ins.error;
+      toast.success(`v${maxV + 1} létrehozva`);
+      invalidate();
+    } catch (e: any) {
+      toast.error(e.message ?? "Hiba");
+    } finally { setQuotesBusy(false); }
+  };
 
   const agent = mode === "sales" ? "sales" : "crm";
   const agentLabel = mode === "sales" ? "Timothy – Értékesítési Segítő" : "George – CRM Navigátor";
@@ -144,6 +210,44 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         onStepClick={mode === "marketing" ? moveStatus : undefined}
       />
 
+      {/* SALES — V2 kötelező következő lépés */}
+      {mode === "sales" && lead.data && (
+        <div className="rounded-md border p-3">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <ListChecks className="h-3 w-3" /> Kötelező következő lépés
+          </div>
+          {!lead.data.next_step_type && (
+            <div className="mb-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
+              Nincs következő lépés megadva.
+            </div>
+          )}
+          <NextStepEditor
+            type={lead.data.next_step_type ?? null}
+            dueAt={lead.data.next_step_due_at ?? null}
+            note={lead.data.next_step_note ?? null}
+            busy={updateLead.isPending}
+            onSave={(p) => updateLead.mutate(p)}
+            onClear={() => updateLead.mutate({ next_step_type: null, next_step_due_at: null, next_step_note: null })}
+          />
+        </div>
+      )}
+
+      {/* SALES — V2 státuszváltás állapotgéppel */}
+      {mode === "sales" && lead.data && (
+        <div className="rounded-md border p-3">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <CheckCircle2 className="h-3 w-3" /> Státusz
+          </div>
+          <LeadActionBar
+            status={currentStatus}
+            busy={updateLead.isPending}
+            onChangeStatus={(next) => updateLead.mutate({ status: next })}
+            onWon={() => setWonOpen(true)}
+            onLost={() => setLostOpen(true)}
+          />
+        </div>
+      )}
+
       {/* 1. Email */}
       <div className="rounded-md border p-3">
         <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -212,19 +316,73 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         </div>
       </div>
 
-      {/* 4. Ajánlat — csak Sales */}
+      {/* 4. Ajánlat — Sales V2 verziókezelés */}
       {mode === "sales" && (
         <div className="rounded-md border p-3">
+          <div className="mb-2 flex items-center justify-between gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <span className="flex items-center gap-1.5"><FileText className="h-3 w-3" /> Ajánlatok</span>
+            <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" disabled={!quotesEditable || quotesBusy || !leadId} onClick={createQuoteVersion}>
+              <Plus className="mr-1 h-3 w-3" /> Új verzió
+            </Button>
+          </div>
+          {!quotesEditable && (
+            <div className="mb-1.5 text-[10px] text-muted-foreground">
+              Új verzió csak ajánlat-fázisú leadnél (quote_prep / quote_sent / follow_up / contract).
+            </div>
+          )}
+          {(quotes.data ?? []).length === 0 ? (
+            <>
+              <QuickCreateQuoteButton label="Új ajánlat indítása" variant="secondary" />
+              <div className="mt-1.5 text-[10px] text-muted-foreground">Még nincs ajánlat ehhez a leadhez.</div>
+            </>
+          ) : (
+            <ul className="space-y-1">
+              {(quotes.data ?? []).map((qu: any) => (
+                <li key={qu.id} className="flex items-center justify-between gap-2 rounded border px-2 py-1 text-[11px]">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    <Badge variant="outline">v{qu.version}</Badge>
+                    {qu.is_current && <Badge>aktuális</Badge>}
+                    <Link to="/quotes/$id" params={{ id: qu.id }} className="truncate text-primary hover:underline">
+                      megnyitás
+                    </Link>
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <span className="tabular-nums">{fmtDate(qu.created_at)}</span>
+                    {!qu.is_current && (
+                      <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]" disabled={quotesBusy} onClick={() => setCurrentQuote(qu.id)}>
+                        <Check className="mr-0.5 h-3 w-3" /> Akt.
+                      </Button>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {/* 5b. Projekt átadás — Sales, V2 (csak won esetén) */}
+      {mode === "sales" && lead.data && currentStatus === "won" && (
+        <div className="rounded-md border p-3">
           <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <FileText className="h-3 w-3" /> Ajánlat
+            <Briefcase className="h-3 w-3" /> Projekt átadás
           </div>
-          <QuickCreateQuoteButton
-            label="Új ajánlat indítása"
-            variant="secondary"
-          />
-          <div className="mt-1.5 text-[11px] text-muted-foreground">
-            Dialog itt nyílik, oldalváltás nélkül.
-          </div>
+          {(projects.data ?? []).length === 0 ? (
+            <Button size="sm" className="w-full" onClick={() => setHandoffOpen(true)}>
+              <Send className="mr-1.5 h-3.5 w-3.5" /> Projekt indítása
+            </Button>
+          ) : (
+            <ul className="space-y-1 text-[11px]">
+              {(projects.data ?? []).map((p: any) => (
+                <li key={p.id} className="flex items-center justify-between rounded border px-2 py-1">
+                  <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
+                    {p.title ?? "—"}
+                  </Link>
+                  <Badge variant="outline">{p.status ?? "—"}</Badge>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -248,6 +406,41 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         onSent={handleEmailSent}
       />
       <AiSheet open={aiOpen} onOpenChange={setAiOpen} agent={agent} agentLabel={agentLabel} />
+
+      {/* V2 dialogok */}
+      <WonDialog
+        open={wonOpen}
+        onOpenChange={setWonOpen}
+        busy={updateLead.isPending}
+        onConfirm={() => updateLead.mutate({ status: "won" }, { onSuccess: () => { setWonOpen(false); invalidate(); } })}
+      />
+      <LostDialog
+        open={lostOpen}
+        onOpenChange={setLostOpen}
+        busy={updateLead.isPending}
+        onConfirm={(p) => updateLead.mutate({ status: "lost", ...p }, { onSuccess: () => { setLostOpen(false); invalidate(); } })}
+      />
+      {lead.data && (
+        <HandoffDialog
+          open={handoffOpen}
+          onOpenChange={setHandoffOpen}
+          defaultTitle={lead.data.summary ? `Projekt — ${String(lead.data.summary).slice(0, 60)}` : `Projekt — #${String(lead.data.id).slice(0, 8)}`}
+          seed={{
+            contact_name: lead.data.contact_id ? contactLabel(lead.data.contact_id) : "",
+            contact_email: contact.data?.email ?? "",
+          }}
+          onConfirm={async ({ title, payload }) => {
+            if (!leadId) return;
+            const { error } = await supabase.from("projects").insert({
+              lead_id: leadId, title, status: "planned", handoff_payload: payload,
+            });
+            if (error) { toast.error(error.message); return; }
+            toast.success("Projekt létrehozva");
+            setHandoffOpen(false);
+            invalidate();
+          }}
+        />
+      )}
     </div>
   );
 }
