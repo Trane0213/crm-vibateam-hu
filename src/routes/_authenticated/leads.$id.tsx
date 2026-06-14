@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, Briefcase, Send, FileText, Activity } from "lucide-react";
+import { Sparkles, Briefcase, Send, FileText, Activity, User, CalendarClock, ListChecks, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/page-header";
@@ -51,6 +51,7 @@ function LeadDetail() {
       return data ?? [];
     },
   });
+  const lastActivityAt = (history.data ?? [])[0]?.changed_at ?? lead.assigned_at ?? lead.created_at;
   return (
     <div className="flex flex-col">
       <div className="border-b bg-background px-6 py-4">
@@ -70,6 +71,12 @@ function LeadDetail() {
         </div>
         <div className="mt-3">
           <LeadStatusStepper status={lead.status} />
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+          <KeyFact icon={User} label="Felelős" value={lead.assigned_to ? `#${String(lead.assigned_to).slice(0, 8)}` : "Nincs kiosztva"} muted={!lead.assigned_to} />
+          <KeyFact icon={ListChecks} label="Következő lépés" value={lead.next_step_type ? NEXT_STEP_LABEL[lead.next_step_type as NextStepType] ?? lead.next_step_type : "Nincs megadva"} muted={!lead.next_step_type} />
+          <KeyFact icon={CalendarClock} label="Határidő" value={lead.next_step_due_at ? fmtDate(lead.next_step_due_at) : "—"} muted={!lead.next_step_due_at} />
+          <KeyFact icon={Clock} label="Utolsó aktivitás" value={lastActivityAt ? fmtDate(lastActivityAt) : "—"} muted={!lastActivityAt} />
         </div>
       </div>
       <Tabs defaultValue="overview" className="px-6 pt-4">
@@ -233,6 +240,28 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
     <div className="flex justify-between gap-2">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{children}</span>
+    </div>
+  );
+}
+
+function KeyFact({
+  icon: Icon,
+  label,
+  value,
+  muted,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: React.ReactNode;
+  muted?: boolean;
+}) {
+  return (
+    <div className="rounded-md border bg-muted/30 px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        {label}
+      </div>
+      <div className={`mt-0.5 text-sm font-medium ${muted ? "italic text-muted-foreground" : ""}`}>{value}</div>
     </div>
   );
 }
