@@ -837,42 +837,43 @@ function SalesNoteEditor({
   );
 }
 
-function SimpleTimeline({
-  threads, createdAt, statusDate, status,
-}: {
-  threads: any[]; createdAt: string; statusDate: string | null; status: MarketingStatus;
-}) {
-  const events: { at: string; label: string; icon: any; tone: string }[] = [];
-      events.push({ at: createdAt, label: "Cég létrehozva", icon: Sparkles, tone: "text-[color:var(--status-info)]" });
-  if (statusDate) {
-    events.push({
-      at: `${statusDate}T00:00:00`,
-      label: `Marketing státusz: ${MARKETING_STATUS_LABEL[status]}`,
-      icon: status === "handoff" ? ArrowRightCircle : AlertCircle,
-      tone: status === "handoff" ? "text-[color:var(--status-success)]" : "text-primary",
-    });
-  }
-  for (const t of threads.slice(0, 20)) {
-    events.push({
-      at: t.last_message_at ?? t.created_at,
-      label: `Email szál — ${t.subject ?? "(nincs tárgy)"}`,
-      icon: Mail,
-      tone: "text-muted-foreground",
-    });
-  }
-  events.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
+function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
   if (events.length === 0) return <EmptyState icon={History} title="Nincs esemény" />;
+  const iconFor = (k: TimelineEvent["kind"]) => {
+    switch (k) {
+      case "company_created": return Sparkles;
+      case "contact_added":   return UserPlus;
+      case "email_sent":      return Send;
+      case "email_received":  return Mail;
+      case "doc_uploaded":    return FolderOpen;
+      case "handoff":         return ArrowRightCircle;
+      case "status_change":   return AlertCircle;
+      default:                return History;
+    }
+  };
+  const toneFor = (k: TimelineEvent["kind"]) => {
+    if (k === "handoff") return "text-[color:var(--status-success)]";
+    if (k === "status_change") return "text-primary";
+    if (k === "company_created") return "text-[color:var(--status-info)]";
+    return "text-muted-foreground";
+  };
   return (
     <ol className="space-y-2">
-      {events.map((e, i) => (
-        <li key={i} className="flex items-start gap-3 rounded-md border bg-card p-3 text-sm">
-          <e.icon className={`mt-0.5 h-4 w-4 shrink-0 ${e.tone}`} />
-          <div className="min-w-0 flex-1">
-            <div className="truncate">{e.label}</div>
-            <div className="text-[11px] text-muted-foreground">{fmtDateTime(e.at)}</div>
-          </div>
-        </li>
-      ))}
+      {events.map((e, i) => {
+        const Icon = iconFor(e.kind);
+        return (
+          <li key={i} className="flex items-start gap-3 rounded-md border bg-card p-3 text-sm">
+            <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${toneFor(e.kind)}`} />
+            <div className="min-w-0 flex-1">
+              <div className="truncate">
+                {e.label}
+                {e.detail && <span className="ml-2 text-muted-foreground">— {e.detail}</span>}
+              </div>
+              <div className="text-[11px] text-muted-foreground">{fmtDateTime(e.at)}</div>
+            </div>
+          </li>
+        );
+      })}
     </ol>
   );
 }
