@@ -132,3 +132,13 @@ Megvalósítva ebben az iterációban:
 Mutációk a Supabase böngészőkliensen keresztül, a meglévő RLS és üzleti-trigger szabályok mellett (`leads_business_rules`, `leads_status_history_write`, `projects_lead_handoff_guard`). Cache invalidáció: `leads/detail/$id`, `lead-status-history/$id`, `projects`, `quotes`.
 
 Nem épült be (szándékosan): auto-assign, SLA push, AI ajánlás, quote PDF/küldés, mobil reszponzív finomhangolás, semantic CSS tokenek (`--status-*`) — ez utóbbiak a következő körben jönnek.
+
+### Lead Workspace V2 — `assigned_to` írási oldal (kiegészítés)
+
+- **Séma-ellenőrzés**: a `database/2026-06-23_sales_module_v1.sql` migráció alapján minden hivatkozott mező (`leads.assigned_to/assigned_at/next_step_*/lost_*/won_at/lost_at`, `lead_status_history`, `quotes.version/is_current`, `projects.lead_id/handoff_payload/handoff_at`, `users_profile`, `v_sales_user_load`) létezik. Spekuláció nélkül építkezünk.
+- **AssigneePicker** (`src/components/sales/assignee-picker.tsx`): header inline picker.
+  - Sales szerepkör: csak **„Magamhoz veszem"** vagy **„Lemondom"** gomb (RLS `leads_update_sales` WITH CHECK: csak saját magához rendelhet).
+  - Owner: dropdown a `v_sales_user_load`-ból (név + aktív lead darab), „Magamhoz veszem" és „Kiosztás törlése".
+- Mentés: meglévő `updateLead` mutáció `{ assigned_to: <uuid|null> }` patchcel. Az `assigned_at` mezőt a `leads_business_rules` trigger állítja.
+
+Ezzel a Lead Workspace V2 a backend v1 minden tervezett mezőjére írási joggal rendelkezik (a tiltott trigger-szabályok mellett), és a többi Sales oldal érintetlen maradt.
