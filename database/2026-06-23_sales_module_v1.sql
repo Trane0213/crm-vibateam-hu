@@ -80,16 +80,18 @@ ALTER TABLE public.leads
 --    qualified  -> quote_prep
 --    converted  -> won
 --    Régen meglévő won/lost sorokon a won_at / lost_at kitöltése.
+--    Megjegyzés: a leads táblában nincs updated_at oszlop, ezért a
+--    won_at / lost_at fallback csak created_at-re megy.
 -- ---------------------------------------------------------------------
 UPDATE public.leads SET status = 'quote_prep' WHERE status = 'qualified';
 UPDATE public.leads SET status = 'won'        WHERE status = 'converted';
 
 UPDATE public.leads
-   SET won_at = COALESCE(won_at, updated_at, created_at)
+   SET won_at = COALESCE(won_at, created_at)
  WHERE status = 'won' AND won_at IS NULL;
 
 UPDATE public.leads
-   SET lost_at = COALESCE(lost_at, updated_at, created_at)
+   SET lost_at = COALESCE(lost_at, created_at)
  WHERE status = 'lost' AND lost_at IS NULL;
 
 UPDATE public.leads
@@ -340,7 +342,7 @@ SELECT
     COALESCE((SELECT MAX(e.created_at) FROM public.emails e   WHERE e.lead_id = l.id), 'epoch'::timestamptz),
     COALESCE((SELECT MAX(f.created_at) FROM public.followups f WHERE f.lead_id = l.id), 'epoch'::timestamptz),
     COALESCE((SELECT MAX(h.changed_at) FROM public.lead_status_history h WHERE h.lead_id = l.id), 'epoch'::timestamptz),
-    COALESCE(l.updated_at, l.created_at, 'epoch'::timestamptz)
+    COALESCE(l.created_at, 'epoch'::timestamptz)
   ) AS last_activity_at
 FROM public.leads l;
 
