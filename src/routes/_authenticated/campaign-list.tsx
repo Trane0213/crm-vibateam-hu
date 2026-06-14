@@ -302,6 +302,7 @@ function CampaignListPage() {
           if (!composer) return;
           const row = (q.data ?? []).find((r) => r.contacts.some((c) => c.email === composer.to));
           if (row) void markEmailSent(row.id, row.notes);
+          qc.invalidateQueries({ queryKey: ["mkt-home", "marketing-companies"] });
           setComposer(null);
         }}
       />
