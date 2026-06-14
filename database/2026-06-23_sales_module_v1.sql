@@ -357,20 +357,20 @@ GRANT SELECT ON public.v_lead_activity TO service_role;
 CREATE OR REPLACE VIEW public.v_sales_user_load
 WITH (security_invoker = true) AS
 SELECT
-  ur.user_id                                       AS user_id,
+  up.auth_user_id                                  AS user_id,
   COALESCE(up.full_name, up.email, '')             AS full_name,
   up.email                                         AS email,
   COALESCE(cnt.active_lead_count, 0)               AS active_lead_count
-FROM public.user_roles ur
-LEFT JOIN public.users_profile up
-       ON up.auth_user_id = ur.user_id
+FROM public.users_profile up
+JOIN public.roles r ON r.id = up.role_id
 LEFT JOIN LATERAL (
   SELECT COUNT(*)::int AS active_lead_count
     FROM public.leads l
-   WHERE l.assigned_to = ur.user_id
+   WHERE l.assigned_to = up.auth_user_id
      AND l.status NOT IN ('won','lost')
 ) cnt ON true
-WHERE ur.role = 'sales';
+WHERE lower(r.name) = 'sales'
+  AND up.auth_user_id IS NOT NULL;
 
 GRANT SELECT ON public.v_sales_user_load TO authenticated;
 GRANT SELECT ON public.v_sales_user_load TO service_role;
