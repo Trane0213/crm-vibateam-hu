@@ -11,11 +11,14 @@ export function LostDialog({
   onOpenChange,
   onConfirm,
   busy,
+  stage = "pipeline",
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onConfirm: (payload: { lost_reason: LostReason; lost_note: string | null }) => void;
+  onConfirm: (payload: { lost_reason: LostReason; lost_note: string | null; lost_stage: "pre_pipeline" | "pipeline" }) => void;
   busy?: boolean;
+  /** Melyik szakaszban veszett el (riport bontáshoz). Default: pipeline. */
+  stage?: "pre_pipeline" | "pipeline";
 }) {
   const [reason, setReason] = useState<LostReason | "">("");
   const [note, setNote] = useState("");
@@ -45,7 +48,7 @@ export function LostDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Mégse</Button>
-          <Button variant="destructive" disabled={!reason || busy} onClick={() => reason && onConfirm({ lost_reason: reason, lost_note: note.trim() || null })}>
+          <Button variant="destructive" disabled={!reason || busy} onClick={() => reason && onConfirm({ lost_reason: reason, lost_note: note.trim() || null, lost_stage: stage })}>
             {busy ? "Mentés…" : "Elveszett megjelölése"}
           </Button>
         </DialogFooter>

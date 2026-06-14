@@ -86,6 +86,12 @@ export function LeadListColumn({
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = (data ?? []).filter((l: any) => {
+      // SALES előkészítő lista: a pipeline-ba átléptetett leadek innen
+      // eltűnnek (Pipeline menüben jelennek meg). Elveszett szintén kiesik.
+      if (mode === "sales") {
+        if (l.pipeline_entered_at) return false;
+        if (l.status === "lost" || l.status === "won") return false;
+      }
       if (mode === "marketing") {
         // Marketing tabok: Aktív=new/contacted, Átadható=qualified, Nem érdekes=lost.
         // A `converted` státusz a marketingnek nem jelenik meg (értékesítő hatáskör).
