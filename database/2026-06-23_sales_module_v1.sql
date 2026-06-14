@@ -342,7 +342,7 @@ SELECT
     COALESCE((SELECT MAX(e.created_at) FROM public.emails e   WHERE e.lead_id = l.id), 'epoch'::timestamptz),
     COALESCE((SELECT MAX(f.created_at) FROM public.followups f WHERE f.lead_id = l.id), 'epoch'::timestamptz),
     COALESCE((SELECT MAX(h.changed_at) FROM public.lead_status_history h WHERE h.lead_id = l.id), 'epoch'::timestamptz),
-    COALESCE(l.updated_at, l.created_at, 'epoch'::timestamptz)
+    COALESCE(l.created_at, 'epoch'::timestamptz)
   ) AS last_activity_at
 FROM public.leads l;
 
