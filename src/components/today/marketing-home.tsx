@@ -51,6 +51,21 @@ export function MarketingHome() {
     },
   });
 
+  // Email aktivitás = email darabszám (nem thread). Egységes a workspace-szel.
+  const emailsQ = useQuery({
+    queryKey: ["mkt-home", "recent-emails"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("emails")
+        .select("id,thread_id,internal_date,created_at")
+        .gte("created_at", monthAgo)
+        .order("internal_date", { ascending: false, nullsFirst: false })
+        .limit(1000);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
   const companies = companiesQ.data ?? [];
   const threads   = threadsQ.data ?? [];
 
@@ -78,15 +93,24 @@ export function MarketingHome() {
     (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= monthAgo.slice(0, 10),
   ).length;
   const handoffRate30 = newCompanies30 > 0 ? Math.round((handoff30 / newCompanies30) * 100) : 0;
-  const emails7 = threads.filter((t: any) => t.last_message_at >= weekAgo).length;
+  const recentEmails = (emailsQ.data ?? []).filter((e: any) =>
+    (e.internal_date ?? e.created_at) >= weekAgo,
+  );
+  const emails7 = recentEmails.length;
   const replied7 = (() => {
-    const recent = threads.filter((t: any) => t.last_message_at >= weekAgo);
-    if (recent.length === 0) return 0;
-    const r = recent.length;
-    return Math.round((r / recent.length) * 100);
+    // Válaszadási arány: hány aktív szálban van legalább 1 bejövő válasz az
+    // elmúlt 7 napban (azaz több mint 1 email a szálban).
+    const recentThreads = threads.filter((t: any) => t.last_message_at >= weekAgo);
+    if (recentThreads.length === 0) return 0;
+    const byThread = new Map<string, number>();
+    for (const e of (emailsQ.data ?? []) as any[]) {
+      byThread.set(e.thread_id, (byThread.get(e.thread_id) ?? 0) + 1);
+    }
+    const replied = recentThreads.filter((t: any) => (byThread.get(t.id) ?? 0) > 1).length;
+    return Math.round((replied / recentThreads.length) * 100);
   })();
 
-  const loading = companiesQ.isLoading || threadsQ.isLoading;
+  const loading = companiesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
 
   return (
     <div className="flex flex-col">
@@ -190,7 +214,7 @@ export function MarketingHome() {
             <PerfTile label="Új cég · 7 nap"  value={newCompanies7} />
             <PerfTile label="Új cég · 30 nap" value={newCompanies30} />
             <PerfTile label="Átadási arány · 30 nap" value={`${handoffRate30}%`} sub="átadott / új cég" />
-            <PerfTile label="Email aktivitás · 7 nap" value={emails7} sub="aktív szál" />
+            <PerfTile label="Email aktivitás · 7 nap" value={emails7} sub="email db" />
             <PerfTile label="Válaszadási arány · 7 nap" value={`${replied7}%`} sub="szálban >1 üzenet" />
           </div>
         </section>

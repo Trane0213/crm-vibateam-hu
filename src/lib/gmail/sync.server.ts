@@ -113,16 +113,32 @@ export async function syncInbox(
     gmailThreadId: string,
     subject: string | null,
     crm: { contact_id: string | null; company_id: string | null; lead_id: string | null },
-  ): Promise<string> {
+  ): Promise<{ id: string; contact_id: string | null; company_id: string | null; lead_id: string | null }> {
     const safeSubject = subject && subject.trim().length > 0 ? subject : "(nincs tárgy)";
-    const cached = threadCache.get(gmailThreadId);
-    if (cached) return cached;
     const { data: found } = await admin
       .from("email_threads")
-      .select("id")
+      .select("id,contact_id,company_id,lead_id")
       .eq("gmail_thread_id", gmailThreadId)
       .maybeSingle();
-    if (found?.id) { threadCache.set(gmailThreadId, found.id); return found.id; }
+    if (found?.id) {
+      threadCache.set(gmailThreadId, found.id);
+      // Ha a thread még nem ismeri valamelyik CRM mezőt, de az új email igen,
+      // szinkronizáljuk a threadre is, hogy konzisztens legyen.
+      const patch: Record<string, string> = {};
+      if (!found.contact_id && crm.contact_id) patch.contact_id = crm.contact_id;
+      if (!found.company_id && crm.company_id) patch.company_id = crm.company_id;
+      if (!found.lead_id && crm.lead_id) patch.lead_id = crm.lead_id;
+      if (Object.keys(patch).length) {
+        await admin.from("email_threads").update(patch).eq("id", found.id);
+        Object.assign(found, patch);
+      }
+      return {
+        id: found.id,
+        contact_id: found.contact_id ?? null,
+        company_id: found.company_id ?? null,
+        lead_id: found.lead_id ?? null,
+      };
+    }
     const { data: inserted, error: insErr } = await admin
       .from("email_threads")
       .insert({
@@ -142,7 +158,7 @@ export async function syncInbox(
       { thread_id: inserted.id, user_id: userId, mailbox_email: myMailbox },
       { onConflict: "thread_id,user_id" },
     );
-    return inserted.id;
+    return { id: inserted.id, contact_id: crm.contact_id, company_id: crm.company_id, lead_id: crm.lead_id };
   }
 
   // Cloudflare Worker / gateway timeout miatt egy run max ~45 mp lehet backfillnél.
@@ -244,7 +260,7 @@ export async function syncInbox(
           if (m.threadId) {
             const { data: tr } = await admin
               .from("email_threads")
-              .select("id")
+              .select("id,contact_id,company_id,lead_id")
               .eq("gmail_thread_id", m.threadId)
               .maybeSingle();
             if (tr?.id) {
@@ -252,6 +268,21 @@ export async function syncInbox(
                 { thread_id: tr.id, user_id: userId, mailbox_email: myMailbox },
                 { onConflict: "thread_id,user_id" },
               );
+              // Email CRM backfill a threadről, ha hiányzik
+              const { data: erow } = await admin
+                .from("emails")
+                .select("company_id,contact_id,lead_id")
+                .eq("id", knownId)
+                .maybeSingle();
+              if (erow) {
+                const patch: Record<string, string> = {};
+                if (!erow.company_id && tr.company_id) patch.company_id = tr.company_id;
+                if (!erow.contact_id && tr.contact_id) patch.contact_id = tr.contact_id;
+                if (!erow.lead_id && tr.lead_id) patch.lead_id = tr.lead_id;
+                if (Object.keys(patch).length) {
+                  await admin.from("emails").update(patch).eq("id", knownId);
+                }
+              }
             }
           }
         } catch {}
@@ -276,7 +307,14 @@ export async function syncInbox(
           ...toList, ...ccList, ...bccList,
         ].filter((a) => a && a.toLowerCase() !== myMailbox);
         const crm = matchCrm(allAddrs);
-        const threadDbId = await ensureThread(m.threadId, subject, crm);
+        const thread = await ensureThread(m.threadId, subject, crm);
+        const threadDbId = thread.id;
+        // Az email mindig örökli a thread CRM mezőit, ha az adott email nem matchelt
+        const effective = {
+          contact_id: crm.contact_id ?? thread.contact_id,
+          company_id: crm.company_id ?? thread.company_id,
+          lead_id: crm.lead_id ?? thread.lead_id,
+        };
         const labels = (m.labelIds ?? []) as string[];
         const isOutbound =
           labels.includes("SENT") ||
@@ -299,9 +337,9 @@ export async function syncInbox(
           gmail_label_ids: labels,
           is_outbound: isOutbound,
           owner_user_id: userId,
-          contact_id: crm.contact_id,
-          company_id: crm.company_id,
-          lead_id: crm.lead_id,
+          contact_id: effective.contact_id,
+          company_id: effective.company_id,
+          lead_id: effective.lead_id,
         };
         const { data: inserted, error } = await admin
           .from("emails")
