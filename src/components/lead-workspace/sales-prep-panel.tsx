@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { useUpdateLead } from "./use-lead-mutations";
+import { statusToLostStage } from "@/lib/sales/constants";
 
 type ActivityType = "call" | "email" | "meeting";
 const ACTIVITY_LABEL: Record<ActivityType, string> = {
@@ -313,7 +314,13 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         onOpenChange={setLostOpen}
         busy={updateLead.isPending}
         onConfirm={(p) => updateLead.mutate(
-          { status: "lost", lost_stage: "pre_pipeline", lost_at: new Date().toISOString(), ...p },
+          {
+            status: "lost",
+            // 2026-06-27 invariáns: a lost_stage a tényleges aktuális státusz.
+            lost_stage: statusToLostStage(lead.data?.status),
+            lost_at: new Date().toISOString(),
+            ...p,
+          },
           { onSuccess: () => { setLostOpen(false); qc.invalidateQueries({ queryKey: ["leads"] }); } },
         )}
       />

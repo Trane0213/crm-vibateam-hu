@@ -17,6 +17,7 @@ import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { logActivity } from "@/lib/activity-log";
 import { ExternalLink, Building2, Mail, User, Calendar } from "lucide-react";
 import type { LeadStatus } from "@/lib/sales/constants";
+import { statusToLostStage } from "@/lib/sales/constants";
 import type { PipelineLead } from "./pipeline-types";
 
 /**
@@ -93,8 +94,9 @@ export function PipelineDetailSheet({
           lost_at: new Date().toISOString(),
           lost_reason: p.lost_reason,
           lost_note: p.lost_note,
-          // Honnan veszett el — az Elveszett listán a reaktiváláshoz kell.
-          lost_stage: "pipeline",
+          // 2026-06-27 invariáns: a lost_stage a tényleges aktuális
+          // pipeline-státusz, hogy a reaktiváló 1:1 vissza tudja állítani.
+          lost_stage: statusToLostStage(lead.status),
         })
         .eq("id", lead.id);
       if (error) throw error;
