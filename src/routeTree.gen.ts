@@ -56,7 +56,6 @@ import { Route as AuthenticatedSalesTodoRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
 import { Route as AuthenticatedSalesQuotesRouteImport } from './routes/_authenticated/sales.quotes'
 import { Route as AuthenticatedSalesLeadsRouteImport } from './routes/_authenticated/sales.leads'
-import { Route as AuthenticatedSalesHandoffRouteImport } from './routes/_authenticated/sales.handoff'
 import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
@@ -326,12 +325,6 @@ const AuthenticatedSalesLeadsRoute = AuthenticatedSalesLeadsRouteImport.update({
   path: '/sales/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSalesHandoffRoute =
-  AuthenticatedSalesHandoffRouteImport.update({
-    id: '/sales/handoff',
-    path: '/sales/handoff',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedQuotesIdRoute = AuthenticatedQuotesIdRouteImport.update({
   id: '/quotes/$id',
   path: '/quotes/$id',
@@ -419,7 +412,6 @@ export interface FileRoutesByFullPath {
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
-  '/sales/handoff': typeof AuthenticatedSalesHandoffRoute
   '/sales/leads': typeof AuthenticatedSalesLeadsRoute
   '/sales/quotes': typeof AuthenticatedSalesQuotesRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
@@ -478,7 +470,6 @@ export interface FileRoutesByTo {
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/quotes/$id': typeof AuthenticatedQuotesIdRoute
-  '/sales/handoff': typeof AuthenticatedSalesHandoffRoute
   '/sales/leads': typeof AuthenticatedSalesLeadsRoute
   '/sales/quotes': typeof AuthenticatedSalesQuotesRoute
   '/sales/research': typeof AuthenticatedSalesResearchRoute
@@ -540,7 +531,6 @@ export interface FileRoutesById {
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/quotes/$id': typeof AuthenticatedQuotesIdRoute
-  '/_authenticated/sales/handoff': typeof AuthenticatedSalesHandoffRoute
   '/_authenticated/sales/leads': typeof AuthenticatedSalesLeadsRoute
   '/_authenticated/sales/quotes': typeof AuthenticatedSalesQuotesRoute
   '/_authenticated/sales/research': typeof AuthenticatedSalesResearchRoute
@@ -602,7 +592,6 @@ export interface FileRouteTypes {
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
-    | '/sales/handoff'
     | '/sales/leads'
     | '/sales/quotes'
     | '/sales/research'
@@ -661,7 +650,6 @@ export interface FileRouteTypes {
     | '/leads/$id'
     | '/projects/$id'
     | '/quotes/$id'
-    | '/sales/handoff'
     | '/sales/leads'
     | '/sales/quotes'
     | '/sales/research'
@@ -722,7 +710,6 @@ export interface FileRouteTypes {
     | '/_authenticated/leads/$id'
     | '/_authenticated/projects/$id'
     | '/_authenticated/quotes/$id'
-    | '/_authenticated/sales/handoff'
     | '/_authenticated/sales/leads'
     | '/_authenticated/sales/quotes'
     | '/_authenticated/sales/research'
@@ -1104,13 +1091,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSalesLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/sales/handoff': {
-      id: '/_authenticated/sales/handoff'
-      path: '/sales/handoff'
-      fullPath: '/sales/handoff'
-      preLoaderRoute: typeof AuthenticatedSalesHandoffRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/quotes/$id': {
       id: '/_authenticated/quotes/$id'
       path: '/quotes/$id'
@@ -1249,7 +1229,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
   AuthenticatedQuotesIdRoute: typeof AuthenticatedQuotesIdRoute
-  AuthenticatedSalesHandoffRoute: typeof AuthenticatedSalesHandoffRoute
   AuthenticatedSalesLeadsRoute: typeof AuthenticatedSalesLeadsRoute
   AuthenticatedSalesQuotesRoute: typeof AuthenticatedSalesQuotesRoute
   AuthenticatedSalesResearchRoute: typeof AuthenticatedSalesResearchRoute
@@ -1286,7 +1265,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
   AuthenticatedQuotesIdRoute: AuthenticatedQuotesIdRoute,
-  AuthenticatedSalesHandoffRoute: AuthenticatedSalesHandoffRoute,
   AuthenticatedSalesLeadsRoute: AuthenticatedSalesLeadsRoute,
   AuthenticatedSalesQuotesRoute: AuthenticatedSalesQuotesRoute,
   AuthenticatedSalesResearchRoute: AuthenticatedSalesResearchRoute,
