@@ -59,7 +59,22 @@ export function ProjectTimeline(props: {
 
   if (props.project) {
     const p = props.project;
-    if (p.created_at) events.push({ at: p.created_at, kind: "project_created", title: p.title ?? "Projekt", detail: p.status ?? undefined });
+    if (p.created_at) {
+      // A Sales pipeline „Megnyertük” gombja (sales_mark_won_with_project RPC)
+      // megkülönböztethető a kézi projekt-létrehozástól — emeljük ki a
+      // timeline-on, hogy a PM lássa, honnan jött az átadás.
+      const viaRpc = p?.handoff_payload?.created_via === "sales_mark_won_with_project";
+      events.push({
+        at: p.created_at,
+        kind: "project_created",
+        title: viaRpc
+          ? `Sales átadás → ${p.title ?? "Projekt"}`
+          : (p.title ?? "Projekt"),
+        detail: viaRpc
+          ? `Sales pipeline-ból (${p.status ?? "—"})`
+          : (p.status ?? undefined),
+      });
+    }
     if ((p.status === "completed" || p.status === "lost") && (p.closed_at ?? p.updated_at)) {
       events.push({ at: p.closed_at ?? p.updated_at, kind: "project_closed", title: p.title ?? "Projekt", detail: p.status });
     }
