@@ -68,12 +68,19 @@ const aiAgents: AiAgentItem[] = [
   { title: "Scarlet – Marketing Stratéga",      url: "/sales/research", icon: Radar,      agentId: "marketing",                              highlight: true },
 ];
 
-const pipeline: Item[] = [
-  // A jóváhagyott workflow: Workspace → Pipeline → Projekt.
-  // A régi önálló szerkesztők (/leads, /quotes, /followups, /tasks) párhuzamos
-  // editálást engednének, ezért nem szerepelnek a navigációban. A route-ok
-  // megmaradtak deep-linkre, de a Pipeline lesz az egyetlen szerkesztő hely.
+// A napi sales útvonal: Ma → Workspace → Pipeline → Projekt.
+// Ez az egyetlen szerkeszthető folyamat — minden más nézet/riport vagy
+// szerepkör-specifikus admin felület.
+const workflow: Item[] = [
+  { title: "Workspace", url: "/leads", icon: Sparkles, highlight: true },
+  { title: "Pipeline", url: "/sales/leads", icon: Target, highlight: true },
   { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
+];
+
+// Olvasó nézetek — NEM munkafelületek. Szerkesztés a Workspace/Pipeline-on.
+const reports: Item[] = [
+  { title: "Teendők (riport)", url: "/sales/todo", icon: CheckSquare },
+  { title: "Ajánlatok (riport)", url: "/sales/quotes", icon: FileText },
 ];
 
 const contacts: Item[] = [
@@ -101,15 +108,10 @@ const sys: Item[] = [
 ];
 
 const sales: Item[] = [
-  // Jóváhagyott folyamat: Áttekintés → Workspace → Pipeline → Projekt.
-  // A Teendők és Ajánlatok itt csak read-only riport-nézetek, szerkesztés
-  // kizárólag a Workspace-en (előkészítés) vagy a Pipeline-on (futó ügy).
-  { title: "Áttekintés", url: "/sales", icon: LayoutDashboard, highlight: true },
-  { title: "Workspace", url: "/leads", icon: Sparkles },
-  { title: "Pipeline", url: "/sales/leads", icon: Target },
-  { title: "Teendők (riport)", url: "/sales/todo", icon: CheckSquare },
-  { title: "Ajánlatok (riport)", url: "/sales/quotes", icon: FileText },
-  { title: "Projektek", url: "/projects", icon: Briefcase },
+  // Sales-nek a Ma az egyetlen kezdőoldal — a Sales Áttekintés ugyanazt
+  // a célt szolgálta, ezért náluk elrejtve. Owner/PM számára marad,
+  // adminisztratív áttekintésként.
+  { title: "Sales áttekintés", url: "/sales", icon: LayoutDashboard, hideForRoles: ["sales"] },
 ];
 
 export function AppSidebar() {
@@ -230,10 +232,11 @@ export function AppSidebar() {
       <SidebarContent className="gap-0 px-2 py-2">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
         {renderAiGroup()}
-        {visible(sales).length > 0 && renderGroup("Sales", visible(sales))}
-        {visible(pipeline).length > 0 && renderGroup("Pipeline", visible(pipeline))}
+        {visible(workflow).length > 0 && renderGroup("Workflow", visible(workflow))}
+        {visible(reports).length > 0 && renderGroup("Riportok", visible(reports))}
         {visible(contacts).length > 0 && renderGroup("Ügyfelek", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
+        {visible(sales).length > 0 && renderGroup("Admin", visible(sales))}
         {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
       </SidebarContent>
     </Sidebar>
