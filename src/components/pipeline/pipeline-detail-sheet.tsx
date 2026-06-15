@@ -41,6 +41,9 @@ export function PipelineDetailSheet({
   const [wonOpen, setWonOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
+  // A won előtti pipeline-állapot — szükséges, ha az értékesítő a projekt-
+  // létrehozó dialógusban a „Mégse és visszaállít" gombot választja.
+  const [preWonStatus, setPreWonStatus] = useState<string | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["pipeline"] });
@@ -62,6 +65,7 @@ export function PipelineDetailSheet({
   const wonMut = useMutation({
     mutationFn: async () => {
       if (!lead) throw new Error("Nincs lead.");
+      setPreWonStatus(lead.status ?? null);
       const { error } = await supabase.from("leads").update({ status: "won", won_at: new Date().toISOString() }).eq("id", lead.id);
       if (error) throw error;
       await logActivity("leads", "status_change", lead.id, { from: lead.status, to: "won" });
@@ -214,6 +218,7 @@ export function PipelineDetailSheet({
               lead={lead}
               open={projOpen}
               onOpenChange={setProjOpen}
+              previousStatus={preWonStatus}
             />
           </>
         )}

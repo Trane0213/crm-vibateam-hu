@@ -64,20 +64,31 @@ function PipelineTiles() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-          {LEAD_STATUSES.map((s) => (
-            <Link
-              key={s}
-              to="/sales/leads"
-              search={{ status: s } as any}
-              className={cn(
-                "rounded-lg border px-3 py-2 transition hover:shadow-sm",
-                LEAD_STATUS_TONE[s],
-              )}
-            >
-              <div className="text-[11px] opacity-80">{LEAD_STATUS_LABEL[s]}</div>
-              <div className="text-2xl font-semibold leading-tight">{data?.[s] ?? "–"}</div>
-            </Link>
-          ))}
+          {LEAD_STATUSES.map((s) => {
+            // Won = projektté vált → Projektek listára.
+            // Lost = külön Elveszett menüpontra.
+            // A többi (aktív pipeline állapot) a Pipeline kanbanra megy,
+            // mert sales szerepkörből nincs /sales/leads "Lista" útvonal.
+            const linkProps =
+              s === "won"
+                ? ({ to: "/projects" } as const)
+                : s === "lost"
+                ? ({ to: "/leads/lost" } as const)
+                : ({ to: "/sales/leads" } as const);
+            return (
+              <Link
+                key={s}
+                {...linkProps}
+                className={cn(
+                  "rounded-lg border px-3 py-2 transition hover:shadow-sm",
+                  LEAD_STATUS_TONE[s],
+                )}
+              >
+                <div className="text-[11px] opacity-80">{LEAD_STATUS_LABEL[s]}</div>
+                <div className="text-2xl font-semibold leading-tight">{data?.[s] ?? "–"}</div>
+              </Link>
+            );
+          })}
         </div>
       </CardContent>
     </Card>

@@ -35,31 +35,37 @@ const STATUS_TONE: Record<string, string> = {
 function LeadsPage() {
   const { role } = usePermissions();
   const mode: "marketing" | "sales" = role === "sales" ? "sales" : "marketing";
-  // Alap a munkafelület — a marketinges itt végzi a napi munkát egyetlen képernyőn.
+  // Sales szerepkörből a Lista nézet ki van zárva: a sales workflow
+  // egyetlen útvonala Workspace → Pipeline → Elveszett → Projekt, lista
+  // nézet csak owner / projektvezető riportja lehet.
+  const canSeeList = role !== "sales";
   const [view, setView] = useState<"workspace" | "list">("workspace");
+  const activeView = canSeeList ? view : "workspace";
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b bg-background/60 px-6 py-2">
         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Érdeklődők</div>
-        <div className="flex gap-1 rounded-md border bg-muted/30 p-0.5 text-[11px]">
-          <Button
-            size="sm" variant={view === "workspace" ? "default" : "ghost"}
-            className="h-7 px-2 text-[11px]"
-            onClick={() => setView("workspace")}
-          >
-            <LayoutDashboard className="mr-1 h-3.5 w-3.5" /> Munkafelület
-          </Button>
-          <Button
-            size="sm" variant={view === "list" ? "default" : "ghost"}
-            className="h-7 px-2 text-[11px]"
-            onClick={() => setView("list")}
-          >
-            <List className="mr-1 h-3.5 w-3.5" /> Lista
-          </Button>
-        </div>
+        {canSeeList && (
+          <div className="flex gap-1 rounded-md border bg-muted/30 p-0.5 text-[11px]">
+            <Button
+              size="sm" variant={view === "workspace" ? "default" : "ghost"}
+              className="h-7 px-2 text-[11px]"
+              onClick={() => setView("workspace")}
+            >
+              <LayoutDashboard className="mr-1 h-3.5 w-3.5" /> Munkafelület
+            </Button>
+            <Button
+              size="sm" variant={view === "list" ? "default" : "ghost"}
+              className="h-7 px-2 text-[11px]"
+              onClick={() => setView("list")}
+            >
+              <List className="mr-1 h-3.5 w-3.5" /> Lista (admin)
+            </Button>
+          </div>
+        )}
       </div>
-      {view === "workspace" ? <LeadWorkspace mode={mode} /> : <LeadsListView />}
+      {activeView === "workspace" ? <LeadWorkspace mode={mode} /> : <LeadsListView />}
     </div>
   );
 }
