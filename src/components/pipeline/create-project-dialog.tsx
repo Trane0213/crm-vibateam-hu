@@ -17,25 +17,25 @@ import { logActivity } from "@/lib/activity-log";
 import type { PipelineLead } from "./pipeline-types";
 
 /**
- * Megnyert leadből projekt létrehozása. A backend trigger
- * (`projects_lead_handoff_guard`) ellenőrzi, hogy a lead.status='won',
- * ezért ezt a dialógust CSAK Won-jelölés után szabad megnyitni.
+ * Megnyert leadből projekt létrehozása.
+ *
+ * 2026-06-27 invariáns: a lead `won`-ra állítása ÉS a projekt létrehozása
+ * EGY tranzakció — a `public.sales_mark_won_with_project` RPC hívja
+ * mindkettőt SECURITY DEFINER-rel. A guard trigger minden más won-átmenetet
+ * elutasít, így nem maradhat „won lead projekt nélkül" állapot.
+ *
+ * Ebből következik: a dialógus megnyitásakor a lead státusza MÉG NEM 'won' —
+ * a Mégse gomb egyszerűen bezárja a dialógust, semmilyen visszaállítás
+ * nem szükséges.
  */
 export function CreateProjectDialog({
   lead,
   open,
   onOpenChange,
-  previousStatus,
 }: {
   lead: PipelineLead | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  /**
-   * A lead won-jelölés előtti státusza. Ha az értékesítő megszakítja a
-   * projekt-létrehozást, ide állítjuk vissza a leadet — így nem maradhat
-   * `won` állapotú lead projekt nélkül.
-   */
-  previousStatus?: string | null;
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -74,31 +74,23 @@ export function CreateProjectDialog({
       if (!lead) throw new Error("Nincs lead.");
       if (!managerId) throw new Error("Projektvezető megadása kötelező.");
       if (!startDate) throw new Error("Indulás dátuma megadása kötelező.");
-      const payload: Record<string, any> = {
-        title: title.trim() || "Új projekt",
-        lead_id: lead.id,
-        company_id: lead.company_id,
-        start_date: startDate,
-        handoff_payload: {
-          source: lead.source,
-          summary: lead.summary,
-          notes: notes || null,
-          won_at: lead.won_at,
-          // A projektvezető-mező a projects táblán még nincs külön oszlopként,
-          // ezért a handoff_payload-ban tároljuk — a projekt-detail átveheti.
-          project_manager_user_id: managerId,
-        },
-      };
-      const { data, error } = await supabase.from("projects").insert(payload).select("id").single();
+      // Atomi RPC: lead → won + projekt INSERT egy tranzakcióban.
+      const { data, error } = await supabase.rpc("sales_mark_won_with_project", {
+        p_lead_id:                 lead.id,
+        p_title:                   title.trim() || "Új projekt",
+        p_start_date:              startDate,
+        p_project_manager_user_id: managerId,
+        p_notes:                   notes || null,
+      });
       if (error) throw error;
-      await logActivity("leads", "update", lead.id, {
-        field: "project_created",
-        project_id: data.id,
+      const projectId = data as unknown as string;
+      await logActivity("leads", "status_change", lead.id, { from: lead.status, to: "won", project_id: projectId });
+      await logActivity("projects", "create", projectId, {
+        from_lead: lead.id,
         project_manager_user_id: managerId,
         start_date: startDate,
       });
-      await logActivity("projects", "create", data.id, { from_lead: lead.id });
-      return data as { id: string };
+      return { id: projectId };
     },
     onError: (e: any) => toast.error("Projekt létrehozás sikertelen", { description: humanizeSupabaseError(e) }),
     onSuccess: (data) => {
@@ -113,48 +105,22 @@ export function CreateProjectDialog({
     },
   });
 
-  /**
-   * Megszakítás: visszaállítjuk a leadet a Megnyerés előtti állapotba, mert
-   * `won` lead projekt nélkül tiltott állapot a folyamatban.
-   */
-  const revert = useMutation({
-    mutationFn: async () => {
-      if (!lead) return;
-      const back = (previousStatus as any) || "contract";
-      const { error } = await supabase
-        .from("leads")
-        .update({ status: back, won_at: null })
-        .eq("id", lead.id);
-      if (error) throw error;
-      await logActivity("leads", "status_change", lead.id, { from: "won", to: back, reason: "project_creation_cancelled" });
-    },
-    onError: (e: any) => toast.error("Visszaállítás sikertelen", { description: humanizeSupabaseError(e) }),
-    onSuccess: () => {
-      toast.info("Lead visszaállítva — projekt nem jött létre.");
-      qc.invalidateQueries({ queryKey: ["pipeline"] });
-      // A lead visszakerült won-ból pipeline-szakaszba → a Ma oldal
-      // ["leads", ...] alapú számlálói is változnak.
-      qc.invalidateQueries({ queryKey: ["leads"] });
-      onOpenChange(false);
-    },
-  });
-
-  const busy = create.isPending || revert.isPending;
+  const busy = create.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={() => { /* csak gombokkal zárható — won → projekt kötelező */ }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!busy) onOpenChange(v); }}>
       <DialogContent
         className="sm:max-w-[520px]"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => { if (busy) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }}
       >
         <DialogHeader>
           <DialogTitle>Projekt létrehozása a megnyert leadből</DialogTitle>
           <DialogDescription>
-            A lead már <strong>megnyert</strong> állapotban van. Projekt nélkül
-            ez tiltott állapot — vagy hozz létre projektet, vagy a „Mégse és
-            visszaállít" gombbal vidd vissza a leadet a korábbi pipeline-szakaszra.
+            A Megnyerés és a Projekt létrehozása egyetlen atomi lépés. A lead
+            csak akkor vált <strong>megnyert</strong> állapotra, ha a projekt
+            sikeresen létrejön. A Mégse gomb biztonsággal bezárja a dialógust —
+            a lead a jelenlegi pipeline-szakaszában marad.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -197,24 +163,25 @@ export function CreateProjectDialog({
           <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>
-              A Megnyerés és a Projekt létrehozása atomi lépés a folyamatban.
-              Lead = megnyert állapotban projekt nélkül nem maradhat.
+              Backend invariáns: a lead csak az RPC útján kerülhet
+              <code className="mx-1">won</code> állapotba — egyetlen projekt
+              létrehozásával együtt, egy tranzakcióban.
             </span>
           </div>
         </div>
         <DialogFooter className="gap-2 sm:gap-2">
           <Button
             variant="outline"
-            onClick={() => revert.mutate()}
+            onClick={() => onOpenChange(false)}
             disabled={busy}
           >
-            {revert.isPending ? "Visszaállítás…" : "Mégse és visszaállít"}
+            Mégse
           </Button>
           <Button
             onClick={() => create.mutate()}
             disabled={!title.trim() || !managerId || !startDate || busy}
           >
-            {create.isPending ? "Létrehozás…" : "Projekt létrehozása"}
+            {create.isPending ? "Megnyerés és projekt…" : "Megnyerés és projekt"}
           </Button>
         </DialogFooter>
       </DialogContent>
