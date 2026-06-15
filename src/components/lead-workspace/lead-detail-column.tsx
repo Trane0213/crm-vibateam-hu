@@ -314,7 +314,6 @@ export function LeadDetailColumn({
             >
               {LEAD_STATUS_OPTIONS
                 .filter((o) => o.value)
-                .filter((o) => o.value !== "converted")
                 .map((o) => (
                   <option key={o.value} value={o.value}>
                     {((o as any).marketingLabel ?? o.label)}
