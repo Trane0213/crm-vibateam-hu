@@ -56,6 +56,7 @@ type LostLead = {
   lost_reason: string | null;
   lost_note: string | null;
   lost_stage: string | null;
+  pipeline_entered_at: string | null;
   created_at: string;
 };
 
@@ -71,7 +72,7 @@ function LostLeadsPage() {
       const { data, error } = await supabase
         .from("leads")
         .select(
-          "id, summary, company_id, source, status, lost_at, lost_reason, lost_note, lost_stage, created_at",
+          "id, summary, company_id, source, status, lost_at, lost_reason, lost_note, lost_stage, pipeline_entered_at, created_at",
         )
         .eq("status", "lost")
         .order("lost_at", { ascending: false, nullsFirst: false });
