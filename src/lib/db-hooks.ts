@@ -18,6 +18,17 @@ export function humanizeSupabaseError(e: any): string {
   if (/jwt|invalid token|not authenticated|auth session/.test(m)) return "A munkamenet lejárt. Jelentkezz be újra.";
   if (/network|failed to fetch|fetch failed/.test(m)) return "Hálózati hiba. Ellenőrizd a kapcsolatot.";
   if (/row-level security|rls/.test(m)) return "A művelet nem engedélyezett (RLS).";
+  // Üzleti invariáns triggerek emberi nyelvű fordítása
+  if (/projects_protect_won_lead|won_lead/.test(m))
+    return "Ez a lead már megnyert projekthez van kötve — a kapcsolat nem módosítható.";
+  if (/uq_projects_lead_id/.test(m))
+    return "Ehhez a leadhez már létezik projekt. Egy leadből csak egy projekt jöhet létre.";
+  if (/won_requires_project/.test(m))
+    return "A megnyert státuszhoz projekt szükséges — használd a „Megnyertük” gombot a pipeline-on.";
+  if (/next_step_required/.test(m))
+    return "A pipeline-fázishoz kötelező megadni a következő lépést (típus + dátum).";
+  if (/lost_reason_required|lost_stage_required/.test(m))
+    return "Az „Elveszett” státuszhoz kötelező megadni az okot és a fázist.";
   return msg || "Ismeretlen hiba történt.";
 }
 

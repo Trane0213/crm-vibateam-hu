@@ -126,9 +126,12 @@ function LostLeadsPage() {
         lost_stage: null,
       };
       // Pipeline-szakaszra visszatérve a pipeline_entered_at kötelező —
-      // ha még nem volt, beállítjuk. ('contacted' a Workspace-é → nem kell.)
+      // ha még nem volt, beállítjuk; ha már volt eredeti belépési idő,
+      // megőrizzük (audit #7 fix). ('contacted' a Workspace-é → nem kell.)
       if (resume !== "contacted") {
-        patch.pipeline_entered_at = new Date().toISOString();
+        if (!lead.pipeline_entered_at) {
+          patch.pipeline_entered_at = new Date().toISOString();
+        }
         // A backend trigger megköveteli, hogy pipeline-fázisban legyen
         // next_step. Reaktiváláskor adunk egy default 3 napos utánkövetést,
         // így a constraint nem buktatja el a mentést.

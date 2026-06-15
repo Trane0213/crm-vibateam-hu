@@ -107,7 +107,10 @@ export function MarketingHome() {
     ...c, meta: readMarketingMeta(c.notes),
   }));
   const newToday   = allDecorated.filter(
-    (c) => c.created_at >= todayStart && c.meta.status !== "handoff",
+    (c) =>
+      c.created_at >= todayStart &&
+      c.meta.status !== "handoff" &&
+      c.meta.status !== "rejected",
   );
   const handoffToday = decorated.filter(
     (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= todayStart.slice(0, 10),

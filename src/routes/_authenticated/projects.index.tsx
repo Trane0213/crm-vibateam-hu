@@ -31,12 +31,11 @@ function ProjectsPage() {
           type: "ref",
           ref: { table: "companies", labelColumn: "name" },
         },
-        {
-          name: "lead_id",
-          label: "Forrás lead",
-          type: "ref",
-          ref: { table: "leads", labelColumn: "summary" },
-        },
+        // FIGYELEM: a `lead_id` mező szándékosan nincs itt.
+        // Lead → projekt kapcsolat kizárólag a Sales pipeline „Megnyertük”
+        // gombján keresztül jön létre (sales_mark_won_with_project RPC,
+        // atomic módon). Ezzel elkerülhető a `uq_projects_lead_id`
+        // ütközés és a `won_requires_project` trigger hiba.
         {
           name: "status",
           label: "Státusz",

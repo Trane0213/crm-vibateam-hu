@@ -8,6 +8,7 @@ import { useCount, useList } from "@/lib/db-hooks";
 import { fmtDateTime } from "@/components/resource/resource-page";
 import { tStatus } from "@/lib/i18n";
 import { PROJECT_STATUS_LABEL, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
+import { useAuth } from "@/hooks/use-auth";
 
 const isoNow = () => new Date().toISOString();
 const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
@@ -17,8 +18,22 @@ export function PmHome() {
   const now = isoNow();
   const todayStart = isoStartOfDay();
   const todayEnd = isoEndOfDay();
+  const { user } = useAuth();
+  const uid = user?.id ?? null;
 
-  const activeProjects = useCount("projects", (q) => q.not("status", "in", "(completed,lost,lezart,elvesztett)"), "active");
+  // A PM dashboard kizárólag az aktuális user-hez rendelt aktív projekteket
+  // számolja (handoff_payload->>'project_manager_user_id'). A status szűrés a
+  // listával azonos forrásból megy (ACTIVE_PROJECT_STATUSES), így a count és a
+  // lista nem térhet el (PM count #4 + #5 fix).
+  const activeProjects = useCount(
+    "projects",
+    (q) => {
+      let qq = q.in("status", ACTIVE_PROJECT_STATUSES as unknown as string[]);
+      if (uid) qq = qq.eq("handoff_payload->>project_manager_user_id", uid);
+      return qq;
+    },
+    `active-pm:${uid ?? "anon"}`,
+  );
   const todayTasks = useCount("tasks", (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd), "today");
   const overdueTasks = useCount("tasks", (q) => q.neq("status", "done").lt("due_date", now), "overdue");
   const overdueFu = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue-fu");
@@ -27,7 +42,10 @@ export function PmHome() {
   const projects = useList<any>("projects", { order: "updated_at", ascending: false });
 
   const taskList = (tasks.data ?? []).filter((t: any) => t.status !== "done" && t.due_date).slice(0, 8);
-  const projectList = (projects.data ?? []).filter((p: any) => ACTIVE_PROJECT_STATUSES.includes(p.status as any)).slice(0, 8);
+  const projectList = (projects.data ?? [])
+    .filter((p: any) => ACTIVE_PROJECT_STATUSES.includes(p.status as any))
+    .filter((p: any) => !uid || (p?.handoff_payload?.project_manager_user_id ?? null) === uid)
+    .slice(0, 8);
 
   return (
     <div className="flex flex-col">

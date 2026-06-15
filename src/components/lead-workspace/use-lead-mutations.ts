@@ -9,12 +9,15 @@ export function useUpdateLead(leadId: string | null) {
   return useMutation({
     mutationFn: async (patch: Record<string, any>) => {
       if (!leadId) throw new Error("Nincs kiválasztott lead.");
-      // #5 — bármely úton érkező Won mindig állítsa a won_at-ot.
-      const safe = { ...patch };
-      if (safe.status === "won" && !safe.won_at) {
-        safe.won_at = new Date().toISOString();
+      // A won státusz kizárólag a `sales_mark_won_with_project` RPC-n
+      // keresztül állítható (atomic projekt-létrehozással). Inline patch
+      // a kliensből nem írhat won-t — a backend trigger amúgy is elutasítaná.
+      if (patch.status === "won") {
+        throw new Error(
+          "A megnyert státusz csak a „Megnyertük” gombbal állítható (pipeline → projekt).",
+        );
       }
-      const { error } = await supabase.from("leads").update(safe).eq("id", leadId);
+      const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
       if (error) throw error;
     },
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
