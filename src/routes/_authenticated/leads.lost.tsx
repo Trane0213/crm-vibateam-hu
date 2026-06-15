@@ -218,13 +218,9 @@ function LostLeadsPage() {
                     <TableCell>{companyLabel(l.company_id) ?? "—"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px]">
-                        {l.lost_stage === "pre_pipeline"
-                          ? "Workspace"
-                          : l.lost_stage === "pipeline"
-                            ? "Pipeline"
-                            : l.lost_stage
-                              ? LEAD_STATUS_LABEL[l.lost_stage as LeadStatus] ?? l.lost_stage
-                              : "—"}
+                        {l.lost_stage
+                          ? LEAD_STATUS_LABEL[l.lost_stage as LeadStatus] ?? l.lost_stage
+                          : "—"}
                       </Badge>
                     </TableCell>
                     <TableCell>
