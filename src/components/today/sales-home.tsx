@@ -8,35 +8,63 @@ import {
   Target,
   Briefcase,
   ArrowRight,
+  XCircle,
+  LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { HeroStat, QuickActions } from "@/components/today/today-shell";
-import { useCount, useAggregateSum } from "@/lib/db-hooks";
-import { formatHuf } from "@/lib/format";
+import { useCount } from "@/lib/db-hooks";
 import {
   QuickCreateLeadButton,
   QuickCreateFollowupButton,
   QuickCreateQuoteButton,
 } from "@/components/today/quick-create";
-
-const isoNow = () => new Date().toISOString();
-const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
-const isoEndOfDay = () => { const d = new Date(); d.setHours(23,59,59,999); return d.toISOString(); };
-const isoWeekAgo = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
+import { PIPELINE_COLUMNS } from "@/components/pipeline/pipeline-types";
 
 export function SalesHome() {
-  const now = isoNow();
-  const todayStart = isoStartOfDay();
-  const todayEnd = isoEndOfDay();
-  const weekAgo = isoWeekAgo();
+  // FUNNEL — minden számláló pontosan a céloldal lekérdezésével egyezzen.
+  // Workspace (/leads, sales mód): a kollektív sales-mode szűrő a
+  // lead-list-column.tsx-ben → pipeline_entered_at IS NULL ÉS status NOT
+  // IN (lost, won). Ugyanezt számoljuk itt.
+  const workspaceCount = useCount(
+    "leads",
+    (q) => q.is("pipeline_entered_at", null).not("status", "in", "(lost,won)"),
+    "workspace-sales",
+  );
+  // Pipeline (/sales/leads kanban): pipeline_entered_at IS NOT NULL ÉS
+  // status IN PIPELINE_COLUMNS — pontosan a fetchPipelineLeads szűrője.
+  const pipelineStatusList = `(${PIPELINE_COLUMNS.join(",")})`;
+  const pipelineCount = useCount(
+    "leads",
+    (q) => q.not("pipeline_entered_at", "is", null).in("status", [...PIPELINE_COLUMNS]),
+    "pipeline-active",
+  );
+  // Elveszett (/leads/lost): status='lost' — ugyanaz, mint a lista oldal.
+  const lostCount = useCount("leads", (q) => q.eq("status", "lost"), "lost");
+  // Projektek (/projects): ResourcePage all rows — szűrés nélkül.
+  const projectsCount = useCount("projects", undefined, "all");
 
-  const overdueFu = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue");
-  const todayFu   = useCount("followups", (q) => q.eq("completed", false).gte("due_date", todayStart).lte("due_date", todayEnd), "today");
-  const openQuotes = useCount("quotes", (q) => q.not("status", "in", "(won,lost)"), "open");
-  const openQuotesSum = useAggregateSum("quotes", "total_amount", (q) => q.not("status", "in", "(won,lost)"), "open");
-  const newLeadsWeek = useCount("leads", (q) => q.gte("created_at", weekAgo), "week");
+  // TEENDŐK — a /sales/todo a v_lead_due_buckets nézetből dolgozik,
+  // ne legyen külön „Ma logika” a followups táblán.
+  const overdueTodo = useCount(
+    "v_lead_due_buckets",
+    (q) => q.eq("bucket", "overdue"),
+    "overdue",
+  );
+  const todayTodo = useCount(
+    "v_lead_due_buckets",
+    (q) => q.eq("bucket", "today"),
+    "today",
+  );
+  // Ajánlatok — a /sales/quotes oldal `lead_id IS NOT NULL` quotes-okat
+  // listáz (összes verzió). Ugyanezt számoljuk.
+  const quotesCount = useCount(
+    "quotes",
+    (q) => q.not("lead_id", "is", null),
+    "with-lead",
+  );
 
   return (
     <div className="flex flex-col">
@@ -49,12 +77,71 @@ export function SalesHome() {
         <Button size="sm" variant="outline" asChild><Link to="/ai-assistant" search={{ agent: "sales" } as any}><Bot className="mr-1 h-3.5 w-3.5" />Timothy</Link></Button>
       </QuickActions>
 
-      {/* KPI sor */}
+      {/* FUNNEL — Workspace → Pipeline → Elveszett → Projekt számlálók.
+          Minden szám pontosan a céloldalon látható listával egyezik. */}
       <div className="grid gap-3 px-6 pt-3 sm:grid-cols-2 lg:grid-cols-4">
-        <HeroStat to="/sales/todo" search={{ bucket: "overdue" } as any} tone="danger" icon={AlertOctagon} label="Lejárt teendő" value={overdueFu.data ?? 0} sub="haladéktalanul" />
-        <HeroStat to="/sales/todo" search={{ bucket: "today" } as any}   tone="warning" icon={BellRing}    label="Ma esedékes"  value={todayFu.data ?? 0}   sub="mai teendő" />
-        <HeroStat to="/sales/quotes" tone="primary" icon={FileText} label="Nyitott ajánlat" value={openQuotes.data ?? 0} sub={openQuotesSum.data != null ? formatHuf(openQuotesSum.data) : "összérték"} />
-        <HeroStat to="/leads"        tone="info"    icon={Sparkles} label="Új érdeklődő (7 nap)" value={newLeadsWeek.data ?? 0} sub="utolsó hét" />
+        <HeroStat
+          to="/leads"
+          tone="info"
+          icon={LayoutDashboard}
+          label="Workspace"
+          value={workspaceCount.data ?? 0}
+          sub="előkészítés alatt"
+        />
+        <HeroStat
+          to="/sales/leads"
+          tone="primary"
+          icon={Target}
+          label="Pipeline"
+          value={pipelineCount.data ?? 0}
+          sub="aktív ügyek"
+        />
+        <HeroStat
+          to="/leads/lost"
+          tone="danger"
+          icon={XCircle}
+          label="Elveszett"
+          value={lostCount.data ?? 0}
+          sub="lezárt veszteség"
+        />
+        <HeroStat
+          to="/projects"
+          tone="success"
+          icon={Briefcase}
+          label="Projektek"
+          value={projectsCount.data ?? 0}
+          sub="megnyert ügyfelek"
+        />
+      </div>
+
+      {/* TEENDŐK + AJÁNLATOK — a céloldalakkal megegyező lekérdezések. */}
+      <div className="grid gap-3 px-6 pt-3 sm:grid-cols-2 lg:grid-cols-3">
+        <HeroStat
+          to="/sales/todo"
+          search={{ bucket: "overdue" } as any}
+          tone="danger"
+          icon={AlertOctagon}
+          label="Lejárt teendő"
+          value={overdueTodo.data ?? 0}
+          sub="haladéktalanul"
+        />
+        <HeroStat
+          to="/sales/todo"
+          search={{ bucket: "today" } as any}
+          tone="warning"
+          icon={BellRing}
+          label="Ma esedékes"
+          value={todayTodo.data ?? 0}
+          sub="mai teendő"
+        />
+        <HeroStat
+          to="/sales/quotes"
+          tone="primary"
+          icon={FileText}
+          label="Ajánlatok"
+          value={quotesCount.data ?? 0}
+          sub="leadhez kötött verziók"
+        />
       </div>
 
       {/* Folyamat gyorsbelépők + AI briefing */}
