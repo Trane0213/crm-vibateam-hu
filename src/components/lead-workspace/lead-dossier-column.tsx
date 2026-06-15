@@ -9,7 +9,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import {
-  Building2, Mail, FileText, History, Users, Inbox, Send, StickyNote, Activity,
+  Building2, Mail, FileText, History, Users, Inbox, Send, StickyNote, Activity, XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -163,6 +163,24 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
             {meta.salesNote && (
               <Section title="Marketing jegyzet a sales-nek" icon={StickyNote}>
                 <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-2 text-xs">{meta.salesNote}</div>
+              </Section>
+            )}
+
+            {l.status === "lost" && (l.lost_reason || l.lost_note || l.lost_at) && (
+              <Section title="Elvesztés" icon={XCircle}>
+                <div className="space-y-1.5 rounded-md border border-destructive/30 bg-destructive/5 p-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {l.lost_reason && (
+                      <Badge variant="outline" className="border-destructive/40 text-destructive">
+                        {l.lost_reason}
+                      </Badge>
+                    )}
+                    {l.lost_at && <span className="text-muted-foreground">{fmtDate(l.lost_at)}</span>}
+                  </div>
+                  {l.lost_note && (
+                    <div className="whitespace-pre-wrap text-foreground">{l.lost_note}</div>
+                  )}
+                </div>
               </Section>
             )}
 

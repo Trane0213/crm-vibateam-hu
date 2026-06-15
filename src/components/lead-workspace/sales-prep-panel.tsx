@@ -5,7 +5,7 @@
  * vesz fel: hívás / email / találkozó aktivitást rögzít, és kitölti a
  * következő lépést. Üzleti döntés után két lehetséges kimenet:
  *   - Pipeline-ba léptetés (csak ha van ≥1 aktivitás ÉS kitöltött köv. lépés)
- *   - Elveszett (lost_stage='pre_pipeline')
+ *   - Elveszett (sales előkészítő szakaszban)
  *
  * Pipeline-ba kerülés egyirányú (DB trigger védi). Projekt fogalom itt nincs.
  */
@@ -302,7 +302,6 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         open={lostOpen}
         onOpenChange={setLostOpen}
         busy={updateLead.isPending}
-        stage="pre_pipeline"
         onConfirm={(p) => updateLead.mutate(
           { status: "lost", ...p },
           { onSuccess: () => { setLostOpen(false); qc.invalidateQueries({ queryKey: ["leads"] }); } },
