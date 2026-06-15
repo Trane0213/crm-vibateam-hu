@@ -27,7 +27,6 @@ import {
   ListPlus,
   Target,
   CheckSquare,
-  Send,
 } from "lucide-react";
 import {
   Sidebar,
