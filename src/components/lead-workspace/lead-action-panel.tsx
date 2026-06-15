@@ -21,10 +21,7 @@ import {
 import { LEAD_EMAIL_TEMPLATES, type LeadEmailTemplate } from "@/lib/lead-workspace/email-templates";
 import { useLookup, fmtDate } from "@/components/resource/resource-page";
 import { useListWhere } from "@/lib/db-hooks";
-import { LeadActionBar } from "@/components/sales/lead-action-bar";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
-import { WonDialog } from "@/components/sales/won-dialog";
-import { LostDialog } from "@/components/sales/lost-dialog";
 import type { LeadStatus } from "@/lib/sales/constants";
 
 const QUOTE_EDITABLE_STATUSES: LeadStatus[] = ["quote_prep", "quote_sent", "follow_up", "contract"];
@@ -69,8 +66,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
   const [emailOpen, setEmailOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [emailDefaults, setEmailDefaults] = useState<{ subject?: string; body?: string } | null>(null);
-  const [wonOpen, setWonOpen] = useState(false);
-  const [lostOpen, setLostOpen] = useState(false);
   const [quotesBusy, setQuotesBusy] = useState(false);
 
   const invalidate = () => {
