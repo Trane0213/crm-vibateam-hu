@@ -35,7 +35,6 @@ export function SalesHome() {
   );
   // Pipeline (/sales/leads kanban): pipeline_entered_at IS NOT NULL ÉS
   // status IN PIPELINE_COLUMNS — pontosan a fetchPipelineLeads szűrője.
-  const pipelineStatusList = `(${PIPELINE_COLUMNS.join(",")})`;
   const pipelineCount = useCount(
     "leads",
     (q) => q.not("pipeline_entered_at", "is", null).in("status", [...PIPELINE_COLUMNS]),
