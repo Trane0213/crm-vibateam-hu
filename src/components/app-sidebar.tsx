@@ -121,7 +121,14 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
-  const isActive = (url: string) => pathname === url || pathname.startsWith(url + "/");
+  // A /leads és /leads/lost különálló menüpontok — a Workspace ne villanjon
+  // aktívvá, amikor az Elveszett listán vagyunk.
+  const isActive = (url: string) => {
+    if (url === "/leads") {
+      return pathname === "/leads" || /^\/leads\/(?!lost(\/|$))/.test(pathname);
+    }
+    return pathname === url || pathname.startsWith(url + "/");
+  };
   const isAiActive = (agent: string) =>
     pathname.startsWith("/ai-assistant") && new URLSearchParams(searchStr ?? "").get("agent") === agent;
   const { role } = usePermissions();
