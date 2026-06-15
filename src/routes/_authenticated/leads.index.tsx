@@ -19,7 +19,6 @@ const STATUS_OPTIONS = [
   { value: "follow_up", label: "Utánkövetés" },
   { value: "contract", label: "Szerződés" },
   { value: "won", label: "Megnyert" },
-  { value: "lost", label: "Elveszett" },
 ];
 
 const STATUS_TONE: Record<string, string> = {
