@@ -54,13 +54,14 @@ export function KpiCard({
 
 /* ────────── Státusz badge (egységes színek) ────────── */
 
-export type StatusKey = "new" | "contacted" | "qualified" | "converted" | "lost" | "active" | "inactive" | "neutral";
+export type StatusKey = "new" | "contacted" | "qualified" | "handoff" | "rejected" | "lost" | "active" | "inactive" | "neutral";
 
 const STATUS: Record<StatusKey, { label: string; cls: string }> = {
   new:        { label: "Új",              cls: "border-[color:var(--status-info)]/40    bg-[color:var(--status-info)]/10    text-[color:var(--status-info)]" },
   contacted:  { label: "Kapcsolatban",    cls: "border-primary/40                       bg-primary/10                       text-primary" },
   qualified:  { label: "Átadható",        cls: "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]" },
-  converted:  { label: "Átadva",          cls: "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 text-[color:var(--status-success)]" },
+  handoff:    { label: "Átadva",          cls: "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 text-[color:var(--status-success)]" },
+  rejected:   { label: "Elutasítva",      cls: "border-muted-foreground/30              bg-muted/40                         text-muted-foreground" },
   lost:       { label: "Elveszett",       cls: "border-muted-foreground/30              bg-muted/40                         text-muted-foreground" },
   active:     { label: "Aktív",           cls: "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 text-[color:var(--status-success)]" },
   inactive:   { label: "Inaktív",         cls: "border-muted-foreground/30              bg-muted/40                         text-muted-foreground" },

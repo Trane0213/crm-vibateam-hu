@@ -56,6 +56,7 @@ type LostLead = {
   lost_reason: string | null;
   lost_note: string | null;
   lost_stage: string | null;
+  pipeline_entered_at: string | null;
   created_at: string;
 };
 
@@ -71,7 +72,7 @@ function LostLeadsPage() {
       const { data, error } = await supabase
         .from("leads")
         .select(
-          "id, summary, company_id, source, status, lost_at, lost_reason, lost_note, lost_stage, created_at",
+          "id, summary, company_id, source, status, lost_at, lost_reason, lost_note, lost_stage, pipeline_entered_at, created_at",
         )
         .eq("status", "lost")
         .order("lost_at", { ascending: false, nullsFirst: false });
@@ -126,9 +127,12 @@ function LostLeadsPage() {
         lost_stage: null,
       };
       // Pipeline-szakaszra visszatérve a pipeline_entered_at kötelező —
-      // ha még nem volt, beállítjuk. ('contacted' a Workspace-é → nem kell.)
+      // ha még nem volt, beállítjuk; ha már volt eredeti belépési idő,
+      // megőrizzük (audit #7 fix). ('contacted' a Workspace-é → nem kell.)
       if (resume !== "contacted") {
-        patch.pipeline_entered_at = new Date().toISOString();
+        if (!lead.pipeline_entered_at) {
+          patch.pipeline_entered_at = new Date().toISOString();
+        }
         // A backend trigger megköveteli, hogy pipeline-fázisban legyen
         // next_step. Reaktiváláskor adunk egy default 3 napos utánkövetést,
         // így a constraint nem buktatja el a mentést.
