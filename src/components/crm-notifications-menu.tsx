@@ -22,11 +22,9 @@ export function CrmNotificationsMenu() {
     (q) => q.eq("completed", false).lt("due_date", nowIso),
     "crm-notif-overdue-followups",
   );
-  const transferableLeads = useCount(
-    "leads",
-    (q) => q.eq("status", "qualified"),
-    "crm-notif-transferable-leads",
-  );
+  // „Átadható" notification megszűnt — a `qualified` státusz nem létezik a
+  // jóváhagyott flow-ban. A számláló 0-val helyettesítve a UI átépítéséig.
+  const transferableLeads = { data: 0 as number | null };
   const overview = useQualityOverview();
 
   // Marketing nem fér hozzá a /followups oldalhoz, ezért az ehhez tartozó
