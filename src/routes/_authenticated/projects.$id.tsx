@@ -557,6 +557,3 @@ function SalesHandoffCard({
     </Card>
   );
 }
-    </div>
-  );
-}
