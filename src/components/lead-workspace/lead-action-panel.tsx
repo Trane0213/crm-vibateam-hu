@@ -422,20 +422,22 @@ function ProcessStrip({
   // Aktív lépés a lead státuszából.
   const active: StepKey =
     mode === "sales"
-      ? (status === "converted" ? "contract"
-        : status === "qualified" ? "quote"
+      ? (status === "won" ? "contract"
+        : status === "contract" ? "contract"
+        : status === "quote_prep" || status === "quote_sent" || status === "follow_up" ? "quote"
         : status === "contacted" ? "quote"
         : "lead")
-      : (status === "converted" ? "handoff"
-        : status === "qualified" ? "handoff"
+      : (status === "won" ? "handoff"
         : status === "contacted" ? "qualify"
         : status === "lost"      ? "qualify"
         : "lead");
 
   // Marketingben a lépés → status mapping (csak amire értelmes a klikk).
+  // A „handoff" lépés státuszváltást nem csinál – a marketing→sales átadás
+  // a marketing workspace saját workflow-jával történik.
   const stepToStatus: Partial<Record<StepKey, string>> =
     mode === "marketing"
-      ? { lead: "new", email: "contacted", qualify: "contacted", handoff: "qualified" }
+      ? { lead: "new", email: "contacted", qualify: "contacted" }
       : {};
 
   return (
