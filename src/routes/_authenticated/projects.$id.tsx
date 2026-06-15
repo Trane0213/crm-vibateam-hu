@@ -25,6 +25,7 @@ import { ProjectStatusSelect } from "@/components/projects/project-status-select
 import { ProjectContactsPanel } from "@/components/projects/project-contacts-panel";
 import { ProjectEmailAttach } from "@/components/projects/project-email-attach";
 import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -45,6 +46,7 @@ function ProjectDetail() {
   const { id } = Route.useParams();
   const { data: project, isLoading, error } = useProject(id);
   const companyLabel = useLookup("companies", "name");
+  const assigneeName = useAssigneeLookup();
 
   const quotes = useListWhere<any>("quotes", "project_id", id, { order: "created_at", ascending: false });
   const followups = useListWhere<any>("followups", "project_id", id, { order: "due_date", ascending: true });
@@ -188,6 +190,7 @@ function ProjectDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
+            <SalesHandoffCard project={project} assigneeName={assigneeName} />
             <Card>
               <CardHeader><CardTitle className="text-sm">Ajánlat-állapot</CardTitle></CardHeader>
               <CardContent className="text-sm">
@@ -466,5 +469,91 @@ function Mini({ label, value, tone = "primary" }: { label: string; value: string
       <div className="text-[10px] uppercase tracking-wider opacity-70">{label}</div>
       <div className="mt-0.5 text-sm font-semibold tabular-nums">{value}</div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------
+// SalesHandoffCard — a Sales → Projekt átadás adatait jeleníti meg.
+//
+// Forrás: a `sales_mark_won_with_project` RPC a `projects.handoff_payload`
+// jsonb mezőbe írja az alábbiakat:
+//   - source                   (a lead forrása)
+//   - summary                  (a lead összefoglalója)
+//   - notes                    (a megnyeréskor megadott megjegyzés)
+//   - project_manager_user_id  (a választott projektvezető)
+//   - created_via              ('sales_mark_won_with_project' új útvonalon)
+//
+// Régebbi projektek payload nélkül is helyesen jelennek meg (üres állapot).
+// ---------------------------------------------------------------------
+function SalesHandoffCard({
+  project,
+  assigneeName,
+}: {
+  project: Record<string, any>;
+  assigneeName: (id: string | null | undefined) => string;
+}) {
+  const payload = (project.handoff_payload ?? {}) as Record<string, any>;
+  const pmId: string | null = payload.project_manager_user_id ?? null;
+  const source: string | null = payload.source ?? null;
+  const summary: string | null = payload.summary ?? null;
+  const notes: string | null = payload.notes ?? null;
+  const viaRpc = payload.created_via === "sales_mark_won_with_project";
+  const hasAny = pmId || source || summary || notes;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+        <CardTitle className="text-sm">Sales átadás</CardTitle>
+        {viaRpc ? (
+          <Badge variant="outline" className="text-[10px]">Atomi átadás</Badge>
+        ) : project.lead_id ? (
+          <Badge variant="outline" className="text-[10px] text-muted-foreground">Korábbi átadás</Badge>
+        ) : (
+          <Badge variant="outline" className="text-[10px] text-muted-foreground">Lead nélkül</Badge>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        <div className="grid grid-cols-[7rem_1fr] gap-x-3 gap-y-1.5">
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Projektvezető</span>
+          <span className={pmId ? "font-medium" : "text-muted-foreground"}>
+            {pmId ? assigneeName(pmId) : "—"}
+          </span>
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Lead forrása</span>
+          <span className={source ? "" : "text-muted-foreground"}>{source ?? "—"}</span>
+          <span className="text-xs uppercase tracking-wider text-muted-foreground">Lead</span>
+          <span>
+            {project.lead_id ? (
+              <Link
+                to="/leads/$id"
+                params={{ id: project.lead_id }}
+                className="text-primary hover:underline"
+              >
+                Lead megnyitása
+              </Link>
+            ) : (
+              <span className="text-muted-foreground">Nincs csatolva</span>
+            )}
+          </span>
+        </div>
+        {summary && (
+          <div className="rounded-md border bg-muted/30 p-2">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Lead összefoglaló</div>
+            <div className="mt-1 whitespace-pre-wrap text-sm">{summary}</div>
+          </div>
+        )}
+        {notes && (
+          <div className="rounded-md border bg-muted/30 p-2">
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Megnyerési jegyzet</div>
+            <div className="mt-1 whitespace-pre-wrap text-sm">{notes}</div>
+          </div>
+        )}
+        {!hasAny && (
+          <div className="text-xs text-muted-foreground">
+            Ehhez a projekthez nincs Sales átadási adat
+            {project.lead_id ? " (korábbi projekt)." : "."}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

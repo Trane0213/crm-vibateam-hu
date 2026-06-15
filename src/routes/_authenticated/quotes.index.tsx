@@ -13,9 +13,15 @@ const QUOTE_STATUS = [
   { value: "draft", label: "Készül" },
   { value: "sent", label: "Kiküldve" },
   { value: "negotiation", label: "Tárgyalás" },
-  { value: "won", label: "Megnyert" },
   { value: "lost", label: "Elveszett" },
 ];
+
+// Megjegyzés: a „Megnyert" státusz szándékosan NEM választható az ajánlat
+// listából. Az ajánlat megnyerése a Sales folyamat zárt útvonalához van
+// kötve: Pipeline detail sheet → „Megnyertük" → `sales_mark_won_with_project`
+// RPC (lead.status='won' + projekt egy tranzakcióban). Az ajánlat
+// elfogadását így a projekt létrejötte reprezentálja, nem egy különálló
+// status='won' update az ajánlaton.
 
 const STATUS_TONE: Record<string, string> = {
   draft: "bg-muted text-muted-foreground border-border",

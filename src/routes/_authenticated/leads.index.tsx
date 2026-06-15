@@ -18,8 +18,17 @@ const STATUS_OPTIONS = [
   { value: "quote_sent", label: "Ajánlat kiadva" },
   { value: "follow_up", label: "Utánkövetés" },
   { value: "contract", label: "Szerződés" },
-  { value: "won", label: "Megnyert" },
 ];
+
+// Megjegyzés: a „Megnyert" és „Elveszett" státuszok szándékosan NEM
+// választhatóak az admin listából. A Sales folyamat végleges útvonala:
+//   – Megnyert  → kizárólag a Pipeline detail sheet „Megnyertük" gombján
+//                 keresztül, a `sales_mark_won_with_project` RPC-vel
+//                 (lead.status='won' + projekt egy tranzakcióban).
+//   – Elveszett → a workspace / pipeline „Elveszett" gombjával, ami
+//                 kötelezően kitölti a `lost_stage` + `lost_reason` mezőt.
+// Bármilyen direkt admin-update ezekre a státuszokra a backend trigger /
+// CHECK constraint miatt elhasalna, ezért a UI sem ajánlja fel.
 
 const STATUS_TONE: Record<string, string> = {
   new: "bg-[color:var(--status-info)]/15 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
