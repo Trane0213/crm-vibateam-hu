@@ -29,29 +29,21 @@ import { toast } from "sonner";
 import {
   LOST_REASON_LABEL,
   LEAD_STATUS_LABEL,
+  LOST_STAGES,
   type LostReason,
   type LeadStatus,
+  type LostStage,
 } from "@/lib/sales/constants";
 
-// A mentett lost_stage értékből megmondja, melyik pipeline-státuszba
-// kerüljön vissza a lead. A jelenlegi DB constraint csak két értéket
-// enged: 'pre_pipeline' (Workspace-ből veszett el) és 'pipeline'
-// (Pipeline kanbanról veszett el). Amíg a séma nem tárolja a pontos
-// szakaszt, ez a térkép a kanonikus visszaállítás.
+// A 2026-06-27 invariáns-migráció óta a lost_stage MINDIG egy pontos
+// pipeline-státusz ('contacted','quote_prep','quote_sent','follow_up',
+// 'contract'). A reaktiválás 1:1 visszaállít — nincs fallback.
 function resolveResumeStatus(lost_stage: string | null | undefined): LeadStatus {
-  if (lost_stage === "pre_pipeline") return "contacted";
-  if (lost_stage === "pipeline") return "quote_prep";
-  // Felkészítve a jövőbeni pontos tárolásra: ha már magát a státuszt mentjük.
-  if (
-    lost_stage === "contacted" ||
-    lost_stage === "quote_prep" ||
-    lost_stage === "quote_sent" ||
-    lost_stage === "follow_up" ||
-    lost_stage === "contract"
-  ) {
-    return lost_stage as LeadStatus;
+  if (lost_stage && (LOST_STAGES as readonly string[]).includes(lost_stage)) {
+    return lost_stage as LostStage as LeadStatus;
   }
-  return "quote_prep";
+  // Védőháló — a DB constraint normál esetben nem enged ide jutni.
+  return "contacted";
 }
 
 type LostLead = {
@@ -133,9 +125,16 @@ function LostLeadsPage() {
         lost_note: null,
         lost_stage: null,
       };
-      // Ha Pipeline-ra kerül vissza és még nem volt belépve, állítsuk be.
+      // Pipeline-szakaszra visszatérve a pipeline_entered_at kötelező —
+      // ha még nem volt, beállítjuk. ('contacted' a Workspace-é → nem kell.)
       if (resume !== "contacted") {
         patch.pipeline_entered_at = new Date().toISOString();
+        // A backend trigger megköveteli, hogy pipeline-fázisban legyen
+        // next_step. Reaktiváláskor adunk egy default 3 napos utánkövetést,
+        // így a constraint nem buktatja el a mentést.
+        patch.next_step_type = "follow_up";
+        patch.next_step_due_at = new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString();
+        patch.next_step_note = "Reaktiválás után újrafelvett utánkövetés.";
       }
       const { error } = await supabase.from("leads").update(patch).eq("id", lead.id);
       if (error) throw error;
@@ -219,13 +218,9 @@ function LostLeadsPage() {
                     <TableCell>{companyLabel(l.company_id) ?? "—"}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className="text-[10px]">
-                        {l.lost_stage === "pre_pipeline"
-                          ? "Workspace"
-                          : l.lost_stage === "pipeline"
-                            ? "Pipeline"
-                            : l.lost_stage
-                              ? LEAD_STATUS_LABEL[l.lost_stage as LeadStatus] ?? l.lost_stage
-                              : "—"}
+                        {l.lost_stage
+                          ? LEAD_STATUS_LABEL[l.lost_stage as LeadStatus] ?? l.lost_stage
+                          : "—"}
                       </Badge>
                     </TableCell>
                     <TableCell>

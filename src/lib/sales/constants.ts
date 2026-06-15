@@ -94,6 +94,37 @@ export const LOST_REASON_LABEL: Record<LostReason, string> = {
   other: "Egyéb",
 };
 
+// =====================================================================
+// LOST_STAGES — a lost_stage backendoldali whitelist-je (2026-06-27 invariáns).
+// A DB constraint `leads_lost_stage_chk` PONTOSAN ezeket az értékeket engedi.
+// Reaktiváláskor a lead.status = lead.lost_stage (1:1 visszaállítás).
+// =====================================================================
+export const LOST_STAGES = [
+  "contacted",
+  "quote_prep",
+  "quote_sent",
+  "follow_up",
+  "contract",
+] as const;
+export type LostStage = (typeof LOST_STAGES)[number];
+
+/** Egy aktuális (nem lost/won) lead státuszát képezi le egy érvényes
+ *  lost_stage értékre. A 'new' státusznak nincs külön lost_stage-e
+ *  (üzleti döntés: a new → lost átmenet 'contacted' szakaszként könyvelődik). */
+export function statusToLostStage(status: LeadStatus | string | null | undefined): LostStage {
+  switch (status) {
+    case "contacted":
+    case "quote_prep":
+    case "quote_sent":
+    case "follow_up":
+    case "contract":
+      return status;
+    case "new":
+    default:
+      return "contacted";
+  }
+}
+
 export const DUE_BUCKETS = ["overdue", "today", "tomorrow", "later", "missing"] as const;
 export type DueBucket = (typeof DUE_BUCKETS)[number];
 
