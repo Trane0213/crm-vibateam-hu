@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2,
   FileSignature, UserCheck, Sparkles, Filter, Phone, ChevronDown,
-  ListChecks, Send, Briefcase, Plus, Check,
+  ListChecks, Plus, Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
   const [emailDefaults, setEmailDefaults] = useState<{ subject?: string; body?: string } | null>(null);
   const [wonOpen, setWonOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
-  const [handoffOpen, setHandoffOpen] = useState(false);
   const [quotesBusy, setQuotesBusy] = useState(false);
 
   const invalidate = () => {
