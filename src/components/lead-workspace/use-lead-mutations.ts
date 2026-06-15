@@ -9,7 +9,12 @@ export function useUpdateLead(leadId: string | null) {
   return useMutation({
     mutationFn: async (patch: Record<string, any>) => {
       if (!leadId) throw new Error("Nincs kiválasztott lead.");
-      const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+      // #5 — bármely úton érkező Won mindig állítsa a won_at-ot.
+      const safe = { ...patch };
+      if (safe.status === "won" && !safe.won_at) {
+        safe.won_at = new Date().toISOString();
+      }
+      const { error } = await supabase.from("leads").update(safe).eq("id", leadId);
       if (error) throw error;
     },
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),

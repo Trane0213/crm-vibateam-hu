@@ -206,7 +206,7 @@ export function PipelineDetailSheet({
             <CreateProjectDialog
               lead={lead}
               open={projOpen}
-              onOpenChange={(v) => { setProjOpen(v); if (!v) onOpenChange(false); }}
+              onOpenChange={setProjOpen}
             />
           </>
         )}

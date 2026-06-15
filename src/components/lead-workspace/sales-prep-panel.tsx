@@ -111,9 +111,16 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
   const moveToPipeline = useMutation({
     mutationFn: async () => {
       if (!leadId) throw new Error("Nincs kiválasztott lead.");
+      const current = (lead.data?.status ?? "new") as string;
+      const pipelineStatuses = new Set(["quote_prep", "quote_sent", "follow_up", "contract"]);
+      const patch: Record<string, any> = { pipeline_entered_at: new Date().toISOString() };
+      // A Pipeline board csak pipeline-fázisú leadeket mutat — ha a lead még
+      // pre-pipeline státuszban van (new/contacted), bumpoljuk quote_prep-re,
+      // különben a lead eltűnik a Workspace-ből, de nem jelenik meg a board-on.
+      if (!pipelineStatuses.has(current)) patch.status = "quote_prep";
       const { error } = await supabase
         .from("leads")
-        .update({ pipeline_entered_at: new Date().toISOString() })
+        .update(patch)
         .eq("id", leadId);
       if (error) throw error;
     },
