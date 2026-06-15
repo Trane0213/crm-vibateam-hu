@@ -42,9 +42,6 @@ export function PipelineDetailSheet({
   const [wonOpen, setWonOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
-  // A won előtti pipeline-állapot — szükséges, ha az értékesítő a projekt-
-  // létrehozó dialógusban a „Mégse és visszaállít" gombot választja.
-  const [preWonStatus, setPreWonStatus] = useState<string | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["pipeline"] });
@@ -66,23 +63,11 @@ export function PipelineDetailSheet({
     onSuccess: () => { toast.success("Státusz frissítve"); invalidate(); },
   });
 
-  const wonMut = useMutation({
-    mutationFn: async () => {
-      if (!lead) throw new Error("Nincs lead.");
-      setPreWonStatus(lead.status ?? null);
-      const { error } = await supabase.from("leads").update({ status: "won", won_at: new Date().toISOString() }).eq("id", lead.id);
-      if (error) throw error;
-      await logActivity("leads", "status_change", lead.id, { from: lead.status, to: "won" });
-    },
-    onError: (e: any) => toast.error("Won-jelölés sikertelen", { description: humanizeSupabaseError(e) }),
-    onSuccess: () => {
-      toast.success("Lead megnyerve");
-      invalidate();
-      setWonOpen(false);
-      // Megnyerés után rögtön a projekt-létrehozás dialógus.
-      setProjOpen(true);
-    },
-  });
+  // A 2026-06-27 invariáns óta a won-átmenetet NEM lehet külön elindítani —
+  // a backend trigger elutasítja. A WonDialog megerősítése után közvetlenül
+  // a projekt-létrehozó dialógus nyílik, ami egyetlen RPC-vel atomian
+  // állítja won-ra a leadet ÉS hozza létre a projektet.
+  const onWonConfirm = () => { setWonOpen(false); setProjOpen(true); };
 
   const lostMut = useMutation({
     mutationFn: async (p: { lost_reason: string; lost_note: string | null }) => {
@@ -195,7 +180,7 @@ export function PipelineDetailSheet({
                 <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Műveletek</h3>
                 <LeadActionBar
                   status={lead.status}
-                  busy={statusMut.isPending || wonMut.isPending || lostMut.isPending}
+                  busy={statusMut.isPending || lostMut.isPending}
                   onChangeStatus={(s) => statusMut.mutate(s)}
                   onWon={() => setWonOpen(true)}
                   onLost={() => setLostOpen(true)}
@@ -217,13 +202,12 @@ export function PipelineDetailSheet({
               </aside>
             </div>
 
-            <WonDialog open={wonOpen} onOpenChange={setWonOpen} busy={wonMut.isPending} onConfirm={() => wonMut.mutate()} />
+            <WonDialog open={wonOpen} onOpenChange={setWonOpen} busy={false} onConfirm={onWonConfirm} />
             <LostDialog open={lostOpen} onOpenChange={setLostOpen} busy={lostMut.isPending} onConfirm={(p) => lostMut.mutate(p)} />
             <CreateProjectDialog
               lead={lead}
               open={projOpen}
               onOpenChange={setProjOpen}
-              previousStatus={preWonStatus}
             />
           </>
         )}
