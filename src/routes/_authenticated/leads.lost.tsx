@@ -125,9 +125,16 @@ function LostLeadsPage() {
         lost_note: null,
         lost_stage: null,
       };
-      // Ha Pipeline-ra kerül vissza és még nem volt belépve, állítsuk be.
+      // Pipeline-szakaszra visszatérve a pipeline_entered_at kötelező —
+      // ha még nem volt, beállítjuk. ('contacted' a Workspace-é → nem kell.)
       if (resume !== "contacted") {
         patch.pipeline_entered_at = new Date().toISOString();
+        // A backend trigger megköveteli, hogy pipeline-fázisban legyen
+        // next_step. Reaktiváláskor adunk egy default 3 napos utánkövetést,
+        // így a constraint nem buktatja el a mentést.
+        patch.next_step_type = "follow_up";
+        patch.next_step_due_at = new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString();
+        patch.next_step_note = "Reaktiválás után újrafelvett utánkövetés.";
       }
       const { error } = await supabase.from("leads").update(patch).eq("id", lead.id);
       if (error) throw error;
