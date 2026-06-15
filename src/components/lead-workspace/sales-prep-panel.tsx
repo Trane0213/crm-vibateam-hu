@@ -310,7 +310,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         onOpenChange={setLostOpen}
         busy={updateLead.isPending}
         onConfirm={(p) => updateLead.mutate(
-          { status: "lost", ...p },
+          { status: "lost", lost_stage: "pre_pipeline", lost_at: new Date().toISOString(), ...p },
           { onSuccess: () => { setLostOpen(false); qc.invalidateQueries({ queryKey: ["leads"] }); } },
         )}
       />

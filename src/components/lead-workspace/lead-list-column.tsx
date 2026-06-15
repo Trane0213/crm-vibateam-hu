@@ -34,9 +34,9 @@ export function LeadListColumn({
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [source, setSource] = useState("");
-  // Marketing-only: gyors tab szűrő. A „qualified/converted" tabok megszűntek —
-  // a marketing→sales átadás a marketing workspace saját workflow-jával történik.
-  const [marketingTab, setMarketingTab] = useState<"active" | "lost">("active");
+  // Marketing-only: a Workspace MINDIG csak az aktív (new / contacted) leadeket
+  // mutatja. Az elveszett leadek a sidebar „Elveszett" menüpontjából érhetők el
+  // — itt nincs külön tab, hogy a folyamat egyértelmű maradjon.
 
   const allSources = useMemo(() => {
     const set = new Set<string>();
@@ -90,9 +90,8 @@ export function LeadListColumn({
         if (l.status === "lost" || l.status === "won") return false;
       }
       if (mode === "marketing") {
-        // Marketing tabok: Aktív=new/contacted, Nem érdekes=lost.
-        if (marketingTab === "active" && !(l.status === "new" || l.status === "contacted")) return false;
-        if (marketingTab === "lost" && l.status !== "lost") return false;
+        // Marketing Workspace = csak aktív leadek (new / contacted).
+        if (!(l.status === "new" || l.status === "contacted")) return false;
       }
       if (status && l.status !== status) return false;
       if (source && l.source !== source) return false;
@@ -113,7 +112,7 @@ export function LeadListColumn({
       });
     }
     return list;
-  }, [data, search, status, source, mode, marketingTab, followups.data]);
+  }, [data, search, status, source, mode, followups.data]);
 
   // Mini-összegző a tab szám alá: hány lejárt / mai van a látható listából.
   const summary = useMemo(() => {
@@ -139,28 +138,6 @@ export function LeadListColumn({
   return (
     <div className="flex h-full flex-col">
       <div className="space-y-2 border-b p-3">
-        {mode === "marketing" && (
-          <div className="flex gap-1 rounded-md border bg-muted/30 p-0.5 text-[11px]">
-            {([
-              { key: "active",    label: "Aktív" },
-              { key: "lost",      label: "Nem érdekes" },
-            ] as const).map((t) => {
-              const active = marketingTab === t.key;
-              return (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setMarketingTab(t.key)}
-                  className={`flex-1 rounded px-2 py-1 font-medium transition-colors ${
-                    active ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-        )}
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
