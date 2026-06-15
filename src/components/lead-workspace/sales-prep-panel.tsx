@@ -126,6 +126,9 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["leads"] });
+      // A Pipeline kanban külön cache-en él — frissítsük, hogy a frissen
+      // átléptetett lead azonnal megjelenjen a Pipeline tabon.
+      qc.invalidateQueries({ queryKey: ["pipeline"] });
       toast.success("Lead átkerült a Pipeline-ba");
       setPipelineOpen(false);
     },

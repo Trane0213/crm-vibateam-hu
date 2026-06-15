@@ -105,6 +105,9 @@ export function CreateProjectDialog({
       toast.success("Projekt létrehozva");
       qc.invalidateQueries({ queryKey: ["pipeline"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
+      // A lead won-né vált → a Ma oldal Workspace/Pipeline számlálói és a
+      // Workspace lista (["leads", ...]) is változnak.
+      qc.invalidateQueries({ queryKey: ["leads"] });
       onOpenChange(false);
       navigate({ to: "/projects/$id", params: { id: data.id } });
     },
@@ -129,6 +132,9 @@ export function CreateProjectDialog({
     onSuccess: () => {
       toast.info("Lead visszaállítva — projekt nem jött létre.");
       qc.invalidateQueries({ queryKey: ["pipeline"] });
+      // A lead visszakerült won-ból pipeline-szakaszba → a Ma oldal
+      // ["leads", ...] alapú számlálói is változnak.
+      qc.invalidateQueries({ queryKey: ["leads"] });
       onOpenChange(false);
     },
   });

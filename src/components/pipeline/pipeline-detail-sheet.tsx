@@ -48,6 +48,9 @@ export function PipelineDetailSheet({
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["pipeline"] });
     qc.invalidateQueries({ queryKey: ["pipeline", "activity", lead?.id] });
+    // A Ma oldal és a Workspace lista a ["leads", ...] cache-eken él — won/lost
+    // után ezek a számlálók is változnak, ezért közösen invalidáljuk.
+    qc.invalidateQueries({ queryKey: ["leads"] });
   };
 
   const statusMut = useMutation({
