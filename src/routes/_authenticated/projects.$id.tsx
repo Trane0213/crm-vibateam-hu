@@ -25,6 +25,8 @@ import { ProjectStatusSelect } from "@/components/projects/project-status-select
 import { ProjectContactsPanel } from "@/components/projects/project-contacts-panel";
 import { ProjectEmailAttach } from "@/components/projects/project-email-attach";
 import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
+import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import { HandshakeIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -45,6 +47,7 @@ function ProjectDetail() {
   const { id } = Route.useParams();
   const { data: project, isLoading, error } = useProject(id);
   const companyLabel = useLookup("companies", "name");
+  const assigneeName = useAssigneeLookup();
 
   const quotes = useListWhere<any>("quotes", "project_id", id, { order: "created_at", ascending: false });
   const followups = useListWhere<any>("followups", "project_id", id, { order: "due_date", ascending: true });
