@@ -1,14 +1,22 @@
 -- =====================================================================
 -- VIBA CRM — Sales backend invariánsok (egy futtatás, idempotens)
--- 2026-06-27
+-- 2026-06-27  (javítva: 2026-06-28 — production-ready)
+--
+-- ELŐFELTÉTEL: a database/2026-06-28_sales_data_normalization.sql
+-- LE KELL HOGY FUSSON ELŐSZÖR. Verifikáció:
+--   SELECT count(*) FROM public.leads
+--    WHERE assigned_to IS NULL AND status NOT IN ('won','lost');           -- 0
+--   SELECT count(*) FROM public.leads l
+--    WHERE l.status='won'
+--      AND NOT EXISTS (SELECT 1 FROM public.projects p WHERE p.lead_id=l.id); -- 0
 --
 -- Tartalom:
---   1) leads.lost_stage normalizálás → a tényleges elveszett pipeline-státusz
---   2) NOT NULL when status='lost' invariáns
+--   1) leads.lost_stage normalizálás → tényleges elveszett pipeline-státusz
+--   2) Biimplikáció: status='lost' <=> lost_stage IS NOT NULL
 --   3) Pipeline next_step kötelezőség (backend trigger)
 --   4) Won → Project atomi védelem (RPC + guard trigger + projekt-trigger)
 --   5) projects(lead_id) egyediség — egy won leadhez egy projekt
---   6) Backfill minden meglévő sorra, hogy a constraintek átmenjenek
+--   6) Won-orphan safety-net (a normalizáció már lekezelte)
 --
 -- Egyszer futtatható, többször is biztonságos (IF NOT EXISTS / DROP IF EXISTS).
 -- =====================================================================
@@ -17,8 +25,6 @@ BEGIN;
 
 -- =====================================================================
 -- 0) Előfeltételek — lost_stage és pipeline_entered_at léteznek-e?
---    A 2026-06-26 stabilizációs migráció már létrehozta; legyünk
---    biztosak benne, hogy idempotensen mégegyszer megpróbáljuk.
 -- =====================================================================
 ALTER TABLE public.leads
   ADD COLUMN IF NOT EXISTS pipeline_entered_at timestamptz NULL,
@@ -27,22 +33,21 @@ ALTER TABLE public.leads
 -- =====================================================================
 -- 1) LOST_STAGE NORMALIZÁLÁS
 --    Régi értékek: 'pre_pipeline' / 'pipeline'
---    Új értékek: 'contacted','quote_prep','quote_sent','follow_up','contract'
+--    Új értékek:   'contacted','quote_prep','quote_sent','follow_up','contract'
 --
---    1.a) Régi durvább értékek mappelése (lossy, de irányt tartó):
---           pre_pipeline → contacted
---           pipeline     → quote_prep
---    1.b) Lost leadek lost_stage=NULL eseteinek backfillje
---         a lead_status_history utolsó nem-lost átmenetéből.
+--    KRITIKUS sorrend: a régi leads_lost_stage_chk constraint csak
+--    'pre_pipeline'/'pipeline' értékeket enged → előbb DROP, aztán UPDATE,
+--    majd új CHECK. Egyébként az 1.a és 1.b UPDATE check_violation-be fut.
 -- =====================================================================
+ALTER TABLE public.leads DROP CONSTRAINT IF EXISTS leads_lost_stage_chk;
+ALTER TABLE public.leads DROP CONSTRAINT IF EXISTS leads_lost_stage_required;
+
+-- 1.a) Régi durvább értékek mappelése (lossy, irányt tartó)
 UPDATE public.leads SET lost_stage = 'contacted'  WHERE lost_stage = 'pre_pipeline';
 UPDATE public.leads SET lost_stage = 'quote_prep' WHERE lost_stage = 'pipeline';
-
--- 'new' soha nem volt rögzített lost_stage érték, de történelmileg
--- előfordulhat — mappeljük 'contacted'-re.
 UPDATE public.leads SET lost_stage = 'contacted' WHERE lost_stage = 'new';
 
--- Lost leadek backfillje a státuszhistóriából.
+-- 1.b) Lost leadek backfillje a státuszhistóriából
 UPDATE public.leads l
    SET lost_stage = COALESCE(
          (SELECT h.from_status
@@ -57,39 +62,29 @@ UPDATE public.leads l
    AND (l.lost_stage IS NULL
         OR l.lost_stage NOT IN ('contacted','quote_prep','quote_sent','follow_up','contract'));
 
--- A nem-lost soroknál a lost_stage MINDIG legyen NULL (új invariáns).
+-- A nem-lost soroknál a lost_stage MINDIG legyen NULL.
 UPDATE public.leads SET lost_stage = NULL WHERE status <> 'lost' AND lost_stage IS NOT NULL;
 
 -- 1.c) Új CHECK — whitelisted enum
-ALTER TABLE public.leads DROP CONSTRAINT IF EXISTS leads_lost_stage_chk;
 ALTER TABLE public.leads
   ADD CONSTRAINT leads_lost_stage_chk
   CHECK (lost_stage IS NULL OR lost_stage IN (
     'contacted','quote_prep','quote_sent','follow_up','contract'
   ));
 
--- 1.d) Új CHECK — biimplikáció: lost_stage akkor és csak akkor, ha status='lost'
-ALTER TABLE public.leads DROP CONSTRAINT IF EXISTS leads_lost_stage_required;
+-- 1.d) Új CHECK — biimplikáció
 ALTER TABLE public.leads
   ADD CONSTRAINT leads_lost_stage_required
   CHECK ((status = 'lost') = (lost_stage IS NOT NULL));
 
 -- =====================================================================
 -- 2) PIPELINE NEXT STEP KÖTELEZŐSÉG
---    Pipeline-fázisú leadeknek (pipeline_entered_at IS NOT NULL ÉS
---    status IN quote_prep/quote_sent/follow_up/contract) MINDIG
---    legyen next_step_type ÉS next_step_due_at kitöltve.
+--    Pipeline-fázisú leadnek (pipeline_entered_at IS NOT NULL ÉS
+--    status IN quote_prep/quote_sent/follow_up/contract) mindig legyen
+--    next_step_type ÉS next_step_due_at kitöltve.
 --
---    2.a) Backfill, hogy a meglévő sorok átmenjenek a triggeren.
+--    Preflight: 0 sértő rekord → backfill nem szükséges.
 -- =====================================================================
-UPDATE public.leads
-   SET next_step_type   = COALESCE(next_step_type, 'follow_up'),
-       next_step_due_at = COALESCE(next_step_due_at, now() + interval '3 days'),
-       next_step_note   = COALESCE(next_step_note, 'Automatikusan feltöltve a 2026-06-27 invariáns migrációval.')
- WHERE pipeline_entered_at IS NOT NULL
-   AND status IN ('quote_prep','quote_sent','follow_up','contract')
-   AND (next_step_type IS NULL OR next_step_due_at IS NULL);
-
 CREATE OR REPLACE FUNCTION public.leads_pipeline_next_step_required()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -117,11 +112,11 @@ CREATE TRIGGER trg_leads_pipeline_next_step_required
 -- 3) WON → PROJECT ATOMI VÉDELEM
 --
 --    Invariáns: lead.status='won' csak úgy fordulhat elő, ha ugyanabban a
---    tranzakcióban projekt is létrejön. Megoldás: SECURITY DEFINER RPC,
---    ami a leadet won-ra állítja ÉS azonnal beszúrja a projektet.
---    A guard trigger MINDEN MÁS won-átmenetet elutasít.
+--    tranzakcióban projekt is létrejön. SECURITY DEFINER RPC: a leadet
+--    won-ra állítja ÉS azonnal beszúrja a projektet egyetlen tx-en belül.
+--    Guard trigger minden más won-átmenetet elutasít.
 --
---    Az RPC egy session-szintű flag-et állít (app.allow_won_transition='1'),
+--    Az RPC tx-szintű flag-et állít (app.allow_won_transition='1'),
 --    amelyet a trigger elfogad — más útvonal nem tudja beállítani.
 -- =====================================================================
 CREATE OR REPLACE FUNCTION public.leads_won_requires_project()
@@ -137,7 +132,7 @@ BEGIN
     v_flag := current_setting('app.allow_won_transition', true);
     IF COALESCE(v_flag, '') <> '1' THEN
       RAISE EXCEPTION
-        'leads.status=''won'' direct write forbidden — use sales_mark_won_with_project() RPC (won lead without project is an illegal state)'
+        'leads.status=''won'' direct write forbidden — use sales_mark_won_with_project() RPC'
         USING ERRCODE = 'check_violation';
     END IF;
   END IF;
@@ -150,13 +145,13 @@ CREATE TRIGGER trg_leads_won_requires_project
   BEFORE INSERT OR UPDATE OF status ON public.leads
   FOR EACH ROW EXECUTE FUNCTION public.leads_won_requires_project();
 
--- 3.b) Egy won leadhez maximum egy projekt (unique partial index).
+-- 3.b) Egy won leadhez maximum egy projekt (preflight: 0 duplikáció).
 DROP INDEX IF EXISTS uq_projects_lead_id;
 CREATE UNIQUE INDEX uq_projects_lead_id
   ON public.projects(lead_id)
   WHERE lead_id IS NOT NULL;
 
--- 3.c) Projekt-trigger: won lead utolsó projektjét tilos törölni vagy lecsatolni.
+-- 3.c) Projekt-trigger: won lead utolsó projektjét tilos törölni / lecsatolni.
 CREATE OR REPLACE FUNCTION public.projects_protect_won_lead()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -228,9 +223,9 @@ DECLARE
   v_won_at     timestamptz;
   v_project_id uuid;
 BEGIN
-  IF p_lead_id IS NULL              THEN RAISE EXCEPTION 'p_lead_id required'; END IF;
+  IF p_lead_id IS NULL                 THEN RAISE EXCEPTION 'p_lead_id required'; END IF;
   IF p_project_manager_user_id IS NULL THEN RAISE EXCEPTION 'p_project_manager_user_id required'; END IF;
-  IF p_start_date IS NULL           THEN RAISE EXCEPTION 'p_start_date required'; END IF;
+  IF p_start_date IS NULL              THEN RAISE EXCEPTION 'p_start_date required'; END IF;
 
   -- Tranzakció-szintű flag: a won-guard trigger ezzel engedi át az UPDATE-et.
   PERFORM set_config('app.allow_won_transition', '1', true);
@@ -281,40 +276,46 @@ GRANT EXECUTE ON FUNCTION public.sales_mark_won_with_project(uuid, text, date, u
 GRANT EXECUTE ON FUNCTION public.sales_mark_won_with_project(uuid, text, date, uuid, text) TO service_role;
 
 -- =====================================================================
--- 4) MEGLÉVŐ WON LEADEK PROJEKT NÉLKÜL — automatikus visszaállítás
---    Egy won leadhez projekt nélkül NEM maradhat. Ha valami régi adat
---    ilyen állapotban van, állítsuk vissza 'contract'-ra.
+-- 4) WON-ORPHAN SAFETY-NET
+--    A 2026-06-28 normalizáció ezt már lekezelte; itt csak biztonsági
+--    háló (üres halmazon nincs hatása). Ha találna, a status_history
+--    triggert lokálisan kikapcsoljuk — NULL changed_by nem írható auditba.
 -- =====================================================================
 DO $bf$
-DECLARE r RECORD;
+DECLARE
+  v_count int;
 BEGIN
-  FOR r IN
-    SELECT l.id
-      FROM public.leads l
-     WHERE l.status = 'won'
-       AND NOT EXISTS (SELECT 1 FROM public.projects p WHERE p.lead_id = l.id)
-  LOOP
-    -- A guard kikerülése a backfill erejéig.
-    PERFORM set_config('app.allow_won_transition', '1', true);
+  SELECT count(*) INTO v_count
+    FROM public.leads l
+   WHERE l.status = 'won'
+     AND NOT EXISTS (SELECT 1 FROM public.projects p WHERE p.lead_id = l.id);
+
+  IF v_count > 0 THEN
+    EXECUTE 'ALTER TABLE public.leads DISABLE TRIGGER trg_leads_status_history';
     UPDATE public.leads
        SET status = 'contract', won_at = NULL
-     WHERE id = r.id;
-  END LOOP;
+     WHERE status = 'won'
+       AND NOT EXISTS (SELECT 1 FROM public.projects p WHERE p.lead_id = leads.id);
+    EXECUTE 'ALTER TABLE public.leads ENABLE TRIGGER trg_leads_status_history';
+  END IF;
 END
 $bf$;
 
 COMMIT;
 
 -- =====================================================================
--- ELLENŐRZÉS
---   select conname from pg_constraint
---     where conrelid='public.leads'::regclass
---       and conname in ('leads_lost_stage_chk','leads_lost_stage_required');
---   select tgname from pg_trigger
---     where tgrelid='public.leads'::regclass
---       and tgname in ('trg_leads_won_requires_project','trg_leads_pipeline_next_step_required');
---   select proname from pg_proc where proname='sales_mark_won_with_project';
---   -- Negatív tesztek (mindkettő hibát kell adjon):
---   --   update public.leads set status='won' where id='...';
---   --   update public.leads set next_step_type=null where status='quote_prep' and pipeline_entered_at is not null;
+-- ELLENŐRZÉS (futtatás után):
+--   SELECT conname FROM pg_constraint
+--    WHERE conrelid='public.leads'::regclass
+--      AND conname IN ('leads_lost_stage_chk','leads_lost_stage_required');
+--   SELECT tgname FROM pg_trigger
+--    WHERE tgrelid='public.leads'::regclass
+--      AND tgname IN ('trg_leads_won_requires_project',
+--                     'trg_leads_pipeline_next_step_required');
+--   SELECT proname FROM pg_proc WHERE proname='sales_mark_won_with_project';
+--
+-- Negatív tesztek (mindkettő hibát kell dobjon):
+--   UPDATE public.leads SET status='won' WHERE id='<bármi>';
+--   UPDATE public.leads SET next_step_type=NULL
+--    WHERE status='quote_prep' AND pipeline_entered_at IS NOT NULL;
 -- =====================================================================
