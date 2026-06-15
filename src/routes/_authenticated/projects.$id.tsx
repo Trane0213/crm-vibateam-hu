@@ -26,7 +26,6 @@ import { ProjectContactsPanel } from "@/components/projects/project-contacts-pan
 import { ProjectEmailAttach } from "@/components/projects/project-email-attach";
 import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
-import { HandshakeIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
