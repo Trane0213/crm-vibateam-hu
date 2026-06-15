@@ -359,41 +359,12 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         </div>
       )}
 
-      {/* 5b. Projekt átadás — Sales, V2 (csak won esetén) */}
-      {mode === "sales" && lead.data && currentStatus === "won" && (
-        <div className="rounded-md border p-3">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <Briefcase className="h-3 w-3" /> Projekt átadás
-          </div>
-          {(projects.data ?? []).length === 0 ? (
-            <Button size="sm" className="w-full" onClick={() => setHandoffOpen(true)}>
-              <Send className="mr-1.5 h-3.5 w-3.5" /> Projekt indítása
-            </Button>
-          ) : (
-            <ul className="space-y-1 text-[11px]">
-              {(projects.data ?? []).map((p: any) => (
-                <li key={p.id} className="flex items-center justify-between rounded border px-2 py-1">
-                  <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
-                    {p.title ?? "—"}
-                  </Link>
-                  <Badge variant="outline">{p.status ?? "—"}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* 5. Átadás értékesítőnek — csak Marketing, qualified státusznál */}
-      {mode === "marketing" && lead.data && (
-        <LeadHandoffPanel
-          lead={{
-            id: lead.data.id,
-            status: lead.data.status ?? null,
-            company_id: lead.data.company_id ?? null,
-          }}
-        />
-      )}
+      {/* A „Projekt indítása" gomb és a marketing kézi átadás panel megszűnt.
+          - Projekt KIZÁRÓLAG a Pipeline → Megnyert lépésből jöhet létre (ott
+            kerül vissza a UI).
+          - A marketing→sales átadást a marketing workspace dedikált handoff
+            folyamata végzi (state-marker a customer notes-ban), itt nincs
+            duplikált belépés. */}
 
       <EmailComposer
         open={emailOpen}
@@ -418,27 +389,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         busy={updateLead.isPending}
         onConfirm={(p) => updateLead.mutate({ status: "lost", ...p }, { onSuccess: () => { setLostOpen(false); invalidate(); } })}
       />
-      {lead.data && (
-        <HandoffDialog
-          open={handoffOpen}
-          onOpenChange={setHandoffOpen}
-          defaultTitle={lead.data.summary ? `Projekt — ${String(lead.data.summary).slice(0, 60)}` : `Projekt — #${String(lead.data.id).slice(0, 8)}`}
-          seed={{
-            contact_name: lead.data.contact_id ? contactLabel(lead.data.contact_id) : "",
-            contact_email: contact.data?.email ?? "",
-          }}
-          onConfirm={async ({ title, payload }) => {
-            if (!leadId) return;
-            const { error } = await supabase.from("projects").insert({
-              lead_id: leadId, title, status: "planned", handoff_payload: payload,
-            });
-            if (error) { toast.error(error.message); return; }
-            toast.success("Projekt létrehozva");
-            setHandoffOpen(false);
-            invalidate();
-          }}
-        />
-      )}
     </div>
   );
 }
