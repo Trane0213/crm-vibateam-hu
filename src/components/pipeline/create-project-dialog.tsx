@@ -43,7 +43,6 @@ export function CreateProjectDialog({
       if (!lead) throw new Error("Nincs lead.");
       const payload: Record<string, any> = {
         title: title.trim() || "Új projekt",
-        status: "planning",
         lead_id: lead.id,
         company_id: lead.company_id,
         handoff_payload: {
