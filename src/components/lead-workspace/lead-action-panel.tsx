@@ -224,21 +224,9 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         </div>
       )}
 
-      {/* SALES — V2 státuszváltás állapotgéppel */}
-      {mode === "sales" && lead.data && (
-        <div className="rounded-md border p-3">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <CheckCircle2 className="h-3 w-3" /> Státusz
-          </div>
-          <LeadActionBar
-            status={currentStatus}
-            busy={updateLead.isPending}
-            onChangeStatus={(next) => updateLead.mutate({ status: next })}
-            onWon={() => setWonOpen(true)}
-            onLost={() => setLostOpen(true)}
-          />
-        </div>
-      )}
+      {/* Sales módban a státuszváltás (köztes átmenetek) és a Won/Lost
+          kizárólag a Pipeline-on történik — itt szándékosan nincs duplikált
+          belépő. A pre-pipeline Lost a SalesPrepPanel-en él. */}
 
       {/* 1. Email */}
       <div className="rounded-md border p-3">
@@ -369,20 +357,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         onSent={handleEmailSent}
       />
       <AiSheet open={aiOpen} onOpenChange={setAiOpen} agent={agent} agentLabel={agentLabel} />
-
-      {/* V2 dialogok */}
-      <WonDialog
-        open={wonOpen}
-        onOpenChange={setWonOpen}
-        busy={updateLead.isPending}
-        onConfirm={() => updateLead.mutate({ status: "won" }, { onSuccess: () => { setWonOpen(false); invalidate(); } })}
-      />
-      <LostDialog
-        open={lostOpen}
-        onOpenChange={setLostOpen}
-        busy={updateLead.isPending}
-        onConfirm={(p) => updateLead.mutate({ status: "lost", ...p }, { onSuccess: () => { setLostOpen(false); invalidate(); } })}
-      />
     </div>
   );
 }
