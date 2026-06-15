@@ -374,7 +374,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     Státusz felülírása (haladó)
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {(["new", "contacted", "qualified"] as const).map((s) => (
+                  {(["new", "contacted"] as const).map((s) => (
                     <DropdownMenuItem
                       key={s}
                       disabled={setStatus.isPending || meta.status === s}
