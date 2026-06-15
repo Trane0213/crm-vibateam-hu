@@ -152,6 +152,9 @@ function LostLeadsPage() {
       toast.success(`Lead újra aktiválva — ${LEAD_STATUS_LABEL[resume]}`);
       setReactivateTarget(null);
       qc.invalidateQueries({ queryKey: ["leads"] });
+      // A Pipeline kanban külön cache-en él — frissítsük, hogy a visszahozott
+      // lead azonnal megjelenjen, ha az értékesítő a Pipeline tabon van.
+      qc.invalidateQueries({ queryKey: ["pipeline"] });
     },
   });
 
@@ -277,8 +280,14 @@ function LostLeadsPage() {
           <DialogHeader>
             <DialogTitle>Lead újra aktiválása</DialogTitle>
             <DialogDescription>
-              {reactivateTarget &&
-                `A lead visszakerül a Pipeline „${LEAD_STATUS_LABEL[resolveResumeStatus(reactivateTarget.lost_stage)]}” szakaszába. Az elvesztés oka és megjegyzése törlődik.`}
+              {reactivateTarget && (() => {
+                const resume = resolveResumeStatus(reactivateTarget.lost_stage);
+                const target =
+                  resume === "contacted"
+                    ? `a Workspace „${LEAD_STATUS_LABEL[resume]}” szakaszába`
+                    : `a Pipeline „${LEAD_STATUS_LABEL[resume]}” szakaszába`;
+                return `A lead visszakerül ${target}. Az elvesztés oka és megjegyzése törlődik.`;
+              })()}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
