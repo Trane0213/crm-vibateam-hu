@@ -27,7 +27,6 @@ import {
   ListPlus,
   Target,
   CheckSquare,
-  Send,
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,7 +45,14 @@ import { canAccessRoute } from "@/lib/permissions";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { BrandLogo } from "@/components/brand-logo";
 
-type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; highlight?: boolean };
+type Item = {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  highlight?: boolean;
+  /** Ezekhez a szerepkörökhöz NEM jelenik meg a menüpont. */
+  hideForRoles?: import("@/lib/permissions").RoleSlug[];
+};
 
 const home: Item[] = [
   { title: "Ma", url: "/today", icon: Home, highlight: true },
@@ -65,11 +71,14 @@ const aiAgents: AiAgentItem[] = [
 ];
 
 const pipeline: Item[] = [
-  { title: "Érdeklődők", url: "/leads", icon: Sparkles },
-  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
+  // Sales szerepkörnek a Workspace (/leads) és az ajánlatok a Sales menüből
+  // érhetők el — itt elrejtve a párhuzamos belépés.
+  { title: "Érdeklődők", url: "/leads", icon: Sparkles, hideForRoles: ["sales"] },
+  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true, hideForRoles: ["sales"] },
   { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
-  { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true },
-  { title: "Feladatok", url: "/tasks", icon: ListChecks },
+  // Utókövetés és Feladatok salesnek a Sales → Teendők-ből érhető el.
+  { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true, hideForRoles: ["sales"] },
+  { title: "Feladatok", url: "/tasks", icon: ListChecks, hideForRoles: ["sales"] },
 ];
 
 const contacts: Item[] = [
@@ -81,22 +90,26 @@ const contacts: Item[] = [
 
 const comms: Item[] = [
   { title: "Emailek", url: "/emails", icon: Mail },
-  { title: "Hívások", url: "/calls", icon: Phone },
+  // Hívások: salesnek elrejtve (kérésre). Email és Találkozók marad.
+  { title: "Hívások", url: "/calls", icon: Phone, hideForRoles: ["sales"] },
   { title: "Találkozók", url: "/meetings", icon: Calendar },
 ];
 
 const sys: Item[] = [
-  { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard },
+  // Sales nem nyitja meg a régi Irányítópultot — neki a Sales → Áttekintés a fő nézet.
+  { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard, hideForRoles: ["sales"] },
   { title: "Adatminőség", url: "/data-quality", icon: ShieldCheck },
   { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
-  { title: "Aktivitás", url: "/activity", icon: Activity },
-  { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen },
+  { title: "Aktivitás", url: "/activity", icon: Activity, hideForRoles: ["sales"] },
+  { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen, hideForRoles: ["sales"] },
   { title: "Beállítások", url: "/settings", icon: Settings },
 ];
 
 const sales: Item[] = [
+  // A jóváhagyott folyamat: Sales Áttekintés → Workspace → Pipeline → Projekt.
   { title: "Áttekintés", url: "/sales", icon: LayoutDashboard, highlight: true },
-  { title: "Leadek", url: "/sales/leads", icon: Target },
+  { title: "Workspace", url: "/leads", icon: Sparkles },
+  { title: "Pipeline", url: "/sales/leads", icon: Target },
   { title: "Teendők", url: "/sales/todo", icon: CheckSquare },
   { title: "Ajánlatok", url: "/sales/quotes", icon: FileText },
 ];
@@ -111,7 +124,9 @@ export function AppSidebar() {
     pathname.startsWith("/ai-assistant") && new URLSearchParams(searchStr ?? "").get("agent") === agent;
   const { role } = usePermissions();
   const { visibleAgentIds } = useVisibleAgents();
-  const visible = (items: Item[]) => items.filter((i) => canAccessRoute(role, i.url));
+  const visible = (items: Item[]) =>
+    items.filter((i) => canAccessRoute(role, i.url))
+         .filter((i) => !(i.hideForRoles?.includes(role) ?? false));
 
   const renderGroup = (label: string, items: Item[], withDivider = true) => (
     <SidebarGroup
