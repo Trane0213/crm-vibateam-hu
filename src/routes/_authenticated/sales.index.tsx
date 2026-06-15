@@ -74,7 +74,7 @@ function PipelineTiles() {
                 ? ({ to: "/projects" } as const)
                 : s === "lost"
                 ? ({ to: "/leads/lost" } as const)
-                : ({ to: "/sales/pipeline" } as const);
+                : ({ to: "/sales/leads" } as const);
             return (
               <Link
                 key={s}
