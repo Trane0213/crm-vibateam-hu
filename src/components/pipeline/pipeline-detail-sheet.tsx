@@ -81,7 +81,14 @@ export function PipelineDetailSheet({
       if (!lead) throw new Error("Nincs lead.");
       const { error } = await supabase
         .from("leads")
-        .update({ status: "lost", lost_at: new Date().toISOString(), lost_reason: p.lost_reason, lost_note: p.lost_note })
+        .update({
+          status: "lost",
+          lost_at: new Date().toISOString(),
+          lost_reason: p.lost_reason,
+          lost_note: p.lost_note,
+          // Honnan veszett el — az Elveszett listán a reaktiváláshoz kell.
+          lost_stage: "pipeline",
+        })
         .eq("id", lead.id);
       if (error) throw error;
       await logActivity("leads", "status_change", lead.id, { from: lead.status, to: "lost", reason: p.lost_reason });
