@@ -14,7 +14,6 @@ import { FollowupQuickForm } from "./followup-quick-form";
 import { AiSheet } from "./ai-sheet";
 import { useCreateLeadFollowup, useUpdateLead } from "./use-lead-mutations";
 import { QuickCreateQuoteButton } from "@/components/today/quick-create";
-import { LeadHandoffPanel } from "./lead-handoff-panel";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -26,7 +25,6 @@ import { LeadActionBar } from "@/components/sales/lead-action-bar";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { WonDialog } from "@/components/sales/won-dialog";
 import { LostDialog } from "@/components/sales/lost-dialog";
-import { HandoffDialog } from "@/components/sales/handoff-dialog";
 import type { LeadStatus } from "@/lib/sales/constants";
 
 const QUOTE_EDITABLE_STATUSES: LeadStatus[] = ["quote_prep", "quote_sent", "follow_up", "contract"];
