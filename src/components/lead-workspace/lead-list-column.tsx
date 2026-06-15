@@ -14,16 +14,12 @@ const STATUS_OPTIONS = [
   { value: "", label: "Minden státusz" },
   { value: "new",       label: "Új",                              marketingLabel: "Új" },
   { value: "contacted", label: "Felvettük",                       marketingLabel: "Kapcsolatfelvétel alatt" },
-  { value: "qualified", label: "Minősített",                      marketingLabel: "Átadható" },
-  { value: "converted", label: "Konvertált",                      marketingLabel: "Átadva értékesítőnek" },
   { value: "lost",      label: "Elveszett",                       marketingLabel: "Nem érdekes" },
 ];
 
 const STATUS_TONE: Record<string, string> = {
   new: "bg-[color:var(--status-info)]/15 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
   contacted: "bg-primary/10 text-primary border-primary/30",
-  qualified: "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
-  converted: "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
   lost: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
@@ -38,8 +34,9 @@ export function LeadListColumn({
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [source, setSource] = useState("");
-  // Marketing-only: gyors tab szűrő az Aktív / Átadható / Átadott / Nem érdekes felett.
-  const [marketingTab, setMarketingTab] = useState<"active" | "qualified" | "lost">("active");
+  // Marketing-only: gyors tab szűrő. A „qualified/converted" tabok megszűntek —
+  // a marketing→sales átadás a marketing workspace saját workflow-jával történik.
+  const [marketingTab, setMarketingTab] = useState<"active" | "lost">("active");
 
   const allSources = useMemo(() => {
     const set = new Set<string>();
@@ -93,12 +90,9 @@ export function LeadListColumn({
         if (l.status === "lost" || l.status === "won") return false;
       }
       if (mode === "marketing") {
-        // Marketing tabok: Aktív=new/contacted, Átadható=qualified, Nem érdekes=lost.
-        // A `converted` státusz a marketingnek nem jelenik meg (értékesítő hatáskör).
+        // Marketing tabok: Aktív=new/contacted, Nem érdekes=lost.
         if (marketingTab === "active" && !(l.status === "new" || l.status === "contacted")) return false;
-        if (marketingTab === "qualified" && l.status !== "qualified") return false;
         if (marketingTab === "lost" && l.status !== "lost") return false;
-        if (marketingTab !== "qualified" && l.status === "converted") return false;
       }
       if (status && l.status !== status) return false;
       if (source && l.source !== source) return false;
@@ -149,7 +143,6 @@ export function LeadListColumn({
           <div className="flex gap-1 rounded-md border bg-muted/30 p-0.5 text-[11px]">
             {([
               { key: "active",    label: "Aktív" },
-              { key: "qualified", label: "Átadható" },
               { key: "lost",      label: "Nem érdekes" },
             ] as const).map((t) => {
               const active = marketingTab === t.key;

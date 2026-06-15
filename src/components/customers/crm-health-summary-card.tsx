@@ -15,7 +15,9 @@ import { computeCompanyScore } from "@/lib/dedupe/scoring";
 import { findCompanyDuplicates, findContactConflicts } from "@/lib/dedupe/detect";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 
-const ACTIVE_LEAD_STATUSES = new Set(["new", "contacted", "qualified"]);
+const ACTIVE_LEAD_STATUSES = new Set([
+  "new", "contacted", "quote_prep", "quote_sent", "follow_up", "contract",
+]);
 
 type Company = {
   id: string;

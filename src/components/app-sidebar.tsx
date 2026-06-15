@@ -99,7 +99,6 @@ const sales: Item[] = [
   { title: "Leadek", url: "/sales/leads", icon: Target },
   { title: "Teendők", url: "/sales/todo", icon: CheckSquare },
   { title: "Ajánlatok", url: "/sales/quotes", icon: FileText },
-  { title: "Átadás", url: "/sales/handoff", icon: Send },
 ];
 
 export function AppSidebar() {

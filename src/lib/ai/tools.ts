@@ -130,7 +130,7 @@ async function lead_priority_report(_args: Record<string, never> = {}) {
   const scored = leads.map((l) => {
     const ageDays = l.created_at ? daysBetween(now, new Date(l.created_at)) : 0;
     const isFresh = ageDays <= 7;
-    const isHot = ["new", "qualified", "hot"].includes(String(l.status));
+    const isHot = ["new", "contacted", "quote_prep", "quote_sent"].includes(String(l.status));
     const priority = (isFresh ? 2 : 0) + (isHot ? 2 : 0);
     return { ...pickLead(l), age_days: ageDays, priority };
   }).sort((a, b) => b.priority - a.priority);
@@ -411,7 +411,7 @@ async function daily_call_list(_args: Record<string, never> = {}) {
   for (const l of leads) {
     if (!l.company_id || !l.created_at) continue;
     const age = daysBetween(now, new Date(l.created_at));
-    if (age <= 7 && !["lost", "converted"].includes(String(l.status))) {
+    if (age <= 7 && !["lost", "won"].includes(String(l.status))) {
       bump(l.company_id, { kind: "fresh_lead", weight: 12, detail: `friss lead (${age} napos)` });
     }
   }

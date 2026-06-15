@@ -14,7 +14,6 @@ const LEAD_FIELDS: Field[] = [
   { name: "project_type", label: "Projekt típus", type: "text" },
   { name: "status", label: "Státusz", type: "select", required: true, options: [
     { value: "new", label: "Új" }, { value: "contacted", label: "Felvettük" },
-    { value: "qualified", label: "Minősített" }, { value: "converted", label: "Konvertált" },
     { value: "lost", label: "Elveszett" },
   ]},
   { name: "summary", label: "Összefoglaló", type: "textarea" },

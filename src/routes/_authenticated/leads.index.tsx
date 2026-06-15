@@ -14,16 +14,22 @@ import { usePermissions } from "@/hooks/use-permissions";
 const STATUS_OPTIONS = [
   { value: "new", label: "Új" },
   { value: "contacted", label: "Felvettük" },
-  { value: "qualified", label: "Minősített" },
-  { value: "converted", label: "Konvertált" },
+  { value: "quote_prep", label: "Ajánlat előkészítés" },
+  { value: "quote_sent", label: "Ajánlat kiadva" },
+  { value: "follow_up", label: "Utánkövetés" },
+  { value: "contract", label: "Szerződés" },
+  { value: "won", label: "Megnyert" },
   { value: "lost", label: "Elveszett" },
 ];
 
 const STATUS_TONE: Record<string, string> = {
   new: "bg-[color:var(--status-info)]/15 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
   contacted: "bg-primary/10 text-primary border-primary/30",
-  qualified: "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
-  converted: "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
+  quote_prep: "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
+  quote_sent: "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
+  follow_up: "bg-primary/10 text-primary border-primary/30",
+  contract: "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
+  won: "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
   lost: "bg-destructive/10 text-destructive border-destructive/30",
 };
 

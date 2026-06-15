@@ -9,7 +9,6 @@ const NAV: { to: string; label: string; exact?: boolean }[] = [
   { to: "/sales/leads", label: "Leadek" },
   { to: "/sales/todo", label: "Teendők" },
   { to: "/sales/quotes", label: "Ajánlatok" },
-  { to: "/sales/handoff", label: "Átadás" },
 ];
 
 export function SalesShell({

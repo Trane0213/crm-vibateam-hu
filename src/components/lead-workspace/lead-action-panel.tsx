@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2,
   FileSignature, UserCheck, Sparkles, Filter, Phone, ChevronDown,
-  ListChecks, Send, Briefcase, Plus, Check,
+  ListChecks, Plus, Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import { FollowupQuickForm } from "./followup-quick-form";
 import { AiSheet } from "./ai-sheet";
 import { useCreateLeadFollowup, useUpdateLead } from "./use-lead-mutations";
 import { QuickCreateQuoteButton } from "@/components/today/quick-create";
-import { LeadHandoffPanel } from "./lead-handoff-panel";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -26,7 +25,6 @@ import { LeadActionBar } from "@/components/sales/lead-action-bar";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { WonDialog } from "@/components/sales/won-dialog";
 import { LostDialog } from "@/components/sales/lost-dialog";
-import { HandoffDialog } from "@/components/sales/handoff-dialog";
 import type { LeadStatus } from "@/lib/sales/constants";
 
 const QUOTE_EDITABLE_STATUSES: LeadStatus[] = ["quote_prep", "quote_sent", "follow_up", "contract"];
@@ -73,7 +71,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
   const [emailDefaults, setEmailDefaults] = useState<{ subject?: string; body?: string } | null>(null);
   const [wonOpen, setWonOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
-  const [handoffOpen, setHandoffOpen] = useState(false);
   const [quotesBusy, setQuotesBusy] = useState(false);
 
   const invalidate = () => {
@@ -361,41 +358,12 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         </div>
       )}
 
-      {/* 5b. Projekt átadás — Sales, V2 (csak won esetén) */}
-      {mode === "sales" && lead.data && currentStatus === "won" && (
-        <div className="rounded-md border p-3">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            <Briefcase className="h-3 w-3" /> Projekt átadás
-          </div>
-          {(projects.data ?? []).length === 0 ? (
-            <Button size="sm" className="w-full" onClick={() => setHandoffOpen(true)}>
-              <Send className="mr-1.5 h-3.5 w-3.5" /> Projekt indítása
-            </Button>
-          ) : (
-            <ul className="space-y-1 text-[11px]">
-              {(projects.data ?? []).map((p: any) => (
-                <li key={p.id} className="flex items-center justify-between rounded border px-2 py-1">
-                  <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
-                    {p.title ?? "—"}
-                  </Link>
-                  <Badge variant="outline">{p.status ?? "—"}</Badge>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
-      {/* 5. Átadás értékesítőnek — csak Marketing, qualified státusznál */}
-      {mode === "marketing" && lead.data && (
-        <LeadHandoffPanel
-          lead={{
-            id: lead.data.id,
-            status: lead.data.status ?? null,
-            company_id: lead.data.company_id ?? null,
-          }}
-        />
-      )}
+      {/* A „Projekt indítása" gomb és a marketing kézi átadás panel megszűnt.
+          - Projekt KIZÁRÓLAG a Pipeline → Megnyert lépésből jöhet létre (ott
+            kerül vissza a UI).
+          - A marketing→sales átadást a marketing workspace dedikált handoff
+            folyamata végzi (state-marker a customer notes-ban), itt nincs
+            duplikált belépés. */}
 
       <EmailComposer
         open={emailOpen}
@@ -420,27 +388,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         busy={updateLead.isPending}
         onConfirm={(p) => updateLead.mutate({ status: "lost", ...p }, { onSuccess: () => { setLostOpen(false); invalidate(); } })}
       />
-      {lead.data && (
-        <HandoffDialog
-          open={handoffOpen}
-          onOpenChange={setHandoffOpen}
-          defaultTitle={lead.data.summary ? `Projekt — ${String(lead.data.summary).slice(0, 60)}` : `Projekt — #${String(lead.data.id).slice(0, 8)}`}
-          seed={{
-            contact_name: lead.data.contact_id ? contactLabel(lead.data.contact_id) : "",
-            contact_email: contact.data?.email ?? "",
-          }}
-          onConfirm={async ({ title, payload }) => {
-            if (!leadId) return;
-            const { error } = await supabase.from("projects").insert({
-              lead_id: leadId, title, status: "planned", handoff_payload: payload,
-            });
-            if (error) { toast.error(error.message); return; }
-            toast.success("Projekt létrehozva");
-            setHandoffOpen(false);
-            invalidate();
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -475,20 +422,22 @@ function ProcessStrip({
   // Aktív lépés a lead státuszából.
   const active: StepKey =
     mode === "sales"
-      ? (status === "converted" ? "contract"
-        : status === "qualified" ? "quote"
+      ? (status === "won" ? "contract"
+        : status === "contract" ? "contract"
+        : status === "quote_prep" || status === "quote_sent" || status === "follow_up" ? "quote"
         : status === "contacted" ? "quote"
         : "lead")
-      : (status === "converted" ? "handoff"
-        : status === "qualified" ? "handoff"
+      : (status === "won" ? "handoff"
         : status === "contacted" ? "qualify"
         : status === "lost"      ? "qualify"
         : "lead");
 
   // Marketingben a lépés → status mapping (csak amire értelmes a klikk).
+  // A „handoff" lépés státuszváltást nem csinál – a marketing→sales átadás
+  // a marketing workspace saját workflow-jával történik.
   const stepToStatus: Partial<Record<StepKey, string>> =
     mode === "marketing"
-      ? { lead: "new", email: "contacted", qualify: "contacted", handoff: "qualified" }
+      ? { lead: "new", email: "contacted", qualify: "contacted" }
       : {};
 
   return (
