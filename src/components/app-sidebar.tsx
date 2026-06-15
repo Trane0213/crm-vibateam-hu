@@ -4,10 +4,8 @@ import {
   Home,
   Briefcase,
   FileText,
-  BellRing,
   Sparkles,
   Building2,
-  ListChecks,
   Mail,
   Phone,
   Calendar,
@@ -71,14 +69,11 @@ const aiAgents: AiAgentItem[] = [
 ];
 
 const pipeline: Item[] = [
-  // Sales szerepkörnek a Workspace (/leads) és az ajánlatok a Sales menüből
-  // érhetők el — itt elrejtve a párhuzamos belépés.
-  { title: "Érdeklődők", url: "/leads", icon: Sparkles, hideForRoles: ["sales"] },
-  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true, hideForRoles: ["sales"] },
+  // A jóváhagyott workflow: Workspace → Pipeline → Projekt.
+  // A régi önálló szerkesztők (/leads, /quotes, /followups, /tasks) párhuzamos
+  // editálást engednének, ezért nem szerepelnek a navigációban. A route-ok
+  // megmaradtak deep-linkre, de a Pipeline lesz az egyetlen szerkesztő hely.
   { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
-  // Utókövetés és Feladatok salesnek a Sales → Teendők-ből érhető el.
-  { title: "Utókövetés", url: "/followups", icon: BellRing, highlight: true, hideForRoles: ["sales"] },
-  { title: "Feladatok", url: "/tasks", icon: ListChecks, hideForRoles: ["sales"] },
 ];
 
 const contacts: Item[] = [
@@ -106,12 +101,15 @@ const sys: Item[] = [
 ];
 
 const sales: Item[] = [
-  // A jóváhagyott folyamat: Sales Áttekintés → Workspace → Pipeline → Projekt.
+  // Jóváhagyott folyamat: Áttekintés → Workspace → Pipeline → Projekt.
+  // A Teendők és Ajánlatok itt csak read-only riport-nézetek, szerkesztés
+  // kizárólag a Workspace-en (előkészítés) vagy a Pipeline-on (futó ügy).
   { title: "Áttekintés", url: "/sales", icon: LayoutDashboard, highlight: true },
   { title: "Workspace", url: "/leads", icon: Sparkles },
   { title: "Pipeline", url: "/sales/leads", icon: Target },
-  { title: "Teendők", url: "/sales/todo", icon: CheckSquare },
-  { title: "Ajánlatok", url: "/sales/quotes", icon: FileText },
+  { title: "Teendők (riport)", url: "/sales/todo", icon: CheckSquare },
+  { title: "Ajánlatok (riport)", url: "/sales/quotes", icon: FileText },
+  { title: "Projektek", url: "/projects", icon: Briefcase },
 ];
 
 export function AppSidebar() {
