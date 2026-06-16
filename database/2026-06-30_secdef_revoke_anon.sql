@@ -36,7 +36,6 @@ BEGIN
     BEGIN
       EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM anon, authenticated, PUBLIC', v_fn);
     EXCEPTION WHEN undefined_function THEN
-      -- ha nem létezik (még), átlépjük
       NULL;
     END;
   END LOOP;
@@ -45,10 +44,18 @@ $$;
 
 COMMIT;
 
--- Ellenőrzés:
---   SELECT proname, proacl FROM pg_proc
---    WHERE pronamespace = 'public'::regnamespace
---      AND proname IN ('sales_mark_won_with_project','is_owner_role',
---                      'is_email_admin','can_access_email_thread',
---                      'has_route_access');
---   -- A proacl-ben NE legyen 'anon=X/...' bejegyzés.
+-- 4) sales_module_meta RLS bekapcsolása és SELECT policy authenticated számára.
+-- A tábla modul-szintű kulcs/érték konfiguráció (pl. legacy_cutoff_ts).
+-- Írás kizárólag service_role révén történhet (alap GRANT alapján;
+-- RLS alatt policy hiánya = tiltás authenticated/anon számára).
+
+ALTER TABLE public.sales_module_meta ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS sales_module_meta_select_auth ON public.sales_module_meta;
+CREATE POLICY sales_module_meta_select_auth
+  ON public.sales_module_meta
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Marketing és Sales backend lezárható.
