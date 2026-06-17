@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Building2, User, Sparkles, RotateCcw } from "lucide-react";
+import { Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -176,6 +177,7 @@ function CustomersIndex() {
                 <TableRow>
                   <TableHead>Ügyfél</TableHead>
                   <TableHead>Utolsó aktivitás</TableHead>
+                  <TableHead>Utolsó email</TableHead>
                   <TableHead>Szegmens</TableHead>
                 </TableRow>
               </TableHeader>
@@ -202,6 +204,16 @@ function CustomersIndex() {
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {relativeTime(r.lastActivity)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs">
+                        {r.lastEmailAt ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            {relativeTime(r.lastEmailAt)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground/60">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {r.isNew ? (
