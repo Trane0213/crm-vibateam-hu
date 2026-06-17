@@ -80,16 +80,60 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const emails = useQuery({
-    queryKey: ["emails", "by_company", companyId],
+    // A cég email aktivitása NEM CRM-felhasználóhoz kötődik.
+    // Aggregálunk minden olyan üzenetet, ami:
+    //  (a) már a céghez van kötve (`emails.company_id = X`), VAGY
+    //  (b) résztvevője (from/to) a cég bármely kapcsolattartójának címe.
+    // Így minden VIBA mailbox (info@, toth.attila@, …) szála ugyanide aggregálódik.
+    queryKey: [
+      "emails",
+      "by_company_aggregate",
+      companyId,
+      (contacts.data ?? []).map((c: any) => (c.email ?? "").toLowerCase()).sort().join(","),
+    ],
+    enabled: !contacts.isLoading,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const contactEmails = Array.from(
+        new Set(
+          ((contacts.data ?? []) as any[])
+            .map((c) => (c.email ?? "").trim().toLowerCase())
+            .filter(Boolean),
+        ),
+      );
+
+      // 1) Cégre kötött üzenetek
+      const byCompany = await supabase
         .from("emails")
-        .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound")
+        .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound,company_id")
         .eq("company_id", companyId)
         .order("internal_date", { ascending: false, nullsFirst: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as any[];
+        .limit(500);
+      if (byCompany.error) throw byCompany.error;
+
+      // 2) Résztvevő-alapú aggregáció (from VAGY to a kapcsolattartók valamelyike)
+      let byParticipant: any[] = [];
+      if (contactEmails.length > 0) {
+        const inList = `(${contactEmails.map((e) => `"${e}"`).join(",")})`;
+        const fromQ = supabase
+          .from("emails")
+          .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound,company_id")
+          .or(`from_email.in.${inList},to_email.in.${inList}`)
+          .order("internal_date", { ascending: false, nullsFirst: false })
+          .limit(500);
+        const r = await fromQ;
+        if (!r.error) byParticipant = (r.data ?? []) as any[];
+      }
+
+      // Dedup id alapján; rendezés internal_date desc
+      const map = new Map<string, any>();
+      for (const row of [...(byCompany.data ?? []), ...byParticipant]) {
+        if (!map.has(row.id)) map.set(row.id, row);
+      }
+      return Array.from(map.values()).sort((a, b) => {
+        const ad = a.internal_date ?? a.created_at ?? "";
+        const bd = b.internal_date ?? b.created_at ?? "";
+        return (bd ?? "").localeCompare(ad ?? "");
+      });
     },
   });
 
