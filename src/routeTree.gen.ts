@@ -67,6 +67,7 @@ import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
+import { Route as ApiPublicAdminHistoricalEmailBackfillRouteImport } from './routes/api/public/admin/historical-email-backfill'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 
@@ -387,6 +388,12 @@ const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
   path: '/api/public/gmail/cron-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAdminHistoricalEmailBackfillRoute =
+  ApiPublicAdminHistoricalEmailBackfillRouteImport.update({
+    id: '/api/public/admin/historical-email-backfill',
+    path: '/api/public/admin/historical-email-backfill',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
   id: '/api/gmail/oauth/start',
   path: '/api/gmail/oauth/start',
@@ -457,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/admin/historical-email-backfill': typeof ApiPublicAdminHistoricalEmailBackfillRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesByTo {
@@ -517,6 +525,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/admin/historical-email-backfill': typeof ApiPublicAdminHistoricalEmailBackfillRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesById {
@@ -580,6 +589,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/admin/historical-email-backfill': typeof ApiPublicAdminHistoricalEmailBackfillRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRouteTypes {
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/admin/historical-email-backfill'
     | '/api/public/gmail/cron-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/admin/historical-email-backfill'
     | '/api/public/gmail/cron-sync'
   id:
     | '__root__'
@@ -765,6 +777,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/admin/historical-email-backfill'
     | '/api/public/gmail/cron-sync'
   fileRoutesById: FileRoutesById
 }
@@ -782,6 +795,7 @@ export interface RootRouteChildren {
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
+  ApiPublicAdminHistoricalEmailBackfillRoute: typeof ApiPublicAdminHistoricalEmailBackfillRoute
   ApiPublicGmailCronSyncRoute: typeof ApiPublicGmailCronSyncRoute
 }
 
@@ -1193,6 +1207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/admin/historical-email-backfill': {
+      id: '/api/public/admin/historical-email-backfill'
+      path: '/api/public/admin/historical-email-backfill'
+      fullPath: '/api/public/admin/historical-email-backfill'
+      preLoaderRoute: typeof ApiPublicAdminHistoricalEmailBackfillRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gmail/oauth/start': {
       id: '/api/gmail/oauth/start'
       path: '/api/gmail/oauth/start'
@@ -1339,6 +1360,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSyncRoute: ApiGmailSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
+  ApiPublicAdminHistoricalEmailBackfillRoute:
+    ApiPublicAdminHistoricalEmailBackfillRoute,
   ApiPublicGmailCronSyncRoute: ApiPublicGmailCronSyncRoute,
 }
 export const routeTree = rootRouteImport
