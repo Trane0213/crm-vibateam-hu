@@ -78,7 +78,88 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   const leads     = useListWhere<any>("leads",         "company_id", id, { order: "created_at",   ascending: false });
   const calls     = useListWhere<any>("phone_calls",   "company_id", id, { order: "created_at",   ascending: false });
   const meetings  = useListWhere<any>("meetings",      "company_id", id, { order: "meeting_date", ascending: false });
-  const threads   = useListWhere<any>("email_threads", "company_id", id, { order: "last_message_at", ascending: false });
+  const threads = useQuery({
+    // Frontend aggregáció: a cég email aktivitása nem csak `email_threads.company_id`.
+    // Ha bármely thread résztvevője a cég kapcsolattartója, a thread a céghez tartozik.
+    queryKey: [
+      "email_threads",
+      "by_company_aggregate",
+      id,
+      (contacts.data ?? []).map((c: any) => (c.email ?? "").toLowerCase()).sort().join(","),
+    ],
+    enabled: !contacts.isLoading,
+    queryFn: async () => {
+      const contactEmails = Array.from(new Set(
+        ((contacts.data ?? []) as any[])
+          .map((c) => (c.email ?? "").trim().toLowerCase())
+          .filter(Boolean),
+      ));
+      const threadSelect = "id,subject,participants,last_message_at,company_id";
+      const emailSelect = "id,thread_id,subject,from_email,to_email,to_emails,internal_date,created_at,company_id";
+      const byId = new Map<string, any>();
+      const addThreads = (rows: any[] | null) => {
+        for (const t of rows ?? []) if (t?.id) byId.set(t.id, t);
+      };
+      const addEmailFallbacks = (rows: any[] | null) => {
+        for (const e of rows ?? []) {
+          const tid = e?.thread_id;
+          if (!tid || byId.has(tid)) continue;
+          byId.set(tid, {
+            id: tid,
+            subject: e.subject ?? "(nincs tárgy)",
+            participants: [e.from_email, e.to_email, ...(e.to_emails ?? [])].filter(Boolean),
+            last_message_at: e.internal_date ?? e.created_at,
+            company_id: e.company_id ?? null,
+          });
+        }
+      };
+
+      const byCompanyThreads = await supabase
+        .from("email_threads")
+        .select(threadSelect)
+        .eq("company_id", id)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(500);
+      if (byCompanyThreads.error) throw byCompanyThreads.error;
+      addThreads(byCompanyThreads.data as any[]);
+
+      if (contactEmails.length > 0) {
+        const byParticipantThreads = await supabase
+          .from("email_threads")
+          .select(threadSelect)
+          .overlaps("participants", contactEmails)
+          .order("last_message_at", { ascending: false, nullsFirst: false })
+          .limit(500);
+        if (byParticipantThreads.error) throw byParticipantThreads.error;
+        addThreads(byParticipantThreads.data as any[]);
+      }
+
+      const byCompanyEmails = await supabase
+        .from("emails")
+        .select(emailSelect)
+        .eq("company_id", id)
+        .order("internal_date", { ascending: false, nullsFirst: false })
+        .limit(500);
+      if (byCompanyEmails.error) throw byCompanyEmails.error;
+      addEmailFallbacks(byCompanyEmails.data as any[]);
+
+      if (contactEmails.length > 0) {
+        const emailMatches = await Promise.all([
+          supabase.from("emails").select(emailSelect).in("from_email", contactEmails).limit(500),
+          supabase.from("emails").select(emailSelect).in("to_email", contactEmails).limit(500),
+          supabase.from("emails").select(emailSelect).overlaps("to_emails", contactEmails).limit(500),
+        ]);
+        for (const r of emailMatches) {
+          if (r.error) throw r.error;
+          addEmailFallbacks(r.data as any[]);
+        }
+      }
+
+      return Array.from(byId.values()).sort((a, b) =>
+        (b.last_message_at ?? "").localeCompare(a.last_message_at ?? ""),
+      );
+    },
+  });
 
   // D7 — Identity Strength a CRM Egészség blokkhoz.
   const identity = useQuery({
