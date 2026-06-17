@@ -111,15 +111,46 @@ export async function runHistoricalBackfill(
     if (d && !isPublicDomain(d)) domainMap.set(d, c.id);
   }
 
+  // Kapcsolattartó email → company_id map (ha a thread résztvevője egy
+  // ismert kapcsolattartó, akkor a céghez kötjük — akkor is, ha a cégnek
+  // nincs website-ja, vagy a domain publikus freemail). Egyértelmű egyezés kell.
+  const { data: contactsForMap } = await supabase
+    .from("contacts")
+    .select("email,company_id")
+    .not("email", "is", null)
+    .not("company_id", "is", null)
+    .limit(10000);
+  const emailToCompany = new Map<string, string | null>();
+  for (const c of (contactsForMap ?? []) as Array<{ email: string; company_id: string }>) {
+    const key = c.email.trim().toLowerCase();
+    if (!key) continue;
+    if (emailToCompany.has(key)) {
+      // több cég használja → nem egyértelmű
+      if (emailToCompany.get(key) !== c.company_id) emailToCompany.set(key, null);
+    } else {
+      emailToCompany.set(key, c.company_id);
+    }
+  }
+
   for (const t of threadList) {
     try {
       let matchedCompany: string | null = null;
+      // 1) email résztvevő → ismert kapcsolattartó cége
+      for (const p of t.participants ?? []) {
+        const key = String(p ?? "").trim().toLowerCase();
+        if (!key) continue;
+        const cid = emailToCompany.get(key);
+        if (cid) { matchedCompany = cid; break; }
+      }
+      // 2) domain → companies.website
+      if (!matchedCompany) {
       for (const p of t.participants ?? []) {
         const d = extractDomain(p);
         if (d && !isPublicDomain(d) && domainMap.has(d)) {
           matchedCompany = domainMap.get(d)!;
           break;
         }
+      }
       }
       if (matchedCompany) {
         const { error } = await supabase
