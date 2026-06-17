@@ -311,17 +311,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onError: (e: any) => toast.error("Átadás sikertelen", { description: humanizeSupabaseError(e) }),
   });
 
-  if (cust.isLoading) return <div className="p-6 text-sm text-muted-foreground">Cég betöltése…</div>;
-  if (cust.error || !cust.data) {
-    return <div className="p-6"><EmptyState icon={Building2} title="Cég nem található" description={(cust.error as any)?.message} /></div>;
-  }
-
-  const c = cust.data;
-  const primary = (contacts.data ?? [])[0] ?? null;
-  // EGYSÉGES mérőszám és lista forrás: a cég-szintű emailek (`emails` tábla
-  // `company_id = X`). A szálak ebből derivált csoportosítások — sosem külön
-  // forrás. Ez biztosítja, hogy a KPI, a tab badge és a tab tartalma mindig
-  // ugyanazt mutassa.
+  // Minden hook a feltételes returnök előtt fut, különben a marketing oldal
+  // loading → loaded váltáskor hook-sorrend hibával elszállna.
   const emailRows = emails.data ?? [];
   const emailCount = emailRows.length;
   const lastEmail = emailRows[0]?.internal_date ?? emailRows[0]?.created_at ?? null;
@@ -341,7 +332,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
       cur.count++;
       if (!cur.subject && e.subject) cur.subject = e.subject;
       if (!cur.last_message_at || (at && at > cur.last_message_at)) cur.last_message_at = at;
-      for (const a of [e.from_email, e.to_email].filter(Boolean) as string[]) {
+      for (const a of [e.from_email, e.to_email, ...(e.to_emails ?? []), ...(e.participants ?? [])].filter(Boolean) as string[]) {
         if (!cur.participants.includes(a)) cur.participants.push(a);
       }
       byThread.set(key, cur);
@@ -351,6 +342,18 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     );
   }, [emailRows]);
   const threadCount = derivedThreads.length;
+
+  if (cust.isLoading) return <div className="p-6 text-sm text-muted-foreground">Cég betöltése…</div>;
+  if (cust.error || !cust.data) {
+    return <div className="p-6"><EmptyState icon={Building2} title="Cég nem található" description={(cust.error as any)?.message} /></div>;
+  }
+
+  const c = cust.data;
+  const primary = (contacts.data ?? [])[0] ?? null;
+  // EGYSÉGES mérőszám és lista forrás: a cég-szintű emailek (`emails` tábla
+  // `company_id = X`). A szálak ebből derivált csoportosítások — sosem külön
+  // forrás. Ez biztosítja, hogy a KPI, a tab badge és a tab tartalma mindig
+  // ugyanazt mutassa.
   const isHandoff = meta.status === "handoff";
 
   const wfInput = {
