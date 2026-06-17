@@ -80,11 +80,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const emails = useQuery({
-    // A cég email aktivitása NEM CRM-felhasználóhoz kötődik.
-    // Aggregálunk minden olyan üzenetet, ami:
-    //  (a) már a céghez van kötve (`emails.company_id = X`), VAGY
-    //  (b) résztvevője (from/to) a cég bármely kapcsolattartójának címe.
-    // Így minden VIBA mailbox (info@, toth.attila@, …) szála ugyanide aggregálódik.
+    // A cég email aktivitása thread-szintű: ha egy szál bármely résztvevője
+    // ismert céges kapcsolattartó, akkor a teljes thread összes üzenete látszik.
     queryKey: [
       "emails",
       "by_company_aggregate",
@@ -93,6 +90,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     ],
     enabled: !contacts.isLoading,
     queryFn: async () => {
+      const emailSelect = "id,thread_id,subject,from_email,to_email,to_emails,cc_emails,bcc_emails,internal_date,created_at,is_outbound,company_id";
+      const threadSelect = "id,subject,last_message_at,participants,company_id";
       const contactEmails = Array.from(
         new Set(
           ((contacts.data ?? []) as any[])
@@ -100,36 +99,89 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
             .filter(Boolean),
         ),
       );
+      const threadIds = new Set<string>();
+      const threadMeta = new Map<string, any>();
+      const rowsById = new Map<string, any>();
+      const addThreads = (rows: any[] | null) => {
+        for (const t of rows ?? []) {
+          if (!t?.id) continue;
+          threadIds.add(t.id);
+          threadMeta.set(t.id, t);
+        }
+      };
+      const addEmails = (rows: any[] | null) => {
+        for (const e of rows ?? []) {
+          if (!e?.id) continue;
+          rowsById.set(e.id, e);
+          if (e.thread_id) threadIds.add(e.thread_id);
+        }
+      };
 
-      // 1) Cégre kötött üzenetek
-      const byCompany = await supabase
+      // 1) Cégre kötött thread-ek.
+      const byCompanyThreads = await supabase
+        .from("email_threads")
+        .select(threadSelect)
+        .eq("company_id", companyId)
+        .order("last_message_at", { ascending: false, nullsFirst: false })
+        .limit(500);
+      if (byCompanyThreads.error) throw byCompanyThreads.error;
+      addThreads(byCompanyThreads.data as any[]);
+
+      // 2) Kapcsolattartó résztvevős thread-ek.
+      if (contactEmails.length > 0) {
+        const byParticipantThreads = await supabase
+          .from("email_threads")
+          .select(threadSelect)
+          .overlaps("participants", contactEmails)
+          .order("last_message_at", { ascending: false, nullsFirst: false })
+          .limit(500);
+        if (byParticipantThreads.error) throw byParticipantThreads.error;
+        addThreads(byParticipantThreads.data as any[]);
+      }
+
+      // 3) Közvetlen email találatok fallback-ként, ha a thread meta még hiányos.
+      const byCompanyEmails = await supabase
         .from("emails")
-        .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound,company_id")
+        .select(emailSelect)
         .eq("company_id", companyId)
         .order("internal_date", { ascending: false, nullsFirst: false })
         .limit(500);
-      if (byCompany.error) throw byCompany.error;
+      if (byCompanyEmails.error) throw byCompanyEmails.error;
+      addEmails(byCompanyEmails.data as any[]);
 
-      // 2) Résztvevő-alapú aggregáció (from VAGY to a kapcsolattartók valamelyike)
-      let byParticipant: any[] = [];
       if (contactEmails.length > 0) {
-        const inList = `(${contactEmails.map((e) => `"${e}"`).join(",")})`;
-        const fromQ = supabase
-          .from("emails")
-          .select("id,thread_id,subject,from_email,to_email,internal_date,created_at,is_outbound,company_id")
-          .or(`from_email.in.${inList},to_email.in.${inList}`)
-          .order("internal_date", { ascending: false, nullsFirst: false })
-          .limit(500);
-        const r = await fromQ;
-        if (!r.error) byParticipant = (r.data ?? []) as any[];
+        const participantEmailQueries = await Promise.all([
+          supabase.from("emails").select(emailSelect).in("from_email", contactEmails).limit(500),
+          supabase.from("emails").select(emailSelect).in("to_email", contactEmails).limit(500),
+          supabase.from("emails").select(emailSelect).overlaps("to_emails", contactEmails).limit(500),
+          supabase.from("emails").select(emailSelect).overlaps("cc_emails", contactEmails).limit(500),
+          supabase.from("emails").select(emailSelect).overlaps("bcc_emails", contactEmails).limit(500),
+        ]);
+        for (const r of participantEmailQueries) {
+          if (r.error) throw r.error;
+          addEmails(r.data as any[]);
+        }
       }
 
-      // Dedup id alapján; rendezés internal_date desc
-      const map = new Map<string, any>();
-      for (const row of [...(byCompany.data ?? []), ...byParticipant]) {
-        if (!map.has(row.id)) map.set(row.id, row);
+      // 4) A megtalált thread-ek teljes üzenetanyaga — ez a lényegi javítás.
+      const ids = Array.from(threadIds);
+      for (let i = 0; i < ids.length; i += 100) {
+        const chunk = ids.slice(i, i + 100);
+        const r = await supabase
+          .from("emails")
+          .select(emailSelect)
+          .in("thread_id", chunk)
+          .order("internal_date", { ascending: false, nullsFirst: false })
+          .limit(1000);
+        if (r.error) throw r.error;
+        addEmails(r.data as any[]);
       }
-      return Array.from(map.values()).sort((a, b) => {
+
+      return Array.from(rowsById.values()).map((row) => ({
+        ...row,
+        subject: row.subject ?? (row.thread_id ? threadMeta.get(row.thread_id)?.subject : null),
+        participants: row.thread_id ? threadMeta.get(row.thread_id)?.participants : undefined,
+      })).sort((a, b) => {
         const ad = a.internal_date ?? a.created_at ?? "";
         const bd = b.internal_date ?? b.created_at ?? "";
         return (bd ?? "").localeCompare(ad ?? "");
