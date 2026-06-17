@@ -159,6 +159,17 @@ export async function runHistoricalBackfill(
           .eq("id", t.id);
         if (error) report.thread.errors++;
         else report.thread.changed++;
+
+        // A szálhoz tartozó `emails` sorokat is ugyanahhoz a céghez kötjük,
+        // hogy a CRM-ben a kommunikáció tulajdonosa a cég legyen, ne a
+        // küldő VIBA-felhasználó. Akkor is felülírjuk, ha az adott üzenet
+        // korábban más céghez (vagy NULL-hoz) volt rendelve egy másik mailbox
+        // szinkron miatt — a forrás az igazság (a thread résztvevője a cég
+        // kapcsolattartója).
+        await supabase
+          .from("emails")
+          .update({ company_id: matchedCompany })
+          .eq("thread_id", t.id);
       }
     } catch { report.thread.errors++; }
     report.thread.processed++;
