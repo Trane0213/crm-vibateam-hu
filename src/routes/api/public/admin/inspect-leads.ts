@@ -35,6 +35,14 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
             const { data, error } = await admin.from(t).select("*").limit(2);
             if (!error) found[t] = { sample: data };
           }
+          // List ALL public tables via PostgREST OpenAPI root
+          const { SUPABASE_URL } = await import("@/integrations/supabase/client");
+          const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.GMAIL_SUPABASE_SERVICE_KEY ?? "";
+          const openApiRes = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+            headers: { apikey: key, Authorization: `Bearer ${key}` },
+          });
+          const openApi: any = await openApiRes.json();
+          const allTables = openApi?.definitions ? Object.keys(openApi.definitions) : [];
           return Response.json({
             columns_error: e1?.message,
             sample,
