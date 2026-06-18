@@ -21,15 +21,7 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
             .from("leads")
             .select("*", { count: "exact", head: true });
           // Look for a separate website-intake table
-          const candidates = [
-            "web_leads", "website_leads", "form_submissions", "inquiries",
-            "ajanlatkeresek", "ajanlatkeres", "intake", "intakes",
-            "lead_submissions", "contact_forms", "contact_submissions",
-            "leads_inbox", "submissions", "requests", "website_quote_requests",
-            "quote_requests", "ajanlat_keresek", "weboldal_leads",
-            "weboldali_ajanlatkeresek", "weboldali_ajanlatok",
-            "website_form_submissions", "form_leads", "vibateam_leads",
-          ];
+          const candidates = ["quote_requests", "contact_messages"];
           const found: Record<string, any> = {};
           for (const t of candidates) {
             const { data, error } = await admin.from(t).select("*").limit(2);
