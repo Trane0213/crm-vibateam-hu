@@ -28,6 +28,7 @@ import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
+import { Route as AuthenticatedWebQuoteRequestsIndexRouteImport } from './routes/_authenticated/web-quote-requests.index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
@@ -168,6 +169,12 @@ const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWebQuoteRequestsIndexRoute =
+  AuthenticatedWebQuoteRequestsIndexRouteImport.update({
+    id: '/web-quote-requests/',
+    path: '/web-quote-requests/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -455,6 +462,7 @@ export interface FileRoutesByFullPath {
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/sales/': typeof AuthenticatedSalesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/web-quote-requests/': typeof AuthenticatedWebQuoteRequestsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
@@ -515,6 +523,7 @@ export interface FileRoutesByTo {
   '/quotes': typeof AuthenticatedQuotesIndexRoute
   '/sales': typeof AuthenticatedSalesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/web-quote-requests': typeof AuthenticatedWebQuoteRequestsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
@@ -578,6 +587,7 @@ export interface FileRoutesById {
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/web-quote-requests/': typeof AuthenticatedWebQuoteRequestsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/quotes/'
     | '/sales/'
     | '/settings/'
+    | '/web-quote-requests/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
     | '/api/public/gmail/cron-sync'
@@ -701,6 +712,7 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/sales'
     | '/settings'
+    | '/web-quote-requests'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
     | '/api/public/gmail/cron-sync'
@@ -763,6 +775,7 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes/'
     | '/_authenticated/sales/'
     | '/_authenticated/settings/'
+    | '/_authenticated/web-quote-requests/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
     | '/api/public/gmail/cron-sync'
@@ -918,6 +931,13 @@ declare module '@tanstack/react-router' {
       path: '/activity'
       fullPath: '/activity'
       preLoaderRoute: typeof AuthenticatedActivityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/web-quote-requests/': {
+      id: '/_authenticated/web-quote-requests/'
+      path: '/web-quote-requests'
+      fullPath: '/web-quote-requests/'
+      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/': {
@@ -1282,6 +1302,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedQuotesIndexRoute: typeof AuthenticatedQuotesIndexRoute
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
+  AuthenticatedWebQuoteRequestsIndexRoute: typeof AuthenticatedWebQuoteRequestsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1320,6 +1341,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedQuotesIndexRoute: AuthenticatedQuotesIndexRoute,
   AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
+  AuthenticatedWebQuoteRequestsIndexRoute:
+    AuthenticatedWebQuoteRequestsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

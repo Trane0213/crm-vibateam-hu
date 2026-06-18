@@ -18,7 +18,7 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { listQuoteRequests } from "@/lib/quote-requests.functions";
 
-export const Route = createFileRoute("/_authenticated/web-quote-requests")({
+export const Route = createFileRoute("/_authenticated/web-quote-requests/")({
   component: WebQuoteRequestsPage,
 });
 
