@@ -28,6 +28,7 @@ import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
+import { Route as AuthenticatedWebQuoteRequestsIndexRouteImport } from './routes/_authenticated/web-quote-requests.index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
@@ -42,6 +43,7 @@ import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
 import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
 import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
+import { Route as AuthenticatedWebQuoteRequestsIdRouteImport } from './routes/_authenticated/web-quote-requests.$id'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -168,6 +170,12 @@ const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
   path: '/activity',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWebQuoteRequestsIndexRoute =
+  AuthenticatedWebQuoteRequestsIndexRouteImport.update({
+    id: '/web-quote-requests/',
+    path: '/web-quote-requests/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsIndexRoute =
   AuthenticatedSettingsIndexRouteImport.update({
     id: '/',
@@ -245,6 +253,12 @@ const ApiGmailDisconnectRoute = ApiGmailDisconnectRouteImport.update({
   path: '/api/gmail/disconnect',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWebQuoteRequestsIdRoute =
+  AuthenticatedWebQuoteRequestsIdRouteImport.update({
+    id: '/web-quote-requests/$id',
+    path: '/web-quote-requests/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsUsersRoute =
   AuthenticatedSettingsUsersRouteImport.update({
     id: '/users',
@@ -441,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
@@ -455,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/sales/': typeof AuthenticatedSalesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/web-quote-requests/': typeof AuthenticatedWebQuoteRequestsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
@@ -501,6 +517,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
@@ -515,6 +532,7 @@ export interface FileRoutesByTo {
   '/quotes': typeof AuthenticatedQuotesIndexRoute
   '/sales': typeof AuthenticatedSalesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/web-quote-requests': typeof AuthenticatedWebQuoteRequestsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
@@ -564,6 +582,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/_authenticated/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
@@ -578,6 +597,7 @@ export interface FileRoutesById {
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/_authenticated/web-quote-requests/': typeof AuthenticatedWebQuoteRequestsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
@@ -627,6 +647,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
     | '/api/gmail/send'
@@ -641,6 +662,7 @@ export interface FileRouteTypes {
     | '/quotes/'
     | '/sales/'
     | '/settings/'
+    | '/web-quote-requests/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
     | '/api/public/gmail/cron-sync'
@@ -687,6 +709,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
     | '/api/gmail/send'
@@ -701,6 +724,7 @@ export interface FileRouteTypes {
     | '/quotes'
     | '/sales'
     | '/settings'
+    | '/web-quote-requests'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
     | '/api/public/gmail/cron-sync'
@@ -749,6 +773,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
+    | '/_authenticated/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
     | '/api/gmail/send'
@@ -763,6 +788,7 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes/'
     | '/_authenticated/sales/'
     | '/_authenticated/settings/'
+    | '/_authenticated/web-quote-requests/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
     | '/api/public/gmail/cron-sync'
@@ -920,6 +946,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActivityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/web-quote-requests/': {
+      id: '/_authenticated/web-quote-requests/'
+      path: '/web-quote-requests'
+      fullPath: '/web-quote-requests/'
+      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/': {
       id: '/_authenticated/settings/'
       path: '/'
@@ -1017,6 +1050,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/gmail/disconnect'
       preLoaderRoute: typeof ApiGmailDisconnectRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/web-quote-requests/$id': {
+      id: '/_authenticated/web-quote-requests/$id'
+      path: '/web-quote-requests/$id'
+      fullPath: '/web-quote-requests/$id'
+      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings/users': {
       id: '/_authenticated/settings/users'
@@ -1274,6 +1314,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSalesQuotesRoute: typeof AuthenticatedSalesQuotesRoute
   AuthenticatedSalesResearchRoute: typeof AuthenticatedSalesResearchRoute
   AuthenticatedSalesTodoRoute: typeof AuthenticatedSalesTodoRoute
+  AuthenticatedWebQuoteRequestsIdRoute: typeof AuthenticatedWebQuoteRequestsIdRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -1282,6 +1323,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjectsIndexRoute: typeof AuthenticatedProjectsIndexRoute
   AuthenticatedQuotesIndexRoute: typeof AuthenticatedQuotesIndexRoute
   AuthenticatedSalesIndexRoute: typeof AuthenticatedSalesIndexRoute
+  AuthenticatedWebQuoteRequestsIndexRoute: typeof AuthenticatedWebQuoteRequestsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1312,6 +1354,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSalesQuotesRoute: AuthenticatedSalesQuotesRoute,
   AuthenticatedSalesResearchRoute: AuthenticatedSalesResearchRoute,
   AuthenticatedSalesTodoRoute: AuthenticatedSalesTodoRoute,
+  AuthenticatedWebQuoteRequestsIdRoute: AuthenticatedWebQuoteRequestsIdRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
@@ -1320,6 +1363,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProjectsIndexRoute: AuthenticatedProjectsIndexRoute,
   AuthenticatedQuotesIndexRoute: AuthenticatedQuotesIndexRoute,
   AuthenticatedSalesIndexRoute: AuthenticatedSalesIndexRoute,
+  AuthenticatedWebQuoteRequestsIndexRoute:
+    AuthenticatedWebQuoteRequestsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1344,13 +1389,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

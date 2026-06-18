@@ -25,6 +25,7 @@ import {
   ListPlus,
   Target,
   CheckSquare,
+  Inbox,
 } from "lucide-react";
 import { XCircle } from "lucide-react";
 import {
@@ -90,6 +91,7 @@ const contacts: Item[] = [
   { title: "Cégek", url: "/companies", icon: Building2 },
   { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
   { title: "Kampánylista", url: "/campaign-list", icon: ListPlus },
+  { title: "Weboldali ajánlatkérések", url: "/web-quote-requests", icon: Inbox },
 ];
 
 const comms: Item[] = [
