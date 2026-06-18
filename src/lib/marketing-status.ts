@@ -34,9 +34,47 @@ export const MARKETING_STATUS_TONE: Record<MarketingStatus, string> = {
   rejected:   "border-muted-foreground/30              bg-muted/40                          text-muted-foreground",
 };
 
+/**
+ * Lead érkezési csatorna — a marketing minősítés kötelező mezője a
+ * Saleshez átadáshoz. A választott érték a `companies.notes` mezőbe
+ * fenced markerként kerül (`[MKT:LEAD_SOURCE:<code>]`), majd átadáskor
+ * a `leads.source` oszlopba is bekerül.
+ */
+export type LeadSource =
+  | "web_form"
+  | "email_inbound"
+  | "phone"
+  | "personal"
+  | "referral"
+  | "google_ads"
+  | "social"
+  | "repeat_customer"
+  | "partner"
+  | "other";
+
+export const LEAD_SOURCE_LABEL: Record<LeadSource, string> = {
+  web_form:        "Weblap űrlap",
+  email_inbound:   "Email megkeresés",
+  phone:           "Telefon",
+  personal:        "Személyes",
+  referral:        "Ajánlás",
+  google_ads:      "Google Ads",
+  social:          "Facebook / közösségi média",
+  repeat_customer: "Korábbi ügyfél",
+  partner:         "Partner",
+  other:           "Egyéb",
+};
+
+export const LEAD_SOURCE_OPTIONS: ReadonlyArray<{ code: LeadSource; label: string }> =
+  (Object.keys(LEAD_SOURCE_LABEL) as LeadSource[]).map((code) => ({
+    code,
+    label: LEAD_SOURCE_LABEL[code],
+  }));
+
 const STATUS_RX = /\[MKT:STATUS:(new|contacted|qualified|handoff|rejected)(?::([0-9]{4}-[0-9]{2}-[0-9]{2}))?(?::([^\]]+))?\]/g;
 const SALES_NOTE_RX = /\[MKT:SALES_NOTE\]([\s\S]*?)\[\/MKT:SALES_NOTE\]/;
 const ALL_MARKER_RX = /\[(?:MKT|KAMPANY):[^\]]+\]|\[MKT:SALES_NOTE\][\s\S]*?\[\/MKT:SALES_NOTE\]/g;
+const LEAD_SOURCE_RX = /\[MKT:LEAD_SOURCE:([a-z_]+)\]/g;
 const KAMPANY_EMAIL_SENT_RX = /\[KAMPANY:EMAIL_SENT:([0-9]{4}-[0-9]{2}-[0-9]{2})\]/;
 const KAMPANY_REJECTED_RX   = /\[KAMPANY:REJECTED:([0-9]{4}-[0-9]{2}-[0-9]{2})\]/;
 
@@ -45,6 +83,7 @@ export type MarketingMeta = {
   statusDate: string | null;
   handoffLeadId: string | null;
   salesNote: string;
+  leadSource: LeadSource | null;
 };
 
 /** Marker-mentes, ember által olvasható szöveg a `notes`-ból. */
@@ -58,7 +97,7 @@ export function stripMarkers(notes: string | null): string {
 }
 
 export function readMarketingMeta(notes: string | null): MarketingMeta {
-  if (!notes) return { status: "new", statusDate: null, handoffLeadId: null, salesNote: "" };
+  if (!notes) return { status: "new", statusDate: null, handoffLeadId: null, salesNote: "", leadSource: null };
   // Legutoljára felvett MKT:STATUS marker érvényes (időrendileg új).
   STATUS_RX.lastIndex = 0;
   let last: RegExpExecArray | null = null;
@@ -67,6 +106,13 @@ export function readMarketingMeta(notes: string | null): MarketingMeta {
   const sn = SALES_NOTE_RX.exec(notes);
   const salesNote = sn ? sn[1].trim() : "";
 
+  // Lead érkezési csatorna — utolsó marker érvényes.
+  LEAD_SOURCE_RX.lastIndex = 0;
+  let lastSrc: RegExpExecArray | null = null;
+  let sm: RegExpExecArray | null;
+  while ((sm = LEAD_SOURCE_RX.exec(notes)) !== null) lastSrc = sm;
+  const leadSource = (lastSrc?.[1] ?? null) as LeadSource | null;
+
   // Egységesített leképezés. Ha van explicit MKT:STATUS marker, az nyer.
   // Ha nincs, akkor a régi KAMPANY markerekből vezetjük le a státuszt,
   // hogy a marketing-home / campaign-list / workspace ugyanazt mutassa.
@@ -74,13 +120,13 @@ export function readMarketingMeta(notes: string | null): MarketingMeta {
     const status = last[1] as MarketingStatus;
     const statusDate = last[2] ?? null;
     const handoffLeadId = status === "handoff" ? last[3] ?? null : null;
-    return { status, statusDate, handoffLeadId, salesNote };
+    return { status, statusDate, handoffLeadId, salesNote, leadSource };
   }
   const rej = KAMPANY_REJECTED_RX.exec(notes);
-  if (rej) return { status: "rejected", statusDate: rej[1], handoffLeadId: null, salesNote };
+  if (rej) return { status: "rejected", statusDate: rej[1], handoffLeadId: null, salesNote, leadSource };
   const sent = KAMPANY_EMAIL_SENT_RX.exec(notes);
-  if (sent) return { status: "contacted", statusDate: sent[1], handoffLeadId: null, salesNote };
-  return { status: "new", statusDate: null, handoffLeadId: null, salesNote };
+  if (sent) return { status: "contacted", statusDate: sent[1], handoffLeadId: null, salesNote, leadSource };
+  return { status: "new", statusDate: null, handoffLeadId: null, salesNote, leadSource };
 }
 
 function removeAllStatusMarkers(notes: string): string {
@@ -112,4 +158,18 @@ export function withSalesNote(notes: string | null, content: string): string {
   if (!trimmed) return base;
   const region = `[MKT:SALES_NOTE]\n${trimmed}\n[/MKT:SALES_NOTE]`;
   return base ? `${base}\n\n${region}` : region;
+}
+
+/**
+ * Lead érkezési csatorna marker beállítása — régi `[MKT:LEAD_SOURCE:*]`
+ * markereket eltávolítja, újat fűz a végére. `null` esetén csak töröl.
+ */
+export function withLeadSource(notes: string | null, source: LeadSource | null): string {
+  const base = (notes ?? "")
+    .replace(LEAD_SOURCE_RX, "")
+    .replace(/[ \t]*\n{3,}/g, "\n\n")
+    .trimEnd();
+  if (!source) return base;
+  const tail = `[MKT:LEAD_SOURCE:${source}]`;
+  return base ? `${base}\n${tail}` : tail;
 }
