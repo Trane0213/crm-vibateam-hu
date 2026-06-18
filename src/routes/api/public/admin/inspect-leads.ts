@@ -47,6 +47,7 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
             total: count,
             other_tables: found,
             all_tables: allTables,
+            schemas,
           });
         } catch (e: any) {
           return Response.json({ error: String(e?.message ?? e) }, { status: 500 });
