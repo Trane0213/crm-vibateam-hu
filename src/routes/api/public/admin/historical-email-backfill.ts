@@ -38,6 +38,7 @@ export const Route = createFileRoute("/api/public/admin/historical-email-backfil
   server: {
     handlers: {
       POST: async () => {
+        try {
         const { getAdminClient } = await import("@/integrations/supabase/server");
         const admin = getAdminClient();
 
@@ -211,6 +212,9 @@ export const Route = createFileRoute("/api/public/admin/historical-email-backfil
           errors: errors.slice(0, 25),
           error_count: errors.length,
         });
+        } catch (e: any) {
+          return Response.json({ ok: false, error: String(e?.message ?? e), stack: String(e?.stack ?? "") }, { status: 500 });
+        }
       },
     },
   },
