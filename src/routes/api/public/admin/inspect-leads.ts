@@ -25,7 +25,10 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
             "web_leads", "website_leads", "form_submissions", "inquiries",
             "ajanlatkeresek", "ajanlatkeres", "intake", "intakes",
             "lead_submissions", "contact_forms", "contact_submissions",
-            "leads_inbox", "submissions", "requests",
+            "leads_inbox", "submissions", "requests", "website_quote_requests",
+            "quote_requests", "ajanlat_keresek", "weboldal_leads",
+            "weboldali_ajanlatkeresek", "weboldali_ajanlatok",
+            "website_form_submissions", "form_leads", "vibateam_leads",
           ];
           const found: Record<string, any> = {};
           for (const t of candidates) {
