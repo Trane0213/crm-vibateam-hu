@@ -85,14 +85,18 @@ export const Route = createFileRoute("/api/public/admin/historical-email-backfil
           let off = 0;
           while (true) {
             const { data, error } = await admin
-              .from("leads").select("id,email,company_id,contact_id")
-              .not("email", "is", null)
+              .from("leads").select("id,company_id,contact_id")
+              .not("contact_id", "is", null)
               .order("id", { ascending: true })
               .range(off, off + 999);
             if (error) throw error;
             const rows = data ?? [];
-            for (const l of rows as Array<{ id: string; email: string; company_id: string | null; contact_id: string | null }>) {
-              const key = l.email.trim().toLowerCase();
+            for (const l of rows as Array<{ id: string; company_id: string | null; contact_id: string | null }>) {
+              // derive email from contact map
+              let key: string | null = null;
+              for (const [em, ref] of emailToContact) {
+                if (ref.contact_id === l.contact_id) { key = em; break; }
+              }
               if (!key) continue;
               const ex = emailToLead.get(key);
               if (!ex) emailToLead.set(key, { lead_id: l.id, company_id: l.company_id, contact_id: l.contact_id });
