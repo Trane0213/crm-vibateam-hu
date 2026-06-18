@@ -998,26 +998,29 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, contacts, defaultSummary, submitting, onSubmit,
+  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, submitting, onSubmit,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   companyName: string;
   contacts: any[];
   defaultSummary: string;
+  defaultLeadSource: LeadSource | null;
   submitting: boolean;
-  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null }) => void;
+  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => void;
 }) {
   const [summary, setSummary] = useState(defaultSummary);
   const [projectType, setProjectType] = useState<string>("");
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
+  const [leadSource, setLeadSource] = useState<string>(defaultLeadSource ?? "");
   // Minden megnyitáskor szinkronizáljuk a defaultokat (sales note vagy első kontakt).
   useEffect(() => {
     if (!open) return;
     setSummary(defaultSummary);
     setProjectType("");
     setContactId(contacts[0]?.id ?? "");
-  }, [open, defaultSummary, contacts]);
+    setLeadSource(defaultLeadSource ?? "");
+  }, [open, defaultSummary, contacts, defaultLeadSource]);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -1034,6 +1037,19 @@ function HandoffDialog({
         </AlertDialogHeader>
 
         <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Honnan érkezett a lead? <span className="text-destructive">*</span>
+            </label>
+            <Select value={leadSource} onValueChange={setLeadSource}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Válassz csatornát" /></SelectTrigger>
+              <SelectContent>
+                {LEAD_SOURCE_OPTIONS.map((o) => (
+                  <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Lead összefoglaló</label>
             <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="mt-1" />
@@ -1061,13 +1077,14 @@ function HandoffDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Mégse</AlertDialogCancel>
           <AlertDialogAction
-            disabled={submitting || !summary.trim()}
+            disabled={submitting || !summary.trim() || !leadSource}
             onClick={(e) => {
               e.preventDefault();
               onSubmit({
                 summary: summary.trim(),
                 project_type: projectType.trim() || null,
                 contact_id: contactId || null,
+                lead_source: leadSource as LeadSource,
               });
             }}
           >
@@ -1076,5 +1093,53 @@ function HandoffDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function LeadSourceDialog({
+  open, onOpenChange, initial, saving, onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  initial: LeadSource | null;
+  saving: boolean;
+  onSave: (source: LeadSource) => void;
+}) {
+  const [value, setValue] = useState<string>(initial ?? "");
+  useEffect(() => {
+    if (open) setValue(initial ?? "");
+  }, [open, initial]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Lead érkezési csatorna
+          </DialogTitle>
+          <DialogDescription>
+            Válaszd ki, honnan érkezett a lead. Ez kötelező a Saleshez átadáshoz.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2">
+          <Label htmlFor="lead-source-select">Csatorna</Label>
+          <Select value={value} onValueChange={setValue}>
+            <SelectTrigger id="lead-source-select"><SelectValue placeholder="Válassz csatornát" /></SelectTrigger>
+            <SelectContent>
+              {LEAD_SOURCE_OPTIONS.map((o) => (
+                <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Mégse</Button>
+          <Button onClick={() => value && onSave(value as LeadSource)} disabled={saving || !value}>
+            {saving ? "Mentés…" : "Mentés"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
