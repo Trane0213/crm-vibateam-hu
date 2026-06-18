@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
   Send, ArrowRightCircle, Globe, Phone, Calendar, CheckCircle2,
-  AlertCircle, Sparkles, MoreHorizontal,
+  AlertCircle, Sparkles, MoreHorizontal, Tag,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +36,10 @@ import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { normalizeRole } from "@/lib/permissions";
 import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
-  readMarketingMeta, stripMarkers, withMarketingStatus, withSalesNote,
-  type MarketingStatus,
+  LEAD_SOURCE_LABEL, LEAD_SOURCE_OPTIONS,
+  readMarketingMeta, stripMarkers,
+  withMarketingStatus, withSalesNote, withLeadSource,
+  type MarketingStatus, type LeadSource,
 } from "@/lib/marketing-status";
 import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
 import { NextBestAction } from "@/components/marketing/next-best-action";
@@ -57,6 +59,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
   const [composer, setComposer] = useState<{ to: string; subject: string; contactId?: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [leadSourceOpen, setLeadSourceOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any | null>(null);
   const [tab, setTab] = useState<string>("overview");
@@ -254,6 +257,20 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
   });
 
+  const saveLeadSource = useMutation({
+    mutationFn: async (source: LeadSource) => {
+      const next = withLeadSource(cust.data?.notes ?? null, source);
+      const { error } = await supabase.from("companies").update({ notes: next }).eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, source) => {
+      toast.success(`Érkezési csatorna: ${LEAD_SOURCE_LABEL[source]}`);
+      setLeadSourceOpen(false);
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+    },
+    onError: (e: any) => toast.error("Csatorna mentése sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
   const saveContact = useMutation({
     mutationFn: async (input: { id?: string; name: string; email: string; phone: string; position: string }) => {
       const payload: any = {
@@ -286,19 +303,22 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const handoff = useMutation({
-    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null }) => {
+    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => {
+      // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
+      // marketing állapot (leadSource) és a lead.source mindig egyezzen.
+      const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
       const payload: any = {
         company_id: companyId,
         contact_id: input.contact_id,
         summary: input.summary,
-        source: "marketing_handoff",
+        source: input.lead_source,
         project_type: input.project_type,
         status: "new",
       };
       const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
       if (error) throw error;
       const leadId = (data as any).id as string;
-      const nextNotes = withMarketingStatus(cust.data?.notes ?? null, "handoff", leadId);
+      const nextNotes = withMarketingStatus(withSrc, "handoff", leadId);
       const { error: e2 } = await supabase.from("companies").update({ notes: nextNotes }).eq("id", companyId);
       if (e2) throw e2;
       return leadId;
@@ -405,6 +425,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         return;
       case "open-handoff":
         setHandoffOpen(true);
+        return;
+      case "select-lead-source":
+        setLeadSourceOpen(true);
         return;
       case "open-lead":
       case "none":
@@ -711,8 +734,17 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         companyName={c.name}
         contacts={contacts.data ?? []}
         defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
+        defaultLeadSource={meta.leadSource}
         submitting={handoff.isPending}
         onSubmit={(d) => handoff.mutate(d)}
+      />
+
+      <LeadSourceDialog
+        open={leadSourceOpen}
+        onOpenChange={setLeadSourceOpen}
+        initial={meta.leadSource}
+        saving={saveLeadSource.isPending}
+        onSave={(s) => saveLeadSource.mutate(s)}
       />
     </div>
   );
