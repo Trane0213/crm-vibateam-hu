@@ -24,8 +24,9 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
           const candidates = ["quote_requests", "contact_messages"];
           const found: Record<string, any> = {};
           for (const t of candidates) {
-            const { data, error } = await admin.from(t).select("*").limit(2);
-            if (!error) found[t] = { sample: data };
+            const { data, error } = await admin.from(t).select("*").order("created_at", { ascending: false }).limit(3);
+            const { count } = await admin.from(t).select("*", { count: "exact", head: true });
+            found[t] = { sample: data ?? null, error: error?.message ?? null, count: count ?? null };
           }
           // List ALL public tables via PostgREST OpenAPI root
           const { SUPABASE_URL } = await import("@/integrations/supabase/client");
