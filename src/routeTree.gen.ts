@@ -67,6 +67,7 @@ import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
+import { Route as ApiPublicAdminInspectLeadsRouteImport } from './routes/api/public/admin/inspect-leads'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 
@@ -387,6 +388,12 @@ const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
   path: '/api/public/gmail/cron-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicAdminInspectLeadsRoute =
+  ApiPublicAdminInspectLeadsRouteImport.update({
+    id: '/api/public/admin/inspect-leads',
+    path: '/api/public/admin/inspect-leads',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
   id: '/api/gmail/oauth/start',
   path: '/api/gmail/oauth/start',
@@ -457,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/admin/inspect-leads': typeof ApiPublicAdminInspectLeadsRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesByTo {
@@ -517,6 +525,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/admin/inspect-leads': typeof ApiPublicAdminInspectLeadsRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesById {
@@ -580,6 +589,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/public/admin/inspect-leads': typeof ApiPublicAdminInspectLeadsRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRouteTypes {
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/admin/inspect-leads'
     | '/api/public/gmail/cron-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/admin/inspect-leads'
     | '/api/public/gmail/cron-sync'
   id:
     | '__root__'
@@ -765,6 +777,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/public/admin/inspect-leads'
     | '/api/public/gmail/cron-sync'
   fileRoutesById: FileRoutesById
 }
@@ -782,6 +795,7 @@ export interface RootRouteChildren {
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
+  ApiPublicAdminInspectLeadsRoute: typeof ApiPublicAdminInspectLeadsRoute
   ApiPublicGmailCronSyncRoute: typeof ApiPublicGmailCronSyncRoute
 }
 
@@ -1193,6 +1207,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/admin/inspect-leads': {
+      id: '/api/public/admin/inspect-leads'
+      path: '/api/public/admin/inspect-leads'
+      fullPath: '/api/public/admin/inspect-leads'
+      preLoaderRoute: typeof ApiPublicAdminInspectLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gmail/oauth/start': {
       id: '/api/gmail/oauth/start'
       path: '/api/gmail/oauth/start'
@@ -1339,18 +1360,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSyncRoute: ApiGmailSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
+  ApiPublicAdminInspectLeadsRoute: ApiPublicAdminInspectLeadsRoute,
   ApiPublicGmailCronSyncRoute: ApiPublicGmailCronSyncRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
