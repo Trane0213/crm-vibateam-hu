@@ -19,6 +19,7 @@ export type StepActionKind =
   | "write-sales-note"
   | "open-handoff"
   | "open-lead"
+  | "select-lead-source"
   | "none";
 
 export type NextStep = {
@@ -26,7 +27,7 @@ export type NextStep = {
     | "handoff-done"
     | "needs-contact"
     | "needs-email-address"
-    | "needs-first-email"
+    | "needs-lead-source"
     | "needs-qualification"
     | "needs-sales-note"
     | "ready-handoff";
@@ -43,7 +44,7 @@ export type ChecklistItem = {
     | "company"
     | "contact"
     | "contact-email"
-    | "first-email"
+    | "lead-source"
     | "sales-note"
     | "handoff";
   label: string;
@@ -66,7 +67,7 @@ function primaryName(contacts: WorkflowInput["contacts"]): string {
 
 /** Sorrendben kiértékelt szabályrendszer — első igaz ág nyer. */
 export function computeNextStep(input: WorkflowInput): NextStep {
-  const { contacts, threadCount, meta } = input;
+  const { contacts, meta } = input;
   const hasContact = contacts.length > 0;
   const primaryEmail = contacts[0]?.email?.trim() ?? "";
   const hasEmail = !!primaryEmail;
@@ -102,21 +103,21 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       id: "needs-email-address",
       tone: "action",
       title: "Email cím hiányzik a kapcsolattartónál",
-      description: `${primaryName(contacts)} adatlapján nincs email cím. Email küldéshez és átadáshoz szükséges.`,
+      description: `${primaryName(contacts)} adatlapján nincs email cím. Email küldéshez ajánlott megadni.`,
       primary: { label: "Kapcsolattartó szerkesztése", action: "edit-contact", targetTab: "contacts" },
       why: ["Az elsődleges kapcsolattartónak nincs email címe"],
     };
   }
 
-  if (threadCount === 0) {
+  if (!meta.leadSource) {
     return {
-      id: "needs-first-email",
+      id: "needs-lead-source",
       tone: "action",
-      title: "Első kapcsolatfelvétel szükséges",
-      description: `Küldj bemutatkozó emailt ${primaryName(contacts)} részére. Az elküldött szál automatikusan ide kerül.`,
-      primary: { label: "Email küldése", action: "send-email" },
-      secondary: { label: "Email szálak megnyitása", action: "open-emails", targetTab: "emails" },
-      why: ["Még nem indult email szál ezzel a céggel"],
+      title: "Lead érkezési csatorna megjelölése szükséges",
+      description: "Válaszd ki, honnan érkezett a lead. Ez kötelező a Saleshez átadáshoz.",
+      primary: { label: "Csatorna kiválasztása", action: "select-lead-source" },
+      secondary: { label: "Email küldése (opcionális)", action: "send-email" },
+      why: ["Még nincs megjelölt érkezési csatorna"],
     };
   }
 
@@ -125,10 +126,10 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       id: "needs-qualification",
       tone: "progress",
       title: "Minősítés folyamatban",
-      description: 'Már elindult a kommunikáció. Ha a kapcsolattartó válaszolt és párbeszéd indult, jelöld „Kapcsolatban" állapotra.',
+      description: 'Csatorna megjelölve. Ha a kapcsolattartóval párbeszéd indult, jelöld „Kapcsolatban" állapotra.',
       primary: { label: "Megjelölés: Kapcsolatban", action: "mark-contacted" },
-        secondary: { label: "Email szálak átnézése", action: "open-emails", targetTab: "emails" },
-      why: ["Van email aktivitás", 'Státusz még „Új"'],
+      secondary: { label: "Email szálak átnézése", action: "open-emails", targetTab: "emails" },
+      why: ["Csatorna ki van választva", 'Státusz még „Új"'],
     };
   }
 
@@ -148,23 +149,22 @@ export function computeNextStep(input: WorkflowInput): NextStep {
     id: "ready-handoff",
     tone: "ready",
     title: "Átadható sales-nek",
-    description: "Minden adat megvan: kapcsolattartó, email aktivitás és sales jegyzet. Hozz létre leadet és add át.",
+    description: "Minden adat megvan: kapcsolattartó, érkezési csatorna és sales jegyzet. Hozz létre leadet és add át.",
     primary: { label: "Saleshez átadás", action: "open-handoff" },
     secondary: { label: "Jegyzet ellenőrzése", action: "write-sales-note", targetTab: "sales-note" },
     why: [
-      "Van kapcsolattartó email címmel",
-      "Volt email aktivitás",
+      "Van kapcsolattartó",
+      "Érkezési csatorna ki van választva",
       meta.salesNote ? "Sales jegyzet kész" : "Státusz: Átadható",
     ],
   };
 }
 
 export function computeChecklist(input: WorkflowInput): ChecklistItem[] {
-  const { company, contacts, threadCount, meta } = input;
+  const { company, contacts, meta } = input;
   const hasContact = contacts.length > 0;
   const primaryEmail = contacts[0]?.email?.trim() ?? "";
   const hasEmail = !!primaryEmail;
-  const hasThread = threadCount > 0;
   const hasSalesNote = !!meta.salesNote;
   const handed = meta.status === "handoff";
 
@@ -187,10 +187,10 @@ export function computeChecklist(input: WorkflowInput): ChecklistItem[] {
       action: hasContact && !hasEmail ? { label: "Szerkesztés", action: "edit-contact", targetTab: "contacts" } : undefined,
     },
     {
-      id: "first-email",
-      label: hasThread ? `Email aktivitás (${threadCount} szál)` : "Első email elküldve",
-      done: hasThread,
-      action: hasContact && hasEmail && !hasThread ? { label: "Küldés", action: "send-email" } : undefined,
+      id: "lead-source",
+      label: "Lead érkezési csatorna megjelölve",
+      done: !!meta.leadSource,
+      action: !meta.leadSource && !handed ? { label: "Megjelölés", action: "select-lead-source" } : undefined,
     },
     {
       id: "sales-note",

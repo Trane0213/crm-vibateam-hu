@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
   Send, ArrowRightCircle, Globe, Phone, Calendar, CheckCircle2,
-  AlertCircle, Sparkles, MoreHorizontal,
+  AlertCircle, Sparkles, MoreHorizontal, Tag,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,8 +36,10 @@ import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { normalizeRole } from "@/lib/permissions";
 import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
-  readMarketingMeta, stripMarkers, withMarketingStatus, withSalesNote,
-  type MarketingStatus,
+  LEAD_SOURCE_LABEL, LEAD_SOURCE_OPTIONS,
+  readMarketingMeta, stripMarkers,
+  withMarketingStatus, withSalesNote, withLeadSource,
+  type MarketingStatus, type LeadSource,
 } from "@/lib/marketing-status";
 import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
 import { NextBestAction } from "@/components/marketing/next-best-action";
@@ -57,6 +59,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
   const [composer, setComposer] = useState<{ to: string; subject: string; contactId?: string } | null>(null);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [leadSourceOpen, setLeadSourceOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any | null>(null);
   const [tab, setTab] = useState<string>("overview");
@@ -254,6 +257,20 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
   });
 
+  const saveLeadSource = useMutation({
+    mutationFn: async (source: LeadSource) => {
+      const next = withLeadSource(cust.data?.notes ?? null, source);
+      const { error } = await supabase.from("companies").update({ notes: next }).eq("id", companyId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, source) => {
+      toast.success(`Érkezési csatorna: ${LEAD_SOURCE_LABEL[source]}`);
+      setLeadSourceOpen(false);
+      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+    },
+    onError: (e: any) => toast.error("Csatorna mentése sikertelen", { description: humanizeSupabaseError(e) }),
+  });
+
   const saveContact = useMutation({
     mutationFn: async (input: { id?: string; name: string; email: string; phone: string; position: string }) => {
       const payload: any = {
@@ -286,19 +303,22 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const handoff = useMutation({
-    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null }) => {
+    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => {
+      // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
+      // marketing állapot (leadSource) és a lead.source mindig egyezzen.
+      const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
       const payload: any = {
         company_id: companyId,
         contact_id: input.contact_id,
         summary: input.summary,
-        source: "marketing_handoff",
+        source: input.lead_source,
         project_type: input.project_type,
         status: "new",
       };
       const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
       if (error) throw error;
       const leadId = (data as any).id as string;
-      const nextNotes = withMarketingStatus(cust.data?.notes ?? null, "handoff", leadId);
+      const nextNotes = withMarketingStatus(withSrc, "handoff", leadId);
       const { error: e2 } = await supabase.from("companies").update({ notes: nextNotes }).eq("id", companyId);
       if (e2) throw e2;
       return leadId;
@@ -405,6 +425,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         return;
       case "open-handoff":
         setHandoffOpen(true);
+        return;
+      case "select-lead-source":
+        setLeadSourceOpen(true);
         return;
       case "open-lead":
       case "none":
@@ -711,8 +734,17 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         companyName={c.name}
         contacts={contacts.data ?? []}
         defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
+        defaultLeadSource={meta.leadSource}
         submitting={handoff.isPending}
         onSubmit={(d) => handoff.mutate(d)}
+      />
+
+      <LeadSourceDialog
+        open={leadSourceOpen}
+        onOpenChange={setLeadSourceOpen}
+        initial={meta.leadSource}
+        saving={saveLeadSource.isPending}
+        onSave={(s) => saveLeadSource.mutate(s)}
       />
     </div>
   );
@@ -966,26 +998,29 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, contacts, defaultSummary, submitting, onSubmit,
+  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, submitting, onSubmit,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   companyName: string;
   contacts: any[];
   defaultSummary: string;
+  defaultLeadSource: LeadSource | null;
   submitting: boolean;
-  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null }) => void;
+  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => void;
 }) {
   const [summary, setSummary] = useState(defaultSummary);
   const [projectType, setProjectType] = useState<string>("");
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
+  const [leadSource, setLeadSource] = useState<string>(defaultLeadSource ?? "");
   // Minden megnyitáskor szinkronizáljuk a defaultokat (sales note vagy első kontakt).
   useEffect(() => {
     if (!open) return;
     setSummary(defaultSummary);
     setProjectType("");
     setContactId(contacts[0]?.id ?? "");
-  }, [open, defaultSummary, contacts]);
+    setLeadSource(defaultLeadSource ?? "");
+  }, [open, defaultSummary, contacts, defaultLeadSource]);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -1002,6 +1037,19 @@ function HandoffDialog({
         </AlertDialogHeader>
 
         <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Honnan érkezett a lead? <span className="text-destructive">*</span>
+            </label>
+            <Select value={leadSource} onValueChange={setLeadSource}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Válassz csatornát" /></SelectTrigger>
+              <SelectContent>
+                {LEAD_SOURCE_OPTIONS.map((o) => (
+                  <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Lead összefoglaló</label>
             <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="mt-1" />
@@ -1029,13 +1077,14 @@ function HandoffDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Mégse</AlertDialogCancel>
           <AlertDialogAction
-            disabled={submitting || !summary.trim()}
+            disabled={submitting || !summary.trim() || !leadSource}
             onClick={(e) => {
               e.preventDefault();
               onSubmit({
                 summary: summary.trim(),
                 project_type: projectType.trim() || null,
                 contact_id: contactId || null,
+                lead_source: leadSource as LeadSource,
               });
             }}
           >
@@ -1044,5 +1093,53 @@ function HandoffDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function LeadSourceDialog({
+  open, onOpenChange, initial, saving, onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  initial: LeadSource | null;
+  saving: boolean;
+  onSave: (source: LeadSource) => void;
+}) {
+  const [value, setValue] = useState<string>(initial ?? "");
+  useEffect(() => {
+    if (open) setValue(initial ?? "");
+  }, [open, initial]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Tag className="h-4 w-4" />
+            Lead érkezési csatorna
+          </DialogTitle>
+          <DialogDescription>
+            Válaszd ki, honnan érkezett a lead. Ez kötelező a Saleshez átadáshoz.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-2">
+          <Label htmlFor="lead-source-select">Csatorna</Label>
+          <Select value={value} onValueChange={setValue}>
+            <SelectTrigger id="lead-source-select"><SelectValue placeholder="Válassz csatornát" /></SelectTrigger>
+            <SelectContent>
+              {LEAD_SOURCE_OPTIONS.map((o) => (
+                <SelectItem key={o.code} value={o.code}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Mégse</Button>
+          <Button onClick={() => value && onSave(value as LeadSource)} disabled={saving || !value}>
+            {saving ? "Mentés…" : "Mentés"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

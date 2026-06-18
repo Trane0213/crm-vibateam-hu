@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   CheckCircle2, Mail, UserPlus, StickyNote, ArrowRightCircle,
-  AlertCircle, Sparkles, ExternalLink,
+  AlertCircle, Sparkles, ExternalLink, Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ const ACTION_ICON: Record<StepActionKind, any> = {
   "write-sales-note": StickyNote,
   "open-handoff":     ArrowRightCircle,
   "open-lead":        ExternalLink,
+  "select-lead-source": Tag,
   "none":             CheckCircle2,
 };
 
