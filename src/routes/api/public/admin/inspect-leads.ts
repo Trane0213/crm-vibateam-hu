@@ -36,6 +36,10 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
           });
           const openApi: any = await openApiRes.json();
           const allTables = openApi?.definitions ? Object.keys(openApi.definitions) : [];
+          const schemas: Record<string, any> = {};
+          for (const t of candidates) {
+            schemas[t] = openApi?.definitions?.[t] ?? null;
+          }
           return Response.json({
             columns_error: e1?.message,
             sample,
