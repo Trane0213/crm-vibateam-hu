@@ -43,6 +43,7 @@ import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
 import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
 import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
+import { Route as AuthenticatedWebQuoteRequestsIdRouteImport } from './routes/_authenticated/web-quote-requests.$id'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -252,6 +253,12 @@ const ApiGmailDisconnectRoute = ApiGmailDisconnectRouteImport.update({
   path: '/api/gmail/disconnect',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWebQuoteRequestsIdRoute =
+  AuthenticatedWebQuoteRequestsIdRouteImport.update({
+    id: '/web-quote-requests/$id',
+    path: '/web-quote-requests/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsUsersRoute =
   AuthenticatedSettingsUsersRouteImport.update({
     id: '/users',
@@ -448,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
@@ -509,6 +517,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
@@ -573,6 +582,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/_authenticated/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
   '/api/gmail/send': typeof ApiGmailSendRoute
@@ -637,6 +647,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
     | '/api/gmail/send'
@@ -698,6 +709,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
     | '/api/gmail/send'
@@ -761,6 +773,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
+    | '/_authenticated/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
     | '/api/gmail/send'
@@ -1038,6 +1051,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGmailDisconnectRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/web-quote-requests/$id': {
+      id: '/_authenticated/web-quote-requests/$id'
+      path: '/web-quote-requests/$id'
+      fullPath: '/web-quote-requests/$id'
+      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings/users': {
       id: '/_authenticated/settings/users'
       path: '/users'
@@ -1294,6 +1314,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSalesQuotesRoute: typeof AuthenticatedSalesQuotesRoute
   AuthenticatedSalesResearchRoute: typeof AuthenticatedSalesResearchRoute
   AuthenticatedSalesTodoRoute: typeof AuthenticatedSalesTodoRoute
+  AuthenticatedWebQuoteRequestsIdRoute: typeof AuthenticatedWebQuoteRequestsIdRoute
   AuthenticatedCompaniesIndexRoute: typeof AuthenticatedCompaniesIndexRoute
   AuthenticatedContactsIndexRoute: typeof AuthenticatedContactsIndexRoute
   AuthenticatedCustomersIndexRoute: typeof AuthenticatedCustomersIndexRoute
@@ -1333,6 +1354,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSalesQuotesRoute: AuthenticatedSalesQuotesRoute,
   AuthenticatedSalesResearchRoute: AuthenticatedSalesResearchRoute,
   AuthenticatedSalesTodoRoute: AuthenticatedSalesTodoRoute,
+  AuthenticatedWebQuoteRequestsIdRoute: AuthenticatedWebQuoteRequestsIdRoute,
   AuthenticatedCompaniesIndexRoute: AuthenticatedCompaniesIndexRoute,
   AuthenticatedContactsIndexRoute: AuthenticatedContactsIndexRoute,
   AuthenticatedCustomersIndexRoute: AuthenticatedCustomersIndexRoute,
