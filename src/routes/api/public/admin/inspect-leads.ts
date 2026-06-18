@@ -20,12 +20,24 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
           const { count } = await admin
             .from("leads")
             .select("*", { count: "exact", head: true });
+          // Look for a separate website-intake table
+          const candidates = [
+            "web_leads", "website_leads", "form_submissions", "inquiries",
+            "ajanlatkeresek", "ajanlatkeres", "intake", "intakes",
+            "lead_submissions", "contact_forms", "contact_submissions",
+            "leads_inbox", "submissions", "requests",
+          ];
+          const found: Record<string, any> = {};
+          for (const t of candidates) {
+            const { data, error } = await admin.from(t).select("*").limit(2);
+            if (!error) found[t] = { sample: data };
+          }
           return Response.json({
-            columns: cols,
             columns_error: e1?.message,
             sample,
             sample_error: e2?.message,
             total: count,
+            other_tables: found,
           });
         } catch (e: any) {
           return Response.json({ error: String(e?.message ?? e) }, { status: 500 });
