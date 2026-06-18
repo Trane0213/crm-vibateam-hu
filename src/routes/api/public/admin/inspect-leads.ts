@@ -49,6 +49,7 @@ export const Route = createFileRoute("/api/public/admin/inspect-leads")({
             sample_error: e2?.message,
             total: count,
             other_tables: found,
+            all_tables: allTables,
           });
         } catch (e: any) {
           return Response.json({ error: String(e?.message ?? e) }, { status: 500 });
