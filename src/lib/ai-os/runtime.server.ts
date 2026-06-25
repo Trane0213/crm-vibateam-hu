@@ -40,7 +40,7 @@ export type RunAgentResult = {
   agentId: string;
   finalText: string;
   /** Ha az LLM olyan write toolt akart hívni, ami jóváhagyásra vár, itt jelezzük. */
-  pendingApprovals: Array<{ tool_call_id: string; tool_name: string; arguments: unknown }>;
+  pendingApprovals: Array<{ tool_call_id: string; tool_name: string; arguments_json: string }>;
   steps: number;
   usage: { prompt_tokens: number; completion_tokens: number };
 };
@@ -159,9 +159,14 @@ export async function runAgent(
         }
         // Approval ellenőrzés.
         if (tool.needs_approval && !approved.has(call.id)) {
+          const rawArgs = call.function.arguments || "{}";
           let parsed: unknown = {};
-          try { parsed = JSON.parse(call.function.arguments || "{}"); } catch { /* noop */ }
-          pendingApprovals.push({ tool_call_id: call.id, tool_name: tool.name, arguments: parsed });
+          try { parsed = JSON.parse(rawArgs); } catch { /* noop */ }
+          pendingApprovals.push({
+            tool_call_id: call.id,
+            tool_name: tool.name,
+            arguments_json: rawArgs,
+          });
           await logStep(adminClient, {
             runId, stepNo: ++stepNo, kind: "approval", toolName: tool.name,
             input: { call_id: call.id, args: parsed },
