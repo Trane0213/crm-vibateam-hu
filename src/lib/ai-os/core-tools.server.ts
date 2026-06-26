@@ -55,17 +55,11 @@ export function registerCoreTools() {
       },
     },
     async (args, ctx) => {
-      const { createClient } = await import("@supabase/supabase-js");
-      const admin = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
-      const { data, error } = await admin
+      const { data, error } = await ctx.supabaseUser
         .from("ai_memory")
         .select("key,value,scope,source,updated_at")
         .eq("subject_type", String(args.subject_type))
         .eq("subject_id", String(args.subject_id))
-        .or(`scope.eq.shared,created_by.eq.${ctx.userId}`)
         .order("updated_at", { ascending: false })
         .limit(50);
       if (error) return { error: error.message };
@@ -93,12 +87,7 @@ export function registerCoreTools() {
       },
     },
     async (args, ctx) => {
-      const { createClient } = await import("@supabase/supabase-js");
-      const admin = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      );
-      const { data, error } = await admin
+      const { data, error } = await ctx.supabaseUser
         .from("ai_memory")
         .upsert(
           {
