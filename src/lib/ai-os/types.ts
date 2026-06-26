@@ -49,8 +49,10 @@ export type ToolContext = {
   agentId: string;
   threadId: string | null;
   runId: string;
-  /** Service role klienst csak a tool-implementáció igényelheti expliciten. */
-  supabaseAdmin?: unknown;
+  /** User-scoped Supabase kliens — RLS érvényesül. Olvasási toolokhoz ezt használd. */
+  supabaseUser: import("@supabase/supabase-js").SupabaseClient;
+  /** Service role kliens — CSAK explicit jogosultság-ellenőrzés után (write workflow). */
+  supabaseAdmin: import("@supabase/supabase-js").SupabaseClient;
 };
 
 export type RegisteredTool = ToolSpec & { execute: ToolExecutor };

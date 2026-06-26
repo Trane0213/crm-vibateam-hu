@@ -187,6 +187,8 @@ export async function runAgent(
           output = await tool.execute(args, {
             userId: input.userId, agentId: agent.id,
             threadId: input.threadId, runId,
+            supabaseUser: userClient,
+            supabaseAdmin: adminClient,
           });
         } catch (e: any) {
           errMsg = e?.message ?? String(e);
