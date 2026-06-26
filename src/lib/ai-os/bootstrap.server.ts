@@ -7,13 +7,13 @@
  */
 
 import { registerCoreTools } from "./core-tools.server";
+import { registerCrmTools } from "./adapters/crm-tools.server";
 
 let booted = false;
 
 export function ensureBootstrapped() {
   if (booted) return;
   registerCoreTools();
-  // CRM adapter regisztráció — lazy, hogy a core ne függjön CRM-től importban.
-  // Ide kerül a jövőben: registerCrmTools(), registerMarketingTools(), stb.
+  registerCrmTools();
   booted = true;
 }
