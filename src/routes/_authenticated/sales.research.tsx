@@ -202,14 +202,6 @@ function ResearchPage() {
       }));
       mapped.sort((a, b) => b._score - a._score);
       setRows(mapped);
-      logAiAction({
-        agent_type: "sales",
-        action_type: "company_research",
-        payload: { keyword, area, count },
-        result: { count: mapped.length, model: res.model },
-        approved: true,
-        executed: true,
-      });
       if (mapped.length === 0) toast.info("Nincs találat — próbálj más kulcsszót.");
     },
     onError: (e: any) => {
