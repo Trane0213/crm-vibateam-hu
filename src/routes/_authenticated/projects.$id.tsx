@@ -190,6 +190,10 @@ function ProjectDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
+            <TodayFocusCard
+              followups={followups.data ?? []}
+              tasks={tasks.data ?? []}
+            />
             <SalesHandoffCard project={project} assigneeName={assigneeName} />
             <Card>
               <CardHeader><CardTitle className="text-sm">Ajánlat-állapot</CardTitle></CardHeader>
@@ -551,6 +555,115 @@ function SalesHandoffCard({
           <div className="text-xs text-muted-foreground">
             Ehhez a projekthez nincs Sales átadási adat
             {project.lead_id ? " (korábbi projekt)." : "."}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------
+// TodayFocusCard — Mai fókusz a projekt adatlap tetején.
+// A PM napi munkájához listázza a lejárt + ma esedékes utókövetéseket
+// és feladatokat. Nincs új DB mező, a meglévő `followups` és `tasks`
+// listákból dolgozik.
+// ---------------------------------------------------------------------
+function TodayFocusCard({
+  followups,
+  tasks,
+}: {
+  followups: any[];
+  tasks: any[];
+}) {
+  const endOfToday = (() => {
+    const d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d.getTime();
+  })();
+
+  const dueFollowups = followups
+    .filter((f) => !f.completed && f.due_date && new Date(f.due_date).getTime() <= endOfToday)
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+
+  const dueTasks = tasks
+    .filter(
+      (t) =>
+        t.status !== "done" &&
+        t.due_date &&
+        new Date(t.due_date).getTime() <= endOfToday,
+    )
+    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+
+  const total = dueFollowups.length + dueTasks.length;
+  const now = Date.now();
+
+  return (
+    <Card className="lg:col-span-2 border-primary/30 bg-primary/5">
+      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+        <CardTitle className="text-sm">Mai fókusz</CardTitle>
+        <Badge variant="outline" className="text-[10px]">{total} tétel</Badge>
+      </CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        {total === 0 ? (
+          <div className="text-xs text-muted-foreground">
+            Nincs mára esedékes utókövetés vagy feladat. Jó alkalom előrelépni a következő mérföldkővel.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                Utókövetés ({dueFollowups.length})
+              </div>
+              {dueFollowups.length === 0 ? (
+                <div className="text-xs text-muted-foreground">—</div>
+              ) : (
+                <ul className="space-y-1.5">
+                  {dueFollowups.slice(0, 5).map((f) => {
+                    const overdue = new Date(f.due_date).getTime() < now;
+                    return (
+                      <li key={f.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {f.followup_type ?? "—"}
+                          {f.result ? <span className="text-muted-foreground"> · {f.result}</span> : null}
+                        </span>
+                        <span
+                          className={`tabular-nums text-xs ${overdue ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+                        >
+                          {fmtDateTime(f.due_date)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+            <div>
+              <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                Feladat ({dueTasks.length})
+              </div>
+              {dueTasks.length === 0 ? (
+                <div className="text-xs text-muted-foreground">—</div>
+              ) : (
+                <ul className="space-y-1.5">
+                  {dueTasks.slice(0, 5).map((t) => {
+                    const overdue = new Date(t.due_date).getTime() < now;
+                    return (
+                      <li key={t.id} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          {t.title ?? "—"}
+                          {t.priority ? <span className="text-muted-foreground"> · {t.priority}</span> : null}
+                        </span>
+                        <span
+                          className={`tabular-nums text-xs ${overdue ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+                        >
+                          {fmtDateTime(t.due_date)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
