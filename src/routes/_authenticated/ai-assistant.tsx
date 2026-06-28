@@ -9,14 +9,11 @@ import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
-import { aiStep } from "@/lib/ai/ai.functions";
-import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
-import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import type { AgentId } from "@/lib/ai/agents";
-import { getToolDefsForAgent, runTool } from "@/lib/ai/tools";
 import { AgentResponse } from "@/components/ai/agent-response";
 import { executeProposal, proposalTitle, type Proposal } from "@/lib/ai/operator";
 import { logAiAction, updateAiAction, type ActionType, type AgentType } from "@/lib/ai/action-log";
+import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
@@ -40,11 +37,29 @@ function AiAssistantRoute() {
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
 type ProposalCard = { logId: string | null; proposal: Proposal; status: "pending" | "approved" | "rejected" | "error"; error?: string };
-type Msg = { id: string; role: "user" | "assistant"; content: string; at: number; nav?: NavCard; proposal?: ProposalCard };
+type ToolApproval = {
+  tool_call_id: string;
+  tool_name: string;
+  arguments_json: string;
+  status: "pending" | "approved" | "rejected" | "error";
+  error?: string;
+};
+type Msg = {
+  id: string; role: "user" | "assistant"; content: string; at: number;
+  nav?: NavCard; proposal?: ProposalCard; approvals?: ToolApproval[];
+  runId?: string;
+};
 type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
 
 const STORAGE_KEY = "viba.ai.threads.v1";
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+/** UI agent id → AI OS agent id. George az orchestrator a CRM oldalra is. */
+function uiAgentToAiOs(id: AgentId): string {
+  if (id === "sales") return "timothy";
+  if (id === "pm") return "boss";
+  return "george";
+}
 
 function loadThreads(): Thread[] {
   if (typeof window === "undefined") return [];
@@ -219,9 +234,7 @@ function AiAssistantPage() {
     let thread = active;
     if (!thread) thread = newThread(question, agent);
     const usedAgent: AgentId = thread.agent ?? agent;
-    const agentTypeForLog: AgentType = usedAgent === "crm" ? "marvin" : usedAgent;
     const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now() };
-    // Optimistic update
     setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
       ...t,
       title: t.messages.length === 0 ? question.slice(0, 60) : t.title,
@@ -230,134 +243,32 @@ function AiAssistantPage() {
     } : t));
     setInput("");
     setBusy(true);
-    let pendingNav: NavCard | null = null;
-    let pendingProposal: ProposalCard | null = null;
     try {
-      const snapshot = await loadCrmSnapshot();
-      const context = serializeSnapshot(snapshot);
-      const history = (thread.messages ?? []).slice(-10).map((m) => ({ role: m.role, content: m.content }));
-      const messages: any[] = [
-        { role: "system" as const, content: SYSTEM_PROMPTS[usedAgent] },
-        { role: "system" as const, content: `[CRM KONTEXTUS — ${new Date().toLocaleString("hu-HU")}]\n${context}` },
-        ...history,
-        { role: "user" as const, content: question },
-      ];
-      const tools = getToolDefsForAgent(usedAgent);
-      // Tool-loop: max 5 iteráció, lépésenként max 5 tool hívás.
-      // Védőhálók: minden tool try/catch-ben, hogy egy elszálló tool ne állítsa
-      // le az egész beszélgetést. Végtelen ciklus ellen: kemény iterációlimit
-      // és teljes idő-limit (90 mp), valamint signature-alapú ismétlésdetektálás.
-      const MAX_TOOL_LOOP_ITER = 5;
-      const MAX_TOOL_CALLS_PER_STEP = 5;
-      const HARD_DEADLINE_MS = 90_000;
-      const started = Date.now();
-      const seenSignatures = new Map<string, number>();
-      let finalText = "";
-      let aborted: string | null = null;
-      for (let i = 0; i < MAX_TOOL_LOOP_ITER; i++) {
-        if (Date.now() - started > HARD_DEADLINE_MS) {
-          aborted = `Az AI túl hosszú ideje (>${Math.round(HARD_DEADLINE_MS / 1000)} mp) dolgozik. Megszakítom a műveletet.`;
-          break;
-        }
-        const step = await aiStep({ data: { messages, tools } });
-        const callsRaw = step.tool_calls ?? [];
-        const calls = callsRaw.slice(0, MAX_TOOL_CALLS_PER_STEP);
-        if (callsRaw.length > MAX_TOOL_CALLS_PER_STEP) {
-          console.warn(`[ai-loop] tool_calls levágva: ${callsRaw.length} → ${MAX_TOOL_CALLS_PER_STEP}`);
-        }
-        if (calls.length > 0) {
-          messages.push({ role: "assistant", content: step.text ?? "", tool_calls: calls });
-          for (const call of calls) {
-            let args: any = {};
-            try { args = JSON.parse(call.function.arguments || "{}"); } catch { /* ignore */ }
-            // Ismétlés-detektor: ugyanaz a tool ugyanazokkal az args-okkal
-            // 3-szor egy beszélgetésen belül = leállítjuk, hogy ne pörögjön végtelenül.
-            const sig = `${call.function.name}::${JSON.stringify(args)}`;
-            const seen = (seenSignatures.get(sig) ?? 0) + 1;
-            seenSignatures.set(sig, seen);
-            if (seen > 3) {
-              messages.push({
-                role: "tool",
-                tool_call_id: call.id,
-                name: call.function.name,
-                content: JSON.stringify({ error: "Ismétlődő hívás megállítva. Próbáld más megközelítéssel." }),
-              });
-              continue;
-            }
-            let result: any;
-            try {
-              result = await runTool(call.function.name, args);
-            } catch (toolErr: any) {
-              console.warn(`[ai-tool] hiba (${call.function.name}):`, toolErr?.message);
-              result = { error: `Tool hiba (${call.function.name}): ${toolErr?.message ?? "ismeretlen"}` };
-            }
-            // __navigate envelope: jegyezzük be a navigációs kártyát
-            if (result && typeof result === "object" && (result as any).__navigate) {
-              const nav = (result as any).__navigate as NavCard;
-              pendingNav = nav;
-              await logAiAction({
-                agent_type: agentTypeForLog,
-                action_type: "navigate",
-                payload: { tool: call.function.name, args, target: nav },
-                approved: true,
-                executed: true,
-                result: { route: nav.to, params: nav.params ?? null },
-              });
-            }
-            // __proposal envelope: jegyezzük be jóváhagyásra váró javaslatként
-            if (result && typeof result === "object" && (result as any).__proposal) {
-              const proposal = (result as any).__proposal as Proposal;
-              const actionType: ActionType = proposal.kind as ActionType;
-              const logId = await logAiAction({
-                agent_type: agentTypeForLog,
-                action_type: actionType,
-                payload: proposal as any,
-                approved: false,
-                executed: false,
-              });
-              pendingProposal = { logId, proposal, status: "pending" };
-            }
-            messages.push({ role: "tool", tool_call_id: call.id, name: call.function.name, content: JSON.stringify(result).slice(0, 12000) });
-          }
-          continue;
-        }
-        finalText = step.text || "";
-        break;
-      }
-      if (aborted) {
-        finalText = `⚠️ ${aborted}\n\nKérlek tegyél fel egy konkrétabb, szűkebb kérdést.`;
-        await logAiAction({
-          agent_type: agentTypeForLog,
-          action_type: "other",
-          payload: { kind: "loop_aborted", reason: aborted, question },
-          approved: false,
-          executed: false,
-          error_message: aborted,
-        });
-      } else if (!finalText && !pendingNav && !pendingProposal) {
-        // Elérte a max iterációt, de nincs végleges válasz — adjunk értelmes üzenetet.
-        finalText = "Nem sikerült rövid úton választ adnom. Próbáld pontosabban megfogalmazni a kérdést, vagy bontsd kisebb lépésekre.";
-      }
+      const aiAgentId = uiAgentToAiOs(usedAgent);
+      const history = [...(thread.messages ?? []), userMsg]
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content }));
+      const result = await runAiAgent({ data: { agentId: aiAgentId, history } });
+      const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
+        ? result.pendingApprovals.map((p) => ({
+            tool_call_id: p.tool_call_id,
+            tool_name: p.tool_name,
+            arguments_json: p.arguments_json,
+            status: "pending" as const,
+          }))
+        : undefined;
       const assistantMsg: Msg = {
         id: uid(),
         role: "assistant",
-        content: finalText || (pendingNav ? `Megnyitottam: ${pendingNav.label}` : pendingProposal ? "Javaslatot készítettem — kérlek hagyd jóvá." : "(üres válasz)"),
+        content: result.finalText || (approvals ? "Jóváhagyást igénylő művelet vár rád." : "(üres válasz)"),
         at: Date.now(),
-        nav: pendingNav ?? undefined,
-        proposal: pendingProposal ?? undefined,
+        approvals,
+        runId: result.runId,
       };
       setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
         ...t, updatedAt: Date.now(), messages: [...t.messages, assistantMsg],
       } : t));
-      // Auto-navigate ha van egyértelmű cél (egyetlen találat)
-      if (pendingNav) {
-        try {
-          navigate({ to: pendingNav.to as any, params: pendingNav.params as any });
-          toast.success(`Megnyitva: ${pendingNav.label}`);
-        } catch (e: any) {
-          toast.error("Navigáció sikertelen", { description: e?.message });
-        }
-      }
     } catch (err: any) {
       const msg = err?.message ?? "Ismeretlen AI hiba.";
       toast.error(msg);
@@ -369,6 +280,58 @@ function AiAssistantPage() {
       setBusy(false);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
+  }
+
+  async function approveToolCall(msgId: string, toolCallId: string) {
+    const thread = active;
+    if (!thread) return;
+    const msg = thread.messages.find((m) => m.id === msgId);
+    if (!msg?.approvals) return;
+    const approval = msg.approvals.find((a) => a.tool_call_id === toolCallId);
+    if (!approval || approval.status !== "pending") return;
+    updateApprovalStatus(msgId, toolCallId, "pending");
+    setBusy(true);
+    try {
+      const aiAgentId = uiAgentToAiOs(thread.agent ?? agent);
+      // A history-t a userMsg-ig építjük újra (az approvals az utolsó assistant lépéshez tartoznak).
+      const idx = thread.messages.findIndex((m) => m.id === msgId);
+      const history = thread.messages
+        .slice(0, idx)
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content }));
+      const result = await runAiAgent({
+        data: { agentId: aiAgentId, history, approvedToolCallIds: [toolCallId] },
+      });
+      updateApprovalStatus(msgId, toolCallId, "approved");
+      const followup: Msg = {
+        id: uid(), role: "assistant", at: Date.now(),
+        content: result.finalText || "Művelet végrehajtva.",
+        runId: result.runId,
+      };
+      setThreads((prev) => prev.map((t) => t.id === thread.id ? {
+        ...t, updatedAt: Date.now(), messages: [...t.messages, followup],
+      } : t));
+      toast.success(`${approval.tool_name} végrehajtva`);
+    } catch (e: any) {
+      updateApprovalStatus(msgId, toolCallId, "error", e?.message ?? String(e));
+      toast.error("Végrehajtás sikertelen", { description: e?.message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function rejectToolCall(msgId: string, toolCallId: string) {
+    updateApprovalStatus(msgId, toolCallId, "rejected");
+  }
+
+  function updateApprovalStatus(msgId: string, toolCallId: string, status: ToolApproval["status"], error?: string) {
+    setThreads((prev) => prev.map((t) => t.id !== activeId ? t : {
+      ...t,
+      messages: t.messages.map((m) => m.id === msgId && m.approvals
+        ? { ...m, approvals: m.approvals.map((a) => a.tool_call_id === toolCallId ? { ...a, status, error } : a) }
+        : m),
+    }));
   }
 
   async function approveProposal(msgId: string) {
@@ -510,6 +473,8 @@ function AiAssistantPage() {
                     onApprove={() => approveProposal(m.id)}
                     onReject={() => rejectProposal(m.id)}
                     onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
+                    onApproveTool={(cid) => approveToolCall(m.id, cid)}
+                    onRejectTool={(cid) => rejectToolCall(m.id, cid)}
                   />
                 ))
               )}
@@ -556,7 +521,14 @@ function AiAssistantPage() {
   );
 }
 
-function Bubble({ msg, onApprove, onReject, onOpenNav }: { msg: Msg; onApprove?: () => void; onReject?: () => void; onOpenNav?: () => void }) {
+function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTool }: {
+  msg: Msg;
+  onApprove?: () => void;
+  onReject?: () => void;
+  onOpenNav?: () => void;
+  onApproveTool?: (toolCallId: string) => void;
+  onRejectTool?: (toolCallId: string) => void;
+}) {
   const isUser = msg.role === "user";
   if (!isUser) {
     return (
@@ -577,6 +549,14 @@ function Bubble({ msg, onApprove, onReject, onOpenNav }: { msg: Msg; onApprove?:
           {msg.proposal && (
             <ProposalCardView card={msg.proposal} onApprove={onApprove} onReject={onReject} />
           )}
+          {msg.approvals?.map((a) => (
+            <ToolApprovalCardView
+              key={a.tool_call_id}
+              approval={a}
+              onApprove={() => onApproveTool?.(a.tool_call_id)}
+              onReject={() => onRejectTool?.(a.tool_call_id)}
+            />
+          ))}
         </div>
       </div>
     );
@@ -638,6 +618,42 @@ function ProposalCardView({ card, onApprove, onReject }: { card: ProposalCard; o
         <div className="mt-3 flex gap-2">
           <Button size="sm" className="h-7 px-2 text-[11px]" onClick={onApprove}>
             <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és létrehoz
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>
+            <XCircle className="mr-1 h-3 w-3" /> Elvet
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ToolApprovalCardView({ approval, onApprove, onReject }: {
+  approval: ToolApproval;
+  onApprove?: () => void;
+  onReject?: () => void;
+}) {
+  let argsPretty = approval.arguments_json;
+  try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
+  const tone = approval.status === "approved" ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
+    : approval.status === "rejected" ? "border-muted bg-muted/30"
+    : approval.status === "error" ? "border-destructive/40 bg-destructive/5"
+    : "border-primary/30 bg-primary/5";
+  return (
+    <div className={`mt-2 rounded-md border p-3 text-xs ${tone}`}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider">Jóváhagyás: {approval.tool_name}</span>
+        {approval.status === "approved" && <Badge variant="outline" className="text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" />Végrehajtva</Badge>}
+        {approval.status === "rejected" && <Badge variant="outline" className="text-[10px]">Elvetve</Badge>}
+        {approval.status === "error" && <Badge variant="destructive" className="text-[10px]">Hiba</Badge>}
+        {approval.status === "pending" && <Badge variant="outline" className="text-[10px]">Jóváhagyásra vár</Badge>}
+      </div>
+      <pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>
+      {approval.error && <p className="mt-2 text-destructive">{approval.error}</p>}
+      {approval.status === "pending" && (
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" className="h-7 px-2 text-[11px]" onClick={onApprove}>
+            <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és végrehajt
           </Button>
           <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>
             <XCircle className="mr-1 h-3 w-3" /> Elvet
