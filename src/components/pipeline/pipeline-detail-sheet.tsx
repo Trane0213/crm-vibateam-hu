@@ -38,7 +38,6 @@ export function PipelineDetailSheet({
   onOpenChange: (v: boolean) => void;
 }) {
   const qc = useQueryClient();
-  const [wonOpen, setWonOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
 
