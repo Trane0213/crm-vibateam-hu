@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, RefreshCw, TrendingUp, Hammer } from "lucide-react";
-import { aiComplete } from "@/lib/ai/ai.functions";
-import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
-import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
+import { useServerFn } from "@tanstack/react-start";
+import { runDailyBriefing } from "@/lib/ai-os/briefing.functions";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -21,6 +20,7 @@ export function DailyBriefing() {
   const { user } = useAuth();
   const { profile } = usePermissions();
   const name = firstName(profile?.full_name ?? null, user?.email?.split("@")[0] ?? null);
+  const callBriefing = useServerFn(runDailyBriefing);
 
   const [mode, setMode] = useState<Mode>("sales");
   const [busy, setBusy] = useState(false);
@@ -33,15 +33,7 @@ export function DailyBriefing() {
     setError(null);
     setText(null);
     try {
-      const ctx = serializeSnapshot(await loadCrmSnapshot());
-      const userPrompt = m === "sales"
-        ? `Készítsd el ${name ?? "a kollégának"} a mai napi értékesítési riportot a Sales Agent sablon szerint. Tömör, belső céges hangnemben. Ne köszönj újra, az üdvözlés már megtörtént.`
-        : `Készítsd el ${name ?? "a kollégának"} a mai napi projektvezetői riportot a PM Agent sablon szerint. Tömör, belső céges hangnemben. Ne köszönj újra, az üdvözlés már megtörtént.`;
-      const res = await aiComplete({ data: { messages: [
-        { role: "system", content: SYSTEM_PROMPTS[m] },
-        { role: "system", content: `[CRM KONTEXTUS — ${new Date().toLocaleString("hu-HU")}]\n${ctx}` },
-        { role: "user", content: userPrompt },
-      ] } });
+      const res = await callBriefing({ data: { mode: m, name: name ?? null } });
       setText(res.text || "(üres válasz)");
       setRan((r) => ({ ...r, [m]: true }));
     } catch (e: any) {
