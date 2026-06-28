@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { logAiAction } from "@/lib/ai/action-log";
 import { withMarketingStatus } from "@/lib/marketing-status";
 import {
   researchCompanies,
@@ -172,19 +171,6 @@ function ResearchPage() {
         if (kErr) throw kErr;
         contact_id = (kIns as any).id as string;
       }
-
-      await logAiAction({
-        // A kampány-művelet a marketing agent (Scarlet) cselekedete; a
-        // szigorú típuslistán belül a 'sales' agent_type a legközelebb
-        // (a Sales gomb is ezt használja), az action_type pedig 'other',
-        // mert nincs még külön 'add_to_campaign' érték a logban.
-        agent_type: "sales",
-        action_type: "other",
-        payload: { company_name: r.company_name, source: "scarlet_research" },
-        approved: true,
-        executed: true,
-        result: { company_id, contact_id },
-      });
 
       setRows((prev) =>
         prev.map((row, i) => i === idx ? { ...row, _in_campaign: true, _company_id: company_id! } : row),
