@@ -9,13 +9,13 @@ import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
-import type { AgentId } from "@/lib/ai/agents";
 import { AgentResponse } from "@/components/ai/agent-response";
-import { executeProposal, proposalTitle, type Proposal } from "@/lib/ai/operator";
-import { logAiAction, updateAiAction, type ActionType, type AgentType } from "@/lib/ai/action-log";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
+
+/** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
+type AgentId = "crm" | "sales" | "pm";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantRoute,
@@ -36,7 +36,6 @@ function AiAssistantRoute() {
 }
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
-type ProposalCard = { logId: string | null; proposal: Proposal; status: "pending" | "approved" | "rejected" | "error"; error?: string };
 type ToolApproval = {
   tool_call_id: string;
   tool_name: string;
@@ -46,7 +45,7 @@ type ToolApproval = {
 };
 type Msg = {
   id: string; role: "user" | "assistant"; content: string; at: number;
-  nav?: NavCard; proposal?: ProposalCard; approvals?: ToolApproval[];
+  nav?: NavCard; approvals?: ToolApproval[];
   runId?: string;
 };
 type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
@@ -334,48 +333,6 @@ function AiAssistantPage() {
     }));
   }
 
-  async function approveProposal(msgId: string) {
-    const thread = active;
-    if (!thread) return;
-    const msg = thread.messages.find((m) => m.id === msgId);
-    if (!msg?.proposal || msg.proposal.status !== "pending") return;
-    const card = msg.proposal;
-    try {
-      const exec = await executeProposal(card.proposal);
-      if (card.logId) {
-        await updateAiAction(card.logId, { approved: true, executed: true, result: exec as any });
-      }
-      updateProposalStatus(msgId, "approved");
-      toast.success(`${proposalTitle(card.proposal)} létrehozva`);
-      if (exec.route) {
-        try { navigate({ to: exec.route as any, params: exec.params as any }); } catch { /* ignore */ }
-      }
-    } catch (e: any) {
-      const errorMsg = e?.message ?? String(e);
-      if (card.logId) await updateAiAction(card.logId, { error_message: errorMsg });
-      updateProposalStatus(msgId, "error", errorMsg);
-      toast.error("Mentés sikertelen", { description: errorMsg });
-    }
-  }
-
-  async function rejectProposal(msgId: string) {
-    const thread = active;
-    if (!thread) return;
-    const msg = thread.messages.find((m) => m.id === msgId);
-    if (!msg?.proposal) return;
-    if (msg.proposal.logId) await updateAiAction(msg.proposal.logId, { approved: false });
-    updateProposalStatus(msgId, "rejected");
-  }
-
-  function updateProposalStatus(msgId: string, status: ProposalCard["status"], error?: string) {
-    setThreads((prev) => prev.map((t) => t.id !== activeId ? t : {
-      ...t,
-      messages: t.messages.map((m) => m.id === msgId && m.proposal
-        ? { ...m, proposal: { ...m.proposal, status, error } }
-        : m),
-    }));
-  }
-
   const meta = AGENT_META[agent];
   const quickActions = QUICK_ACTIONS[agent];
   return (
@@ -470,8 +427,6 @@ function AiAssistantPage() {
                   <Bubble
                     key={m.id}
                     msg={m}
-                    onApprove={() => approveProposal(m.id)}
-                    onReject={() => rejectProposal(m.id)}
                     onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
                     onApproveTool={(cid) => approveToolCall(m.id, cid)}
                     onRejectTool={(cid) => rejectToolCall(m.id, cid)}
@@ -521,10 +476,8 @@ function AiAssistantPage() {
   );
 }
 
-function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTool }: {
+function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool }: {
   msg: Msg;
-  onApprove?: () => void;
-  onReject?: () => void;
   onOpenNav?: () => void;
   onApproveTool?: (toolCallId: string) => void;
   onRejectTool?: (toolCallId: string) => void;
@@ -545,9 +498,6 @@ function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTo
               <span className="truncate">{msg.nav.label}</span>
               <Button size="sm" variant="outline" className="ml-auto h-6 px-2 text-[11px]" onClick={onOpenNav}>Újra megnyit</Button>
             </div>
-          )}
-          {msg.proposal && (
-            <ProposalCardView card={msg.proposal} onApprove={onApprove} onReject={onReject} />
           )}
           {msg.approvals?.map((a) => (
             <ToolApprovalCardView
@@ -570,63 +520,6 @@ function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTo
   );
 }
 
-function ProposalCardView({ card, onApprove, onReject }: { card: ProposalCard; onApprove?: () => void; onReject?: () => void }) {
-  const p = card.proposal;
-  const fields: Array<[string, any]> = [];
-  if (p.kind === "create_followup") {
-    fields.push(["Esedékesség", new Date(p.due_date).toLocaleString("hu-HU")]);
-    if (p.followup_type) fields.push(["Típus", p.followup_type]);
-    if (p.result) fields.push(["Megjegyzés", p.result]);
-  } else if (p.kind === "create_task") {
-    fields.push(["Megnevezés", p.title]);
-    if (p.due_date) fields.push(["Határidő", new Date(p.due_date).toLocaleString("hu-HU")]);
-    if (p.priority) fields.push(["Prioritás", p.priority]);
-    if (p.description) fields.push(["Leírás", p.description]);
-  } else if (p.kind === "create_contact") {
-    fields.push(["Név", p.name]);
-    if (p.email) fields.push(["E-mail", p.email]);
-    if (p.phone) fields.push(["Telefon", p.phone]);
-    if (p.role) fields.push(["Pozíció", p.role]);
-  } else if (p.kind === "create_lead") {
-    fields.push(["Összefoglaló", p.summary]);
-    if (p.source) fields.push(["Forrás", p.source]);
-    if (p.project_type) fields.push(["Típus", p.project_type]);
-  }
-  const tone = card.status === "approved" ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
-    : card.status === "rejected" ? "border-muted bg-muted/30"
-    : card.status === "error" ? "border-destructive/40 bg-destructive/5"
-    : "border-primary/30 bg-primary/5";
-  return (
-    <div className={`mt-2 rounded-md border p-3 text-xs ${tone}`}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider">{proposalTitle(p)}</span>
-        {card.status === "approved" && <Badge variant="outline" className="text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" />Létrehozva</Badge>}
-        {card.status === "rejected" && <Badge variant="outline" className="text-[10px]">Elvetve</Badge>}
-        {card.status === "error" && <Badge variant="destructive" className="text-[10px]">Hiba</Badge>}
-        {card.status === "pending" && <Badge variant="outline" className="text-[10px]">Jóváhagyásra vár</Badge>}
-      </div>
-      <dl className="grid grid-cols-[100px_minmax(0,1fr)] gap-x-2 gap-y-1">
-        {fields.map(([k, v]) => (
-          <div key={k} className="contents">
-            <dt className="text-muted-foreground">{k}</dt>
-            <dd className="truncate">{String(v)}</dd>
-          </div>
-        ))}
-      </dl>
-      {card.error && <p className="mt-2 text-destructive">{card.error}</p>}
-      {card.status === "pending" && (
-        <div className="mt-3 flex gap-2">
-          <Button size="sm" className="h-7 px-2 text-[11px]" onClick={onApprove}>
-            <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és létrehoz
-          </Button>
-          <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>
-            <XCircle className="mr-1 h-3 w-3" /> Elvet
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function ToolApprovalCardView({ approval, onApprove, onReject }: {
   approval: ToolApproval;

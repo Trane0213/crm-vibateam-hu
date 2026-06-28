@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { Bot, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
-import { AGENT_REGISTRY } from "@/lib/ai/agent-registry";
+import { AGENT_REGISTRY } from "@/lib/ai-os/visible-agents";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 

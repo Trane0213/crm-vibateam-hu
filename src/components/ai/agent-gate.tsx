@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
-import { AGENT_REGISTRY } from "@/lib/ai/agent-registry";
+import { AGENT_REGISTRY } from "@/lib/ai-os/visible-agents";
 
 /**
  * AI agent route guard. Csak akkor rendereli a `children`-t, ha a megadott

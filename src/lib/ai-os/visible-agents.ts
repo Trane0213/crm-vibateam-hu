@@ -1,11 +1,9 @@
 /**
- * AI Agent regisztráció a láthatósági mátrixhoz.
+ * AI OS — UI agent metadata és láthatóság.
  *
- * Itt szerepel minden ismert agent — akkor is, ha még nincs hozzá futtató
- * (pl. Scarlet). Az admin felület ezt listázza a Settings → AI agentek oldalon.
- *
- * Az `agent_id` érték = az `agent_role_access.agent_id` text mező.
- * George (crm) speciális: a frontend mindig láthatóként kezeli.
+ * UI-szintű regisztráció (Settings → AI agent láthatóság, AgentGate).
+ * Az agent futtatása az AI OS runtime-on történik (`src/lib/ai-os/agents.ts`),
+ * itt csak a megjelenítéshez szükséges adatok élnek.
  */
 
 export type RegisteredAgent = {
@@ -13,7 +11,7 @@ export type RegisteredAgent = {
   name: string;
   short: string;
   description: string;
-  /** Ha igaz, a frontend minden szerepkör számára láthatóként mutatja. */
+  /** Ha igaz, minden szerepkör látja. */
   alwaysVisible?: boolean;
 };
 
