@@ -6,8 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { aiComplete } from "@/lib/ai/ai.functions";
-import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
+import { runAiSummary } from "@/lib/ai-os/summary.functions";
 
 type Props = {
   title: string;
@@ -35,15 +34,7 @@ export function AiSummaryDialog({
     setAnswer(null);
     try {
       const context = await loadContext();
-      const res = await aiComplete({
-        data: {
-          messages: [
-            { role: "system", content: SYSTEM_PROMPTS.crm },
-            { role: "system", content: `[CRM KONTEXTUS]\n${context}` },
-            { role: "user", content: prompt },
-          ],
-        },
-      });
+      const res = await runAiSummary({ data: { context, prompt } });
       setAnswer(res.text || "(üres válasz)");
     } catch (err: any) {
       const msg = err?.message ?? "AI hiba.";
