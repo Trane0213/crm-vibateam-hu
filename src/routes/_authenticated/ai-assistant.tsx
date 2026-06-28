@@ -453,19 +453,6 @@ function AiAssistantPage() {
                   />
                 ));
               })()}
-              {false && !active || active?.messages.length === 0 ? (
-                <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
-              ) : (
-                active.messages.map((m) => (
-                  <Bubble
-                    key={m.id}
-                    msg={m}
-                    onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
-                    onApproveTool={(cid) => approveToolCall(m.id, cid)}
-                    onRejectTool={(cid) => rejectToolCall(m.id, cid)}
-                  />
-                ))
-              )}
               {busy && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
