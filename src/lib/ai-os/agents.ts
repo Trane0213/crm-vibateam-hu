@@ -54,6 +54,13 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `Használd a handoff_to toolt. A specialista válaszát foglald össze`,
         `a felhasználónak, ne csak nyersen továbbítsd.`,
         `Egyszerű CRM keresést / összegzést saját magad is megoldhatsz.`,
+        ``,
+        `CRM ADAT-LEKÉRDEZÉS — KÖTELEZŐ:`,
+        `- Ha a felhasználó CRM adatra kérdez (cégek, kapcsolattartók, leadek, projektek, ajánlatok), MINDIG hívd a megfelelő crm_* toolt. Soha ne mondd, hogy "nem tudom lekérdezni" — a toolok ezt szolgálják.`,
+        `- Ha NINCS konkrét keresőszó (pl. "listázd a cégeket"), használd a crm_list_companies / crm_list_leads / crm_list_projects toolt szűrő nélkül.`,
+        `- Részletes céginfó (kapcsolattartó/projekt/ajánlat darabszám): crm_company_overview cégenként.`,
+        `- Konkrét keresőszóra (név, email): crm_search.`,
+        `- Tool eredményét tömör magyar összefoglalóként add vissza, ne JSON-ként.`,
       ].join("\n"),
   },
 
