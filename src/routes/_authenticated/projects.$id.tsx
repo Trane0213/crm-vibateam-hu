@@ -191,6 +191,7 @@ function ProjectDetail() {
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
             <TodayFocusCard
+              projectId={id}
               followups={followups.data ?? []}
               tasks={tasks.data ?? []}
             />
@@ -569,12 +570,37 @@ function SalesHandoffCard({
 // listákból dolgozik.
 // ---------------------------------------------------------------------
 function TodayFocusCard({
+  projectId,
   followups,
   tasks,
 }: {
+  projectId: string;
   followups: any[];
   tasks: any[];
 }) {
+  const qc = useQueryClient();
+  const [note, setNote] = useState("");
+  const addNote = useMutation({
+    mutationFn: async (text: string) => {
+      const { data: u } = await supabase.auth.getUser();
+      let author_id: string | null = null;
+      if (u.user?.id) {
+        const { data: prof } = await supabase
+          .from("users_profile").select("id").eq("auth_user_id", u.user.id).maybeSingle();
+        author_id = (prof as any)?.id ?? null;
+      }
+      const payload: any = { project_id: projectId, note: text };
+      if (author_id) payload.author_id = author_id;
+      const { error } = await supabase.from("project_notes").insert(payload);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setNote("");
+      qc.invalidateQueries({ queryKey: ["project_notes"] });
+      toast.success("Napi jegyzet hozzáadva");
+    },
+    onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
+  });
   const endOfToday = (() => {
     const d = new Date();
     d.setHours(23, 59, 59, 999);
@@ -666,6 +692,26 @@ function TodayFocusCard({
             </div>
           </div>
         )}
+        <div className="rounded-md border bg-background p-2">
+          <div className="mb-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+            Napi jegyzet
+          </div>
+          <Textarea
+            rows={2}
+            placeholder="Mi történt ma ezzel a projekttel?"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <div className="mt-2 flex justify-end">
+            <Button
+              size="sm"
+              disabled={!note.trim() || addNote.isPending}
+              onClick={() => addNote.mutate(note.trim())}
+            >
+              {addNote.isPending ? "Mentés…" : "Jegyzet mentése"}
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
