@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ALWAYS_VISIBLE_AGENT_IDS } from "@/lib/ai/agent-registry";
+import { ALWAYS_VISIBLE_AGENT_IDS } from "@/lib/ai-os/visible-agents";
 
 /**
  * A bejelentkezett felhasználó saját role_id-jéhez tartozó látható agent_id-k.
