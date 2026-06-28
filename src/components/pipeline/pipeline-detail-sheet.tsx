@@ -7,7 +7,6 @@ import { StatusChip } from "@/components/sales/status-chip";
 import { LeadStatusStepper } from "@/components/sales/lead-status-stepper";
 import { LeadActionBar } from "@/components/sales/lead-action-bar";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
-import { WonDialog } from "@/components/sales/won-dialog";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { PipelineActivityLog } from "./pipeline-activity-log";
 import { CreateProjectDialog } from "./create-project-dialog";
@@ -63,11 +62,10 @@ export function PipelineDetailSheet({
     onSuccess: () => { toast.success("Státusz frissítve"); invalidate(); },
   });
 
-  // A 2026-06-27 invariáns óta a won-átmenetet NEM lehet külön elindítani —
-  // a backend trigger elutasítja. A WonDialog megerősítése után közvetlenül
-  // a projekt-létrehozó dialógus nyílik, ami egyetlen RPC-vel atomian
-  // állítja won-ra a leadet ÉS hozza létre a projektet.
-  const onWonConfirm = () => { setWonOpen(false); setProjOpen(true); };
+  // A 2026-06-27 invariáns óta a won-átmenetet a backend trigger
+  // elutasítja külön — a „Megnyertük" gomb közvetlenül a CreateProjectDialog-ot
+  // nyitja, ami egyetlen RPC-vel atomian állítja won-ra a leadet ÉS hozza
+  // létre a projektet. (Korábbi köztes WonDialog megerősítő törölve.)
 
   const lostMut = useMutation({
     mutationFn: async (p: { lost_reason: string; lost_note: string | null }) => {
@@ -182,7 +180,7 @@ export function PipelineDetailSheet({
                   status={lead.status}
                   busy={statusMut.isPending || lostMut.isPending}
                   onChangeStatus={(s) => statusMut.mutate(s)}
-                  onWon={() => setWonOpen(true)}
+                  onWon={() => setProjOpen(true)}
                   onLost={() => setLostOpen(true)}
                 />
                 <div className="mt-4 rounded-md border bg-card p-3 text-[11px] text-muted-foreground">
@@ -202,7 +200,6 @@ export function PipelineDetailSheet({
               </aside>
             </div>
 
-            <WonDialog open={wonOpen} onOpenChange={setWonOpen} busy={false} onConfirm={onWonConfirm} />
             <LostDialog open={lostOpen} onOpenChange={setLostOpen} busy={lostMut.isPending} onConfirm={(p) => lostMut.mutate(p)} />
             <CreateProjectDialog
               lead={lead}
