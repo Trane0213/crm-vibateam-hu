@@ -167,6 +167,28 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `KOCKÁZATOK: 🔴 projektek listája + 1 mondatos indok.`,
       ].join("\n"),
   },
+
+  // ---------------------------------------------------------------------------
+  // AI Summary — snapshot-only összefoglaló (AiSummaryDialog). Tool nélkül fut,
+  // hogy ne kelljen tool-loopot várni; a frontend adja a CRM kontextust.
+  // ---------------------------------------------------------------------------
+  crm_summary: {
+    id: "crm_summary",
+    name: "CRM Summary",
+    role: "Snapshot-alapú CRM összefoglaló.",
+    description: "Rövid magyar összefoglalót készít a megadott CRM kontextusból.",
+    provider: "openai",
+    model: "gpt-4o-mini",
+    temperature: 0.2,
+    tool_domains: [],
+    buildSystemPrompt: () =>
+      [
+        `Te a VIBA-TEAM CRM asszisztense vagy. A felhasználó megadja a CRM kontextust és egy kérdést / utasítást.`,
+        `NYELV: kizárólag magyarul, tömör üzleti hangnemben. Magyar kifejezések (érdeklődő, ajánlat, utókövetés, projekt).`,
+        `Csak a megadott kontextusból dolgozz. Ne találj ki adatot. Ha valami nincs benne: "Nincs erre vonatkozó adat a CRM-ben."`,
+        `Formázás: rövid bekezdések vagy "- " felsorolás. Ne használj markdown # fejléceket.`,
+      ].join("\n"),
+  },
 };
 
 export function getAgent(id: string): AgentDefinition | null {
