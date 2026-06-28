@@ -1,43 +1,50 @@
-# Sales előkészítő ↔ Pipeline — végrehajtott
+# AI OS migráció — egyetlen AI rendszer
 
-## Üzleti logika (jóváhagyva)
+## Cél
+A projekt végére **egyetlen** AI rendszer marad: az **AI OS** (`src/lib/ai-os/`).
+Egy provider réteg, egy tool registry, egy memória, egy runtime.
+A régi AI kód (`src/lib/ai/`, `aiStep`, `aiComplete`, `research.functions.ts`, Lovable/Gemini fallback) megszűnik.
 
-- Marketing minősítés → átadás salesnek = lead bekerül a **Sales előkészítő** szakaszába (Leads Workspace). Még NEM pipeline.
-- Előkészítőben a sales: hívás / email / találkozó aktivitást rögzít, kitölti a következő lépést.
-- Két lehetséges kimenet:
-  - **Pipeline-ba** (egyirányú) — csak ha ≥1 aktivitás ÉS van kitöltött következő lépés.
-  - **Elveszett** — `lost_stage='pre_pipeline'`, vége.
-- **Pipeline** külön menü, külön munkafolyamat — itt fut Kapcsolat → Ajánlat → Utánkövetés → Tárgyalás → Megnyert/Elveszett.
-- **Projekt** csak Pipeline → Megnyert után, kizárólag a Pipeline felületről. A Leads Workspace-ben nincs projekt fogalom.
+## Megtartjuk
+- George, Scarlet, Timothy, Boss — nevek és szerepkörök változatlanok.
+- Minden jogosultsági szabály, role access, agent access, tool access.
+- Minden működő CRM tool, DB tábla, RPC.
+- Sales és Marketing backend invariánsok (már lezárt sprintek).
 
-## Adatmodell
+## Vasszabályok (minden fázisra érvényes)
+1. **Egyszerre csak EGY dolgot** módosítok (egy callsite / egy oldal).
+2. Egy funkció teljes átkötése után **megállok és várom a jóváhagyást**.
+3. Régi AI kódot **csak akkor törlök**, ha az új már bizonyítottan működik az adott funkción.
+4. Nem indítok párhuzamosan több modult, oldalt vagy architekturális változtatást.
+5. **Nem refaktorálok** működő, nem érintett kódot.
+6. CRM működés > kódszerkezet. Ha egy backend logika jól működik, használom tovább, nem írom újra.
+7. Új funkció a **meglévő** adatbázisra és táblákra épül — nincs új tábla, ha a régi elég.
+8. Kis, visszafordítható lépések, hogy bármikor stabil állapotnál meg lehessen állni.
+9. Nincs provider/modell váltás (OpenAI `gpt-4o-mini` marad alapértelmezett).
 
-Migráció: `database/2026-06-24_leads_pipeline_entry.sql` (alkalmazás manuálisan, ahogy a többi `database/*.sql`).
+## Migrációs minta (callsite-onként, mindig ugyanaz)
+1. Felmérés: melyik prompt + tool kell az adott funkcióhoz.
+2. Hiányzó tool hozzáadása `src/lib/ai-os/tools/`-ba (registry + agent access).
+3. UI átkötése `runAiAgent`-re (megfelelő agent: George/Scarlet/Timothy/Boss).
+4. Manuális smoke teszt az adott oldalon → user jóváhagyás.
+5. Régi callsite + már nem hivatkozott helper törlése.
+6. **STOP** — várom a következő feladatot.
 
-Új mezők a `public.leads` táblán:
-- `pipeline_entered_at timestamptz NULL` — időbélyeg, mikor lett pipeline-ügy. **Egyirányú**: DB trigger tiltja a vissza-nullázást.
-- `lost_stage text NULL CHECK (lost_stage IN ('pre_pipeline','pipeline'))` — riport bontáshoz.
+## Fázis sorrend (kockázat szerint, kicsitől nagyig)
+- **F1.** Daily Briefing (`daily-briefing.tsx`) → Boss
+- **F2.** AI Summary Dialog (`ai-summary-dialog.tsx`) → George
+- **F3.** Sales Research (`/sales/research`) → Timothy
+- **F4.** Marketing research / lead enrichment panelek → Scarlet
+- **F5.** Maradék `aiStep` / `aiComplete` / `runTool` callsite-ok
+- **Final.** `src/lib/ai/provider.server.ts`, `ai.functions.ts`, `research.functions.ts` törlés, csomag cleanup, grep ellenőrzés (`from "@/lib/ai/"`, `ai.gateway.lovable.dev` literál nem maradhat)
 
-Index: `idx_leads_pipeline_entered_at`.
+## Mit NEM csinálunk
+- Nem váltunk modellt/providert.
+- Nem nyúlunk a Sales/Marketing backend invariánsokhoz.
+- Nem építünk új UI-t — minden oldal ugyanúgy néz ki, alatta az AI OS fut.
+- Nem törlünk semmit, aminek a frontend párja még a régi rétegre hivatkozik.
 
-## Frontend
-
-- `src/components/lead-workspace/lead-dossier-column.tsx` — 2. oszlop, read-only dosszié (5 tab: Áttekintés / Kapcsolatok / Emailek / Dokumentumok / Idővonal).
-- `src/components/lead-workspace/sales-prep-panel.tsx` — 3. oszlop: 3 blokk (Aktivitás, Következő lépés, Legutóbbi aktivitások) + döntési sáv (Pipeline-ba, Elveszett).
-- `src/components/lead-workspace/lead-workspace.tsx` — sales módban a 3 oszlop visszaállítva az új komponensekkel; marketing mód változatlan.
-- `src/components/lead-workspace/lead-list-column.tsx` — sales módban szűr: `pipeline_entered_at IS NULL AND status NOT IN ('lost','won')`.
-- `src/routes/_authenticated/sales.leads.tsx` (Pipeline menü) — szűr: `pipeline_entered_at IS NOT NULL`.
-- `src/components/sales/lost-dialog.tsx` — új `stage` prop, az `onConfirm` payload `lost_stage`-et is tartalmaz.
-
-## Pipeline-ba gomb feltétele
-
-- `activityCount >= 1` (legalább 1 `followups` rekord `followup_type ∈ {call,email,meeting}`)
-- `lead.next_step_type` ki van töltve
-Hiány esetén disabled, magyarázó szöveg.
-
-## Mi NEM része ennek a körnek
-
-- Pipeline felület (sales.leads.tsx) tartalmi átalakítása — szűrőn kívül változatlan.
-- Projekt létrehozás logika átrendezése.
-- `lost_stage` szerinti riport felület.
-- Új ajánlat / quote workflow.
+## Első konkrét lépés a jóváhagyás után
+**Phase 0 — leltár (csak olvasás, semmit nem módosítok):**
+pontos lista az összes régi AI callsite-ról (fájl + sor + melyik agent szerepkörhöz tartozik).
+Ezután indul **F1 (Daily Briefing → Boss)**, és csak az.
