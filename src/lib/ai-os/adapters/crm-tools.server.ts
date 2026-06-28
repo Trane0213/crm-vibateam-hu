@@ -55,6 +55,72 @@ export function registerCrmTools() {
     },
   );
 
+  // ---------------- LIST COMPANIES (no query required) ----------------
+  registerTool(
+    {
+      name: "crm_list_companies",
+      description:
+        "Cégek listázása a CRM-ből (név, domain, frissítés). Nem igényel keresőszót — alapból a legutóbb frissített cégeket adja. Használd ezt, ha nincs konkrét keresőszó.",
+      domain: "crm.companies",
+      parameters: {
+        type: "object",
+        properties: {
+          limit: { type: "integer", default: 50, minimum: 1, maximum: 200 },
+          name_like: { type: "string", description: "Opcionális név töredék szűrő." },
+        },
+      },
+    },
+    async (args, ctx) => {
+      let q = ctx.supabaseUser
+        .from("companies")
+        .select("id,name,domain,updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(Math.min(Number(args.limit ?? 50), 200));
+      if (args.name_like) q = q.ilike("name", `%${String(args.name_like)}%`);
+      const { data, error } = await q;
+      if (error) return fail(error.message);
+      return ok(data ?? []);
+    },
+  );
+
+  registerTool(
+    {
+      name: "crm_company_overview",
+      description:
+        "Egy céghez tartozó összesítő: kapcsolattartók, leadek, projektek, ajánlatok darabszámokkal és rövid listával.",
+      domain: "crm.companies",
+      parameters: {
+        type: "object",
+        properties: { company_id: { type: "string" } },
+        required: ["company_id"],
+      },
+    },
+    async (args, ctx) => {
+      const id = String(args.company_id);
+      const sb = ctx.supabaseUser;
+      const [company, contacts, leads, projects, quotes] = await Promise.all([
+        sb.from("companies").select("id,name,domain").eq("id", id).maybeSingle(),
+        sb.from("contacts").select("id,full_name,email,phone").eq("company_id", id).limit(25),
+        sb.from("leads").select("id,status,summary,updated_at").eq("company_id", id).limit(25),
+        sb.from("projects").select("id,name,status").eq("company_id", id).limit(25),
+        sb.from("quotes").select("id,status,total_amount,currency,updated_at").eq("company_id", id).limit(25),
+      ]);
+      return ok({
+        company: company.data,
+        counts: {
+          contacts: contacts.data?.length ?? 0,
+          leads: leads.data?.length ?? 0,
+          projects: projects.data?.length ?? 0,
+          quotes: quotes.data?.length ?? 0,
+        },
+        contacts: contacts.data ?? [],
+        leads: leads.data ?? [],
+        projects: projects.data ?? [],
+        quotes: quotes.data ?? [],
+      });
+    },
+  );
+
   // ---------------- COMPANIES ----------------
   registerTool(
     {
