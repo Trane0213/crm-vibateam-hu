@@ -18,7 +18,7 @@ import { useCount, useAggregateSum, useList } from "@/lib/db-hooks";
 import { summarizeFollowups, BUCKET_LABEL, BUCKET_TONE, type FollowupBucket } from "@/lib/followup-alerts";
 import { fmtDateTime } from "@/components/resource/resource-page";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
-import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
+import { loadCrmSnapshotText } from "@/lib/ai-os/snapshots.functions";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
 import { CustomerKpiWidgets } from "@/components/dashboard/customer-kpi-widgets";
@@ -151,7 +151,7 @@ function Dashboard() {
             title="AI napi összefoglaló"
             description="Az AI a CRM aktuális ajánlatai, utókövetésjai, projektjei és feladatai alapján készít napi vezetői összefoglalót."
             triggerLabel="AI napi összefoglaló"
-            loadContext={async () => serializeSnapshot(await loadCrmSnapshot())}
+            loadContext={async () => (await loadCrmSnapshotText()).text}
             prompt={[
               "Készíts napi vezetői összefoglalót az alábbi szerkezetben:",
               "1) AJÁNLATOK: nyitott ajánlatok száma, összérték, kiemelt (legnagyobb 2-3) ajánlat státusza.",
