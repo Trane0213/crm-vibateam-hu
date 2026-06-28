@@ -20,7 +20,7 @@ import { DocumentManager } from "@/components/documents/document-manager";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { toast } from "sonner";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
-import { loadProjectSnapshot, serializeProject } from "@/lib/ai/crm-context";
+import { loadProjectSnapshotText } from "@/lib/ai-os/snapshots.functions";
 import { ProjectStatusSelect } from "@/components/projects/project-status-select";
 import { ProjectContactsPanel } from "@/components/projects/project-contacts-panel";
 import { ProjectEmailAttach } from "@/components/projects/project-email-attach";
@@ -139,7 +139,7 @@ function ProjectDetail() {
               title={`Projekt összefoglaló: ${project.title ?? project.name ?? ""}`}
               description="Az AI a projekt aktuális adataiból készít üzleti összefoglalót."
               triggerLabel="AI Összefoglaló"
-              loadContext={async () => serializeProject(await loadProjectSnapshot(id))}
+              loadContext={async () => (await loadProjectSnapshotText({ data: { projectId: id } })).text}
               prompt={[
                 "Készíts üzleti összefoglalót a megadott projektről.",
                 "Térj ki az alábbiakra, csak ami adatból kiderül:",
