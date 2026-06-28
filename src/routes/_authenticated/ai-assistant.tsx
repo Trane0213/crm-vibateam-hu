@@ -427,8 +427,6 @@ function AiAssistantPage() {
                   <Bubble
                     key={m.id}
                     msg={m}
-                    onApprove={() => approveProposal(m.id)}
-                    onReject={() => rejectProposal(m.id)}
                     onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
                     onApproveTool={(cid) => approveToolCall(m.id, cid)}
                     onRejectTool={(cid) => rejectToolCall(m.id, cid)}
@@ -478,10 +476,8 @@ function AiAssistantPage() {
   );
 }
 
-function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTool }: {
+function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool }: {
   msg: Msg;
-  onApprove?: () => void;
-  onReject?: () => void;
   onOpenNav?: () => void;
   onApproveTool?: (toolCallId: string) => void;
   onRejectTool?: (toolCallId: string) => void;
@@ -502,9 +498,6 @@ function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTo
               <span className="truncate">{msg.nav.label}</span>
               <Button size="sm" variant="outline" className="ml-auto h-6 px-2 text-[11px]" onClick={onOpenNav}>Újra megnyit</Button>
             </div>
-          )}
-          {msg.proposal && (
-            <ProposalCardView card={msg.proposal} onApprove={onApprove} onReject={onReject} />
           )}
           {msg.approvals?.map((a) => (
             <ToolApprovalCardView
