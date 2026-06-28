@@ -36,7 +36,6 @@ function AiAssistantRoute() {
 }
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
-type ProposalCard = { logId: string | null; proposal: Proposal; status: "pending" | "approved" | "rejected" | "error"; error?: string };
 type ToolApproval = {
   tool_call_id: string;
   tool_name: string;
@@ -46,7 +45,7 @@ type ToolApproval = {
 };
 type Msg = {
   id: string; role: "user" | "assistant"; content: string; at: number;
-  nav?: NavCard; proposal?: ProposalCard; approvals?: ToolApproval[];
+  nav?: NavCard; approvals?: ToolApproval[];
   runId?: string;
 };
 type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
@@ -330,48 +329,6 @@ function AiAssistantPage() {
       ...t,
       messages: t.messages.map((m) => m.id === msgId && m.approvals
         ? { ...m, approvals: m.approvals.map((a) => a.tool_call_id === toolCallId ? { ...a, status, error } : a) }
-        : m),
-    }));
-  }
-
-  async function approveProposal(msgId: string) {
-    const thread = active;
-    if (!thread) return;
-    const msg = thread.messages.find((m) => m.id === msgId);
-    if (!msg?.proposal || msg.proposal.status !== "pending") return;
-    const card = msg.proposal;
-    try {
-      const exec = await executeProposal(card.proposal);
-      if (card.logId) {
-        await updateAiAction(card.logId, { approved: true, executed: true, result: exec as any });
-      }
-      updateProposalStatus(msgId, "approved");
-      toast.success(`${proposalTitle(card.proposal)} létrehozva`);
-      if (exec.route) {
-        try { navigate({ to: exec.route as any, params: exec.params as any }); } catch { /* ignore */ }
-      }
-    } catch (e: any) {
-      const errorMsg = e?.message ?? String(e);
-      if (card.logId) await updateAiAction(card.logId, { error_message: errorMsg });
-      updateProposalStatus(msgId, "error", errorMsg);
-      toast.error("Mentés sikertelen", { description: errorMsg });
-    }
-  }
-
-  async function rejectProposal(msgId: string) {
-    const thread = active;
-    if (!thread) return;
-    const msg = thread.messages.find((m) => m.id === msgId);
-    if (!msg?.proposal) return;
-    if (msg.proposal.logId) await updateAiAction(msg.proposal.logId, { approved: false });
-    updateProposalStatus(msgId, "rejected");
-  }
-
-  function updateProposalStatus(msgId: string, status: ProposalCard["status"], error?: string) {
-    setThreads((prev) => prev.map((t) => t.id !== activeId ? t : {
-      ...t,
-      messages: t.messages.map((m) => m.id === msgId && m.proposal
-        ? { ...m, proposal: { ...m.proposal, status, error } }
         : m),
     }));
   }
