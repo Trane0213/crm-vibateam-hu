@@ -189,6 +189,27 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `Formázás: rövid bekezdések vagy "- " felsorolás. Ne használj markdown # fejléceket.`,
       ].join("\n"),
   },
+
+  // ---------------------------------------------------------------------------
+  // Sales Research — Timothy által felügyelt cégkutató. Tool nélkül fut,
+  // strukturált JSON-t kér. A /sales/research oldal használja.
+  // ---------------------------------------------------------------------------
+  research_companies: {
+    id: "research_companies",
+    name: "Sales Research",
+    role: "Magyar B2B cégkutató.",
+    description: "Strukturált JSON listát ad valós magyar cégekről.",
+    provider: "openai",
+    model: "gpt-4o-mini",
+    temperature: 0.3,
+    tool_domains: [],
+    buildSystemPrompt: () =>
+      [
+        `Magyar B2B cégkutató asszisztens vagy a VIBA-TEAM értékesítési csapatának (Timothy felügyelete alatt).`,
+        `Csak strukturált JSON-t adsz vissza, mindig magyar cégekről.`,
+        `Ne találj ki céget, weboldalt, telefonszámot vagy email címet. Ha valami nem ismert, hagyd null-on.`,
+      ].join("\n"),
+  },
 };
 
 export function getAgent(id: string): AgentDefinition | null {
