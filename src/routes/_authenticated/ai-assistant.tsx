@@ -628,6 +628,42 @@ function ProposalCardView({ card, onApprove, onReject }: { card: ProposalCard; o
   );
 }
 
+function ToolApprovalCardView({ approval, onApprove, onReject }: {
+  approval: ToolApproval;
+  onApprove?: () => void;
+  onReject?: () => void;
+}) {
+  let argsPretty = approval.arguments_json;
+  try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
+  const tone = approval.status === "approved" ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
+    : approval.status === "rejected" ? "border-muted bg-muted/30"
+    : approval.status === "error" ? "border-destructive/40 bg-destructive/5"
+    : "border-primary/30 bg-primary/5";
+  return (
+    <div className={`mt-2 rounded-md border p-3 text-xs ${tone}`}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider">Jóváhagyás: {approval.tool_name}</span>
+        {approval.status === "approved" && <Badge variant="outline" className="text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" />Végrehajtva</Badge>}
+        {approval.status === "rejected" && <Badge variant="outline" className="text-[10px]">Elvetve</Badge>}
+        {approval.status === "error" && <Badge variant="destructive" className="text-[10px]">Hiba</Badge>}
+        {approval.status === "pending" && <Badge variant="outline" className="text-[10px]">Jóváhagyásra vár</Badge>}
+      </div>
+      <pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>
+      {approval.error && <p className="mt-2 text-destructive">{approval.error}</p>}
+      {approval.status === "pending" && (
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" className="h-7 px-2 text-[11px]" onClick={onApprove}>
+            <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és végrehajt
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>
+            <XCircle className="mr-1 h-3 w-3" /> Elvet
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EmptyChat({ onPick, disabled, agent, meta, actions }: {
   onPick: (p: string) => void; disabled: boolean; agent: AgentId;
   meta: AgentMeta;
