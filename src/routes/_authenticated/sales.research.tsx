@@ -26,7 +26,7 @@ import { withMarketingStatus } from "@/lib/marketing-status";
 import {
   researchCompanies,
   type ResearchCompany,
-} from "@/lib/ai/research.functions";
+} from "@/lib/ai-os/research.functions";
 
 type Row = ResearchCompany & {
   _score: number;
@@ -244,7 +244,7 @@ function ResearchPage() {
               </Link>
             </Button>
             <Badge variant="secondary">
-              <Sparkles className="mr-1 h-3 w-3" />MVP · Gemini
+              <Sparkles className="mr-1 h-3 w-3" />MVP · AI OS
             </Badge>
           </div>
         }
