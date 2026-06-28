@@ -227,9 +227,7 @@ function AiAssistantPage() {
     let thread = active;
     if (!thread) thread = newThread(question, agent);
     const usedAgent: AgentId = thread.agent ?? agent;
-    const agentTypeForLog: AgentType = usedAgent === "crm" ? "marvin" : usedAgent;
     const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now() };
-    // Optimistic update
     setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
       ...t,
       title: t.messages.length === 0 ? question.slice(0, 60) : t.title,
@@ -238,134 +236,32 @@ function AiAssistantPage() {
     } : t));
     setInput("");
     setBusy(true);
-    let pendingNav: NavCard | null = null;
-    let pendingProposal: ProposalCard | null = null;
     try {
-      const snapshot = await loadCrmSnapshot();
-      const context = serializeSnapshot(snapshot);
-      const history = (thread.messages ?? []).slice(-10).map((m) => ({ role: m.role, content: m.content }));
-      const messages: any[] = [
-        { role: "system" as const, content: SYSTEM_PROMPTS[usedAgent] },
-        { role: "system" as const, content: `[CRM KONTEXTUS — ${new Date().toLocaleString("hu-HU")}]\n${context}` },
-        ...history,
-        { role: "user" as const, content: question },
-      ];
-      const tools = getToolDefsForAgent(usedAgent);
-      // Tool-loop: max 5 iteráció, lépésenként max 5 tool hívás.
-      // Védőhálók: minden tool try/catch-ben, hogy egy elszálló tool ne állítsa
-      // le az egész beszélgetést. Végtelen ciklus ellen: kemény iterációlimit
-      // és teljes idő-limit (90 mp), valamint signature-alapú ismétlésdetektálás.
-      const MAX_TOOL_LOOP_ITER = 5;
-      const MAX_TOOL_CALLS_PER_STEP = 5;
-      const HARD_DEADLINE_MS = 90_000;
-      const started = Date.now();
-      const seenSignatures = new Map<string, number>();
-      let finalText = "";
-      let aborted: string | null = null;
-      for (let i = 0; i < MAX_TOOL_LOOP_ITER; i++) {
-        if (Date.now() - started > HARD_DEADLINE_MS) {
-          aborted = `Az AI túl hosszú ideje (>${Math.round(HARD_DEADLINE_MS / 1000)} mp) dolgozik. Megszakítom a műveletet.`;
-          break;
-        }
-        const step = await aiStep({ data: { messages, tools } });
-        const callsRaw = step.tool_calls ?? [];
-        const calls = callsRaw.slice(0, MAX_TOOL_CALLS_PER_STEP);
-        if (callsRaw.length > MAX_TOOL_CALLS_PER_STEP) {
-          console.warn(`[ai-loop] tool_calls levágva: ${callsRaw.length} → ${MAX_TOOL_CALLS_PER_STEP}`);
-        }
-        if (calls.length > 0) {
-          messages.push({ role: "assistant", content: step.text ?? "", tool_calls: calls });
-          for (const call of calls) {
-            let args: any = {};
-            try { args = JSON.parse(call.function.arguments || "{}"); } catch { /* ignore */ }
-            // Ismétlés-detektor: ugyanaz a tool ugyanazokkal az args-okkal
-            // 3-szor egy beszélgetésen belül = leállítjuk, hogy ne pörögjön végtelenül.
-            const sig = `${call.function.name}::${JSON.stringify(args)}`;
-            const seen = (seenSignatures.get(sig) ?? 0) + 1;
-            seenSignatures.set(sig, seen);
-            if (seen > 3) {
-              messages.push({
-                role: "tool",
-                tool_call_id: call.id,
-                name: call.function.name,
-                content: JSON.stringify({ error: "Ismétlődő hívás megállítva. Próbáld más megközelítéssel." }),
-              });
-              continue;
-            }
-            let result: any;
-            try {
-              result = await runTool(call.function.name, args);
-            } catch (toolErr: any) {
-              console.warn(`[ai-tool] hiba (${call.function.name}):`, toolErr?.message);
-              result = { error: `Tool hiba (${call.function.name}): ${toolErr?.message ?? "ismeretlen"}` };
-            }
-            // __navigate envelope: jegyezzük be a navigációs kártyát
-            if (result && typeof result === "object" && (result as any).__navigate) {
-              const nav = (result as any).__navigate as NavCard;
-              pendingNav = nav;
-              await logAiAction({
-                agent_type: agentTypeForLog,
-                action_type: "navigate",
-                payload: { tool: call.function.name, args, target: nav },
-                approved: true,
-                executed: true,
-                result: { route: nav.to, params: nav.params ?? null },
-              });
-            }
-            // __proposal envelope: jegyezzük be jóváhagyásra váró javaslatként
-            if (result && typeof result === "object" && (result as any).__proposal) {
-              const proposal = (result as any).__proposal as Proposal;
-              const actionType: ActionType = proposal.kind as ActionType;
-              const logId = await logAiAction({
-                agent_type: agentTypeForLog,
-                action_type: actionType,
-                payload: proposal as any,
-                approved: false,
-                executed: false,
-              });
-              pendingProposal = { logId, proposal, status: "pending" };
-            }
-            messages.push({ role: "tool", tool_call_id: call.id, name: call.function.name, content: JSON.stringify(result).slice(0, 12000) });
-          }
-          continue;
-        }
-        finalText = step.text || "";
-        break;
-      }
-      if (aborted) {
-        finalText = `⚠️ ${aborted}\n\nKérlek tegyél fel egy konkrétabb, szűkebb kérdést.`;
-        await logAiAction({
-          agent_type: agentTypeForLog,
-          action_type: "other",
-          payload: { kind: "loop_aborted", reason: aborted, question },
-          approved: false,
-          executed: false,
-          error_message: aborted,
-        });
-      } else if (!finalText && !pendingNav && !pendingProposal) {
-        // Elérte a max iterációt, de nincs végleges válasz — adjunk értelmes üzenetet.
-        finalText = "Nem sikerült rövid úton választ adnom. Próbáld pontosabban megfogalmazni a kérdést, vagy bontsd kisebb lépésekre.";
-      }
+      const aiAgentId = uiAgentToAiOs(usedAgent);
+      const history = [...(thread.messages ?? []), userMsg]
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content }));
+      const result = await runAiAgent({ data: { agentId: aiAgentId, history } });
+      const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
+        ? result.pendingApprovals.map((p) => ({
+            tool_call_id: p.tool_call_id,
+            tool_name: p.tool_name,
+            arguments_json: p.arguments_json,
+            status: "pending" as const,
+          }))
+        : undefined;
       const assistantMsg: Msg = {
         id: uid(),
         role: "assistant",
-        content: finalText || (pendingNav ? `Megnyitottam: ${pendingNav.label}` : pendingProposal ? "Javaslatot készítettem — kérlek hagyd jóvá." : "(üres válasz)"),
+        content: result.finalText || (approvals ? "Jóváhagyást igénylő művelet vár rád." : "(üres válasz)"),
         at: Date.now(),
-        nav: pendingNav ?? undefined,
-        proposal: pendingProposal ?? undefined,
+        approvals,
+        runId: result.runId,
       };
       setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
         ...t, updatedAt: Date.now(), messages: [...t.messages, assistantMsg],
       } : t));
-      // Auto-navigate ha van egyértelmű cél (egyetlen találat)
-      if (pendingNav) {
-        try {
-          navigate({ to: pendingNav.to as any, params: pendingNav.params as any });
-          toast.success(`Megnyitva: ${pendingNav.label}`);
-        } catch (e: any) {
-          toast.error("Navigáció sikertelen", { description: e?.message });
-        }
-      }
     } catch (err: any) {
       const msg = err?.message ?? "Ismeretlen AI hiba.";
       toast.error(msg);
@@ -377,6 +273,58 @@ function AiAssistantPage() {
       setBusy(false);
       requestAnimationFrame(() => inputRef.current?.focus());
     }
+  }
+
+  async function approveToolCall(msgId: string, toolCallId: string) {
+    const thread = active;
+    if (!thread) return;
+    const msg = thread.messages.find((m) => m.id === msgId);
+    if (!msg?.approvals) return;
+    const approval = msg.approvals.find((a) => a.tool_call_id === toolCallId);
+    if (!approval || approval.status !== "pending") return;
+    updateApprovalStatus(msgId, toolCallId, "pending");
+    setBusy(true);
+    try {
+      const aiAgentId = uiAgentToAiOs(thread.agent ?? agent);
+      // A history-t a userMsg-ig építjük újra (az approvals az utolsó assistant lépéshez tartoznak).
+      const idx = thread.messages.findIndex((m) => m.id === msgId);
+      const history = thread.messages
+        .slice(0, idx)
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content }));
+      const result = await runAiAgent({
+        data: { agentId: aiAgentId, history, approvedToolCallIds: [toolCallId] },
+      });
+      updateApprovalStatus(msgId, toolCallId, "approved");
+      const followup: Msg = {
+        id: uid(), role: "assistant", at: Date.now(),
+        content: result.finalText || "Művelet végrehajtva.",
+        runId: result.runId,
+      };
+      setThreads((prev) => prev.map((t) => t.id === thread.id ? {
+        ...t, updatedAt: Date.now(), messages: [...t.messages, followup],
+      } : t));
+      toast.success(`${approval.tool_name} végrehajtva`);
+    } catch (e: any) {
+      updateApprovalStatus(msgId, toolCallId, "error", e?.message ?? String(e));
+      toast.error("Végrehajtás sikertelen", { description: e?.message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function rejectToolCall(msgId: string, toolCallId: string) {
+    updateApprovalStatus(msgId, toolCallId, "rejected");
+  }
+
+  function updateApprovalStatus(msgId: string, toolCallId: string, status: ToolApproval["status"], error?: string) {
+    setThreads((prev) => prev.map((t) => t.id !== activeId ? t : {
+      ...t,
+      messages: t.messages.map((m) => m.id === msgId && m.approvals
+        ? { ...m, approvals: m.approvals.map((a) => a.tool_call_id === toolCallId ? { ...a, status, error } : a) }
+        : m),
+    }));
   }
 
   async function approveProposal(msgId: string) {
