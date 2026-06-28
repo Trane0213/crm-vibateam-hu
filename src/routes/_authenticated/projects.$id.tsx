@@ -191,6 +191,7 @@ function ProjectDetail() {
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
             <TodayFocusCard
+              projectId={id}
               followups={followups.data ?? []}
               tasks={tasks.data ?? []}
             />
