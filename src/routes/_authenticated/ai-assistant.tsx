@@ -9,14 +9,11 @@ import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
-import { aiStep } from "@/lib/ai/ai.functions";
-import { SYSTEM_PROMPTS } from "@/lib/ai/prompts";
-import { loadCrmSnapshot, serializeSnapshot } from "@/lib/ai/crm-context";
 import type { AgentId } from "@/lib/ai/agents";
-import { getToolDefsForAgent, runTool } from "@/lib/ai/tools";
 import { AgentResponse } from "@/components/ai/agent-response";
 import { executeProposal, proposalTitle, type Proposal } from "@/lib/ai/operator";
 import { logAiAction, updateAiAction, type ActionType, type AgentType } from "@/lib/ai/action-log";
+import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
@@ -40,7 +37,18 @@ function AiAssistantRoute() {
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
 type ProposalCard = { logId: string | null; proposal: Proposal; status: "pending" | "approved" | "rejected" | "error"; error?: string };
-type Msg = { id: string; role: "user" | "assistant"; content: string; at: number; nav?: NavCard; proposal?: ProposalCard };
+type ToolApproval = {
+  tool_call_id: string;
+  tool_name: string;
+  arguments_json: string;
+  status: "pending" | "approved" | "rejected" | "error";
+  error?: string;
+};
+type Msg = {
+  id: string; role: "user" | "assistant"; content: string; at: number;
+  nav?: NavCard; proposal?: ProposalCard; approvals?: ToolApproval[];
+  runId?: string;
+};
 type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
 
 const STORAGE_KEY = "viba.ai.threads.v1";
