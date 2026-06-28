@@ -9,13 +9,13 @@ import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
-import type { AgentId } from "@/lib/ai/agents";
 import { AgentResponse } from "@/components/ai/agent-response";
-import { executeProposal, proposalTitle, type Proposal } from "@/lib/ai/operator";
-import { logAiAction, updateAiAction, type ActionType, type AgentType } from "@/lib/ai/action-log";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
+
+/** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
+type AgentId = "crm" | "sales" | "pm";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantRoute,
