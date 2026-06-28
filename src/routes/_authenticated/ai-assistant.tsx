@@ -54,6 +54,13 @@ type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; me
 const STORAGE_KEY = "viba.ai.threads.v1";
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
+/** UI agent id → AI OS agent id. George az orchestrator a CRM oldalra is. */
+function uiAgentToAiOs(id: AgentId): string {
+  if (id === "sales") return "timothy";
+  if (id === "pm") return "boss";
+  return "george";
+}
+
 function loadThreads(): Thread[] {
   if (typeof window === "undefined") return [];
   try {
