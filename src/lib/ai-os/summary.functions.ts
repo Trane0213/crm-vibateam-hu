@@ -40,7 +40,7 @@ export const runAiSummary = createServerFn({ method: "POST" })
     ].join("\n");
 
     const result = await runAgent(context.supabase, admin, {
-      agentId: "george",
+      agentId: "crm_summary",
       userId: context.userId,
       userRole: null,
       threadId: null,
