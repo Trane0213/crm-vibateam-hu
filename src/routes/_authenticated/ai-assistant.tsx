@@ -53,6 +53,24 @@ type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; me
 const STORAGE_KEY = "viba.ai.threads.v1";
 const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
+/**
+ * Régi (törölt) AI rétegből származó hibaüzeneteket kiszűrjük a megjelenítéskor,
+ * hogy a felhasználó ne lássa pl. a Lovable/Gemini 402-es vagy az agent_runs
+ * táblahiányos legacy üzeneteket egy frissen újraindított AI OS futás után.
+ */
+const LEGACY_ERROR_PATTERNS = [
+  /lovable\/google\/gemini/i,
+  /gemini-3-flash-preview/i,
+  /agent_runs/i,
+  /supabaseUrl is required/i,
+  /402/,
+];
+function isLegacyErrorMessage(m: { role: string; content: string }): boolean {
+  if (m.role !== "assistant") return false;
+  if (!m.content?.startsWith("⚠️")) return false;
+  return LEGACY_ERROR_PATTERNS.some((re) => re.test(m.content));
+}
+
 /** UI agent id → AI OS agent id. George az orchestrator a CRM oldalra is. */
 function uiAgentToAiOs(id: AgentId): string {
   if (id === "sales") return "timothy";
@@ -420,7 +438,22 @@ function AiAssistantPage() {
           {/* Üzenetlista — kizárólag ez görgethető */}
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1100px] space-y-4 p-6">
-              {!active || active.messages.length === 0 ? (
+              {(() => {
+                const visibleMessages = active?.messages.filter((m) => !isLegacyErrorMessage(m)) ?? [];
+                if (!active || visibleMessages.length === 0) {
+                  return <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />;
+                }
+                return visibleMessages.map((m) => (
+                  <Bubble
+                    key={m.id}
+                    msg={m}
+                    onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
+                    onApproveTool={(cid) => approveToolCall(m.id, cid)}
+                    onRejectTool={(cid) => rejectToolCall(m.id, cid)}
+                  />
+                ));
+              })()}
+              {false && !active || active?.messages.length === 0 ? (
                 <EmptyChat onPick={ask} disabled={busy} agent={agent} meta={meta} actions={quickActions} />
               ) : (
                 active.messages.map((m) => (
