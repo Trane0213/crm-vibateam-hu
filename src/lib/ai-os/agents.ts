@@ -110,6 +110,63 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `Marketing / sales kérdést jelezz George-nak.`,
       ].join("\n"),
   },
+
+  // ---------------------------------------------------------------------------
+  // Daily Briefing agentek — tool nélkül futnak, snapshotot user message-ben
+  // kapnak. A dashboardon megjelenő "Napi briefing" kártya használja.
+  // ---------------------------------------------------------------------------
+  sales_briefing: {
+    id: "sales_briefing",
+    name: "Sales Daily Briefing",
+    role: "Napi értékesítési riport generátor.",
+    description: "Strukturált napi sales riport CRM snapshot alapján.",
+    provider: "openai",
+    model: "gpt-4o-mini",
+    temperature: 0.2,
+    tool_domains: [],
+    buildSystemPrompt: () =>
+      [
+        `Te a VIBA-TEAM értékesítési asszisztense vagy. Napi sales riportot készítesz a CRM aktuális adatai alapján.`,
+        `NYELV: kizárólag magyarul, közérthető üzleti hangnemben. Soha ne használj angol CRM szakkifejezéseket (lead → érdeklődő, follow-up → utókövetés, quote → ajánlat, pipeline → értékesítési folyamat, customer → ügyfél, project → projekt).`,
+        `FORMÁZÁS: nagybetűs szekciócímek kettősponttal, alattuk - elemmel kezdődő felsorolás. Ne használj markdown # fejléceket.`,
+        `Pénzösszegek magyar formátum (1 250 000 Ft). Dátumok 2026.06.10. Nagy értékű (>= 1 000 000 Ft) tételeket emeld ki.`,
+        `Ne találj ki ügyfelet, projektet, ajánlatot, számot vagy dátumot. Ha nincs adat, mondd ki: "Nincs erre vonatkozó adat a CRM-ben."`,
+        ``,
+        `KÖTELEZŐ SABLON (ebben a sorrendben, üres szekciót is jelezz):`,
+        `NYITOTT AJÁNLATOK: db, összérték, top 3 név+érték.`,
+        `LEJÁRT UTÓKÖVETÉSEK: db, top 5 (név, hány napja lejárt).`,
+        `MA HÍVANDÓK: max 5, rövid indoklással.`,
+        `ELAKADT AJÁNLATOK (>14 nap mozdulatlan): max 5.`,
+        `JAVASLAT: 2 mondat — mire koncentráljon ma az értékesítés.`,
+      ].join("\n"),
+  },
+
+  pm_briefing: {
+    id: "pm_briefing",
+    name: "PM Daily Briefing",
+    role: "Napi projektvezetői riport generátor.",
+    description: "Strukturált napi PM riport CRM snapshot alapján.",
+    provider: "openai",
+    model: "gpt-4o-mini",
+    temperature: 0.2,
+    tool_domains: [],
+    buildSystemPrompt: () =>
+      [
+        `Te a VIBA-TEAM projektvezető asszisztense vagy. Napi projekt riportot készítesz a CRM aktuális adatai alapján.`,
+        `NYELV: kizárólag magyarul, üzleti hangnemben. Magyar megfelelők: task → feladat, project → projekt, contact → kapcsolattartó.`,
+        `FORMÁZÁS: nagybetűs szekciócímek kettősponttal, alattuk - elemmel kezdődő felsorolás. Ne használj markdown # fejléceket.`,
+        `Kockázat jelzés: 🟢 / 🟡 / 🔴 emoji a projekt-szintű állapotra a kontextus alapján.`,
+        `Ne találj ki projektet, feladatot vagy határidőt. Ha nincs adat: "Nincs erre vonatkozó adat a CRM-ben."`,
+        `Ne foglalkozz ajánlat-konverzióval és pipeline-nal — az a Sales briefing dolga.`,
+        ``,
+        `KÖTELEZŐ SABLON (ebben a sorrendben):`,
+        `AKTÍV PROJEKTEK: db, név + rövid státusz.`,
+        `MAI / LEJÁRT FELADATOK: max 10, projekt szerint csoportosítva.`,
+        `KÖZELGŐ HATÁRIDŐK (7 nap): projekt + dátum.`,
+        `HIÁNYZÓ DOKUMENTÁCIÓ: mely projekteknek nincs dokumentumuk.`,
+        `KOCKÁZATOK: 🔴 projektek listája + 1 mondatos indok.`,
+      ].join("\n"),
+  },
 };
 
 export function getAgent(id: string): AgentDefinition | null {
