@@ -473,6 +473,8 @@ function AiAssistantPage() {
                     onApprove={() => approveProposal(m.id)}
                     onReject={() => rejectProposal(m.id)}
                     onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
+                    onApproveTool={(cid) => approveToolCall(m.id, cid)}
+                    onRejectTool={(cid) => rejectToolCall(m.id, cid)}
                   />
                 ))
               )}
@@ -519,7 +521,14 @@ function AiAssistantPage() {
   );
 }
 
-function Bubble({ msg, onApprove, onReject, onOpenNav }: { msg: Msg; onApprove?: () => void; onReject?: () => void; onOpenNav?: () => void }) {
+function Bubble({ msg, onApprove, onReject, onOpenNav, onApproveTool, onRejectTool }: {
+  msg: Msg;
+  onApprove?: () => void;
+  onReject?: () => void;
+  onOpenNav?: () => void;
+  onApproveTool?: (toolCallId: string) => void;
+  onRejectTool?: (toolCallId: string) => void;
+}) {
   const isUser = msg.role === "user";
   if (!isUser) {
     return (
@@ -540,6 +549,14 @@ function Bubble({ msg, onApprove, onReject, onOpenNav }: { msg: Msg; onApprove?:
           {msg.proposal && (
             <ProposalCardView card={msg.proposal} onApprove={onApprove} onReject={onReject} />
           )}
+          {msg.approvals?.map((a) => (
+            <ToolApprovalCardView
+              key={a.tool_call_id}
+              approval={a}
+              onApprove={() => onApproveTool?.(a.tool_call_id)}
+              onReject={() => onRejectTool?.(a.tool_call_id)}
+            />
+          ))}
         </div>
       </div>
     );
