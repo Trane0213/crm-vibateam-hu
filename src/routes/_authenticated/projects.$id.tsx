@@ -190,6 +190,10 @@ function ProjectDetail() {
           </TabsList>
 
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
+            <TodayFocusCard
+              followups={followups.data ?? []}
+              tasks={tasks.data ?? []}
+            />
             <SalesHandoffCard project={project} assigneeName={assigneeName} />
             <Card>
               <CardHeader><CardTitle className="text-sm">Ajánlat-állapot</CardTitle></CardHeader>
