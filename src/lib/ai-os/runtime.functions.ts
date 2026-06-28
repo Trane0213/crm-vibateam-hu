@@ -30,13 +30,10 @@ export const runAiAgent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { ensureBootstrapped } = await import("./bootstrap.server");
     const { runAgent } = await import("./runtime.server");
-    const { createClient } = await import("@supabase/supabase-js");
+    const { getAdminClient } = await import("@/integrations/supabase/server");
     ensureBootstrapped();
 
-    const admin = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const admin = getAdminClient();
 
     // User role lekérés (best effort)
     let userRole: string | null = null;
