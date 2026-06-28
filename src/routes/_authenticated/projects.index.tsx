@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Briefcase } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   ResourcePage,
   fmtDate,
@@ -11,9 +13,12 @@ import {
   PROJECT_STATUS_LABEL,
   PROJECT_STATUS_TONE,
 } from "@/lib/viba-constants";
+import { useAuth } from "@/hooks/use-auth";
 
 function ProjectsPage() {
   const companyLabel = useLookup("companies", "name");
+  const { user } = useAuth();
+  const [onlyMine, setOnlyMine] = useState(false);
   return (
     <ResourcePage
       title="Projektek"
@@ -23,6 +28,29 @@ function ProjectsPage() {
       newButtonLabel="Új projekt"
       icon={Briefcase}
       table="projects"
+      filter={(rows) =>
+        onlyMine && user?.id
+          ? rows.filter((r) => r.project_manager_user_id === user.id)
+          : rows
+      }
+      toolbar={
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant={onlyMine ? "default" : "outline"}
+            onClick={() => setOnlyMine((v) => !v)}
+            disabled={!user?.id}
+          >
+            {onlyMine ? "Saját projektjeim ✓" : "Saját projektjeim"}
+          </Button>
+          {onlyMine && (
+            <span className="text-xs text-muted-foreground">
+              Csak azok a projektek látszanak, ahol te vagy a kijelölt projektvezető.
+            </span>
+          )}
+        </div>
+      }
       fields={[
         { name: "title", label: "Projekt megnevezése", type: "text", required: true },
         {
