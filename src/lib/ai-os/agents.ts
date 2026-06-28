@@ -39,7 +39,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     role: "Orchestrator — eldönti, ki válaszoljon, és összesít.",
     description: "CRM navigátor és minden specialista koordinátora.",
     provider: "lovable",
-    model: "google/gemini-3-flash-preview",
+    model: "google/gemini-2.5-flash",
     temperature: 0.2,
     tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.quotes", "crm.emails"],
     is_orchestrator: true,
@@ -63,7 +63,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     role: "Marketing specialista.",
     description: "Lead-minősítés, kampány, csatorna-elemzés.",
     provider: "lovable",
-    model: "google/gemini-3-flash-preview",
+    model: "google/gemini-2.5-flash",
     temperature: 0.3,
     tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "marketing.workflow"],
     buildSystemPrompt: (ctx) =>
@@ -81,7 +81,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     role: "Sales specialista.",
     description: "Leadek, ajánlatok, utókövetés, megnyerés.",
     provider: "lovable",
-    model: "google/gemini-3-flash-preview",
+    model: "google/gemini-2.5-flash",
     temperature: 0.2,
     tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow"],
     buildSystemPrompt: (ctx) =>
@@ -99,7 +99,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     role: "Projektvezető asszisztens.",
     description: "Projektek, határidők, kockázatok, napi briefing.",
     provider: "lovable",
-    model: "google/gemini-3-flash-preview",
+    model: "google/gemini-2.5-flash",
     temperature: 0.2,
     tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "pm.workflow"],
     buildSystemPrompt: (ctx) =>
