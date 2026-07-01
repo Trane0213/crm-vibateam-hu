@@ -66,7 +66,6 @@ function QuotesPage() {
   return (
     <div className="p-6">
       <PageHeader
-        icon={FileText}
         title="Ajánlatok"
         description="Ajánlatok listája. Új ajánlat: piszkozat rekord készül és megnyílik a szerkesztésre."
         actions={
