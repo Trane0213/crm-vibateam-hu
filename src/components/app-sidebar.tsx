@@ -70,53 +70,86 @@ const aiAgents: AiAgentItem[] = [
   { title: "Scarlet – Marketing Stratéga",      url: "/sales/research", icon: Radar,      agentId: "marketing",                              highlight: true },
 ];
 
-// A napi sales útvonal: Ma → Workspace → Pipeline → Projekt.
-// Ez az egyetlen szerkeszthető folyamat — minden más nézet/riport vagy
-// szerepkör-specifikus admin felület.
-const workflow: Item[] = [
-  { title: "Workspace", url: "/leads", icon: Sparkles, highlight: true },
-  { title: "Pipeline", url: "/sales/leads", icon: Target, highlight: true },
-  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
-  { title: "Elveszett", url: "/leads/lost", icon: XCircle },
-  { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
-];
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 1 UI konszolidáció (2026-07):
+// Minden route változatlan — új üzleti funkció nem készül. A sidebar csak
+// szerepkörönként 3–5 elsődleges "Munkafelület" képernyőt emel ki felülre,
+// minden más képernyő továbbra is elérhető a másodlagos csoportokban:
+//   • Munkafelületek – szerepkör napi 3–5 fő képernyője (PRIMARY)
+//   • Ügyfelek       – cég / kapcsolattartó / inbox nézetek
+//   • Kommunikáció   – email / hívás / találkozó
+//   • Nézetek        – olvasó riportok, régi listák (kompatibilitás miatt)
+//   • Rendszer       – dokumentumok / adatminőség / beállítások
+// A régi menüpontok NEM törlődnek — csak átcsoportosultak.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Olvasó nézetek — NEM munkafelületek. Szerkesztés a Workspace/Pipeline-on.
-const reports: Item[] = [
-  { title: "Teendők (riport)", url: "/sales/todo", icon: CheckSquare },
-  { title: "Ajánlatok (riport)", url: "/sales/quotes", icon: FileText },
-];
+import type { RoleSlug } from "@/lib/permissions";
 
+type WorkspaceMap = Partial<Record<RoleSlug, Item[]>>;
+
+// Szerepkörönként az elsődleges munkafelületek (PRIMARY).
+// Ezek jelennek meg a "Munkafelületek" csoportban a sidebar tetején.
+const workspacesByRole: WorkspaceMap = {
+  sales: [
+    { title: "Sales Workspace", url: "/leads",        icon: Sparkles,  highlight: true },
+    { title: "Pipeline",        url: "/sales/leads",  icon: Target,    highlight: true },
+    { title: "Ajánlatok",       url: "/quotes",       icon: FileText,  highlight: true },
+    { title: "Projektek",       url: "/projects",     icon: Briefcase, highlight: true },
+  ],
+  marketing: [
+    { title: "Marketing Workspace",   url: "/leads",               icon: Sparkles, highlight: true },
+    { title: "Weboldali igények",     url: "/web-quote-requests",  icon: Inbox,    highlight: true },
+    { title: "Kampánylista",          url: "/campaign-list",       icon: ListPlus, highlight: true },
+    { title: "Emailek",               url: "/emails",              icon: Mail,     highlight: true },
+  ],
+  project_manager: [
+    { title: "Projektek",   url: "/projects",  icon: Briefcase, highlight: true },
+    { title: "Feladatok",   url: "/tasks",     icon: CheckSquare, highlight: true },
+    { title: "Találkozók",  url: "/meetings",  icon: Calendar,  highlight: true },
+    { title: "Dokumentumok", url: "/documents", icon: FolderOpen, highlight: true },
+  ],
+  owner: [
+    { title: "Irányítópult", url: "/dashboard",   icon: LayoutDashboard, highlight: true },
+    { title: "Pipeline",     url: "/sales/leads", icon: Target,          highlight: true },
+    { title: "Projektek",    url: "/projects",    icon: Briefcase,       highlight: true },
+    { title: "Ajánlatok",    url: "/quotes",      icon: FileText,        highlight: true },
+  ],
+};
+
+// Ügyfél-oldali (contact) listák — SECONDARY.
 const contacts: Item[] = [
-  { title: "Ügyfelek", url: "/customers", icon: Users, highlight: true },
-  { title: "Cégek", url: "/companies", icon: Building2 },
-  { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
-  { title: "Kampánylista", url: "/campaign-list", icon: ListPlus },
-  { title: "Weboldali ajánlatkérések", url: "/web-quote-requests", icon: Inbox },
+  { title: "Ügyfelek",          url: "/customers",          icon: Users },
+  { title: "Cégek",             url: "/companies",          icon: Building2 },
+  { title: "Kapcsolattartók",   url: "/contacts",           icon: UserPlus },
+  // Kampánylista és Weboldali igények: marketingnek fenti Munkafelületek-ben
+  // vannak, más szerepköröknek itt maradnak elérhetőek (kompatibilitás).
+  { title: "Kampánylista",              url: "/campaign-list",      icon: ListPlus, hideForRoles: ["marketing"] },
+  { title: "Weboldali ajánlatkérések",  url: "/web-quote-requests", icon: Inbox,    hideForRoles: ["marketing"] },
 ];
 
+// Kommunikáció — SECONDARY. Marketing az Email-t a Munkafelületek-ben látja.
 const comms: Item[] = [
-  { title: "Emailek", url: "/emails", icon: Mail },
-  // Hívások: salesnek elrejtve (kérésre). Email és Találkozók marad.
-  { title: "Hívások", url: "/calls", icon: Phone, hideForRoles: ["sales"] },
-  { title: "Találkozók", url: "/meetings", icon: Calendar },
+  { title: "Emailek",     url: "/emails",   icon: Mail,     hideForRoles: ["marketing"] },
+  { title: "Hívások",     url: "/calls",    icon: Phone,    hideForRoles: ["sales"] },
+  { title: "Találkozók",  url: "/meetings", icon: Calendar, hideForRoles: ["project_manager"] },
 ];
 
+// Olvasó nézetek / riportok / régi listák — kompatibilitás miatt megmaradnak.
+const reports: Item[] = [
+  { title: "Sales áttekintés",   url: "/sales",         icon: LayoutDashboard, hideForRoles: ["sales", "marketing"] },
+  { title: "Teendők (riport)",   url: "/sales/todo",    icon: CheckSquare,     hideForRoles: ["marketing"] },
+  { title: "Ajánlatok (riport)", url: "/sales/quotes",  icon: FileText,        hideForRoles: ["marketing"] },
+  { title: "Elveszett",          url: "/leads/lost",    icon: XCircle,         hideForRoles: ["marketing"] },
+  { title: "Aktivitás",          url: "/activity",      icon: Activity,        hideForRoles: ["sales", "marketing"] },
+];
+
+// Rendszer — SECONDARY.
 const sys: Item[] = [
-  // Sales nem nyitja meg a régi Irányítópultot — neki a Sales → Áttekintés a fő nézet.
-  { title: "Irányítópult", url: "/dashboard", icon: LayoutDashboard, hideForRoles: ["sales"] },
-  { title: "Adatminőség", url: "/data-quality", icon: ShieldCheck },
-  { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
-  { title: "Aktivitás", url: "/activity", icon: Activity, hideForRoles: ["sales"] },
-  { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen, hideForRoles: ["sales"] },
-  { title: "Beállítások", url: "/settings", icon: Settings },
-];
-
-const sales: Item[] = [
-  // Sales-nek a Ma az egyetlen kezdőoldal — a Sales Áttekintés ugyanazt
-  // a célt szolgálta, ezért náluk elrejtve. Owner/PM számára marad,
-  // adminisztratív áttekintésként.
-  { title: "Sales áttekintés", url: "/sales", icon: LayoutDashboard, hideForRoles: ["sales"] },
+  { title: "Adatminőség",        url: "/data-quality",     icon: ShieldCheck },
+  // Dokumentumok: PM-nél már fenn van a Munkafelületek-ben.
+  { title: "Dokumentumok",       url: "/documents",        icon: FolderOpen,  hideForRoles: ["project_manager"] },
+  { title: "Marketing súgó",     url: "/help/marketing",   icon: BookOpen,    hideForRoles: ["sales"] },
+  { title: "Beállítások",        url: "/settings",         icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -139,6 +172,8 @@ export function AppSidebar() {
   const visible = (items: Item[]) =>
     items.filter((i) => canAccessRoute(role, i.url))
          .filter((i) => !(i.hideForRoles?.includes(role) ?? false));
+
+  const workspaces = visible(workspacesByRole[role] ?? workspacesByRole.owner ?? []);
 
   const renderGroup = (label: string, items: Item[], withDivider = true) => (
     <SidebarGroup
@@ -244,11 +279,10 @@ export function AppSidebar() {
       <SidebarContent className="gap-0 px-2 py-2">
         {visible(home).length > 0 && renderGroup("", visible(home), false)}
         {renderAiGroup()}
-        {visible(workflow).length > 0 && renderGroup("Workflow", visible(workflow))}
-        {visible(reports).length > 0 && renderGroup("Riportok", visible(reports))}
+        {workspaces.length > 0 && renderGroup("Munkafelületek", workspaces)}
         {visible(contacts).length > 0 && renderGroup("Ügyfelek", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
-        {visible(sales).length > 0 && renderGroup("Admin", visible(sales))}
+        {visible(reports).length > 0 && renderGroup("Nézetek", visible(reports))}
         {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
       </SidebarContent>
     </Sidebar>
