@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { StatusChip } from "@/components/sales/status-chip";
@@ -14,7 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { logActivity } from "@/lib/activity-log";
-import { ExternalLink, Building2, Mail, User, Calendar } from "lucide-react";
+import { ExternalLink, Building2, Mail, User, Calendar, FileText } from "lucide-react";
+import { createDraftQuote } from "@/lib/quotes/create";
 import type { LeadStatus } from "@/lib/sales/constants";
 import { statusToLostStage } from "@/lib/sales/constants";
 import type { PipelineLead } from "./pipeline-types";
@@ -40,6 +41,19 @@ export function PipelineDetailSheet({
   const qc = useQueryClient();
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
+  const navigate = useNavigate();
+  const newQuote = useMutation({
+    mutationFn: async () => {
+      if (!lead) throw new Error("Nincs lead.");
+      return await createDraftQuote({ leadId: lead.id });
+    },
+    onError: (e: any) =>
+      toast.error("Nem sikerült létrehozni", { description: humanizeSupabaseError(e) }),
+    onSuccess: (id) => {
+      qc.invalidateQueries({ queryKey: ["quotes"] });
+      navigate({ to: "/quotes/$id", params: { id } });
+    },
+  });
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["pipeline"] });
@@ -182,6 +196,17 @@ export function PipelineDetailSheet({
                   onWon={() => setProjOpen(true)}
                   onLost={() => setLostOpen(true)}
                 />
+                <div className="mt-3">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    disabled={newQuote.isPending}
+                    onClick={() => newQuote.mutate()}
+                  >
+                    <FileText className="mr-1.5 h-3.5 w-3.5" />
+                    {newQuote.isPending ? "Létrehozás…" : "Ajánlat készítése"}
+                  </Button>
+                </div>
                 <div className="mt-4 rounded-md border bg-card p-3 text-[11px] text-muted-foreground">
                   <p className="font-medium text-foreground">Csak itt végezhető</p>
                   <ul className="mt-1 list-disc pl-4">

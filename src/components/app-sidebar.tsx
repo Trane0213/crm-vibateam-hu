@@ -76,6 +76,7 @@ const aiAgents: AiAgentItem[] = [
 const workflow: Item[] = [
   { title: "Workspace", url: "/leads", icon: Sparkles, highlight: true },
   { title: "Pipeline", url: "/sales/leads", icon: Target, highlight: true },
+  { title: "Ajánlatok", url: "/quotes", icon: FileText, highlight: true },
   { title: "Elveszett", url: "/leads/lost", icon: XCircle },
   { title: "Projektek", url: "/projects", icon: Briefcase, highlight: true },
 ];
