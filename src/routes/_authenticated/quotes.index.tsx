@@ -27,7 +27,7 @@ function QuotesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quotes")
-        .select("id, lead_id, project_id, version, is_current, status, created_at")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -87,6 +87,7 @@ function QuotesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Cím</TableHead>
                 <TableHead>Ügyfél</TableHead>
                 <TableHead>Lead</TableHead>
                 <TableHead className="w-24">Verzió</TableHead>
@@ -100,6 +101,9 @@ function QuotesPage() {
                 const cid = l?.company_id ?? null;
                 return (
                   <TableRow key={r.id} className="cursor-pointer" onClick={() => navigate({ to: "/quotes/$id", params: { id: r.id } })}>
+                    <TableCell className="max-w-[260px] truncate font-medium">
+                      {r.title?.trim() || <span className="text-muted-foreground">— (címzetlen)</span>}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {cid ? (
                         <Link
