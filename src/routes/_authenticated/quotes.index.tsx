@@ -27,7 +27,7 @@ function QuotesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("quotes")
-        .select("id, lead_id, project_id, version, is_current, status, created_at, title")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
