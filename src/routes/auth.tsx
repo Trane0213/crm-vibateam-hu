@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "@/components/brand-logo";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   component: AuthPage,
 });
 
