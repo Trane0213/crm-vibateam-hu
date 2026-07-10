@@ -44,6 +44,7 @@ import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
 import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
 import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
 import { Route as AuthenticatedWebQuoteRequestsIdRouteImport } from './routes/_authenticated/web-quote-requests.$id'
+import { Route as AuthenticatedSettingsWebsiteKnowledgeRouteImport } from './routes/_authenticated/settings.website-knowledge'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -70,6 +71,7 @@ import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
+import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
 import { Route as ApiGoogleAdsOauthStartRouteImport } from './routes/api/google-ads/oauth.start'
 import { Route as ApiGoogleAdsOauthCallbackRouteImport } from './routes/api/google-ads/oauth.callback'
@@ -264,6 +266,12 @@ const AuthenticatedWebQuoteRequestsIdRoute =
     path: '/web-quote-requests/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettingsWebsiteKnowledgeRoute =
+  AuthenticatedSettingsWebsiteKnowledgeRouteImport.update({
+    id: '/website-knowledge',
+    path: '/website-knowledge',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsUsersRoute =
   AuthenticatedSettingsUsersRouteImport.update({
     id: '/users',
@@ -413,6 +421,12 @@ const AuthenticatedCompaniesIdRoute =
     path: '/companies/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicWebsiteKnowledgeNetlifyWebhookRoute =
+  ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport.update({
+    id: '/api/public/website-knowledge/netlify-webhook',
+    path: '/api/public/website-knowledge/netlify-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
   id: '/api/public/gmail/cron-sync',
   path: '/api/public/gmail/cron-sync',
@@ -491,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/settings/website-knowledge': typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
@@ -513,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/api/google-ads/oauth/callback': typeof ApiGoogleAdsOauthCallbackRoute
   '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
+  '/api/public/website-knowledge/netlify-webhook': typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -558,6 +574,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/settings/website-knowledge': typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
@@ -580,6 +597,7 @@ export interface FileRoutesByTo {
   '/api/google-ads/oauth/callback': typeof ApiGoogleAdsOauthCallbackRoute
   '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
+  '/api/public/website-knowledge/netlify-webhook': typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -628,6 +646,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/_authenticated/settings/website-knowledge': typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   '/_authenticated/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
@@ -650,6 +669,7 @@ export interface FileRoutesById {
   '/api/google-ads/oauth/callback': typeof ApiGoogleAdsOauthCallbackRoute
   '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
+  '/api/public/website-knowledge/netlify-webhook': typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -698,6 +718,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/settings/website-knowledge'
     | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
@@ -720,6 +741,7 @@ export interface FileRouteTypes {
     | '/api/google-ads/oauth/callback'
     | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
+    | '/api/public/website-knowledge/netlify-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -765,6 +787,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/settings/website-knowledge'
     | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
@@ -787,6 +810,7 @@ export interface FileRouteTypes {
     | '/api/google-ads/oauth/callback'
     | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
+    | '/api/public/website-knowledge/netlify-webhook'
   id:
     | '__root__'
     | '/'
@@ -834,6 +858,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
+    | '/_authenticated/settings/website-knowledge'
     | '/_authenticated/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
@@ -856,6 +881,7 @@ export interface FileRouteTypes {
     | '/api/google-ads/oauth/callback'
     | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
+    | '/api/public/website-knowledge/netlify-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -875,6 +901,7 @@ export interface RootRouteChildren {
   ApiGoogleAdsOauthCallbackRoute: typeof ApiGoogleAdsOauthCallbackRoute
   ApiGoogleAdsOauthStartRoute: typeof ApiGoogleAdsOauthStartRoute
   ApiPublicGmailCronSyncRoute: typeof ApiPublicGmailCronSyncRoute
+  ApiPublicWebsiteKnowledgeNetlifyWebhookRoute: typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1124,6 +1151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/website-knowledge': {
+      id: '/_authenticated/settings/website-knowledge'
+      path: '/website-knowledge'
+      fullPath: '/settings/website-knowledge'
+      preLoaderRoute: typeof AuthenticatedSettingsWebsiteKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/users': {
       id: '/_authenticated/settings/users'
       path: '/users'
@@ -1306,6 +1340,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/website-knowledge/netlify-webhook': {
+      id: '/api/public/website-knowledge/netlify-webhook'
+      path: '/api/public/website-knowledge/netlify-webhook'
+      fullPath: '/api/public/website-knowledge/netlify-webhook'
+      preLoaderRoute: typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/gmail/cron-sync': {
       id: '/api/public/gmail/cron-sync'
       path: '/api/public/gmail/cron-sync'
@@ -1364,6 +1405,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsStorageRoute: typeof AuthenticatedSettingsStorageRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
+  AuthenticatedSettingsWebsiteKnowledgeRoute: typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -1384,6 +1426,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsStorageRoute: AuthenticatedSettingsStorageRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
+  AuthenticatedSettingsWebsiteKnowledgeRoute:
+    AuthenticatedSettingsWebsiteKnowledgeRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
 }
 
@@ -1495,6 +1539,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGoogleAdsOauthCallbackRoute: ApiGoogleAdsOauthCallbackRoute,
   ApiGoogleAdsOauthStartRoute: ApiGoogleAdsOauthStartRoute,
   ApiPublicGmailCronSyncRoute: ApiPublicGmailCronSyncRoute,
+  ApiPublicWebsiteKnowledgeNetlifyWebhookRoute:
+    ApiPublicWebsiteKnowledgeNetlifyWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
