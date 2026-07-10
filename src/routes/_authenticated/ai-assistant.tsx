@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle, Search, TrendingUp, Hammer, Phone, AlertOctagon, ClipboardList, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle, Search, TrendingUp, Hammer, Phone, AlertOctagon, ClipboardList, CheckCircle2, XCircle, ExternalLink, BarChart3, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,13 +9,14 @@ import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
+import michaelPortrait from "@/assets/agent-michael.jpg";
 import { AgentResponse } from "@/components/ai/agent-response";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
-type AgentId = "crm" | "sales" | "pm";
+type AgentId = "crm" | "sales" | "pm" | "ads";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantRoute,
@@ -27,7 +28,7 @@ function AiAssistantRoute() {
   // Csak akkor érvényesítünk gate-et, ha az URL kifejezetten megad agentet.
   // Ha nincs ?agent=, akkor a default crm (George) tölt be, ami mindenki számára látható.
   const agentToGate =
-    urlAgent === "crm" || urlAgent === "sales" || urlAgent === "pm" ? urlAgent : null;
+    urlAgent === "crm" || urlAgent === "sales" || urlAgent === "pm" || urlAgent === "ads" ? urlAgent : null;
   return (
     <AgentGate agentId={agentToGate}>
       <AiAssistantPage />
@@ -75,6 +76,7 @@ function isLegacyErrorMessage(m: { role: string; content: string }): boolean {
 function uiAgentToAiOs(id: AgentId): string {
   if (id === "sales") return "timothy";
   if (id === "pm") return "boss";
+  if (id === "ads") return "michael";
   return "george";
 }
 
@@ -113,6 +115,10 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: "deadlines",     label: "Közelgő határidők",   icon: BellRing,      prompt: "Mely projekteknek vannak 7 napon belüli határidős feladatai? Adj projekt + dátum listát." },
     { id: "missing-docs",  label: "Hiányzó dokumentáció", icon: ClipboardList, prompt: "Mely aktív projekteknek nincs egyetlen dokumentumuk sem? Adj listát." },
     { id: "risks",         label: "Kockázatos projektek", icon: AlertOctagon,  prompt: "Mely projektek kockázatosak (lejárt feladat, nincs utókövetés, nincs dokumentum)? Indoklással." },
+  ],
+  ads: [
+    { id: "intro",         label: "Mutatkozz be",        icon: Target,        prompt: "Mutatkozz be röviden: ki vagy, mi az elsődleges célod, és mikor tudsz éles Google Ads adattal dolgozni." },
+    { id: "scope",         label: "Mit tudsz csinálni?", icon: BarChart3,     prompt: "Sorold fel, milyen jellegű elemzéseket, javaslatokat és beavatkozásokat fogsz tudni támogatni, ha aktiválják a Google Ads toolokat. Ne találj ki adatot." },
   ],
 };
 
@@ -162,6 +168,17 @@ const AGENT_META: Record<AgentId, AgentMeta> = {
     accentRing: "ring-orange-500/40",
     accentText: "text-orange-600 dark:text-orange-300",
   },
+  ads: {
+    firstName: "Michael",
+    role: "Google Ads Specialista",
+    name: "Michael – Google Ads Specialista",
+    tagline: "Google Ads elemzés a VIBA-TEAM üzleti céljainak támogatására",
+    icon: BarChart3,
+    portrait: michaelPortrait,
+    accent: "bg-teal-50 dark:bg-teal-950/30",
+    accentRing: "ring-teal-500/40",
+    accentText: "text-teal-600 dark:text-teal-300",
+  },
 };
 
 function AiAssistantPage() {
@@ -170,7 +187,7 @@ function AiAssistantPage() {
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const urlAgent = (() => {
     const v = new URLSearchParams(searchStr ?? "").get("agent");
-    return v === "sales" || v === "pm" || v === "crm" ? (v as AgentId) : null;
+    return v === "sales" || v === "pm" || v === "crm" || v === "ads" ? (v as AgentId) : null;
   })();
 
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads());
@@ -180,14 +197,14 @@ function AiAssistantPage() {
     const urlA = sp.get("agent");
     const all = loadThreads();
     // Ha az URL agentet kér, csak az adott agenthez tartozó thread induljon aktívként.
-    if (urlA === "crm" || urlA === "sales" || urlA === "pm") {
+    if (urlA === "crm" || urlA === "sales" || urlA === "pm" || urlA === "ads") {
       return all.find((t) => t.agent === urlA)?.id ?? null;
     }
     return all[0]?.id ?? null;
   });
   const [agent, setAgent] = useState<AgentId>(() => {
     const v = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("agent") : null;
-    if (v === "sales" || v === "pm" || v === "crm") return v as AgentId;
+    if (v === "sales" || v === "pm" || v === "crm" || v === "ads") return v as AgentId;
     const all = loadThreads();
     return (all[0]?.agent as AgentId) ?? "crm";
   });

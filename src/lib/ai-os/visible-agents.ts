@@ -41,6 +41,12 @@ export const AGENT_REGISTRY: RegisteredAgent[] = [
     short: "Marketing Stratéga",
     description: "Piackutatás és marketing stratégia — marketing csapatnak.",
   },
+  {
+    id: "ads",
+    name: "Michael",
+    short: "Google Ads Specialista",
+    description: "Google Ads elemző és tanácsadó — kizárólag Tulajdonos szerepkör számára látható.",
+  },
 ];
 
 export const ALWAYS_VISIBLE_AGENT_IDS = new Set(

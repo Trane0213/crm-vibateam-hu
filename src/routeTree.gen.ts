@@ -50,6 +50,7 @@ import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings.profile'
 import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
 import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
+import { Route as AuthenticatedSettingsGoogleAdsRouteImport } from './routes/_authenticated/settings.google-ads'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
 import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
@@ -69,6 +70,8 @@ import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
+import { Route as ApiGoogleAdsOauthStartRouteImport } from './routes/api/google-ads/oauth.start'
+import { Route as ApiGoogleAdsOauthCallbackRouteImport } from './routes/api/google-ads/oauth.callback'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 import { Route as AuthenticatedQuotesIdPrintRouteImport } from './routes/_authenticated/quotes.$id_.print'
@@ -296,6 +299,12 @@ const AuthenticatedSettingsOpenaiRoute =
     path: '/openai',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsGoogleAdsRoute =
+  AuthenticatedSettingsGoogleAdsRouteImport.update({
+    id: '/google-ads',
+    path: '/google-ads',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsGmailRoute =
   AuthenticatedSettingsGmailRouteImport.update({
     id: '/gmail',
@@ -402,6 +411,17 @@ const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
   path: '/api/public/gmail/cron-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGoogleAdsOauthStartRoute = ApiGoogleAdsOauthStartRouteImport.update({
+  id: '/api/google-ads/oauth/start',
+  path: '/api/google-ads/oauth/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGoogleAdsOauthCallbackRoute =
+  ApiGoogleAdsOauthCallbackRouteImport.update({
+    id: '/api/google-ads/oauth/callback',
+    path: '/api/google-ads/oauth/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
   id: '/api/gmail/oauth/start',
   path: '/api/gmail/oauth/start',
@@ -456,6 +476,7 @@ export interface FileRoutesByFullPath {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
+  '/settings/google-ads': typeof AuthenticatedSettingsGoogleAdsRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
@@ -481,6 +502,8 @@ export interface FileRoutesByFullPath {
   '/quotes/$id/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/google-ads/oauth/callback': typeof ApiGoogleAdsOauthCallbackRoute
+  '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesByTo {
@@ -519,6 +542,7 @@ export interface FileRoutesByTo {
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
+  '/settings/google-ads': typeof AuthenticatedSettingsGoogleAdsRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
@@ -544,6 +568,8 @@ export interface FileRoutesByTo {
   '/quotes/$id/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/google-ads/oauth/callback': typeof ApiGoogleAdsOauthCallbackRoute
+  '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesById {
@@ -585,6 +611,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
+  '/_authenticated/settings/google-ads': typeof AuthenticatedSettingsGoogleAdsRoute
   '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/_authenticated/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
@@ -610,6 +637,8 @@ export interface FileRoutesById {
   '/_authenticated/quotes/$id_/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/google-ads/oauth/callback': typeof ApiGoogleAdsOauthCallbackRoute
+  '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRouteTypes {
@@ -651,6 +680,7 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/dashboard-status'
     | '/settings/gmail'
+    | '/settings/google-ads'
     | '/settings/openai'
     | '/settings/permissions-audit'
     | '/settings/profile'
@@ -676,6 +706,8 @@ export interface FileRouteTypes {
     | '/quotes/$id/print'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/google-ads/oauth/callback'
+    | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -714,6 +746,7 @@ export interface FileRouteTypes {
     | '/settings/audit'
     | '/settings/dashboard-status'
     | '/settings/gmail'
+    | '/settings/google-ads'
     | '/settings/openai'
     | '/settings/permissions-audit'
     | '/settings/profile'
@@ -739,6 +772,8 @@ export interface FileRouteTypes {
     | '/quotes/$id/print'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/google-ads/oauth/callback'
+    | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
   id:
     | '__root__'
@@ -779,6 +814,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/dashboard-status'
     | '/_authenticated/settings/gmail'
+    | '/_authenticated/settings/google-ads'
     | '/_authenticated/settings/openai'
     | '/_authenticated/settings/permissions-audit'
     | '/_authenticated/settings/profile'
@@ -804,6 +840,8 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes/$id_/print'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/google-ads/oauth/callback'
+    | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
   fileRoutesById: FileRoutesById
 }
@@ -821,6 +859,8 @@ export interface RootRouteChildren {
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
+  ApiGoogleAdsOauthCallbackRoute: typeof ApiGoogleAdsOauthCallbackRoute
+  ApiGoogleAdsOauthStartRoute: typeof ApiGoogleAdsOauthStartRoute
   ApiPublicGmailCronSyncRoute: typeof ApiPublicGmailCronSyncRoute
 }
 
@@ -1113,6 +1153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsOpenaiRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/google-ads': {
+      id: '/_authenticated/settings/google-ads'
+      path: '/google-ads'
+      fullPath: '/settings/google-ads'
+      preLoaderRoute: typeof AuthenticatedSettingsGoogleAdsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/gmail': {
       id: '/_authenticated/settings/gmail'
       path: '/gmail'
@@ -1246,6 +1293,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/google-ads/oauth/start': {
+      id: '/api/google-ads/oauth/start'
+      path: '/api/google-ads/oauth/start'
+      fullPath: '/api/google-ads/oauth/start'
+      preLoaderRoute: typeof ApiGoogleAdsOauthStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/google-ads/oauth/callback': {
+      id: '/api/google-ads/oauth/callback'
+      path: '/api/google-ads/oauth/callback'
+      fullPath: '/api/google-ads/oauth/callback'
+      preLoaderRoute: typeof ApiGoogleAdsOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gmail/oauth/start': {
       id: '/api/gmail/oauth/start'
       path: '/api/gmail/oauth/start'
@@ -1275,6 +1336,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsDashboardStatusRoute: typeof AuthenticatedSettingsDashboardStatusRoute
   AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
+  AuthenticatedSettingsGoogleAdsRoute: typeof AuthenticatedSettingsGoogleAdsRoute
   AuthenticatedSettingsOpenaiRoute: typeof AuthenticatedSettingsOpenaiRoute
   AuthenticatedSettingsPermissionsAuditRoute: typeof AuthenticatedSettingsPermissionsAuditRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
@@ -1291,6 +1353,7 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsDashboardStatusRoute:
     AuthenticatedSettingsDashboardStatusRoute,
   AuthenticatedSettingsGmailRoute: AuthenticatedSettingsGmailRoute,
+  AuthenticatedSettingsGoogleAdsRoute: AuthenticatedSettingsGoogleAdsRoute,
   AuthenticatedSettingsOpenaiRoute: AuthenticatedSettingsOpenaiRoute,
   AuthenticatedSettingsPermissionsAuditRoute:
     AuthenticatedSettingsPermissionsAuditRoute,
@@ -1406,18 +1469,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSyncRoute: ApiGmailSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
+  ApiGoogleAdsOauthCallbackRoute: ApiGoogleAdsOauthCallbackRoute,
+  ApiGoogleAdsOauthStartRoute: ApiGoogleAdsOauthStartRoute,
   ApiPublicGmailCronSyncRoute: ApiPublicGmailCronSyncRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
