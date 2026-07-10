@@ -1,173 +1,304 @@
-# AI Ügynökök — Teljes Szerepkör Áttekintés
+# AI OS — Knowledge Graph + Website Knowledge (technikai terv v5)
 
-Ez nem fejlesztési terv, hanem **állapotfelmérés**. Az egész AI OS (`src/lib/ai-os/`) egyetlen közös runtime-ra épül; agentek csak system prompt-ban, tool-hozzáférésben és modellben különböznek.
+Az M7 mostantól **két különálló modul**, két külön sprint-sorozattal:
 
----
+- **A) Knowledge Graph modul** — a teljes AI OS központi tudásrétege. Domain-független, önálló élettel. Nem tud semmit se a website-ról, se a CRM-ről; csak node-okat, éleket, relációkat és típusokat kezel.
+- **B) Website Knowledge modul** — az első **publisher** a Knowledge Graph felé. Ugyanúgy publisher lesz később a CRM, Google Ads, GA4, Clarity, Számlázás, Dokumentumok, Email, Calendar, NexoHabit, Mennyibe.hu stb.
 
-## 1) Közös alap (minden agent örökli)
-
-- **Runtime:** `runtime.server.ts` — AI SDK + tool loop, approval kapu, `pendingApprovals` per-request izolált.
-- **Provider:** OpenAI `gpt-4o-mini` (mind a 8 agent). Nincs fallback, provider váltás csak explicit kérésre.
-- **Memória:** `ai_memory` tábla (`memory_read` / `memory_write` core toolok). Subject_type / subject_id / key séma. Minden agent lát ugyanabból (közös memória).
-- **Handoff:** `core.handoff` domain — csak George orchestrator hívja. A specialisták nem hívják közvetlenül egymást.
-- **Nyelv:** magyarul, tömören. Adat csak toolon át, találgatás tilos.
-- **Audit:** `audit.server.ts` minden tool-hívást naplóz.
-
-**Közös tool domainek:** `core.handoff`, `core.memory`, `crm.*` (14 tool), `ads.google` (18 tool). Összesen kb. **35 tool** a rendszerben.
+Egyszerre EGY funkció szabály tartva. Először a Knowledge Graph csontváz (A), utána a Website Knowledge (B), amely már használja.
 
 ---
 
-## 2) Az agentek — mit tudnak, miből dolgoznak
+## A) Knowledge Graph modul (`src/lib/knowledge-graph/`)
 
-### A) Interaktív specialisták (chat UI-n)
+### A.1 Cél és hatókör
 
-#### 🎼 George — Orchestrator
-- **Feladat:** karmester. Eldönti, ki válaszoljon, összegez.
-- **Tool-ok:** `core.handoff`, `core.memory`, teljes CRM (`crm.search/companies/contacts/projects/leads/quotes/emails`).
-- **Miből dolgozik:** CRM adatbázis (Supabase, RLS-sel a user nevében), memória.
-- **Handoff célok:** Marketing → Scarlet, Sales → Timothy, Projekt → Boss. Michael (Ads) NEM szerepel a handoff listában — közvetlenül a UI-ban érhető el.
-- **Erősség:** egyszerű CRM keresés/összegzés önmagában is.
+Egy közös, domain-független gráf-tudásréteg. Bármely AI ügynök (George, Scarlet, Timothy, Boss, Michael) és bármely jövőbeli üzleti modul (Website, CRM, Ads, GA4, Clarity, Számlázás, Dokumentumok, Email, Calendar, NexoHabit, Mennyibe.hu) egyaránt olvassa és **publisher-ként** írja.
 
-#### 💌 Scarlet — Marketing
-- **Feladat:** lead-minősítés, kampány, csatorna, email aktivitás.
-- **Tool-ok:** `core.memory`, `crm.search/companies/contacts/leads/emails`, `marketing.workflow` (deklarált, de üres — nincs implementált tool).
-- **Miből dolgozik:** CRM lead/email tábla.
-- **Korlát:** nem foglalkozik sales lezárással, projekttel.
+Nem tulajdonol adatot — csak *hivatkozásokat* (`ref_table` + `ref_id`) és *kapcsolatokat*. Az igazság a forrás-modulokban él.
 
-#### 💼 Timothy — Sales
-- **Feladat:** pipeline, ajánlatok, utókövetés, megnyerés.
-- **Tool-ok:** teljes sales CRM + `sales_mark_won_with_project` (egyetlen valódi write tool a CRM oldalon).
-- **Miből dolgozik:** `crm_leads`, `crm_quotes`, `crm_followups`, `crm_emails`.
-- **Erősség:** megnyerést projekt-létrehozó folyamaton át javasol.
+### A.2 Modul-felépítés
 
-#### 📋 Boss — Projektvezető
-- **Feladat:** aktív projektek, határidők, kockázatok.
-- **Tool-ok:** `crm.projects/tasks/followups/meetings`, `pm.workflow` (deklarált, üres).
-- **Miből dolgozik:** projektek, feladatok, meetings.
+```
+src/lib/knowledge-graph/
+  ├── types.ts                    # Node/Edge/Relation TS típusok, kind enumok utility-jei
+  ├── registry.server.ts          # publisher-regiszter: melyik modul milyen kind-okat publikál
+  ├── nodes.server.ts             # upsertNode / getNode / deleteNode
+  ├── edges.server.ts             # upsertEdge / deleteEdge / findEdges
+  ├── projector.server.ts         # projectFromSource(kind, payload) — publisher belépési pont
+  ├── kg.functions.ts             # server functions: kg_get_node, kg_find_related, kg_stats
+  └── adapters/
+        └── (üres — a publisherek nem itt élnek, hanem a saját moduljuk mellett)
+```
 
-#### 📊 Michael — Google Ads specialista (Owner-only)
-- **Feladat:** Google Ads elemzés + write, üzleti cél alapján.
-- **Tool-ok (18):**
-  - **READ (13):** `list_ads_accounts`, `get_account_snapshot`, `list_campaigns`, `get_campaign_performance`, `list_ad_groups`, `list_keywords`, `list_search_terms`, `list_ads`, `get_budget_status`, `get_conversion_setup`, `get_google_recommendations`, `get_baseline_comparison`, `get_change_history`.
-  - **WRITE (5):** `pause_campaign`, `enable_campaign`, `update_campaign_budget`, `add_campaign_negative_keyword` (CONFIRM), `remove_campaign` (DANGEROUS). Mind támogatja `mode='dry_run' | 'execute'`.
-- **Miből dolgozik:** Google Ads API + `google_ads_snapshots` + `google_ads_change_log` + `google_ads_constitution` (dinamikusan `augmentSystemPrompt`-ban betöltve).
-- **Egyedi:** M4.5 Business Decision Layer (üzleti cél → alkotmány → baseline → change history → metrika → javaslat) + 9-mezős kötelező javaslati sablon + Recommendation Score.
-- **Handoffban nem szerepel** — külön UI belépéssel.
+A publisherek NEM a `knowledge-graph` alatt élnek. Minden domain-modul (Website, CRM, Ads, …) a saját mappájában tart egy `*-kg-publisher.server.ts` fájlt, ami hívja a `knowledge-graph/projector.server.ts`-t. Így a KG modul semmit sem tud a domain-modulokról — a függés irány mindig `domain → knowledge-graph`, soha nem fordítva.
 
-### B) Non-interaktív (tool nélküli) generátorok
+### A.3 Adatmodell (új Supabase táblák, public séma, RLS + GRANT)
 
-#### 📈 sales_briefing — Napi értékesítési riport
-- Tool nélkül fut. Snapshotot **user message-ben** kapja a frontendtől. Kötelező sablon: nyitott ajánlatok / lejárt utókövetés / ma hívandók / elakadt ajánlatok / javaslat.
+Írás `service_role`. Olvasás `authenticated`. `anon` semmit.
 
-#### 🗂️ pm_briefing — Napi projektvezetői riport
-- Snapshot-alapú. Sablon: aktív projektek / mai feladatok / közelgő határidők / hiányzó dokumentáció / kockázatok (🟢🟡🔴).
+**`kg_node_kinds`** — bővíthető típus-szótár
+- `kind text pk`, `label text`, `description text nullable`
+- `owner_module text` (pl. `website | crm | ads | ga4 | clarity | billing | docs | email | calendar | nexohabit | mennyibe | ai_os`) — informatív, ki a "publisher owner"
+- `is_enabled bool default true`
 
-#### 🧾 crm_summary — Snapshot összefoglaló
-- `AiSummaryDialog` használja. Frontend adja a CRM kontextust, ő rövid magyar szöveget ad.
+Kezdeti seed (M7-ben INSERT, üresen indul a legtöbb, csak deklarál):
+`website_page`, `website_entity`, `media_asset`, `pdf_document`, `blog_post`, `faq_item`, `reference_project`, `external_url`, `topic`,
+`crm_lead`, `crm_project`, `crm_company`, `crm_contact`, `crm_quote`, `crm_followup`, `crm_email_thread`,
+`google_ads_campaign`, `google_ads_ad_group`, `google_ads_ad`, `google_ads_keyword`,
+`ga4_event`, `clarity_recording`,
+`invoice`, `document`, `email_message`, `calendar_event`,
+`nexohabit_habit`, `mennyibe_item`,
+`ai_agent`, `ai_run`, `ai_tool_call`.
 
-#### 🔎 research_companies — B2B cégkutató
-- Timothy felügyelete alatt. Strukturált JSON, valós magyar cégek. `/sales/research` oldal.
+**`kg_relations`** — bővíthető reláció-szótár
+- `relation text pk`, `label text`, `description text nullable`
+- `inverse_relation text nullable fk → kg_relations.relation`
+- `default_direction text` CHECK: `directed | undirected`
+- `is_semantic bool default false`
+- `owner_module text` (informatív), `is_enabled bool default true`
 
----
+Kezdeti seed (M7-ben INSERT):
+- **Strukturális:** `describes | mentions | links_to | contains_media | belongs_to_source | has_entity | has_version | derived_from | authored_by | assigned_to`
+- **Üzleti (deklarálva, üres):** `landing_of_campaign | target_of_ad | tracked_by_ga4_event | recorded_by_clarity | originates_lead | supports_project | billed_in_invoice | quoted_in | booked_in_calendar | related_to_habit`
+- **Szemantikus AI (deklarálva, üres):** `related_to | describes_same_service | predecessor_of | successor_of | supports | details | contradicts | supersedes`
 
-## 3) Közös pontok / átfedések
+**`kg_nodes`**
+- `id uuid pk`
+- `kind text fk → kg_node_kinds.kind`
+- `ref_table text nullable`, `ref_id uuid nullable`, `ref_uri text nullable`
+- `label text` (cache)
+- `metadata jsonb` (kind-specifikus)
+- `created_at`, `updated_at`
+- `UNIQUE(kind, ref_table, ref_id)`
 
-| Terület | Ki használja |
-|---|---|
-| `ai_memory` (közös memória) | George, Scarlet, Timothy, Boss, Michael |
-| `crm_search`, `crm_list_companies`, `crm_list_leads` | George, Scarlet, Timothy (Boss nem lát leadet) |
-| `crm_emails` | George, Scarlet, Timothy |
-| `google_ads_*` | **kizárólag Michael** — teljesen izolált domain |
-| Provider/model (`gpt-4o-mini`) | mind |
-| Runtime + approval | mind az interaktív, briefing-ek nem — nincs tool |
-| Constitution / alkotmány | **csak Michael** (`google_ads_constitution`) |
-| Snapshot + baseline + change history | **csak Michael** (Google Ads domain) |
+**`kg_edges`**
+- `id uuid pk`
+- `from_node_id uuid fk → kg_nodes.id`
+- `to_node_id uuid fk → kg_nodes.id`
+- `relation text fk → kg_relations.relation`
+- `direction text` CHECK: `directed | undirected`
+- `weight numeric(4,3) nullable`, `confidence numeric(3,2) nullable`
+- `source text`: `manual | heuristic | ai_extraction | ai_vision | ai_semantic | crawl_link | import | domain_hook`
+- `origin_ref_table text nullable`, `origin_ref_id uuid nullable` (pl. mely `website_ai_jobs.id`-ből származik — a KG nem FK-zza cross-table, ez laza pointer)
+- `evidence jsonb nullable`
+- `valid_from timestamptz nullable`, `valid_to timestamptz nullable`
+- `metadata jsonb`
+- `created_at`, `created_by_user_id nullable`
+- `UNIQUE(from_node_id, to_node_id, relation)`
 
-**Fő szeparáció:** két elszigetelt világ.
-1. **CRM világ** (George + 3 specialista) — pipeline, projektek, emailek.
-2. **Google Ads világ** (Michael egyedül) — teljes külön adatréteg, alkotmány, döntési sablon.
+**`kg_edge_history`** (előkészítve, üresen indul) — `id`, `edge_id fk`, `changed_at`, `change_type` (`created|updated|deleted`), `previous_relation`, `previous_weight`, `previous_confidence`.
 
-A kettő között ma **nincs hídszerű összeköttetés**. Michael nem lát CRM leadeket, Scarlet nem lát Ads adatot.
+**`kg_publishers`** — futásidejű regiszter, ki mikor publikált utoljára és mennyit
+- `id uuid pk`
+- `module text` (pl. `website`, `crm`), `source_kind text` (pl. `landing`, `lead`)
+- `last_run_at timestamptz`
+- `nodes_upserted int`, `edges_upserted int`, `edges_removed int`
+- `status text`, `error_message text nullable`
 
----
+Ez adja a jövőbeli "Publisher health" UI-t.
 
-## 4) Ügynökönkénti hiánylista + fejlesztési ötletek
+### A.4 RLS
 
-### George (Orchestrator)
-- **Hiány:** nem tudja átirányítani Michaelhez — Ads kérdésekre saját maga vagy Scarlet válaszolna, Michael nincs a handoff listán.
-- **Hiány:** nincs "route to best agent" heurisztika naplózás — nehéz utólag látni, miért adott át.
-- **Ötlet:** Michael felvétele handoff célként (Owner-only szűréssel). Handoff-döntések logolása egy `agent_route_log` táblába.
+- `authenticated` → SELECT minden `kg_*` táblára (közös tudás).
+- `service_role` → ALL.
+- `anon` → semmi.
 
-### Scarlet (Marketing)
-- **Hiány:** `marketing.workflow` domain deklarálva, **nincs egyetlen tool sem** benne. Ma csak CRM lead-adatot lát, marketing-specifikus adata (GA4, GSC, Clarity, kampány) nincs.
-- **Hiány:** nem lát Google Ads adatot, pedig marketing specialista.
-- **Hiány:** nincs email kampány / hírlevél tool.
-- **Ötlet:** READ-only jogot kaphat Michael Google Ads snapshot-jaihoz (nem az API-hoz — a `google_ads_snapshots` táblához), hogy top-level marketing kép egyben álljon. Lead-forrás elemző tool (`analyze_lead_sources`).
+### A.5 API (server-side + AI OS)
 
-### Timothy (Sales)
-- **Hiány:** kizárólag CRM belső adatból dolgozik — nem lát külső jelet (weboldalról érkező érdeklődő, email-válaszidő stb.).
-- **Hiány:** `sales_mark_won_with_project` az egyetlen write tool — nincs pl. quote létrehozó, follow-up ütemező, sablon-email küldő.
-- **Hiány:** nincs "hot lead detector" — nincs scoring tool.
-- **Ötlet:** `create_quote_draft`, `schedule_followup`, `send_templated_email` (CONFIRM), lead-scoring tool.
+`src/lib/knowledge-graph/nodes.server.ts`:
+- `upsertNode({ kind, ref_table?, ref_id?, ref_uri?, label, metadata? })`
+- `getNodeByRef({ kind, ref_table, ref_id })`
+- `deleteNodeAndEdges({ node_id })` — soft cascade
 
-### Boss (Projektvezető)
-- **Hiány:** nem lát pénzügyi vetületet (projekt-jövedelmezőség, számlázás).
-- **Hiány:** nincs dokumentum-tartalom olvasás (csak létezés-ellenőrzés).
-- **Hiány:** nincs Gantt/timeline számítás — csak nyers határidő-listát ad.
-- **Ötlet:** dokumentum-parse tool (project meetings jegyzőkönyv → task lista), kockázat-score számító tool, kapacitás-tervező tool.
+`src/lib/knowledge-graph/edges.server.ts`:
+- `upsertEdge({ from_node_id, to_node_id, relation, ...opts })`
+- `syncEdges({ from_node_id, relation, target_node_ids: uuid[], source })` — idempotens: ami már ott van marad, ami hiányzik jön, ami plusz megy
+- `deleteEdges({ from_node_id?, to_node_id?, relation? })`
+- `findEdges({ node_id, relation?, direction?, limit? })`
 
-### Michael (Google Ads)
-- **Hiány:** csak Google Ads adat — nem lát mi történik a kattintás után (GA4 / Clarity / weboldal).
-- **Hiány:** nem ismeri a `vibateam.hu`-t (landing oldalak üzleti célja, CTA-k, konverziós út).
-- **Hiány:** nem lát Search Console-t (organikus jelenlét), így nem tudja értékelni, hogy egy kulcsszóra érdemes-e Ads-t költeni.
-- **Hiány:** nem lát CRM lead adatot — így nem tudja validálni, hogy egy Ads-ből érkező lead minőségi-e.
-- **Hiány:** nincs A/B teszt-értékelő tool, nincs ad copy generátor / értékelő.
-- **Ötlet (az elhalasztott M7):** site knowledge (`vibateam_pages`, landing↔kampány mapping) + GA4 + GSC + Clarity + Web Audit READ toolok.
+`src/lib/knowledge-graph/projector.server.ts`:
+- `projectFromSource({ module, source_kind, run_id?, batch: NodePayload[] })` — publisherek egységes belépési pontja, `kg_publishers` sort ír run végén.
 
-### sales_briefing / pm_briefing
-- **Hiány:** teljesen frontend-vezéreltek — ha nő a CRM méret, a snapshot user-message-ben nem fér el.
-- **Hiány:** nincs "változás előző napi briefinghez képest" — nem lát trendet.
-- **Ötlet:** briefing-eredmény tárolása egy `daily_briefings` táblában, hogy másnap "delta" is generálható legyen.
+Server functions (`src/lib/knowledge-graph/kg.functions.ts`):
+- `kg_get_node({ kind, ref_id?, ref_uri? })` — node + közvetlen szomszédok relációnként.
+- `kg_find_related({ kind, ref_id, relation?, direction?, limit? })` — 1-hop.
+- `kg_stats()` — node/edge count kind/relation szerint (Owner-only UI-hoz).
 
-### crm_summary
-- **Hiány:** csak frontend-adott kontextusból dolgozik, nem hív toolt — nem tud pontosítani.
-- **Ötlet:** "deep mode" — engedjük a `crm.search` toolt hívnia, ha a kontextus hiányos.
+AI OS tool domain: **`kg`** — a **`nodes.server`** és **`edges.server`** függvényekre épülő READ toolok. Minden agent kap hozzáférést a `kg` domainhez:
+- `kg_get_node`, `kg_find_related` — mindenki
+- `kg_stats` — Owner-only (`allowed_roles: ['owner']`).
 
-### research_companies
-- **Hiány:** hallucináció-kockázat — nincs valós adatforrás bekötve (nincs cégkereső API), csak a modell tudásából dolgozik.
-- **Hiány:** eredmény nem kerül a CRM-be automatikusan.
-- **Ötlet:** OPTEN/CÉGADAT API vagy Google Places bekötése; közvetlen "import as lead" gomb az eredmény mellé.
+Prompt-kiegészítés minden agenthez: *"Ha összefüggést keresel (mi kapcsolódik mihez, milyen kampányhoz tartozik egy landing, milyen leadek jönnek egy oldalról), hívd a kg_* toolt."*
 
----
+### A.6 Sprint felosztás — Knowledge Graph
 
-## 5) Architektúra-szintű megfigyelések (fejlesztési irány)
+**KG-1 — Adatmodell + seed + read toolok**
+- SQL migráció: `kg_node_kinds`, `kg_relations`, `kg_nodes`, `kg_edges`, `kg_edge_history` (üres), `kg_publishers`. RLS + GRANT. Seed INSERT-ek a fenti listákkal.
+- `nodes.server.ts`, `edges.server.ts`, `projector.server.ts` implementáció (tesztek nélkül a Lovable szabály szerint).
+- `kg.functions.ts` server function-ök.
+- AI OS: `src/lib/ai-os/adapters/kg-tools.server.ts` — 3 READ tool regisztráció a `kg` domainbe.
+- Bootstrap regisztráció.
+- Agent `tool_domains` bővítés minden interaktív agentnek (george, scarlet, timothy, boss, michael).
 
-1. **Két izolált világ** — CRM és Google Ads közt nincs adatáramlás. Az első valódi híd: Michael lássa a lead-eredményt (`crm_leads` READ), a CRM oldal (Timothy/Scarlet) lássa az Ads snapshot-okat READ-only.
-2. **`marketing.workflow` és `pm.workflow` deklarált, de üres domainek** — Scarlet és Boss szerepe így nem teljes; toolok nélkül csak CRM-olvasók.
-3. **Csak Michaelnek van "alkotmánya" (Constitution) és "döntési sablonja" (M4.5)**. Timothy sales-döntéseit, Scarlet minősítéseit sem szabályozza semmilyen `*_constitution`. Egy általánosított `agent_constitution` tábla (agent_id-hez kötött szabályokkal) minden specialistát üzleti korlátok közé tehet.
-4. **Csak Michaelnek van snapshot + baseline + change history** — Sales/PM oldalon nincs baseline-eltérés-számítás, pedig "elakadt ajánlat", "pipeline egészség", "projekt-csúszás" tipikus baseline-alapú fogalmak. `sales_snapshots`, `pm_snapshots` + generikus `get_baseline_comparison(source, ...)` tool megnyitná az utat.
-5. **Csak Michaelnek van Dry Run + Approval** — Timothy jövőbeli write toolok (email küldés, quote létrehozás) ugyanezt a mintát kellene kövessék. A `runtime.server.ts` már támogatja, nem kell új infrastruktúra.
-6. **Nincs "cross-agent" memória-scope** — a `ai_memory` közös, de nincs formális "melyik agent írta / kinek szól" mező, ami eltérő szereplőknél zaj-forrás.
-7. **Nincs agent-telemetria** — mennyi tokent égetett melyik agent, melyik tool a leglassabb, melyik hívás bukott approval-ra. Egy `agent_run_metrics` view megnyitná az optimalizálási lehetőségeket.
-8. **Provider-diverzitás nulla** — mind `gpt-4o-mini`. Michael döntési szerepére (10-15 lépéses tool loop, komplex sablon) egy erősebb model (pl. `gpt-4o` vagy `o3-mini`) kifejezetten indokolt lenne.
+**KG-2 — Owner "Publisher health" oldal**
+- `src/routes/_authenticated/settings.knowledge-graph.tsx` (Owner-only).
+- Nézetek: kind eloszlás (`kg_stats`), reláció eloszlás, publisher-lista utolsó futással, node keresés (kind + label), 1 node "szomszéd" nézet.
 
----
-
-## 6) Prioritási javaslat (nem sprint-terv, hanem ötlet-rangsor)
-
-| # | Fejlesztés | Miért fontos | Kit érint |
-|---|---|---|---|
-| 1 | George → Michael handoff | Ma Ads kérdésre a rossz agent válaszol | George, Michael |
-| 2 | Michael lássa a `crm_leads` READ-et | Ads lead-minőség validáció | Michael |
-| 3 | `marketing.workflow` toolok Scarletnek | Ma üres domain, Scarlet féllábú | Scarlet |
-| 4 | Timothy write toolok (`create_quote_draft`, `schedule_followup`) | CRM ma szinte csak olvasható AI-nak | Timothy |
-| 5 | Boss dokumentum-parse tool | Meeting-jegyzőkönyvekből task-generálás | Boss |
-| 6 | Generikus `snapshot + baseline` Sales/PM oldalra | Baseline-tudás ne csak Michael privilégiuma legyen | Timothy, Boss |
-| 7 | Agent telemetria (`agent_run_metrics`) | Cost/latency láthatóság | mind |
-| 8 | Michael erősebb model (pl. `gpt-4o`) | Komplex döntési sablon minőség-javulás | Michael |
-| 9 | vibateam.hu site knowledge (eredeti M7-terv szűkített verzió) | Michael post-click kontextus | Michael |
-| 10 | GA4 / GSC / Clarity READ | Post-click / organikus / frustration jelek | Michael |
+Ez lezárja a KG modult. Utána indul a Website Knowledge, ami már publisher.
 
 ---
 
-Fejlesztés csak **egy** kiválasztott irányban indul, jóváhagyás után. Egyszerre EGY funkció — a project szabály változatlan.
+## B) Website Knowledge modul (`src/lib/website-knowledge/`)
+
+### B.1 Cél és hatókör
+
+A vibateam.hu tartalmának automatikus indexelése, verziózása, AI-összefoglalása és entitás-kinyerése. **Publisher a Knowledge Graph felé** — minden változás után csomópontokat és éleket publikál.
+
+Az architektúra készen áll képek (Vision AI), dokumentumok (PDF stb.) későbbi bevonására, és üzemeltetési telemetriára.
+
+### B.2 Modul-felépítés
+
+```
+src/lib/website-knowledge/
+  ├── crawler.server.ts            # sitemap fetch, HTML parse, hash, verzió + change
+  ├── summarizer.server.ts         # gpt-4o-mini strukturált JSON (summary + entities)
+  ├── ai-pricing.ts                # modell-tarifák a website_ai_jobs költséghez
+  ├── kg-publisher.server.ts       # →  knowledge-graph/projector.server.ts hívása
+  ├── refresh.functions.ts         # Owner-only manuális refresh server fn-ek
+  └── (routes: /api/public/website-knowledge/netlify-webhook.ts)
+```
+
+A `kg-publisher.server.ts` az egyetlen fájl, ami a `knowledge-graph`-tól függ — a többi modul nem is tudja, hogy létezik a gráf.
+
+### B.3 Adatmodell (v4 változatlan, kivéve: nincs KG-tábla itt)
+
+Minden `website_*` tábla úgy marad, ahogy v4-ben terveztük:
+- `website_sources`, `website_pages` (`asset_kind`), `website_page_versions`, `website_page_changes`, blokk-táblák, `website_page_summaries`, `website_entities`, `website_page_entities`, `website_media` (Vision-ready mezőkkel), `website_media_entities`, `website_crawl_runs`, `website_ai_jobs`.
+
+**Amit kihagyunk:** `website_page_links` és minden `kg_*` tábla — ez utóbbiak most a Knowledge Graph modulhoz tartoznak.
+
+RLS változatlan: `authenticated` SELECT, `service_role` ALL, `anon` semmit.
+
+### B.4 Crawl folyamat
+
+Változatlan v4-hez képest, két új lépéssel a végén:
+
+```text
+Netlify deploy ─▶ webhook ─▶ website_crawl_runs
+                                │
+                                ▼
+                     oldalanként:
+                       ├─ fetch + hash + SKIP/verzió/diff
+                       ├─ blokkok újraírása
+                       ├─ website_media UPSERT
+                       ├─ AI summary + entity extraction
+                       ├─ website_ai_jobs INSERT
+                       │
+                       ▼
+                     kg-publisher.server.ts.publishPageChange(page_id)
+                       └─ projectFromSource({ module: 'website',
+                                              source_kind: 'landing',
+                                              run_id, batch })
+                            ├─ node upsert: website_page, website_entity
+                            └─ edge sync:  has_entity, links_to
+```
+
+A publisher **idempotens** és **determinisztikus** — bármikor újrafuttatható, ugyanazt az állapotot állítja elő. Kézi backfill: Owner UI-n "Rebuild KG projections" gomb (KG-2-ben ez már megvan a Publisher health oldalon, itt nem kell duplikálni).
+
+### B.5 AI OS integráció
+
+Új domain: **`website.knowledge`** — 10 READ tool (változatlan v4-hez):
+- `website_search_pages`, `website_get_page`, `website_list_pages`, `website_get_summary`, `website_search_by_entity`, `website_list_entities`, `website_get_page_history`, `website_get_page_diff`, `website_list_media`, `website_crawl_status` (Owner-only részletek).
+
+Agentek: mindenki kap `website.knowledge` domaint. A `kg` domain már a KG modulból regisztrálódott, így egy website-kérdésre az agent szabadon kombinálhatja a `website_*` és a `kg_*` toolokat (pl. "listázd a szolgáltatás-oldalakat és mutasd, melyikhez tartozik kampány" — ma az utóbbi rész üres eredményt ad, de a hívás alakja már működik).
+
+Michael M4.5 Business Decision Layer változatlan.
+
+### B.6 Manuális refresh (Owner only) + settings UI
+
+Változatlan v4-hez:
+- `refreshCurrentPage`, `refreshPages`, `refreshEntireWebsite`, `getLatestRun`, `listRuns`, `getRunDetails`, `listPages`, `getPageHistory`, `getPageDiff`.
+- `src/routes/_authenticated/settings.website-knowledge.tsx` — status, run history (AI cost oszlopok), oldalanként Refresh, batch, entire, oldal-előzmények + diff, entity browser.
+
+### B.7 Netlify
+
+Változatlan: outgoing webhook (`Deploy succeeded`) → `https://crm-vibateam-hu.lovable.app/api/public/website-knowledge/netlify-webhook`, secret: `NETLIFY_WEBHOOK_SECRET`.
+
+### B.8 Sprint felosztás — Website Knowledge
+
+**WK-1 — Adatmodell + webhook csontváz**
+- SQL migráció csak a `website_*` táblákra. RLS + GRANT.
+- Public webhook route HMAC-cal, run insert. Crawler stub. `kg-publisher.server.ts` stub (üres call).
+- Owner-only settings oldal placeholder + run listázás.
+
+**WK-2 — Crawler + verziókezelés + diff + media metaadat**
+- Sitemap, linkedom parse, blokk-extractors, `website_media` alt UPSERT.
+- Hash + verzió + change insert.
+- Settings oldal: run history, page-lista, page history + diff.
+
+**WK-3 — AI summary + entity extraction + AI jobs telemetria**
+- gpt-4o-mini strukturált JSON, két hívás/oldal.
+- `website_ai_jobs` minden hívásra, `website_crawl_runs` AI aggregátumok.
+- Settings oldal: summary preview, entity browser, run breakdown.
+
+**WK-4 — KG publisher bekötése**
+- `kg-publisher.server.ts` élesítése: page + entity node UPSERT, `has_entity` és `links_to` edge sync.
+- `kg_publishers` sort ír minden crawl végén.
+- Settings oldalon "Utolsó KG publikáció" mini-státusz.
+
+**WK-5 — Manuális refresh (Owner)**
+- Server function-ök + UI: per-page/batch/entire refresh, jogosultság-check.
+
+**WK-6 — Website AI OS toolok + agent hozzáférés**
+- `website-tools.server.ts` (10 READ tool). Bootstrap regisztráció.
+- Agent `tool_domains` bővítés `website.knowledge`-dzsel + rövid prompt-kiegészítés minden agentnek.
+
+---
+
+## Végrehajtási sorrend
+
+1. **KG-1** — Knowledge Graph csontváz (tábla, kg-tools, agentek).
+2. **KG-2** — Owner Publisher health UI.
+3. **WK-1** — Website adatmodell + webhook csontváz.
+4. **WK-2** — Crawler + verziózás.
+5. **WK-3** — AI summary + entity + telemetria.
+6. **WK-4** — Website → KG publisher élesítés.
+7. **WK-5** — Manuális refresh Owner UI.
+8. **WK-6** — Website AI OS toolok + agent hozzáférés.
+
+Minden sprint után jóváhagyás, csak utána indul a következő.
+
+---
+
+## Amit **nem** csinálunk M7-ben
+
+- Vision AI feldolgozás (séma áll csak készen).
+- PDF/dokumentum crawler (`asset_kind` + `website_sources.kind` áll csak készen).
+- Nem-website publisherek (CRM, Ads, GA4, Clarity, Számlázás, Docs, Email, Calendar, NexoHabit, Mennyibe) — a KG oldal fogadókész, de a saját moduljaik saját sprintjeikben kötnek be.
+- AI szemantikus reláció-generátor (`related_to`, `describes_same_service`, `predecessor_of` stb.) — reláció-katalógus deklarálva, tölteni későbbi AI job fogja.
+- Gráf-vizualizáció (D3/Cytoscape) — adat rendelkezésre áll, UI külön kérdés.
+- Embedding / vector search.
+- AI cost dashboard — adat kész, UI külön sprint.
+
+---
+
+## Kompatibilitás M1–M6-tal
+
+- Nem érinti a `runtime.server.ts`, `agents.ts` Michael prompt, Google Ads toolok, CRM toolok viselkedését. Két új domain (`kg`, `website.knowledge`) + agent `tool_domains` bővítés.
+- Nem vezet be új runtime infrastruktúrát.
+- `ai_memory` érintetlen.
+- Későbbi CRM/Ads publisherek **additívek** lesznek: minden domain-modul kap egy `*-kg-publisher.server.ts`-t a saját mappájában, ami hívja a `knowledge-graph/projector.server.ts`-t. A KG modul soha nem függ vissza.
+
+---
+
+## Kockázatok
+
+- **KG modul stabilitása kritikus**: mivel minden későbbi publisher rá épül, a `projectFromSource` és `syncEdges` szerződését KG-1-ben véglegesíteni kell. Változtatás cascade-elne minden publisherre.
+- **KG edge robbanás**: nagy site + jövőbeli CRM/Ads → százezres edge. Indexek: `(from_node_id, relation)`, `(to_node_id, relation)`, `(relation)`. Nagyságrend M7 végén 5–15k edge — semmi ijesztő.
+- **Cross-table `ref_id` konzisztencia**: nem FK. Szabály: minden publisher felelős a saját node-jainak "temetéséért" (`deleteNodeAndEdges`) hard-delete-nél. Website-nál nincs hard-delete (csak `is_indexable=false`), így M7-ben nem érint.
+- **Duplikált node**: `UNIQUE(kind, ref_table, ref_id)` biztosítja, az UPSERT idempotens.
+- **Publisher széttöredezés**: minden új publisher kötelezően a `projector.server.ts.projectFromSource`-t hívja, egyéb közvetlen `kg_nodes` INSERT tiltott (kódszabály). Így egy helyen látszik minden publikáció + `kg_publishers` audit.
+- **Linkedom node-only globals** → fallback regex extractor (Website oldal).
+- **AI költség** → `website_ai_jobs` monitorozza.
+- **Netlify duplikált webhook** → `netlify_deploy_id` dedup.
