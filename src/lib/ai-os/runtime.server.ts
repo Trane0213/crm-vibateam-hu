@@ -70,7 +70,7 @@ export async function runAgent(
   const memory = await getMemory(userClient, subjects, { limit: 50 }).catch(() => []);
 
   // 3) System prompt összeállítás.
-  const systemPrompt = agent.buildSystemPrompt({
+  const promptCtx = {
     userId: input.userId,
     userRole: input.userRole,
     nowIso: new Date().toISOString(),
@@ -80,7 +80,18 @@ export async function runAgent(
       key: m.key,
       value: m.value,
     })),
-  });
+  };
+  let systemPrompt = agent.buildSystemPrompt(promptCtx);
+  if (agent.augmentSystemPrompt) {
+    try {
+      const extra = await agent.augmentSystemPrompt(promptCtx, userClient);
+      if (extra && extra.trim()) systemPrompt = `${systemPrompt}\n\n${extra.trim()}`;
+    } catch (e) {
+      // Az augment nem-kritikus — logoljuk és futunk tovább.
+      // eslint-disable-next-line no-console
+      console.warn(`[ai-os] augmentSystemPrompt failed for ${agent.id}:`, e);
+    }
+  }
 
   // 4) Run létrehozás.
   const runId = await startRun(adminClient, {
