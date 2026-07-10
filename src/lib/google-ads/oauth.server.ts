@@ -12,6 +12,8 @@ export const GOOGLE_ADS_SCOPES = [
   "https://www.googleapis.com/auth/adwords",
 ];
 
+const GOOGLE_ADS_CALLBACK_PATH = "/api/google-ads/oauth/callback";
+
 function creds() {
   const id = process.env.GOOGLE_ADS_CLIENT_ID;
   const secret = process.env.GOOGLE_ADS_CLIENT_SECRET;
@@ -24,30 +26,117 @@ function creds() {
 }
 
 export function buildRedirectUri(request: Request): string {
+  return resolveRedirectUri(request).redirectUri;
+}
+
+export type RedirectUriResolution = {
+  redirectUri: string;
+  source: string;
+  candidates: Array<{ source: string; value: string; accepted: boolean; reason?: string }>;
+};
+
+function firstHeaderValue(value: string | null): string | null {
+  const first = value?.split(",")[0]?.trim();
+  return first || null;
+}
+
+function isLocalValue(value: string): boolean {
+  return /(^|\/\/|\.|:)localhost(?::|\/|$)|(^|\/\/|\.)127\.0\.0\.1(?::|\/|$)/i.test(value);
+}
+
+function normalizeOrigin(raw: string): string | null {
+  const value = raw.trim().replace(/\/$/, "");
+  if (!value) return null;
+  try {
+    const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    const url = new URL(withProtocol);
+    if (!/^https?:$/i.test(url.protocol)) return null;
+    return url.origin;
+  } catch {
+    return null;
+  }
+}
+
+function canonicalizeLovableOrigin(origin: string): string {
+  const url = new URL(origin);
+  const previewProjectId = url.hostname.match(/^([0-9a-f-]{36})\.lovableproject\.com$/i)?.[1];
+  if (previewProjectId) {
+    return `https://id-preview--${previewProjectId}.lovable.app`;
+  }
+  return origin;
+}
+
+function callbackForOrigin(origin: string): string {
+  return `${canonicalizeLovableOrigin(origin)}${GOOGLE_ADS_CALLBACK_PATH}`;
+}
+
+export function resolveRedirectUri(request: Request): RedirectUriResolution {
+  const candidates: RedirectUriResolution["candidates"] = [];
+
+  const accept = (source: string, raw: string | null | undefined, rejectLocal = true): string | null => {
+    if (!raw) {
+      candidates.push({ source, value: "", accepted: false, reason: "missing" });
+      return null;
+    }
+    const value = raw.trim();
+    if (!value) {
+      candidates.push({ source, value: "", accepted: false, reason: "empty" });
+      return null;
+    }
+    if (rejectLocal && isLocalValue(value)) {
+      candidates.push({ source, value, accepted: false, reason: "local/internal" });
+      return null;
+    }
+    candidates.push({ source, value, accepted: true });
+    return value;
+  };
+
   const explicit = process.env.GOOGLE_ADS_OAUTH_REDIRECT_URI;
-  if (explicit) return explicit;
-  // A request.url a proxy mögött `https://localhost:8080/...` lehet — a valódi
-  // publikus origint a `Origin` / `Referer` / `X-Forwarded-*` headerekből
-  // állítjuk össze. Fallback: request.url origin.
+  const explicitRedirect = accept("GOOGLE_ADS_OAUTH_REDIRECT_URI", explicit, false);
+  if (explicitRedirect) return { redirectUri: explicitRedirect, source: "GOOGLE_ADS_OAUTH_REDIRECT_URI", candidates };
+
+  const explicitOrigin = normalizeOrigin(process.env.GOOGLE_ADS_OAUTH_PUBLIC_ORIGIN ?? "");
+  const configuredOrigin = accept(
+    "GOOGLE_ADS_OAUTH_PUBLIC_ORIGIN",
+    explicitOrigin ? callbackForOrigin(explicitOrigin) : null,
+    false,
+  );
+  if (configuredOrigin) return { redirectUri: configuredOrigin, source: "GOOGLE_ADS_OAUTH_PUBLIC_ORIGIN", candidates };
+
+  // A request.url a proxy mögött `https://localhost:8080/...` lehet. Ezért először
+  // a proxy által küldött publikus hostot használjuk; az Origin/Referer csak
+  // másodlagos fallback, mert iframe/editor környezetben nem mindig az app hostja.
   const h = request.headers;
-  const origin = h.get("origin");
-  if (origin && !/localhost|127\.0\.0\.1/i.test(origin)) {
-    return `${origin}/api/google-ads/oauth/callback`;
-  }
-  const referer = h.get("referer");
+  const fwdProto = firstHeaderValue(h.get("x-forwarded-proto")) ?? "https";
+  const fwdHost = firstHeaderValue(h.get("x-forwarded-host"));
+  const fwdOrigin = fwdHost ? normalizeOrigin(`${fwdProto}://${fwdHost}`) : null;
+  const forwardedRedirect = accept("x-forwarded-host", fwdOrigin ? callbackForOrigin(fwdOrigin) : null);
+  if (forwardedRedirect) return { redirectUri: forwardedRedirect, source: "x-forwarded-host", candidates };
+
+  const host = firstHeaderValue(h.get("host"));
+  const hostOrigin = host ? normalizeOrigin(`${fwdProto}://${host}`) : null;
+  const hostRedirect = accept("host", hostOrigin ? callbackForOrigin(hostOrigin) : null);
+  if (hostRedirect) return { redirectUri: hostRedirect, source: "host", candidates };
+
+  const requestOrigin = normalizeOrigin(new URL(request.url).origin);
+  const requestRedirect = accept("request.url", requestOrigin ? callbackForOrigin(requestOrigin) : null);
+  if (requestRedirect) return { redirectUri: requestRedirect, source: "request.url", candidates };
+
+  const origin = normalizeOrigin(firstHeaderValue(h.get("origin")) ?? "");
+  const originRedirect = accept("origin", origin ? callbackForOrigin(origin) : null);
+  if (originRedirect) return { redirectUri: originRedirect, source: "origin", candidates };
+
+  const referer = firstHeaderValue(h.get("referer"));
+  let refererOrigin: string | null = null;
   if (referer) {
-    try {
-      const o = new URL(referer).origin;
-      if (!/localhost|127\.0\.0\.1/i.test(o)) return `${o}/api/google-ads/oauth/callback`;
-    } catch { /* ignore */ }
+    try { refererOrigin = new URL(referer).origin; } catch { /* ignore */ }
   }
-  const fwdProto = h.get("x-forwarded-proto") ?? "https";
-  const fwdHost = h.get("x-forwarded-host") ?? h.get("host");
-  if (fwdHost && !/localhost|127\.0\.0\.1/i.test(fwdHost)) {
-    return `${fwdProto}://${fwdHost}/api/google-ads/oauth/callback`;
-  }
-  const url = new URL(request.url);
-  return `${url.origin}/api/google-ads/oauth/callback`;
+  const refererRedirect = accept("referer", refererOrigin ? callbackForOrigin(refererOrigin) : null);
+  if (refererRedirect) return { redirectUri: refererRedirect, source: "referer", candidates };
+
+  const localFallback = callbackForOrigin(new URL(request.url).origin);
+  candidates.push({ source: "local fallback", value: localFallback, accepted: true, reason: "no public origin found" });
+  return { redirectUri: localFallback, source: "local fallback", candidates };
 }
 
 export function buildAuthorizationUrl(opts: { state: string; redirectUri: string; loginHint?: string }): string {
@@ -64,6 +153,18 @@ export function buildAuthorizationUrl(opts: { state: string; redirectUri: string
   });
   if (opts.loginHint) params.set("login_hint", opts.loginHint);
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+}
+
+export function describeAuthorizationUrl(authorizationUrl: string) {
+  const url = new URL(authorizationUrl);
+  return {
+    authorize_url: authorizationUrl,
+    client_id: url.searchParams.get("client_id") ?? "",
+    redirect_uri: url.searchParams.get("redirect_uri") ?? "",
+    scope: url.searchParams.get("scope") ?? "",
+    state: url.searchParams.get("state") ?? "",
+    state_length: url.searchParams.get("state")?.length ?? 0,
+  };
 }
 
 export type GoogleTokenResponse = {
