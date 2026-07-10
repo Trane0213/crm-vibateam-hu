@@ -116,6 +116,10 @@ const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: "missing-docs",  label: "Hiányzó dokumentáció", icon: ClipboardList, prompt: "Mely aktív projekteknek nincs egyetlen dokumentumuk sem? Adj listát." },
     { id: "risks",         label: "Kockázatos projektek", icon: AlertOctagon,  prompt: "Mely projektek kockázatosak (lejárt feladat, nincs utókövetés, nincs dokumentum)? Indoklással." },
   ],
+  ads: [
+    { id: "intro",         label: "Mutatkozz be",        icon: Target,        prompt: "Mutatkozz be röviden: ki vagy, mi az elsődleges célod, és mikor tudsz éles Google Ads adattal dolgozni." },
+    { id: "scope",         label: "Mit tudsz csinálni?", icon: BarChart3,     prompt: "Sorold fel, milyen jellegű elemzéseket, javaslatokat és beavatkozásokat fogsz tudni támogatni, ha aktiválják a Google Ads toolokat. Ne találj ki adatot." },
+  ],
 };
 
 type AgentMeta = {
