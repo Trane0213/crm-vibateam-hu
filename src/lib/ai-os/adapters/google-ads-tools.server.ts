@@ -13,13 +13,16 @@
 
 import { registerTool } from "../tool-registry";
 import {
+  adsMutate,
   fromMicros,
+  GOOGLE_ADS_API_VERSION,
   gaqlSearch,
   listAccessibleCustomers,
   loadConnection,
   periodRange,
   resolveCustomerId,
   safeNum,
+  writeChangeLog,
   writeSnapshot,
 } from "@/lib/google-ads/client.server";
 
@@ -701,15 +704,14 @@ export function registerGoogleAdsTools() {
   );
 
   // ------------------------------------------------------------------
-  // pause_campaign — M5 demo WRITE tool. Csak dry_run módban működik éles
-  // toolként; execute az M6-ban lesz elérhető. A runtime approval infra
-  // teljes útját ez a tool próbálja végig.
+  // pause_campaign — M6-tól ÉLES WRITE tool (CONFIRM approval).
+  // Dry run: csak tervet ad vissza. Execute: Google Ads mutate + change_log.
   // ------------------------------------------------------------------
   registerTool(
     {
       name: "pause_campaign",
       description:
-        "Kampány szüneteltetése (ENABLED → PAUSED). M5-ben csak dry_run futtatható — a végrehajtást (mode='execute') az M6 aktiválja. Dry run: lekéri a kampány aktuális állapotát és visszaadja a tervezett API-hívást; NEM módosít.",
+        "Kampány szüneteltetése (ENABLED → PAUSED). Dry run: tervet ad vissza. Execute: valós Google Ads mutation + change_log bejegyzés (CONFIRM approval).",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       approval: "confirm",
@@ -720,8 +722,8 @@ export function registerGoogleAdsTools() {
         properties: {
           customer_id: { type: "string", description: "Opcionális; alapból a kapcsolat aktív Customer ID-ja." },
           campaign_id: { type: "string", description: "A szüneteltetendő kampány id-ja." },
-          reason: { type: "string", description: "Rövid üzleti indok (bekerül a change_log-ba, ha M6-ban execute)." },
-          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run", description: "M5-ben csak 'dry_run' engedélyezett; 'execute' M6-tól." },
+          reason: { type: "string", description: "Rövid üzleti indok (bekerül a change_log-ba)." },
+          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run" },
         },
       },
     },
@@ -732,7 +734,6 @@ export function registerGoogleAdsTools() {
         const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
         const campaignId = String(args.campaign_id ?? "").trim();
         if (!campaignId) return fail("campaign_id kötelező.");
-        // Aktuális állapot lekérése — csak olvasás.
         const rows = await gaqlSearch(
           conn, cid,
           `SELECT campaign.id, campaign.name, campaign.status FROM campaign WHERE campaign.id = ${campaignId}`,
@@ -740,12 +741,13 @@ export function registerGoogleAdsTools() {
         );
         const c: any = rows[0]?.campaign;
         if (!c?.id) return fail(`Kampány nem található: ${campaignId} (customer ${cid}).`);
+        const resourceName = `customers/${cid}/campaigns/${campaignId}`;
         const plan = {
           method: "POST",
-          endpoint: `https://googleads.googleapis.com/v17/customers/${cid}/campaigns:mutate`,
+          endpoint: `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${cid}/campaigns:mutate`,
           operation: "update",
           update_mask: "status",
-          resource_name: `customers/${cid}/campaigns/${campaignId}`,
+          resource_name: resourceName,
           field: "status",
           before: c.status,
           after: "PAUSED",
@@ -764,14 +766,261 @@ export function registerGoogleAdsTools() {
             dry_run: true,
             campaign: { id: c.id, name: c.name, status: c.status },
             plan,
-            note: "Ez egy előnézet. Semmilyen módosítás nem történt. Az éles végrehajtást az M6 aktiválja.",
+            note: "Ez egy előnézet. Semmilyen módosítás nem történt.",
           });
         }
-        // Execute: M5-ben nem engedélyezett — approval megtörtént, de a mutation
-        // szándékosan hibát ad, hogy az infra tesztelhető legyen éles hívás nélkül.
-        return fail(
-          "Az éles pause_campaign az M6-ban lesz elérhető. Használd mode='dry_run'-t az előnézethez.",
+        // M6 EXECUTE
+        const resp = await adsMutate(conn, cid, "campaigns:mutate", {
+          operations: [{ update: { resourceName, status: "PAUSED" }, updateMask: "status" }],
+        });
+        await writeChangeLog(ctx.supabaseUser, {
+          user_id: ctx.userId, customer_id: cid,
+          entity: "campaign", entity_id: String(campaignId),
+          field: "status", old_value: c.status, new_value: "PAUSED",
+          reason: (args.reason as string) ?? null,
+        });
+        return ok({
+          dry_run: false, executed: true,
+          campaign: { id: c.id, name: c.name, status: "PAUSED" },
+          previous_status: c.status,
+          response: resp,
+        });
+      } catch (e) { return fail(e); }
+    },
+  );
+
+  // ------------------------------------------------------------------
+  // enable_campaign — CONFIRM (visszakapcsol PAUSED → ENABLED)
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "enable_campaign",
+      description: "Kampány újraindítása (PAUSED → ENABLED). CONFIRM approval. Dry run támogatott.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      approval: "confirm",
+      supports_dry_run: true,
+      parameters: {
+        type: "object",
+        required: ["campaign_id"],
+        properties: {
+          customer_id: { type: "string" },
+          campaign_id: { type: "string" },
+          reason: { type: "string" },
+          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run" },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const mode = (args.mode as string) === "execute" ? "execute" : "dry_run";
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const campaignId = String(args.campaign_id ?? "").trim();
+        if (!campaignId) return fail("campaign_id kötelező.");
+        const rows = await gaqlSearch(
+          conn, cid,
+          `SELECT campaign.id, campaign.name, campaign.status FROM campaign WHERE campaign.id = ${campaignId}`,
+          { pageSize: 1 },
         );
+        const c: any = rows[0]?.campaign;
+        if (!c?.id) return fail(`Kampány nem található: ${campaignId}.`);
+        if (c.status === "ENABLED") {
+          return ok({ dry_run: mode === "dry_run", no_op: true, campaign: { id: c.id, name: c.name, status: c.status }, message: "Már ENABLED." });
+        }
+        const resourceName = `customers/${cid}/campaigns/${campaignId}`;
+        const plan = { operation: "update", update_mask: "status", resource_name: resourceName, field: "status", before: c.status, after: "ENABLED", reason: (args.reason as string) ?? null };
+        if (mode === "dry_run") return ok({ dry_run: true, campaign: { id: c.id, name: c.name, status: c.status }, plan });
+        const resp = await adsMutate(conn, cid, "campaigns:mutate", {
+          operations: [{ update: { resourceName, status: "ENABLED" }, updateMask: "status" }],
+        });
+        await writeChangeLog(ctx.supabaseUser, {
+          user_id: ctx.userId, customer_id: cid, entity: "campaign", entity_id: String(campaignId),
+          field: "status", old_value: c.status, new_value: "ENABLED", reason: (args.reason as string) ?? null,
+        });
+        return ok({ dry_run: false, executed: true, campaign: { id: c.id, name: c.name, status: "ENABLED" }, previous_status: c.status, response: resp });
+      } catch (e) { return fail(e); }
+    },
+  );
+
+  // ------------------------------------------------------------------
+  // update_campaign_budget — CONFIRM
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "update_campaign_budget",
+      description: "Kampány napi keret módosítása (fiók pénzneme; pl. HUF). CONFIRM approval. Dry run támogatott.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      approval: "confirm",
+      supports_dry_run: true,
+      parameters: {
+        type: "object",
+        required: ["campaign_id", "new_daily_amount"],
+        properties: {
+          customer_id: { type: "string" },
+          campaign_id: { type: "string" },
+          new_daily_amount: { type: "number", description: "Új napi keret a fiók pénznemében (nem micros — pl. 5000 = 5000 HUF/nap)." },
+          reason: { type: "string" },
+          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run" },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const mode = (args.mode as string) === "execute" ? "execute" : "dry_run";
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const campaignId = String(args.campaign_id ?? "").trim();
+        const newAmount = Number(args.new_daily_amount);
+        if (!campaignId) return fail("campaign_id kötelező.");
+        if (!Number.isFinite(newAmount) || newAmount <= 0) return fail("new_daily_amount pozitív szám kell legyen.");
+        const rows = await gaqlSearch(
+          conn, cid,
+          `SELECT campaign.id, campaign.name, campaign_budget.id, campaign_budget.amount_micros FROM campaign WHERE campaign.id = ${campaignId}`,
+          { pageSize: 1 },
+        );
+        const r: any = rows[0];
+        const budgetId = r?.campaignBudget?.id;
+        if (!budgetId) return fail(`Nem található budget a kampányhoz: ${campaignId}.`);
+        const oldMicros = safeNum(r.campaignBudget.amountMicros);
+        const oldAmount = oldMicros / 1_000_000;
+        const newMicros = Math.round(newAmount * 1_000_000);
+        const resourceName = `customers/${cid}/campaignBudgets/${budgetId}`;
+        const plan = {
+          operation: "update", update_mask: "amount_micros",
+          resource_name: resourceName, field: "amount_micros",
+          before: oldAmount, after: newAmount,
+          delta_pct: oldAmount > 0 ? (newAmount - oldAmount) / oldAmount : null,
+          reason: (args.reason as string) ?? null,
+        };
+        if (mode === "dry_run") return ok({ dry_run: true, campaign: { id: r.campaign.id, name: r.campaign.name }, budget_id: budgetId, plan });
+        const resp = await adsMutate(conn, cid, "campaignBudgets:mutate", {
+          operations: [{ update: { resourceName, amountMicros: String(newMicros) }, updateMask: "amount_micros" }],
+        });
+        await writeChangeLog(ctx.supabaseUser, {
+          user_id: ctx.userId, customer_id: cid,
+          entity: "campaign_budget", entity_id: String(budgetId),
+          field: "amount_micros", old_value: String(oldMicros), new_value: String(newMicros),
+          reason: (args.reason as string) ?? null,
+        });
+        return ok({ dry_run: false, executed: true, campaign_id: campaignId, budget_id: budgetId, before: oldAmount, after: newAmount, response: resp });
+      } catch (e) { return fail(e); }
+    },
+  );
+
+  // ------------------------------------------------------------------
+  // add_campaign_negative_keyword — CONFIRM
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "add_campaign_negative_keyword",
+      description: "Negatív kulcsszó felvétele kampány szinten. CONFIRM approval. Dry run támogatott.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      approval: "confirm",
+      supports_dry_run: true,
+      parameters: {
+        type: "object",
+        required: ["campaign_id", "text"],
+        properties: {
+          customer_id: { type: "string" },
+          campaign_id: { type: "string" },
+          text: { type: "string", description: "A negatív kulcsszó szövege." },
+          match_type: { type: "string", enum: ["EXACT", "PHRASE", "BROAD"], default: "PHRASE" },
+          reason: { type: "string" },
+          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run" },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const mode = (args.mode as string) === "execute" ? "execute" : "dry_run";
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const campaignId = String(args.campaign_id ?? "").trim();
+        const text = String(args.text ?? "").trim();
+        const matchType = (args.match_type as string) || "PHRASE";
+        if (!campaignId || !text) return fail("campaign_id és text kötelező.");
+        const plan = {
+          operation: "create",
+          endpoint: `campaignCriteria:mutate`,
+          create: {
+            campaign: `customers/${cid}/campaigns/${campaignId}`,
+            negative: true,
+            keyword: { text, matchType },
+          },
+          reason: (args.reason as string) ?? null,
+        };
+        if (mode === "dry_run") return ok({ dry_run: true, campaign_id: campaignId, plan });
+        const resp = await adsMutate(conn, cid, "campaignCriteria:mutate", {
+          operations: [{ create: {
+            campaign: `customers/${cid}/campaigns/${campaignId}`,
+            negative: true,
+            keyword: { text, matchType },
+          } }],
+        });
+        await writeChangeLog(ctx.supabaseUser, {
+          user_id: ctx.userId, customer_id: cid,
+          entity: "campaign_negative_keyword", entity_id: String(campaignId),
+          field: "keyword", old_value: null, new_value: `${matchType}:${text}`,
+          reason: (args.reason as string) ?? null,
+        });
+        return ok({ dry_run: false, executed: true, campaign_id: campaignId, keyword: { text, matchType }, response: resp });
+      } catch (e) { return fail(e); }
+    },
+  );
+
+  // ------------------------------------------------------------------
+  // remove_campaign — DANGEROUS (irreverzibilis a Google oldalán: REMOVED)
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "remove_campaign",
+      description: "Kampány végleges eltávolítása (REMOVED). DANGEROUS — gépelt megerősítéssel. Dry run támogatott.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      approval: "dangerous",
+      supports_dry_run: true,
+      parameters: {
+        type: "object",
+        required: ["campaign_id", "reason"],
+        properties: {
+          customer_id: { type: "string" },
+          campaign_id: { type: "string" },
+          reason: { type: "string", description: "Kötelező üzleti indok (change_log-ba kerül)." },
+          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run" },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const mode = (args.mode as string) === "execute" ? "execute" : "dry_run";
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const campaignId = String(args.campaign_id ?? "").trim();
+        const reason = String(args.reason ?? "").trim();
+        if (!campaignId) return fail("campaign_id kötelező.");
+        if (!reason) return fail("reason kötelező (DANGEROUS művelet).");
+        const rows = await gaqlSearch(
+          conn, cid,
+          `SELECT campaign.id, campaign.name, campaign.status FROM campaign WHERE campaign.id = ${campaignId}`,
+          { pageSize: 1 },
+        );
+        const c: any = rows[0]?.campaign;
+        if (!c?.id) return fail(`Kampány nem található: ${campaignId}.`);
+        const resourceName = `customers/${cid}/campaigns/${campaignId}`;
+        const plan = { operation: "remove", resource_name: resourceName, before: c.status, after: "REMOVED", reason };
+        if (mode === "dry_run") return ok({ dry_run: true, campaign: { id: c.id, name: c.name, status: c.status }, plan, warning: "IRREVERZIBILIS művelet a Google Ads oldalán." });
+        const resp = await adsMutate(conn, cid, "campaigns:mutate", {
+          operations: [{ remove: resourceName }],
+        });
+        await writeChangeLog(ctx.supabaseUser, {
+          user_id: ctx.userId, customer_id: cid,
+          entity: "campaign", entity_id: String(campaignId),
+          field: "status", old_value: c.status, new_value: "REMOVED", reason,
+        });
+        return ok({ dry_run: false, executed: true, campaign: { id: c.id, name: c.name, status: "REMOVED" }, previous_status: c.status, response: resp });
       } catch (e) { return fail(e); }
     },
   );
