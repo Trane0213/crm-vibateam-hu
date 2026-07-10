@@ -37,12 +37,15 @@ function AiAssistantRoute() {
 }
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
+type ApprovalLevel = "safe" | "confirm" | "dangerous";
 type ToolApproval = {
   tool_call_id: string;
   tool_name: string;
   arguments_json: string;
   status: "pending" | "approved" | "rejected" | "error";
   error?: string;
+  approval?: ApprovalLevel;
+  supports_dry_run?: boolean;
 };
 type Msg = {
   id: string; role: "user" | "assistant"; content: string; at: number;
@@ -290,6 +293,8 @@ function AiAssistantPage() {
             tool_name: p.tool_name,
             arguments_json: p.arguments_json,
             status: "pending" as const,
+            approval: (p as any).approval,
+            supports_dry_run: (p as any).supports_dry_run,
           }))
         : undefined;
       const assistantMsg: Msg = {
@@ -565,24 +570,60 @@ function ToolApprovalCardView({ approval, onApprove, onReject }: {
 }) {
   let argsPretty = approval.arguments_json;
   try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
+  const level: ApprovalLevel = approval.approval ?? "confirm";
+  const [dangerText, setDangerText] = useState("");
+  const dangerOk = dangerText.trim().toUpperCase() === "MEGERŐSÍTEM";
   const tone = approval.status === "approved" ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
     : approval.status === "rejected" ? "border-muted bg-muted/30"
     : approval.status === "error" ? "border-destructive/40 bg-destructive/5"
+    : level === "dangerous" ? "border-destructive/50 bg-destructive/5"
     : "border-primary/30 bg-primary/5";
+  const levelBadge = level === "dangerous"
+    ? <Badge variant="destructive" className="text-[10px]">DANGEROUS</Badge>
+    : level === "confirm"
+      ? <Badge variant="outline" className="text-[10px] border-amber-500/50 text-amber-600 dark:text-amber-400">CONFIRM</Badge>
+      : <Badge variant="outline" className="text-[10px]">SAFE</Badge>;
   return (
     <div className={`mt-2 rounded-md border p-3 text-xs ${tone}`}>
       <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider">Jóváhagyás: {approval.tool_name}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wider">Jóváhagyás: {approval.tool_name}</span>
+          {levelBadge}
+          {approval.supports_dry_run && <Badge variant="outline" className="text-[10px]">dry_run támogatott</Badge>}
+        </div>
         {approval.status === "approved" && <Badge variant="outline" className="text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" />Végrehajtva</Badge>}
         {approval.status === "rejected" && <Badge variant="outline" className="text-[10px]">Elvetve</Badge>}
         {approval.status === "error" && <Badge variant="destructive" className="text-[10px]">Hiba</Badge>}
         {approval.status === "pending" && <Badge variant="outline" className="text-[10px]">Jóváhagyásra vár</Badge>}
       </div>
+      {level === "dangerous" && approval.status === "pending" && (
+        <div className="mb-2 rounded border border-destructive/40 bg-destructive/10 p-2">
+          <p className="mb-1 flex items-center gap-1 font-medium text-destructive">
+            <AlertTriangle className="h-3 w-3" /> Nagy kockázatú művelet (törlés / konverzió / bid strategy).
+          </p>
+          <p className="text-muted-foreground">A végrehajtáshoz gépeld be: <code className="rounded bg-background px-1">MEGERŐSÍTEM</code></p>
+        </div>
+      )}
       <pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>
       {approval.error && <p className="mt-2 text-destructive">{approval.error}</p>}
       {approval.status === "pending" && (
-        <div className="mt-3 flex gap-2">
-          <Button size="sm" className="h-7 px-2 text-[11px]" onClick={onApprove}>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {level === "dangerous" && (
+            <input
+              type="text"
+              value={dangerText}
+              onChange={(e) => setDangerText(e.target.value)}
+              placeholder="MEGERŐSÍTEM"
+              className="h-7 flex-1 min-w-[140px] rounded border border-destructive/40 bg-background px-2 text-[11px] outline-none focus:ring-1 focus:ring-destructive"
+            />
+          )}
+          <Button
+            size="sm"
+            variant={level === "dangerous" ? "destructive" : "default"}
+            className="h-7 px-2 text-[11px]"
+            onClick={onApprove}
+            disabled={level === "dangerous" && !dangerOk}
+          >
             <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és végrehajt
           </Button>
           <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>

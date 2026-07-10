@@ -20,6 +20,15 @@ export type ToolCall = {
 
 export type JsonSchema = Record<string, unknown>;
 
+/**
+ * Approval szint egy toolhoz — M5 approval infrastruktúra.
+ *   - safe:      írás nincs, jóváhagyás nem kell.
+ *   - confirm:   írás vagy hatással bíró művelet — egy jóváhagyás elég.
+ *   - dangerous: nagy kockázatú (delete, konverzió, tracking, bid strategy) —
+ *                a UI második, gépelt megerősítést kér.
+ */
+export type ApprovalLevel = "safe" | "confirm" | "dangerous";
+
 /** Egy tool publikus deklarációja a registryben — provider-független. */
 export type ToolSpec = {
   /** Egyedi név (snake_case). Ez kerül az LLM-nek. */
@@ -28,8 +37,23 @@ export type ToolSpec = {
   description: string;
   /** JSON Schema az input paraméterekre. */
   parameters: JsonSchema;
-  /** Ha write művelet → felhasználói jóváhagyás kötelező. */
+  /**
+   * LEGACY (M4-ig): ha true → confirm szintű jóváhagyás minden hívásra.
+   * M5-től új toolok az `approval` mezőt használják.
+   */
   needs_approval?: boolean;
+  /**
+   * M5 approval szint. Ha nincs megadva és `needs_approval` sincs → `"safe"`.
+   * Ha `needs_approval: true` és nincs `approval` → `"confirm"` (backward compat).
+   */
+  approval?: ApprovalLevel;
+  /**
+   * Ha true, a tool támogatja a `mode: "dry_run" | "execute"` paramétert.
+   * `dry_run` módban semmilyen mutation nem történik — csak a tervet adja vissza.
+   * `dry_run` hívás soha NEM igényel approval-t, akkor sem, ha `approval !== "safe"`.
+   * `execute` hívás minden nem-safe szinten approval-köteles.
+   */
+  supports_dry_run?: boolean;
   /** Kategória / domain (pl. "crm.companies", "crm.leads", "core.handoff"). */
   domain: string;
   /** Mely agentek hívhatják (id lista). Üres = bárki. */
