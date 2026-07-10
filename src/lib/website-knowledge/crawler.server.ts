@@ -175,6 +175,26 @@ export async function runCrawl(run_id: string): Promise<{
 
   await Promise.all(Array.from({ length: MAX_CONCURRENT }, worker));
 
+  // AI job aggregálás a runra
+  let ai_jobs_total = 0;
+  let ai_cost_usd = 0;
+  try {
+    const { data: jobs } = await admin
+      .from("website_ai_jobs")
+      .select("total_cost_usd")
+      .eq("run_id", run_id);
+    if (jobs) {
+      ai_jobs_total = jobs.length;
+      ai_cost_usd = jobs.reduce(
+        (sum, j) => sum + Number((j as { total_cost_usd: number | null }).total_cost_usd ?? 0),
+        0,
+      );
+      ai_cost_usd = Number(ai_cost_usd.toFixed(4));
+    }
+  } catch (e) {
+    console.error("[WK] ai_jobs aggregate failed", e);
+  }
+
   const finalStatus: "success" | "partial" | "failed" =
     stats.crawled === 0
       ? "failed"
@@ -191,6 +211,8 @@ export async function runCrawl(run_id: string): Promise<{
       pages_updated: stats.updated,
       pages_skipped: stats.skipped,
       pages_failed: stats.failed,
+      ai_jobs_total,
+      ai_cost_usd,
       error_message: hitDeadline ? `deadline reached after ${HARD_DEADLINE_MS}ms` : null,
       updated_at: new Date().toISOString(),
     })
