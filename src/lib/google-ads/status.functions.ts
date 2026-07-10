@@ -8,7 +8,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 
 export type GoogleAdsStatus = {
   connected: boolean;
-  status: "connected" | "revoked" | "error" | "disconnected";
+  status: "pending" | "connected" | "revoked" | "expired" | "error" | "disconnected";
   google_email: string | null;
   active_customer_id: string | null;
   login_customer_id: string | null;
@@ -33,7 +33,7 @@ export const getGoogleAdsStatus = createServerFn({ method: "GET" })
     const [{ data: conn }, { data: snap }] = await Promise.all([
       supabase
         .from("google_ads_connections")
-        .select("google_email, active_customer_id, login_customer_id, status, connected_at, last_error")
+        .select("google_email, active_customer_id, login_customer_id, manager_customer_id, status, connected_at, last_error")
         .maybeSingle(),
       supabase
         .from("google_ads_snapshots")
@@ -102,10 +102,10 @@ export const upsertConstitutionRule = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ context, data }) => {
-    const row = { ...data, updated_at: new Date().toISOString() };
+    const row = { ...data, user_id: context.userId };
     const { error } = await context.supabase
       .from("google_ads_constitution")
-      .upsert(row, { onConflict: "rule_key" });
+      .upsert(row, { onConflict: "user_id,rule_key" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
