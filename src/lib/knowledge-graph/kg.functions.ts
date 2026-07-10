@@ -23,10 +23,10 @@ type EdgeRow = {
   source: string;
   origin_ref_table: string | null;
   origin_ref_id: string | null;
-  evidence: unknown;
+  evidence: Record<string, unknown> | null;
   valid_from: string | null;
   valid_to: string | null;
-  metadata: unknown;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   created_by_user_id: string | null;
 };
