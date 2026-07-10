@@ -35,16 +35,17 @@ export const runAiAgent = createServerFn({ method: "POST" })
 
     const admin = getAdminClient();
 
-    // User role lekérés (best effort)
+    // User role lekérés (best effort). A CRM séma: users_profile.role_id → roles.name.
+    // Régebbi kód a nem létező `user_roles` táblát olvasta, ezért mindig null-t adott.
     let userRole: string | null = null;
     try {
-      const { data: roleRow } = await context.supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", context.userId)
-        .limit(1)
+      const { data: prof } = await context.supabase
+        .from("users_profile")
+        .select("role_id, roles:role_id ( name )")
+        .eq("auth_user_id", context.userId)
         .maybeSingle();
-      userRole = (roleRow as { role: string } | null)?.role ?? null;
+      const raw = (prof as any)?.roles?.name as string | undefined;
+      userRole = raw ? raw.toLowerCase() : null;
     } catch { /* noop */ }
 
     return await runAgent(context.supabase, admin, {
