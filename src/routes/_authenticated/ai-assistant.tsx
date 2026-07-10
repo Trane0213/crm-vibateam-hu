@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle, Search, TrendingUp, Hammer, Phone, AlertOctagon, ClipboardList, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Bot, Send, Plus, Trash2, MessageSquare, Loader2, CalendarCheck, BellRing, Briefcase, FileText, AlertTriangle, Search, TrendingUp, Hammer, Phone, AlertOctagon, ClipboardList, CheckCircle2, XCircle, ExternalLink, BarChart3, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,13 +9,14 @@ import { toast } from "sonner";
 import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
+import michaelPortrait from "@/assets/agent-michael.jpg";
 import { AgentResponse } from "@/components/ai/agent-response";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
-type AgentId = "crm" | "sales" | "pm";
+type AgentId = "crm" | "sales" | "pm" | "ads";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantRoute,
@@ -27,7 +28,7 @@ function AiAssistantRoute() {
   // Csak akkor érvényesítünk gate-et, ha az URL kifejezetten megad agentet.
   // Ha nincs ?agent=, akkor a default crm (George) tölt be, ami mindenki számára látható.
   const agentToGate =
-    urlAgent === "crm" || urlAgent === "sales" || urlAgent === "pm" ? urlAgent : null;
+    urlAgent === "crm" || urlAgent === "sales" || urlAgent === "pm" || urlAgent === "ads" ? urlAgent : null;
   return (
     <AgentGate agentId={agentToGate}>
       <AiAssistantPage />
@@ -75,6 +76,7 @@ function isLegacyErrorMessage(m: { role: string; content: string }): boolean {
 function uiAgentToAiOs(id: AgentId): string {
   if (id === "sales") return "timothy";
   if (id === "pm") return "boss";
+  if (id === "ads") return "michael";
   return "george";
 }
 
