@@ -42,8 +42,9 @@ let currentParser: WKHtmlParser | null = null;
 export async function getDefaultHtmlParser(): Promise<WKHtmlParser> {
   if (currentParser) return currentParser;
   const mod = await import("./node-html-parser-adapter.server");
-  currentParser = mod.nodeHtmlParserAdapter;
-  return currentParser;
+  const parser = mod.nodeHtmlParserAdapter;
+  currentParser = parser;
+  return parser;
 }
 
 /**
