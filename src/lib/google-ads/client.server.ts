@@ -173,3 +173,60 @@ export function safeNum(v: unknown): number {
   const n = typeof v === "string" ? Number(v) : (v as number);
   return Number.isFinite(n) ? n : 0;
 }
+
+/**
+ * Generikus Google Ads REST mutate hívás. `resourcePath` pl. `campaigns:mutate`,
+ * `campaignBudgets:mutate`, `campaignCriteria:mutate`. Az egész body-t a hívó adja.
+ * Sikeres válasznál a parsed JSON-t adja vissza; hiba esetén dob (üzenettel).
+ */
+export async function adsMutate(
+  conn: GoogleAdsConnection,
+  customerId: string,
+  resourcePath: string,
+  body: Record<string, unknown>,
+): Promise<any> {
+  const at = await getAccessToken(conn);
+  const cid = normalizeCustomerId(customerId);
+  const r = await fetch(`${API_BASE}/customers/${cid}/${resourcePath}`, {
+    method: "POST",
+    headers: baseHeaders(at, conn),
+    body: JSON.stringify(body),
+  });
+  const text = await r.text();
+  if (!r.ok) throw new Error(`Google Ads ${resourcePath} HTTP ${r.status}: ${text.slice(0, 600)}`);
+  try { return JSON.parse(text); } catch { return { raw: text }; }
+}
+
+/** Change-log bejegyzés írása. Nem kritikus — hiba esetén csak warning. */
+export async function writeChangeLog(
+  sb: SupabaseClient,
+  input: {
+    user_id: string;
+    customer_id: string;
+    entity: string;
+    entity_id?: string | null;
+    field: string;
+    old_value?: string | null;
+    new_value?: string | null;
+    reason?: string | null;
+    changed_by?: string;
+    dry_run_ref?: string | null;
+  },
+): Promise<void> {
+  const { error } = await sb.from("google_ads_change_log").insert({
+    user_id: input.user_id,
+    customer_id: normalizeCustomerId(input.customer_id),
+    entity: input.entity,
+    entity_id: input.entity_id ?? null,
+    field: input.field,
+    old_value: input.old_value ?? null,
+    new_value: input.new_value ?? null,
+    reason: input.reason ?? null,
+    changed_by: input.changed_by ?? "michael",
+    dry_run_ref: input.dry_run_ref ?? null,
+  });
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.warn(`[google-ads] change_log write failed: ${error.message}`);
+  }
+}
