@@ -30,7 +30,6 @@ function fail(err: unknown) {
 }
 
 const DOMAIN = "ads.google";
-const OWNER_ONLY: string[] = ["owner"];
 const MICHAEL_ONLY: string[] = ["michael"];
 
 /** Aggregate `metrics.*` rows egyetlen összesített objektummá. */
@@ -62,7 +61,6 @@ export function registerGoogleAdsTools() {
       description: "A csatlakoztatott Google fiókhoz tartozó összes elérhető Google Ads Customer ID felsorolása.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: { type: "object", properties: {} },
     },
     async (_args, ctx) => {
@@ -84,7 +82,6 @@ export function registerGoogleAdsTools() {
         "Fiók-szintű teljesítmény pillanatkép a megadott időszakra: költés, kattintás, megjelenés, CTR, átl. CPC, konverzió, CPA, ROAS. Az eredmény a snapshot táblába is beíródik.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -121,7 +118,6 @@ export function registerGoogleAdsTools() {
       description: "Kampányok listája: név, típus, státusz, napi keret, offer/serving státusz.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -165,7 +161,6 @@ export function registerGoogleAdsTools() {
         "Kampányonkénti teljesítmény a megadott időszakra: költés, CTR, CPA, ROAS, konverzió. Snapshot íródik minden kampányhoz.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -216,7 +211,6 @@ export function registerGoogleAdsTools() {
       description: "Hirdetéscsoportok listája (opcionálisan egy adott kampányra szűkítve).",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -260,7 +254,6 @@ export function registerGoogleAdsTools() {
       description: "Kulcsszavak listája (opcionálisan hirdetéscsoportra/kampányra szűkítve), teljesítménnyel.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -314,7 +307,6 @@ export function registerGoogleAdsTools() {
       description: "Keresési kifejezések (search terms) az időszakra, teljesítménnyel.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -364,7 +356,6 @@ export function registerGoogleAdsTools() {
       description: "Hirdetések (ad_group_ad) listája alap adatokkal és teljesítménnyel.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -417,7 +408,6 @@ export function registerGoogleAdsTools() {
         "Kampány büdzsé állapot: napi keret, elmúlt N nap átlagos napi költése, keret-kihasználás %.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -474,7 +464,6 @@ export function registerGoogleAdsTools() {
       description: "Konverziós akciók (conversion_action) listája: név, kategória, státusz, számláló, érték típus.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
@@ -515,7 +504,6 @@ export function registerGoogleAdsTools() {
         "Google által javasolt Recommendations (típus, hatás, kampány, dismissed). CSAK BEMENET Michael számára — nem végrehajtandó ajánlás.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
-      allowed_roles: OWNER_ONLY,
       parameters: {
         type: "object",
         properties: {
