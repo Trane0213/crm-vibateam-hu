@@ -36,22 +36,24 @@ export function GoogleAdsConnectCard() {
 
   const handleConnect = async () => {
     setBusy("connect");
+    const isEmbedded = window.self !== window.top;
+    const oauthWindow = isEmbedded ? window.open("about:blank", "_blank", "noopener,noreferrer") : null;
     try {
+      if (isEmbedded && !oauthWindow) {
+        throw new Error("A böngésző blokkolta a Google bejelentkezési ablakot. Engedélyezd a felugró ablakot, majd próbáld újra.");
+      }
       const r = await authedFetch("/api/google-ads/oauth/start", { method: "POST", body: JSON.stringify({}) });
       const j = await r.json();
       if (!r.ok || !j.authorizationUrl) throw new Error(j.error ?? "Indítás sikertelen");
-      const isEmbedded = window.self !== window.top;
-      if (isEmbedded) {
-        const opened = window.open(j.authorizationUrl, "_blank", "noopener,noreferrer");
-        if (!opened) {
-          throw new Error("A böngésző blokkolta a Google bejelentkezési ablakot. Engedélyezd a felugró ablakot, majd próbáld újra.");
-        }
+      if (oauthWindow) {
+        oauthWindow.location.href = j.authorizationUrl;
         toast.info("Google bejelentkezés", { description: "A Google OAuth folyamat új böngészőfülön indult el." });
         setBusy(null);
         return;
       }
       window.location.assign(j.authorizationUrl);
     } catch (e: any) {
+      oauthWindow?.close();
       toast.error("Csatlakozás", { description: e?.message ?? String(e) });
       setBusy(null);
     }
