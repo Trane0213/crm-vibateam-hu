@@ -26,6 +26,26 @@ function creds() {
 export function buildRedirectUri(request: Request): string {
   const explicit = process.env.GOOGLE_ADS_OAUTH_REDIRECT_URI;
   if (explicit) return explicit;
+  // A request.url a proxy mögött `https://localhost:8080/...` lehet — a valódi
+  // publikus origint a `Origin` / `Referer` / `X-Forwarded-*` headerekből
+  // állítjuk össze. Fallback: request.url origin.
+  const h = request.headers;
+  const origin = h.get("origin");
+  if (origin && !/localhost|127\.0\.0\.1/i.test(origin)) {
+    return `${origin}/api/google-ads/oauth/callback`;
+  }
+  const referer = h.get("referer");
+  if (referer) {
+    try {
+      const o = new URL(referer).origin;
+      if (!/localhost|127\.0\.0\.1/i.test(o)) return `${o}/api/google-ads/oauth/callback`;
+    } catch { /* ignore */ }
+  }
+  const fwdProto = h.get("x-forwarded-proto") ?? "https";
+  const fwdHost = h.get("x-forwarded-host") ?? h.get("host");
+  if (fwdHost && !/localhost|127\.0\.0\.1/i.test(fwdHost)) {
+    return `${fwdProto}://${fwdHost}/api/google-ads/oauth/callback`;
+  }
   const url = new URL(request.url);
   return `${url.origin}/api/google-ads/oauth/callback`;
 }
