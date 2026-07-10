@@ -69,6 +69,7 @@ import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
+import { Route as ApiGoogleAdsOauthStartRouteImport } from './routes/api/google-ads/oauth.start'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 import { Route as AuthenticatedQuotesIdPrintRouteImport } from './routes/_authenticated/quotes.$id_.print'
@@ -402,6 +403,11 @@ const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
   path: '/api/public/gmail/cron-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGoogleAdsOauthStartRoute = ApiGoogleAdsOauthStartRouteImport.update({
+  id: '/api/google-ads/oauth/start',
+  path: '/api/google-ads/oauth/start',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
   id: '/api/gmail/oauth/start',
   path: '/api/gmail/oauth/start',
@@ -481,6 +487,7 @@ export interface FileRoutesByFullPath {
   '/quotes/$id/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesByTo {
@@ -544,6 +551,7 @@ export interface FileRoutesByTo {
   '/quotes/$id/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRoutesById {
@@ -610,6 +618,7 @@ export interface FileRoutesById {
   '/_authenticated/quotes/$id_/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
   '/api/gmail/oauth/start': typeof ApiGmailOauthStartRoute
+  '/api/google-ads/oauth/start': typeof ApiGoogleAdsOauthStartRoute
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
 }
 export interface FileRouteTypes {
@@ -676,6 +685,7 @@ export interface FileRouteTypes {
     | '/quotes/$id/print'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -739,6 +749,7 @@ export interface FileRouteTypes {
     | '/quotes/$id/print'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
   id:
     | '__root__'
@@ -804,6 +815,7 @@ export interface FileRouteTypes {
     | '/_authenticated/quotes/$id_/print'
     | '/api/gmail/oauth/callback'
     | '/api/gmail/oauth/start'
+    | '/api/google-ads/oauth/start'
     | '/api/public/gmail/cron-sync'
   fileRoutesById: FileRoutesById
 }
@@ -821,6 +833,7 @@ export interface RootRouteChildren {
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
+  ApiGoogleAdsOauthStartRoute: typeof ApiGoogleAdsOauthStartRoute
   ApiPublicGmailCronSyncRoute: typeof ApiPublicGmailCronSyncRoute
 }
 
@@ -1246,6 +1259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/google-ads/oauth/start': {
+      id: '/api/google-ads/oauth/start'
+      path: '/api/google-ads/oauth/start'
+      fullPath: '/api/google-ads/oauth/start'
+      preLoaderRoute: typeof ApiGoogleAdsOauthStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/gmail/oauth/start': {
       id: '/api/gmail/oauth/start'
       path: '/api/gmail/oauth/start'
@@ -1406,6 +1426,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSyncRoute: ApiGmailSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
+  ApiGoogleAdsOauthStartRoute: ApiGoogleAdsOauthStartRoute,
   ApiPublicGmailCronSyncRoute: ApiPublicGmailCronSyncRoute,
 }
 export const routeTree = rootRouteImport
