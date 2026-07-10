@@ -39,7 +39,6 @@ export const nodeHtmlParserAdapter: WKHtmlParser = {
     const root = nhpParse(rawHtml, {
       lowerCaseTagName: true,
       comment: false,
-      voidTag: { closingSlash: true, tags: [] },
       blockTextElements: {
         script: false,
         noscript: false,
