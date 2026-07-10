@@ -1,238 +1,173 @@
-# Michael — Google Ads Specialista (Technikai terv, v3)
+# AI Ügynökök — Teljes Szerepkör Áttekintés
 
-## 0) Alapelv — Michael elsődleges célja
-
-**Michael elsődleges célja NEM a Google Ads mutatóinak javítása, hanem a VIBA-TEAM üzleti céljainak támogatása.**
-
-- Ha egy Google Ads ajánlás (vagy bármilyen metrika-javító lépés) ellentmond a VIBA Ads Constitutionnek vagy a tulajdonos által meghatározott stratégiának, akkor Michael **nem hajthatja végre**, és **köteles ezt egyértelműen jelezni** — akkor is, ha az adott lépés a CTR-t, CPC-t, CPA-t vagy ROAS-t javítaná.
-- A metrikák eszközök, nem célok.
-- Hard szabály, minden run elején a system prompt tetején. A javaslati sablonba (9. pont) beépül egy `ÜZLETI CÉL-ILLESZKEDÉS` sor.
+Ez nem fejlesztési terv, hanem **állapotfelmérés**. Az egész AI OS (`src/lib/ai-os/`) egyetlen közös runtime-ra épül; agentek csak system prompt-ban, tool-hozzáférésben és modellben különböznek.
 
 ---
 
-Michael önálló **specialista agent** a meglévő AI OS-en belül. Nem új rendszer, nem külön chat, nem külön memória. Ugyanaz a runtime, tool registry, `ai_memory`, `agent_runs` napló, ugyanaz az OpenAI provider (`gpt-4o-mini`), ugyanaz a chat UI. Új elemek: `AgentDefinition` (michael), `ads.google` tool-domain + adapter, Google OAuth, Owner-only jogosultság, **háromszintű approval + Dry Run**, **VIBA Ads Constitution**, **számított baseline**, **change history**.
+## 1) Közös alap (minden agent örökli)
+
+- **Runtime:** `runtime.server.ts` — AI SDK + tool loop, approval kapu, `pendingApprovals` per-request izolált.
+- **Provider:** OpenAI `gpt-4o-mini` (mind a 8 agent). Nincs fallback, provider váltás csak explicit kérésre.
+- **Memória:** `ai_memory` tábla (`memory_read` / `memory_write` core toolok). Subject_type / subject_id / key séma. Minden agent lát ugyanabból (közös memória).
+- **Handoff:** `core.handoff` domain — csak George orchestrator hívja. A specialisták nem hívják közvetlenül egymást.
+- **Nyelv:** magyarul, tömören. Adat csak toolon át, találgatás tilos.
+- **Audit:** `audit.server.ts` minden tool-hívást naplóz.
+
+**Közös tool domainek:** `core.handoff`, `core.memory`, `crm.*` (14 tool), `ads.google` (18 tool). Összesen kb. **35 tool** a rendszerben.
 
 ---
 
-## 1) AI OS integráció
+## 2) Az agentek — mit tudnak, miből dolgoznak
 
-- Új `AGENTS.michael` (`src/lib/ai-os/agents.ts`), önálló specialista. Közvetlenül elérhető `/ai-assistant?agent=michael`; George opcionálisan delegálhat, de nem kötelező.
-- Érintetlen: `runtime.server.ts`, `providers.server.ts`, `tool-registry.ts`, `memory.server.ts`, `audit.server.ts`, `ai_threads`/`ai_messages`, `AgentGate`, chat route-ok.
-- Új komponensek:
-  - `src/lib/ai-os/adapters/google-ads-tools.server.ts`
-  - `src/lib/google-ads/oauth.server.ts` + `client.server.ts`
-  - `src/routes/api/google-ads/oauth.start.ts`, `.../oauth.callback.ts`
-  - `src/routes/_authenticated/settings.google-ads.tsx` (connect + Constitution)
-  - Migráció: `google_ads_connections`, `google_ads_constitution`, `google_ads_snapshots`, `google_ads_change_log` (RLS owner-only + grants).
+### A) Interaktív specialisták (chat UI-n)
 
----
+#### 🎼 George — Orchestrator
+- **Feladat:** karmester. Eldönti, ki válaszoljon, összegez.
+- **Tool-ok:** `core.handoff`, `core.memory`, teljes CRM (`crm.search/companies/contacts/projects/leads/quotes/emails`).
+- **Miből dolgozik:** CRM adatbázis (Supabase, RLS-sel a user nevében), memória.
+- **Handoff célok:** Marketing → Scarlet, Sales → Timothy, Projekt → Boss. Michael (Ads) NEM szerepel a handoff listában — közvetlenül a UI-ban érhető el.
+- **Erősség:** egyszerű CRM keresés/összegzés önmagában is.
 
-## 2) Google Ads API
+#### 💌 Scarlet — Marketing
+- **Feladat:** lead-minősítés, kampány, csatorna, email aktivitás.
+- **Tool-ok:** `core.memory`, `crm.search/companies/contacts/leads/emails`, `marketing.workflow` (deklarált, de üres — nincs implementált tool).
+- **Miből dolgozik:** CRM lead/email tábla.
+- **Korlát:** nem foglalkozik sales lezárással, projekttel.
 
-- Google Ads API v17 (REST, Workers-kompatibilis).
-- OAuth 2.0: `access_type=offline`, `prompt=consent`, PKCE state cookie.
-- Scope: `.../auth/adwords` + `openid email`.
-- Access token in-memory cache 55 perc TTL; refresh token AES-GCM titkosítva DB-ben. `invalid_grant` → `revoked`.
-- Fejélcek: `Authorization: Bearer`, `developer-token`, `login-customer-id` (opcionális MCC).
-- Secretek: `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_TOKEN_ENC_KEY` (`generate_secret`).
+#### 💼 Timothy — Sales
+- **Feladat:** pipeline, ajánlatok, utókövetés, megnyerés.
+- **Tool-ok:** teljes sales CRM + `sales_mark_won_with_project` (egyetlen valódi write tool a CRM oldalon).
+- **Miből dolgozik:** `crm_leads`, `crm_quotes`, `crm_followups`, `crm_emails`.
+- **Erősség:** megnyerést projekt-létrehozó folyamaton át javasol.
 
----
+#### 📋 Boss — Projektvezető
+- **Feladat:** aktív projektek, határidők, kockázatok.
+- **Tool-ok:** `crm.projects/tasks/followups/meetings`, `pm.workflow` (deklarált, üres).
+- **Miből dolgozik:** projektek, feladatok, meetings.
 
-## 3) Tool architektúra — üzleti nevekkel, adatszolgáltató szereppel
+#### 📊 Michael — Google Ads specialista (Owner-only)
+- **Feladat:** Google Ads elemzés + write, üzleti cél alapján.
+- **Tool-ok (18):**
+  - **READ (13):** `list_ads_accounts`, `get_account_snapshot`, `list_campaigns`, `get_campaign_performance`, `list_ad_groups`, `list_keywords`, `list_search_terms`, `list_ads`, `get_budget_status`, `get_conversion_setup`, `get_google_recommendations`, `get_baseline_comparison`, `get_change_history`.
+  - **WRITE (5):** `pause_campaign`, `enable_campaign`, `update_campaign_budget`, `add_campaign_negative_keyword` (CONFIRM), `remove_campaign` (DANGEROUS). Mind támogatja `mode='dry_run' | 'execute'`.
+- **Miből dolgozik:** Google Ads API + `google_ads_snapshots` + `google_ads_change_log` + `google_ads_constitution` (dinamikusan `augmentSystemPrompt`-ban betöltve).
+- **Egyedi:** M4.5 Business Decision Layer (üzleti cél → alkotmány → baseline → change history → metrika → javaslat) + 9-mezős kötelező javaslati sablon + Recommendation Score.
+- **Handoffban nem szerepel** — külön UI belépéssel.
 
-Domain: **`ads.google`**. A toolok üzleti fogalmakat képviselnek, nem API végpontokat. **Egyik sem hoz ítéletet** — az ítéletet, auditot, javaslatot Michael maga állítja össze a system prompt kötelező sablonjai szerint.
+### B) Non-interaktív (tool nélküli) generátorok
 
-```text
-[ads.google] — READ (SAFE, ítélet nélkül)
-  list_ads_accounts
-  get_account_snapshot            — spend/CTR/CPA/ROAS idősoron (nyers Ads API)
-  list_campaigns
-  get_campaign_performance
-  list_ad_groups
-  list_keywords
-  list_search_terms
-  list_ads
-  get_budget_status
-  get_conversion_setup
-  get_google_recommendations      — CSAK BEMENET, háttér-jelzés
-  get_baseline_comparison         — számított nézet (lásd 6. pont)
-  get_change_history
+#### 📈 sales_briefing — Napi értékesítési riport
+- Tool nélkül fut. Snapshotot **user message-ben** kapja a frontendtől. Kötelező sablon: nyitott ajánlatok / lejárt utókövetés / ma hívandók / elakadt ajánlatok / javaslat.
 
-[ads.google] — WRITE (üzleti nevek)
-  pause_campaign                  — CONFIRM
-  enable_campaign                 — CONFIRM
-  change_campaign_budget          — CONFIRM
-  add_negative_keyword            — CONFIRM
-  pause_keyword                   — CONFIRM
-  pause_ad                        — CONFIRM
-  apply_google_recommendation     — CONFIRM (csak saját indoklással)
-  delete_campaign                 — DANGEROUS
-  change_conversion_action        — DANGEROUS
-  change_conversion_tracking      — DANGEROUS
-  change_bid_strategy_type        — DANGEROUS
-```
+#### 🗂️ pm_briefing — Napi projektvezetői riport
+- Snapshot-alapú. Sablon: aktív projektek / mai feladatok / közelgő határidők / hiányzó dokumentáció / kockázatok (🟢🟡🔴).
 
-Nincs `audit_report` tool. Google recommendations = bemenet, nem kimenet.
+#### 🧾 crm_summary — Snapshot összefoglaló
+- `AiSummaryDialog` használja. Frontend adja a CRM kontextust, ő rövid magyar szöveget ad.
+
+#### 🔎 research_companies — B2B cégkutató
+- Timothy felügyelete alatt. Strukturált JSON, valós magyar cégek. `/sales/research` oldal.
 
 ---
 
-## 4) Approval — háromszintű + kötelező Dry Run
+## 3) Közös pontok / átfedések
 
-Új `ToolSpec` mező: `approval: "safe" | "confirm" | "dangerous"`.
+| Terület | Ki használja |
+|---|---|
+| `ai_memory` (közös memória) | George, Scarlet, Timothy, Boss, Michael |
+| `crm_search`, `crm_list_companies`, `crm_list_leads` | George, Scarlet, Timothy (Boss nem lát leadet) |
+| `crm_emails` | George, Scarlet, Timothy |
+| `google_ads_*` | **kizárólag Michael** — teljesen izolált domain |
+| Provider/model (`gpt-4o-mini`) | mind |
+| Runtime + approval | mind az interaktív, briefing-ek nem — nincs tool |
+| Constitution / alkotmány | **csak Michael** (`google_ads_constitution`) |
+| Snapshot + baseline + change history | **csak Michael** (Google Ads domain) |
 
-| Szint | Viselkedés |
-|-------|------------|
-| **SAFE** | Nincs kérdés. Minden READ. |
-| **CONFIRM** | Dry Run + egy jóváhagyó dialógus. |
-| **DANGEROUS** | Dry Run + két lépcsős megerősítés (második lépés szöveges: "ERŐSÍTS MEG"). |
+**Fő szeparáció:** két elszigetelt világ.
+1. **CRM világ** (George + 3 specialista) — pipeline, projektek, emailek.
+2. **Google Ads világ** (Michael egyedül) — teljes külön adatréteg, alkotmány, döntési sablon.
 
-**Dry Run — minden CONFIRM és DANGEROUS write előtt kötelező.**
-
-- Michael **nem** hívja közvetlenül a write toolt. Először a `dry_run` fázist futtatja: az AI OS runtime a tool-call-t `mode=dry_run` paraméterrel indítja el, a tool implementáció ilyenkor **nem küld módosítást a Google API felé**, hanem összegyűjti és visszaadja pontosan azt, amit végrehajtana.
-- Dry Run kimenet — kötelező struktúra, ez jelenik meg a jóváhagyó dialógusban:
-  ```text
-  DRY RUN — <tool_name>
-  API HÍVÁSOK (sorrendben):
-    1. GoogleAds.<Service>.<Method>(...)     — 1 mutate
-    2. ...
-  MI VÁLTOZIK:
-    - <entity>#<id>: <field>  "<előtte>" → "<utána>"
-    - ...
-  ÉRINTETT KAPCSOLÓDÓ ELEMEK: <pl. érintett ad_group-ok, aktív hirdetések száma>
-  VISSZAVONHATÓ?              <igen / részben / nem>
-  ALKOTMÁNY-ELLENŐRZÉS:       <mely szabályokkal konzisztens>
-  BASELINE HATÁS BECSLÉS:     <várható eltérés a baseline-hoz képest, tartomány>
-  ```
-- Csak a Dry Run **felhasználói jóváhagyása** után megy be egy második tool-call `mode=execute`-tal, ami a valódi API-hívás.
-- Runtime státuszok az `agent_run_steps`-ben: `dry_run_ready` → `awaiting_approval` → `executed` / `denied`.
-- DANGEROUS toolnál a második lépcső Dry Run + második megerősítés együtt.
-- Minden `execute` fázis után kötelező bejegyzés a `google_ads_change_log`-ba (mi, ki, mikor, indoklás, előtte-utána, Dry Run referencia).
-
-**Miért így:** a Dry Run pontosan mutatja, milyen API-hívás megy ki és mi változik meg, mielőtt a végleges "OK" gomb megnyomódna. Nincs "elküldés utáni meglepetés".
+A kettő között ma **nincs hídszerű összeköttetés**. Michael nem lát CRM leadeket, Scarlet nem lát Ads adatot.
 
 ---
 
-## 5) VIBA Ads Constitution — kötelező szabályrendszer
+## 4) Ügynökönkénti hiánylista + fejlesztési ötletek
 
-Nem memória, hanem alkotmány. Minden run elején a system prompt része.
+### George (Orchestrator)
+- **Hiány:** nem tudja átirányítani Michaelhez — Ads kérdésekre saját maga vagy Scarlet válaszolna, Michael nincs a handoff listán.
+- **Hiány:** nincs "route to best agent" heurisztika naplózás — nehéz utólag látni, miért adott át.
+- **Ötlet:** Michael felvétele handoff célként (Owner-only szűréssel). Handoff-döntések logolása egy `agent_route_log` táblába.
 
-**Tábla:** `google_ads_constitution` (`rule_key`, `rule_text` magyarul, `severity: hard|soft`, owner-only RLS). Szerkeszthető a Settings → Google Ads oldalon.
+### Scarlet (Marketing)
+- **Hiány:** `marketing.workflow` domain deklarálva, **nincs egyetlen tool sem** benne. Ma csak CRM lead-adatot lát, marketing-specifikus adata (GA4, GSC, Clarity, kampány) nincs.
+- **Hiány:** nem lát Google Ads adatot, pedig marketing specialista.
+- **Hiány:** nincs email kampány / hírlevél tool.
+- **Ötlet:** READ-only jogot kaphat Michael Google Ads snapshot-jaihoz (nem az API-hoz — a `google_ads_snapshots` táblához), hogy top-level marketing kép egyben álljon. Lead-forrás elemző tool (`analyze_lead_sources`).
 
-Példa induló szabályok (a userrel véglegesítjük):
-- Lakossági szolgáltatás → mindig külön Search kampány, PMAX-be nem kerülhet.
-- PMAX csak akkor javasolt, ha havi költés > X Ft és van saját asset-készlet.
-- Brand kampányhoz Michael nem nyúlhat (pause / budget / bid tiltott).
-- Társasház ajánlatokhoz külön landing kötelező.
+### Timothy (Sales)
+- **Hiány:** kizárólag CRM belső adatból dolgozik — nem lát külső jelet (weboldalról érkező érdeklődő, email-válaszidő stb.).
+- **Hiány:** `sales_mark_won_with_project` az egyetlen write tool — nincs pl. quote létrehozó, follow-up ütemező, sablon-email küldő.
+- **Hiány:** nincs "hot lead detector" — nincs scoring tool.
+- **Ötlet:** `create_quote_draft`, `schedule_followup`, `send_templated_email` (CONFIRM), lead-scoring tool.
 
-A `buildSystemPrompt` betölti a `hard` szabályokat kötelező szekcióba. Ha egy tool-call ütközik egy `hard` szabállyal, Michael köteles elutasítani és megnevezni a szabályt.
+### Boss (Projektvezető)
+- **Hiány:** nem lát pénzügyi vetületet (projekt-jövedelmezőség, számlázás).
+- **Hiány:** nincs dokumentum-tartalom olvasás (csak létezés-ellenőrzés).
+- **Hiány:** nincs Gantt/timeline számítás — csak nyers határidő-listát ad.
+- **Ötlet:** dokumentum-parse tool (project meetings jegyzőkönyv → task lista), kockázat-score számító tool, kapacitás-tervező tool.
 
----
+### Michael (Google Ads)
+- **Hiány:** csak Google Ads adat — nem lát mi történik a kattintás után (GA4 / Clarity / weboldal).
+- **Hiány:** nem ismeri a `vibateam.hu`-t (landing oldalak üzleti célja, CTA-k, konverziós út).
+- **Hiány:** nem lát Search Console-t (organikus jelenlét), így nem tudja értékelni, hogy egy kulcsszóra érdemes-e Ads-t költeni.
+- **Hiány:** nem lát CRM lead adatot — így nem tudja validálni, hogy egy Ads-ből érkező lead minőségi-e.
+- **Hiány:** nincs A/B teszt-értékelő tool, nincs ad copy generátor / értékelő.
+- **Ötlet (az elhalasztott M7):** site knowledge (`vibateam_pages`, landing↔kampány mapping) + GA4 + GSC + Clarity + Web Audit READ toolok.
 
-## 6) Baseline — **számított nézet, nem kézzel karbantartott tábla**
+### sales_briefing / pm_briefing
+- **Hiány:** teljesen frontend-vezéreltek — ha nő a CRM méret, a snapshot user-message-ben nem fér el.
+- **Hiány:** nincs "változás előző napi briefinghez képest" — nem lát trendet.
+- **Ötlet:** briefing-eredmény tárolása egy `daily_briefings` táblában, hogy másnap "delta" is generálható legyen.
 
-**Nincs kézzel írt/karbantartott baseline adatmodell.** A baseline mindig a meglévő snapshot-adatokból, futásidőben áll elő.
+### crm_summary
+- **Hiány:** csak frontend-adott kontextusból dolgozik, nem hív toolt — nem tud pontosítani.
+- **Ötlet:** "deep mode" — engedjük a `crm.search` toolt hívnia, ha a kontextus hiányos.
 
-**Alap forrás:** `google_ads_snapshots` — a `get_account_snapshot` és `get_campaign_performance` eredményét naponta egyszer (M7+ cron), addig kérésre eltárolja: `snapshotted_at`, `scope` (`account`/`campaign`/`ad_group`), `entity_id`, `metrics_json` (spend/CTR/CPC/CPA/ROAS/conv/IS). Read-only tábla — Michael és a user nem szerkeszti.
-
-**Baseline = számított nézet a snapshotok fölött.** Egy Postgres view + egy `get_baseline_comparison(entity_type, entity_id?, window_days=30, compare_last_days=7)` tool. A tool:
-- kiválasztja a `window_days`-en belüli snapshot sorokat,
-- kiszámolja a rolling median-t (robusztus outlier ellen) metrikánként,
-- lekéri a `compare_last_days` aktuális értékeit ugyanabból a snapshot táblából (vagy élő Ads API-ból, ha kimarad),
-- visszaadja: `baseline`, `current`, `delta_abs`, `delta_pct`, `sample_size`, `stale?` (ha kevés a snapshot, jelezi).
-
-**Miért így jobb:**
-- Nincs duplikált igazságforrás, nincs kézzel szerkeszthető szám.
-- A baseline definíció megváltoztatásához nem kell adatot migrálni, csak a view/számítás módosul.
-- Ha a snapshot job szünetel, a baseline `stale=true`-t jelez, Michael nem következtet romlott adatból.
-- Fiók-agnosztikus: később ugyanez a séma működik Meta/TikTok snapshotokra.
-
-**Cache:** a számítás eredményét a `get_baseline_comparison` tool `ai_memory`-ba írhatja rövid TTL-lel (subject: `ads_baseline_cache`), csak gyorsításra — nem igazságforrás.
-
----
-
-## 7) Change history — ok-okozat követés
-
-**Tábla:** `google_ads_change_log` (`changed_at`, `entity`, `entity_id`, `field`, `old_value`, `new_value`, `changed_by: michael|user|google_auto`, `reason`, `dry_run_ref`).
-- Minden Michael-`execute` után kötelezően ide íródik.
-- Napi job szinkronizálja a Google Ads `change_event` streamet is (kézi módosítások is bekerülnek).
-- `get_change_history` tool: Michael így köti össze "Jul 12 budget nőtt → Jul 15 CPA romlott".
-
----
-
-## 8) Michael személyisége
-
-Precíz, tömör, marketinges duma nélkül. Minden állítás mögé szám és forrás (tool, időszak, baseline eltérés %). Ha nincs elég adat, kimondja. Nem motivál, nem lelkesít. Magyarul, üzleti szaknyelven. Portré/kártya az `AGENT_REGISTRY`-ben.
+### research_companies
+- **Hiány:** hallucináció-kockázat — nincs valós adatforrás bekötve (nincs cégkereső API), csak a modell tudásából dolgozik.
+- **Hiány:** eredmény nem kerül a CRM-be automatikusan.
+- **Ötlet:** OPTEN/CÉGADAT API vagy Google Places bekötése; közvetlen "import as lead" gomb az eredmény mellé.
 
 ---
 
-## 9) Vaskötelező javaslati sablon
+## 5) Architektúra-szintű megfigyelések (fejlesztési irány)
 
-```text
-MIT TALÁLTAM:           <metrika, időszak, forrás tool>
-MIÉRT PROBLÉMA:         <baseline vagy alkotmány szemszöge>
-ÜZLETI CÉL-ILLESZKEDÉS: <milyen VIBA-TEAM üzleti célt szolgál — kötelező>
-MIT JAVASLOK:           <konkrét write tool + paraméterek>
-MIÉRT EZT:              <ok-okozati indoklás, change history hivatkozás>
-VÁRHATÓ HATÁS:          <mérhető KPI, +/- tartomány>
-BIZONYTALANSÁG:         <alacsony / közepes / magas + indok>
-ALKOTMÁNY-ELLENŐRZÉS:   <konzisztens; ütközés esetén ELVETVE>
-```
-
-Bármelyik "nem tudom" → nincs javaslat. `ÜZLETI CÉL-ILLESZKEDÉS` = csak metrika → automatikusan **ELVETVE**.
-
-Végrehajtás előtt kötelező a **Dry Run** (4. pont).
+1. **Két izolált világ** — CRM és Google Ads közt nincs adatáramlás. Az első valódi híd: Michael lássa a lead-eredményt (`crm_leads` READ), a CRM oldal (Timothy/Scarlet) lássa az Ads snapshot-okat READ-only.
+2. **`marketing.workflow` és `pm.workflow` deklarált, de üres domainek** — Scarlet és Boss szerepe így nem teljes; toolok nélkül csak CRM-olvasók.
+3. **Csak Michaelnek van "alkotmánya" (Constitution) és "döntési sablonja" (M4.5)**. Timothy sales-döntéseit, Scarlet minősítéseit sem szabályozza semmilyen `*_constitution`. Egy általánosított `agent_constitution` tábla (agent_id-hez kötött szabályokkal) minden specialistát üzleti korlátok közé tehet.
+4. **Csak Michaelnek van snapshot + baseline + change history** — Sales/PM oldalon nincs baseline-eltérés-számítás, pedig "elakadt ajánlat", "pipeline egészség", "projekt-csúszás" tipikus baseline-alapú fogalmak. `sales_snapshots`, `pm_snapshots` + generikus `get_baseline_comparison(source, ...)` tool megnyitná az utat.
+5. **Csak Michaelnek van Dry Run + Approval** — Timothy jövőbeli write toolok (email küldés, quote létrehozás) ugyanezt a mintát kellene kövessék. A `runtime.server.ts` már támogatja, nem kell új infrastruktúra.
+6. **Nincs "cross-agent" memória-scope** — a `ai_memory` közös, de nincs formális "melyik agent írta / kinek szól" mező, ami eltérő szereplőknél zaj-forrás.
+7. **Nincs agent-telemetria** — mennyi tokent égetett melyik agent, melyik tool a leglassabb, melyik hívás bukott approval-ra. Egy `agent_run_metrics` view megnyitná az optimalizálási lehetőségeket.
+8. **Provider-diverzitás nulla** — mind `gpt-4o-mini`. Michael döntési szerepére (10-15 lépéses tool loop, komplex sablon) egy erősebb model (pl. `gpt-4o` vagy `o3-mini`) kifejezetten indokolt lenne.
 
 ---
 
-## 10) Chat működés
+## 6) Prioritási javaslat (nem sprint-terv, hanem ötlet-rangsor)
 
-- Belépés: közvetlen kártyáról, vagy George handoffal.
-- Példák (system promptban is):
-  - "Michael, nézd át a Google Ads fiókomat." → snapshot + baseline (számított) + change log + alkotmány → audit.
-  - "Michael, miért romlott ez a kampány?" → performance + change history + baseline → diagnózis.
-  - "Michael, mit javasolsz?" → javaslatlista sablonban, Dry Run-nal.
-  - "Michael, készíts optimalizálási tervet." → strukturált terv, write-ok CONFIRM/DANGEROUS + Dry Run-ra várva.
-
----
-
-## 11) Sprintek
-
-Minden sprint végén STOP + user jóváhagyás.
-
-- **M0 — Előkészítés (user).** Google Cloud projekt + OAuth kliens, developer token, secretek, Constitution első szabályai.
-- **M1 — Kapcsolat + jogosultság.** Migrációk (connections, constitution, snapshots, change_log), OAuth route-ok, Settings oldal, token cache + refresh, Michael kártya (Owner-only), agent regisztráció tool nélkül.
-- **M2 — Read API csak működjön.** ✅ Kész. Az összes SAFE READ tool. Snapshot-írás minden `get_account_snapshot`/`get_campaign_performance` hívásnál (a nyers Ads API válaszból tárol). Michael képes adatot lekérni.
-- **M3 — Elemzés (nincs javaslat, nincs write).** ✅ Kész (2026-07-10). `get_baseline_comparison` (rolling median a `google_ads_snapshots` fölött, stale jelzéssel), `get_change_history` (`google_ads_change_log` olvasás). Runtime `augmentSystemPrompt` mechanizmus: Michael system promptja minden futásnál betölti az enabled HARD/SOFT VIBA Ads Constitution szabályokat. Kötelező elemzési protokoll: snapshot → baseline → change history → alkotmány-check. Minden állítás mögé forrás (tool, időszak, baseline Δ%).
-- **M4 — Javaslat (nincs write).** ✅ Kész (2026-07-10). Michael system promptjába beépült a 8-mezős VASKÖTELEZŐ javaslati sablon (MIT TALÁLTAM / MIÉRT PROBLÉMA / ÜZLETI CÉL-ILLESZKEDÉS / MIT JAVASLOK / MIÉRT EZT / VÁRHATÓ HATÁS / BIZONYTALANSÁG / ALKOTMÁNY-ELLENŐRZÉS). Szabályok: hiányzó mező → "Javaslat visszatartva"; csak metrika-cél → ELVETVE; HARD alkotmány-ütközés → ELVETVE rule_key-vel; SOFT ütközés → engedélyezett de bizonytalanság min. közepes. A "MIT JAVASLOK" a jövőbeli write tool nevét+paramétereit szövegben adja, hívás nélkül. Egyszerű adatkérés nem trigger. Write toolok és Dry Run az M5–M6-ban.
-- **M4.5 — Business Decision Layer.** ✅ Kész (2026-07-10). Tisztán prompt-szintű döntési réteg (nincs új tool, tábla, API). Kötelező sorrend: Üzleti cél → Constitution → Baseline → Change History → Ads metrikák → Javaslat. Business Goal Engine: minden futás első lépése az aktuális VIBA-TEAM üzleti cél megállapítása (user üzenet / memória / thread), metrika-cél NEM üzleti cél. Decision Tree: hat-e a célra → romlott-e a downstream KPI → HARD tilt-e → magyarázza-e change history. Recommendation Score (Business Impact, Confidence, Constitution Match, Data Quality, Overall 0–100) — Overall<50 esetén automatikus "Jelenleg nem javaslok beavatkozást." A sablon 9-mezősre bővült új ÜZLETI CÉL sorral, VÁRHATÓ ÜZLETI HATÁS-ra átnevezett hatás-mezővel (KPI másodlagos), és a BIZONYTALANSÁG mezőben Overall+leggyengébb dimenzió megjelenítéssel. Explain Mode: "miért ezt javaslod?" kérdésre teljes döntési útvonal levezetése. Hallucináció-tiltás: üzleti kauzalitás CSAK ténylegesen kimutatható downstream metrikából. Elfogadási feltétel teljesítve: ugyanaz a Google Ads adat + eltérő üzleti cél → eltérő javaslat, indoklással.
-- **M5 — Approval + Dry Run infrastruktúra.** ✅ Kész (2026-07-10). `ToolSpec.approval: safe|confirm|dangerous` + `supports_dry_run: boolean` mezők (backward compat: legacy `needs_approval: true` → `confirm`). Runtime állapotgép: `approval="safe"` → azonnali végrehajtás; `confirm`/`dangerous` + `mode="dry_run"` (default, ha támogatott) → approval NÉLKÜL fut, a tool visszaadja a tervezett API-hívást; `mode="execute"` → `pendingApprovals`-ba kerül, `approval` szinttel és `supports_dry_run` jelzéssel. Runtime az approval szintet és a mode-ot logolja a `agent_run_steps`-be. Chat UI (`ToolApprovalCardView`): SAFE/CONFIRM/DANGEROUS szint-badge, `dry_run támogatott` jelzés, DANGEROUS-nál piros keret + "MEGERŐSÍTEM" gépelt megerősítő mező (a gomb csak ekkor aktív). Demo `pause_campaign` tool (`ads.google`, Michael-only, `approval: "confirm"`, `supports_dry_run: true`) — dry_run módban végig működik (GAQL SELECT + tervezett mutation payload); execute szándékosan "M6-ban lesz elérhető" hibát ad, hogy az approval-út tesztelhető éles mutation nélkül. Michael prompt: az M5 pause_campaign dry_run használat leírva, execute tiltás rögzítve.
-- **M6 — Write toolok élesben.** CONFIRM: pause/enable/budget/negatívok/keyword/ad, `apply_google_recommendation`. DANGEROUS: delete_campaign, conversion, tracking, bid strategy. Minden `execute` után `change_log` bejegyzés, `dry_run_ref`-fel.
-- **M7+ — Automatizmus.** Napi snapshot cron, Google `change_event` szinkron, riasztás alkotmány-sértésre vagy erős baseline-eltérésre. Későbbi domainek: `analytics.ga4`, `search.gsc`, `web.audit`, `tagmanager.gtm`.
+| # | Fejlesztés | Miért fontos | Kit érint |
+|---|---|---|---|
+| 1 | George → Michael handoff | Ma Ads kérdésre a rossz agent válaszol | George, Michael |
+| 2 | Michael lássa a `crm_leads` READ-et | Ads lead-minőség validáció | Michael |
+| 3 | `marketing.workflow` toolok Scarletnek | Ma üres domain, Scarlet féllábú | Scarlet |
+| 4 | Timothy write toolok (`create_quote_draft`, `schedule_followup`) | CRM ma szinte csak olvasható AI-nak | Timothy |
+| 5 | Boss dokumentum-parse tool | Meeting-jegyzőkönyvekből task-generálás | Boss |
+| 6 | Generikus `snapshot + baseline` Sales/PM oldalra | Baseline-tudás ne csak Michael privilégiuma legyen | Timothy, Boss |
+| 7 | Agent telemetria (`agent_run_metrics`) | Cost/latency láthatóság | mind |
+| 8 | Michael erősebb model (pl. `gpt-4o`) | Komplex döntési sablon minőség-javulás | Michael |
+| 9 | vibateam.hu site knowledge (eredeti M7-terv szűkített verzió) | Michael post-click kontextus | Michael |
+| 10 | GA4 / GSC / Clarity READ | Post-click / organikus / frustration jelek | Michael |
 
 ---
 
-## 12) UI terv
-
-- `/ai-assistant?agent=michael` — chat + Dry Run panel + jóváhagyás UI.
-- `/ai-assistants` gallery — Michael kártya (Owner-only).
-- **Új** `/settings/google-ads` — connect/disconnect + customer választó + Constitution szerkesztő + snapshot állapot (utolsó frissítés, `stale?` jelzés). Owner-only.
-
----
-
-## 13) Bővíthetőség
-
-Új adatforrások új tool-domainként: `analytics.ga4`, `search.gsc`, `web.audit`, `tagmanager.gtm`, `crm.leads`. A snapshot + számított baseline + change_log séma csatorna-agnosztikus (Meta/TikTok is beköthető).
-
----
-
-## Vasszabályok betartva
-
-- **Michael elsődleges célja a VIBA-TEAM üzleti céljainak támogatása, nem a metrikák javítása.**
-- **Baseline = számított nézet snapshotokból, nem kézzel karbantartott adat.**
-- **Minden write előtt kötelező Dry Run** — pontos API-hívások és változások jóváhagyás előtt.
-- Egy önálló specialista + `ads.google` domain + üzleti nevű toolok + háromszintű approval + alkotmány + számított baseline + change history — a meglévő AI OS-en belül.
-- Owner-only jogosultság.
-- Sprintek kicsik (M1..M7), egymástól függetlenül szállíthatók.
-- Michael soha nem optimalizál pusztán Google-ajánlás alapján, és soha nem optimalizál, ha az ellentmond az alkotmánynak vagy a tulajdonosi stratégiának.
-
-**Fejlesztés csak a v3 terv jóváhagyása után indul. Első kód-lépés az M1 migráció + OAuth + Settings + Michael-kártya — még tool nélkül.**
+Fejlesztés csak **egy** kiválasztott irányban indul, jóváhagyás után. Egyszerre EGY funkció — a project szabály változatlan.
