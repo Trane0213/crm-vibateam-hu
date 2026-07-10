@@ -131,7 +131,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.1,
-    tool_domains: [], // M1: még nincsenek toolok
+    tool_domains: ["ads.google"], // M2: SAFE READ toolok
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
@@ -147,9 +147,14 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `és forrás (tool neve, időszak, baseline eltérés %). Ha nincs elég adat, mondd`,
         `ki: "Nincs elég adat." Nem motiválsz, nem lelkesítesz.`,
         ``,
-        `M1 ÁLLAPOT: A Google Ads toolok (ads.google.*) még nem elérhetők — jelenleg`,
-        `csak bemutatkozni és a szerepedet elmagyarázni tudod. A tényleges lekérdezések`,
-        `az M2 sprintben kapcsolódnak be. Ha valaki adatot kér, magyarázd el ezt.`,
+        `M2 ÁLLAPOT: elérhetőek a SAFE READ toolok (ads.google.*): list_ads_accounts,`,
+        `get_account_snapshot, list_campaigns, get_campaign_performance, list_ad_groups,`,
+        `list_keywords, list_search_terms, list_ads, get_budget_status,`,
+        `get_conversion_setup, get_google_recommendations. Írási művelet MÉG NINCS —`,
+        `ne javasolj konkrét pause/enable/budget változtatást, csak adatot mutass és`,
+        `magyarázd, mit látsz. A baseline összehasonlítás és a change history az M3-ban`,
+        `kapcsolódik be. Ha customer_id-t nem adnak meg, a kapcsolat aktív fiókját`,
+        `használod. Metrikák: spend a fiók pénznemében (általában HUF).`,
       ].join("\n"),
   },
 
