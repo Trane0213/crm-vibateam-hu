@@ -17,6 +17,7 @@ import { upsertPageMedia } from "./media.server";
 import type { AssetKind } from "./types";
 import { summarizePageVersion } from "./ai/summary.server";
 import { extractEntitiesForVersion } from "./ai/entities.server";
+import { publishPageChange } from "./kg-publisher.server";
 
 function inferAssetKind(url: string): AssetKind {
   const p = new URL(url).pathname.toLowerCase();
@@ -257,6 +258,14 @@ export async function upsertPageAndVersion(input: {
     });
   } catch (e) {
     console.error("[WK] extractEntitiesForVersion failed", e);
+  }
+
+  // 8) KG projekció — az AI kimenetek (entities) után futtatjuk, hogy a
+  //    has_entity élek is megjelenjenek. Hibája nem borítja a verziót.
+  try {
+    await publishPageChange({ page_id, run_id: input.run_id });
+  } catch (e) {
+    console.error("[WK] publishPageChange failed", e);
   }
 
   return {
