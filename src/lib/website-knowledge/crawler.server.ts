@@ -195,6 +195,50 @@ export async function runCrawl(run_id: string): Promise<{
     console.error("[WK] ai_jobs aggregate failed", e);
   }
 
+  // KG publisher stat aggregálás — a `website` publisher legutóbbi run-hoz
+  // közeli sorai (fut_id-t nem tárolunk a kg_publishers-en, ezért idő szerint
+  // vesszük a mai/futás alatti sorokat). Csak a metadata.kg_* mezőket írjuk
+  // a `website_crawl_runs.metadata`-ba, oszlop-módosítás nélkül.
+  try {
+    const { data: pubs } = await admin
+      .from("kg_publishers")
+      .select("nodes_upserted, edges_upserted, last_run_at, status")
+      .eq("module", "website")
+      .gte("last_run_at", new Date(started).toISOString());
+    const rows = (pubs ?? []) as Array<{
+      nodes_upserted: number;
+      edges_upserted: number;
+      status: string;
+    }>;
+    const kg_nodes = rows.reduce((s, r) => s + Number(r.nodes_upserted ?? 0), 0);
+    const kg_edges = rows.reduce((s, r) => s + Number(r.edges_upserted ?? 0), 0);
+    const kg_errors = rows.filter((r) => r.status !== "ok").length;
+    const { data: current } = await admin
+      .from("website_crawl_runs")
+      .select("metadata")
+      .eq("id", run_id)
+      .maybeSingle();
+    const prevMeta =
+      ((current as { metadata?: Record<string, unknown> } | null)?.metadata ?? {}) as Record<
+        string,
+        unknown
+      >;
+    await admin
+      .from("website_crawl_runs")
+      .update({
+        metadata: {
+          ...prevMeta,
+          kg_publisher_runs: rows.length,
+          kg_nodes_upserted: kg_nodes,
+          kg_edges_upserted: kg_edges,
+          kg_publisher_errors: kg_errors,
+        },
+      })
+      .eq("id", run_id);
+  } catch (e) {
+    console.error("[WK] kg_publisher aggregate failed", e);
+  }
+
   const finalStatus: "success" | "partial" | "failed" =
     stats.crawled === 0
       ? "failed"
