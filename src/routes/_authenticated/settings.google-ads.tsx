@@ -29,8 +29,9 @@ function GoogleAdsSettingsPage() {
       <div>
         <h2 className="text-lg font-semibold tracking-tight">Google Ads — Michael</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Michael a Google Ads specialista agent. M1 állapot: kapcsolat + alkotmány. A tényleges
-          adat-lekérdezés, elemzés és javaslatok a következő sprintekben kapcsolódnak be (M2–M6).
+          Michael a Google Ads specialista agent. M3 állapot: kapcsolat, VIBA Ads Constitution,
+          SAFE READ toolok, számított baseline és change history. Az itt felvett HARD szabályok
+          minden Michael-futásba automatikusan bekerülnek. Write toolok és Dry Run az M5–M6-ban.
         </p>
       </div>
       <GoogleAdsConnectCard />

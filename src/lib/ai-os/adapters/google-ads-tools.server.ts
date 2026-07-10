@@ -545,4 +545,158 @@ export function registerGoogleAdsTools() {
       } catch (e) { return fail(e); }
     },
   );
+
+  // ------------------------------------------------------------------
+  // get_baseline_comparison — SZÁMÍTOTT nézet a google_ads_snapshots fölött.
+  // Rolling median (robusztus outlier ellen) a `window_days` időszakra,
+  // vs. a `compare_last_days` legutóbbi mintáinak mediánja.
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "get_baseline_comparison",
+      description:
+        "Baseline vs. current összehasonlítás egy entitásra a google_ads_snapshots táblából számítva. Rolling median a baseline időszakra, delta % a legutóbbi időszakhoz képest. Ha kevés a snapshot, stale=true.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      parameters: {
+        type: "object",
+        properties: {
+          scope: {
+            type: "string",
+            enum: ["account", "campaign", "ad_group", "keyword"],
+            default: "account",
+            description: "Entitás típus a snapshotokban.",
+          },
+          entity_id: {
+            type: "string",
+            description: "Entitás ID (kampány/ad_group/keyword ID). Account scope-nál a customer_id vagy üres.",
+          },
+          customer_id: { type: "string", description: "Opcionális; ha üres, a kapcsolat aktív fiókja." },
+          window_days: { type: "integer", default: 30, minimum: 3, maximum: 180, description: "Baseline időablak (nap)." },
+          compare_last_days: { type: "integer", default: 7, minimum: 1, maximum: 30, description: "Az utolsó ennyi nap a 'current'." },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const scope = (args.scope as string) ?? "account";
+        const entityId = (args.entity_id as string | undefined) ?? (scope === "account" ? cid : null);
+        const windowDays = Math.min(180, Math.max(3, Number(args.window_days ?? 30)));
+        const compareDays = Math.min(30, Math.max(1, Number(args.compare_last_days ?? 7)));
+
+        const since = new Date();
+        since.setUTCDate(since.getUTCDate() - windowDays);
+        const sinceIso = since.toISOString();
+        const currentCutoff = new Date();
+        currentCutoff.setUTCDate(currentCutoff.getUTCDate() - compareDays);
+        const currentCutoffIso = currentCutoff.toISOString();
+
+        let q = ctx.supabaseUser
+          .from("google_ads_snapshots")
+          .select("snapshotted_at, metrics_json")
+          .eq("customer_id", cid)
+          .eq("scope", scope)
+          .gte("snapshotted_at", sinceIso)
+          .order("snapshotted_at", { ascending: true });
+        if (entityId) q = q.eq("entity_id", entityId);
+        const { data, error } = await q;
+        if (error) throw new Error(`snapshots read failed: ${error.message}`);
+
+        const rows = (data ?? []) as Array<{ snapshotted_at: string; metrics_json: Record<string, any> }>;
+        const METRICS = ["spend", "impressions", "clicks", "ctr", "avg_cpc", "conversions", "conv_value", "cpa", "roas"] as const;
+        const median = (nums: number[]): number | null => {
+          const arr = nums.filter((n) => Number.isFinite(n)).sort((a, b) => a - b);
+          if (!arr.length) return null;
+          const mid = Math.floor(arr.length / 2);
+          return arr.length % 2 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+        };
+        const baselineRows = rows.filter((r) => r.snapshotted_at < currentCutoffIso);
+        const currentRows = rows.filter((r) => r.snapshotted_at >= currentCutoffIso);
+        const MIN_BASELINE = 3;
+        const stale = baselineRows.length < MIN_BASELINE || currentRows.length === 0;
+
+        const metrics: Record<string, { baseline: number | null; current: number | null; delta_abs: number | null; delta_pct: number | null }> = {};
+        for (const key of METRICS) {
+          const b = median(baselineRows.map((r) => Number(r.metrics_json?.[key])));
+          const c = median(currentRows.map((r) => Number(r.metrics_json?.[key])));
+          const deltaAbs = b !== null && c !== null ? c - b : null;
+          const deltaPct = b !== null && c !== null && b !== 0 ? (c - b) / Math.abs(b) : null;
+          metrics[key] = { baseline: b, current: c, delta_abs: deltaAbs, delta_pct: deltaPct };
+        }
+
+        return ok({
+          customer_id: cid,
+          scope,
+          entity_id: entityId,
+          window_days: windowDays,
+          compare_last_days: compareDays,
+          baseline_sample_size: baselineRows.length,
+          current_sample_size: currentRows.length,
+          stale,
+          stale_reason: stale
+            ? baselineRows.length < MIN_BASELINE
+              ? `Kevés baseline snapshot (${baselineRows.length} < ${MIN_BASELINE}). Hívj több get_account_snapshot / get_campaign_performance toolt, vagy várd meg a napi cron-t (M7).`
+              : "Nincs current időszak snapshot."
+            : null,
+          metrics,
+        });
+      } catch (e) { return fail(e); }
+    },
+  );
+
+  // ------------------------------------------------------------------
+  // get_change_history — google_ads_change_log olvasás
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "get_change_history",
+      description:
+        "Változás-napló olvasása (google_ads_change_log). Michael-execute-ok + jövőbeli kézi Google módosítások. Ok-okozat kötéshez: 'X napján Y változott → Z hatás'.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      parameters: {
+        type: "object",
+        properties: {
+          customer_id: { type: "string" },
+          entity: { type: "string", description: "Opcionális szűrő: 'campaign', 'ad_group', 'keyword', 'ad', 'budget', 'conversion_action', stb." },
+          entity_id: { type: "string", description: "Opcionális szűrő egy konkrét entitás ID-jára." },
+          days_back: { type: "integer", default: 30, minimum: 1, maximum: 365 },
+          limit: { type: "integer", default: 100, minimum: 1, maximum: 500 },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const days = Math.min(365, Math.max(1, Number(args.days_back ?? 30)));
+        const limit = Math.min(500, Math.max(1, Number(args.limit ?? 100)));
+        const since = new Date();
+        since.setUTCDate(since.getUTCDate() - days);
+        let q = ctx.supabaseUser
+          .from("google_ads_change_log")
+          .select("changed_at, entity, entity_id, field, old_value, new_value, changed_by, reason, dry_run_ref")
+          .eq("customer_id", cid)
+          .gte("changed_at", since.toISOString())
+          .order("changed_at", { ascending: false })
+          .limit(limit);
+        if (args.entity) q = q.eq("entity", String(args.entity));
+        if (args.entity_id) q = q.eq("entity_id", String(args.entity_id));
+        const { data, error } = await q;
+        if (error) throw new Error(`change_log read failed: ${error.message}`);
+        const items = (data ?? []) as any[];
+        return ok({
+          customer_id: cid,
+          days_back: days,
+          count: items.length,
+          items,
+          note: items.length === 0
+            ? "Nincs változás a naplóban. Michael execute-jai csak M6-tól íródnak ide; kézi Google módosítások szinkronja M7+."
+            : null,
+        });
+      } catch (e) { return fail(e); }
+    },
+  );
 }

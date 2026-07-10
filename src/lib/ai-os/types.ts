@@ -84,6 +84,16 @@ export type AgentDefinition = {
   extra_tools?: string[];
   /** A system prompt builder — futáskor a runtime hívja kontextussal. */
   buildSystemPrompt: (ctx: SystemPromptContext) => string;
+  /**
+   * Opcionális, async kiegészítés a system prompthoz. A runtime a user
+   * Supabase klienssel hívja (RLS a user nevében). Ha string-et ad vissza,
+   * a rendszer üres sorral elválasztva hozzáfűzi a buildSystemPrompt kimenetéhez.
+   * Adatbázisból származó dinamikus szabályokhoz (pl. VIBA Ads Constitution).
+   */
+  augmentSystemPrompt?: (
+    ctx: SystemPromptContext,
+    userClient: import("@supabase/supabase-js").SupabaseClient,
+  ) => Promise<string | null>;
   /** Orchestrator-e? Csak orchestrator hívhatja a handoff_to toolt. */
   is_orchestrator?: boolean;
 };

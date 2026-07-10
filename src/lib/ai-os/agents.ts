@@ -131,7 +131,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.1,
-    tool_domains: ["ads.google"], // M2: SAFE READ toolok
+    tool_domains: ["ads.google"], // M2 + M3: SAFE READ toolok + baseline/change history
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
@@ -147,20 +147,64 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `és forrás (tool neve, időszak, baseline eltérés %). Ha nincs elég adat, mondd`,
         `ki: "Nincs elég adat." Nem motiválsz, nem lelkesítesz.`,
         ``,
-        `M2 ÁLLAPOT: elérhetőek a SAFE READ toolok (ads.google.*): list_ads_accounts,`,
+        `M3 ÁLLAPOT: elérhetőek a SAFE READ toolok (ads.google.*): list_ads_accounts,`,
         `get_account_snapshot, list_campaigns, get_campaign_performance, list_ad_groups,`,
         `list_keywords, list_search_terms, list_ads, get_budget_status,`,
-        `get_conversion_setup, get_google_recommendations. Írási művelet MÉG NINCS —`,
-        `ne javasolj konkrét pause/enable/budget változtatást, csak adatot mutass és`,
-        `magyarázd, mit látsz. A baseline összehasonlítás és a change history az M3-ban`,
-        `kapcsolódik be. Ha customer_id-t nem adnak meg, a kapcsolat aktív fiókját`,
-        `használod. Metrikák: spend a fiók pénznemében (általában HUF).`,
+        `get_conversion_setup, get_google_recommendations, get_baseline_comparison,`,
+        `get_change_history. Írási művelet MÉG NINCS — ne javasolj konkrét pause/enable/`,
+        `budget változtatást, csak adatot mutass és elemezz. Ha customer_id-t nem adnak`,
+        `meg, a kapcsolat aktív fiókját használod. Metrikák: spend a fiók pénznemében`,
+        `(általában HUF).`,
         ``,
         `KÖTELEZŐ VISELKEDÉS: ha a user teljesítményt / kampányokat / kulcsszavakat / búdzsét`,
         `/ konverziót kérdez, MINDIG hívd a megfelelő ads.google.* toolt — SOHA ne írj olyat,`,
         `hogy "most lekérdezem" tényleges tool-hívás nélkül. Csak akkor válaszolj tool nélkül,`,
         `ha a kérdés valóban nem igényel Google Ads adatot (pl. bemutatkozás).`,
+        ``,
+        `M3 ELEMZÉSI PROTOKOLL — kötelező sorrend, mielőtt értelmezést vagy állítást írsz:`,
+        `1) Hívd a get_account_snapshot vagy get_campaign_performance toolt a friss számokért.`,
+        `2) Hívd a get_baseline_comparison toolt (rolling median a snapshotokból) — MINDEN`,
+        `   "jobb/rosszabb", "csökkent/nőtt", "romlott" típusú állításhoz baseline eltérés`,
+        `   %-ban kell (baseline vs current, delta_pct). Ha stale=true, mondd ki, hogy a`,
+        `   baseline elégtelen (kevés snapshot) — ne találj ki trendet.`,
+        `3) Ha "miért" kérdés vagy változás magyarázandó: hívd a get_change_history toolt`,
+        `   a szóban forgó entitásra, és köss össze időpontot változással (pl. "Jul 12`,
+        `   budget nőtt → Jul 15 CPA romlott").`,
+        `4) VIBA Ads Constitution: a lentebb betöltött HARD szabályokkal ellentmondó`,
+        `   javaslatot NEM adhatsz. Ha egy Google Recommendation ütközik hard szabállyal,`,
+        `   nevezd meg a szabályt és utasítsd el. A soft szabályokat figyelmeztetésként`,
+        `   említsd, de nem tiltóak.`,
+        `5) Egy állításod se lehet forrás nélkül. Formátum: "<érték> (<tool>, <időszak>,`,
+        `   baseline Δ <±X%>)". Ha nincs elég adat, mondd ki és állj meg.`,
       ].join("\n"),
+    augmentSystemPrompt: async (ctx, sb) => {
+      // VIBA Ads Constitution — a user szabályai. RLS a user nevében szűr.
+      const { data, error } = await sb
+        .from("google_ads_constitution")
+        .select("rule_key, rule_text, severity, enabled, sort_order")
+        .eq("enabled", true)
+        .order("sort_order", { ascending: true })
+        .order("rule_key", { ascending: true });
+      if (error || !data || data.length === 0) {
+        return [
+          `VIBA ADS CONSTITUTION: nincs betöltött szabály. Ha a user szabályokra hivatkozik,`,
+          `mondd ki, hogy az alkotmány üres, és irányítsd a Beállítások → Google Ads oldalra`,
+          `(/settings/google-ads) a szabályok felvételéhez.`,
+        ].join("\n");
+      }
+      const hard = data.filter((r) => r.severity === "hard");
+      const soft = data.filter((r) => r.severity === "soft");
+      const lines: string[] = [`VIBA ADS CONSTITUTION (user: ${ctx.userId}) — kötelező szabályok:`];
+      if (hard.length) {
+        lines.push(``, `HARD (soha nem hágható át):`);
+        for (const r of hard) lines.push(`- [${r.rule_key}] ${r.rule_text}`);
+      }
+      if (soft.length) {
+        lines.push(``, `SOFT (figyelmeztetés, indoklással eltérhetsz):`);
+        for (const r of soft) lines.push(`- [${r.rule_key}] ${r.rule_text}`);
+      }
+      return lines.join("\n");
+    },
   },
 
   // ---------------------------------------------------------------------------
