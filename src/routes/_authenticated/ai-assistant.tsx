@@ -187,7 +187,7 @@ function AiAssistantPage() {
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const urlAgent = (() => {
     const v = new URLSearchParams(searchStr ?? "").get("agent");
-    return v === "sales" || v === "pm" || v === "crm" ? (v as AgentId) : null;
+    return v === "sales" || v === "pm" || v === "crm" || v === "ads" ? (v as AgentId) : null;
   })();
 
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads());
@@ -197,14 +197,14 @@ function AiAssistantPage() {
     const urlA = sp.get("agent");
     const all = loadThreads();
     // Ha az URL agentet kér, csak az adott agenthez tartozó thread induljon aktívként.
-    if (urlA === "crm" || urlA === "sales" || urlA === "pm") {
+    if (urlA === "crm" || urlA === "sales" || urlA === "pm" || urlA === "ads") {
       return all.find((t) => t.agent === urlA)?.id ?? null;
     }
     return all[0]?.id ?? null;
   });
   const [agent, setAgent] = useState<AgentId>(() => {
     const v = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("agent") : null;
-    if (v === "sales" || v === "pm" || v === "crm") return v as AgentId;
+    if (v === "sales" || v === "pm" || v === "crm" || v === "ads") return v as AgentId;
     const all = loadThreads();
     return (all[0]?.agent as AgentId) ?? "crm";
   });
