@@ -44,6 +44,7 @@ import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
 import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
 import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
 import { Route as AuthenticatedWebQuoteRequestsIdRouteImport } from './routes/_authenticated/web-quote-requests.$id'
+import { Route as AuthenticatedSettingsWebsiteKnowledgeRouteImport } from './routes/_authenticated/settings.website-knowledge'
 import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
 import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
 import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
@@ -264,6 +265,12 @@ const AuthenticatedWebQuoteRequestsIdRoute =
     id: '/web-quote-requests/$id',
     path: '/web-quote-requests/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSettingsWebsiteKnowledgeRoute =
+  AuthenticatedSettingsWebsiteKnowledgeRouteImport.update({
+    id: '/website-knowledge',
+    path: '/website-knowledge',
+    getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
 const AuthenticatedSettingsUsersRoute =
   AuthenticatedSettingsUsersRouteImport.update({
@@ -498,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/settings/website-knowledge': typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
@@ -566,6 +574,7 @@ export interface FileRoutesByTo {
   '/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/settings/website-knowledge': typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   '/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
@@ -637,6 +646,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/roles': typeof AuthenticatedSettingsRolesRoute
   '/_authenticated/settings/storage': typeof AuthenticatedSettingsStorageRoute
   '/_authenticated/settings/users': typeof AuthenticatedSettingsUsersRoute
+  '/_authenticated/settings/website-knowledge': typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   '/_authenticated/web-quote-requests/$id': typeof AuthenticatedWebQuoteRequestsIdRoute
   '/api/gmail/disconnect': typeof ApiGmailDisconnectRoute
   '/api/gmail/refresh-body': typeof ApiGmailRefreshBodyRoute
@@ -708,6 +718,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/settings/website-knowledge'
     | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
@@ -776,6 +787,7 @@ export interface FileRouteTypes {
     | '/settings/roles'
     | '/settings/storage'
     | '/settings/users'
+    | '/settings/website-knowledge'
     | '/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
@@ -846,6 +858,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/roles'
     | '/_authenticated/settings/storage'
     | '/_authenticated/settings/users'
+    | '/_authenticated/settings/website-knowledge'
     | '/_authenticated/web-quote-requests/$id'
     | '/api/gmail/disconnect'
     | '/api/gmail/refresh-body'
@@ -1138,6 +1151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings/website-knowledge': {
+      id: '/_authenticated/settings/website-knowledge'
+      path: '/website-knowledge'
+      fullPath: '/settings/website-knowledge'
+      preLoaderRoute: typeof AuthenticatedSettingsWebsiteKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/users': {
       id: '/_authenticated/settings/users'
       path: '/users'
@@ -1385,6 +1405,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsRolesRoute: typeof AuthenticatedSettingsRolesRoute
   AuthenticatedSettingsStorageRoute: typeof AuthenticatedSettingsStorageRoute
   AuthenticatedSettingsUsersRoute: typeof AuthenticatedSettingsUsersRoute
+  AuthenticatedSettingsWebsiteKnowledgeRoute: typeof AuthenticatedSettingsWebsiteKnowledgeRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
 
@@ -1405,6 +1426,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsRolesRoute: AuthenticatedSettingsRolesRoute,
   AuthenticatedSettingsStorageRoute: AuthenticatedSettingsStorageRoute,
   AuthenticatedSettingsUsersRoute: AuthenticatedSettingsUsersRoute,
+  AuthenticatedSettingsWebsiteKnowledgeRoute:
+    AuthenticatedSettingsWebsiteKnowledgeRoute,
   AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
 }
 
