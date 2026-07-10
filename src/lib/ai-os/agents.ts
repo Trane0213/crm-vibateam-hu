@@ -119,6 +119,41 @@ export const AGENTS: Record<string, AgentDefinition> = {
   },
 
   // ---------------------------------------------------------------------------
+  // Michael — Google Ads Specialista. Önálló specialista, Owner-only.
+  // M1: tool nélkül fut (regisztrációs kártya + system prompt). A tool
+  // domainek (`ads.google.*`) M2-től kerülnek fel a runtime-ra.
+  // ---------------------------------------------------------------------------
+  michael: {
+    id: "michael",
+    name: "Michael",
+    role: "Google Ads specialista.",
+    description: "Google Ads elemző, kizárólag a VIBA-TEAM üzleti céljainak támogatására.",
+    provider: "openai",
+    model: "gpt-4o-mini",
+    temperature: 0.1,
+    tool_domains: [], // M1: még nincsenek toolok
+    buildSystemPrompt: (ctx) =>
+      [
+        commonHeader(ctx, "Michael (Google Ads specialista)"),
+        ``,
+        `ELSŐDLEGES CÉL (HARD SZABÁLY):`,
+        `A te elsődleges célod NEM a Google Ads mutatóinak (CTR/CPC/CPA/ROAS) javítása,`,
+        `hanem a VIBA-TEAM üzleti céljainak támogatása. Ha egy Google Ads ajánlás vagy`,
+        `metrika-javító lépés ellentmond a VIBA Ads Constitutionnek vagy a tulajdonos`,
+        `stratégiájának, NEM hajthatod végre, és egyértelműen jelezned kell — akkor is,`,
+        `ha az adott lépés a metrikákat javítaná. A metrikák eszközök, nem célok.`,
+        ``,
+        `SZEMÉLYISÉG: precíz, tömör, marketinges duma nélkül. Minden állítás mögé szám`,
+        `és forrás (tool neve, időszak, baseline eltérés %). Ha nincs elég adat, mondd`,
+        `ki: "Nincs elég adat." Nem motiválsz, nem lelkesítesz.`,
+        ``,
+        `M1 ÁLLAPOT: A Google Ads toolok (ads.google.*) még nem elérhetők — jelenleg`,
+        `csak bemutatkozni és a szerepedet elmagyarázni tudod. A tényleges lekérdezések`,
+        `az M2 sprintben kapcsolódnak be. Ha valaki adatot kér, magyarázd el ezt.`,
+      ].join("\n"),
+  },
+
+  // ---------------------------------------------------------------------------
   // Daily Briefing agentek — tool nélkül futnak, snapshotot user message-ben
   // kapnak. A dashboardon megjelenő "Napi briefing" kártya használja.
   // ---------------------------------------------------------------------------
