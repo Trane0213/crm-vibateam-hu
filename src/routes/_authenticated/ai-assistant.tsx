@@ -37,12 +37,15 @@ function AiAssistantRoute() {
 }
 
 type NavCard = { to: string; params?: Record<string, string>; label: string };
+type ApprovalLevel = "safe" | "confirm" | "dangerous";
 type ToolApproval = {
   tool_call_id: string;
   tool_name: string;
   arguments_json: string;
   status: "pending" | "approved" | "rejected" | "error";
   error?: string;
+  approval?: ApprovalLevel;
+  supports_dry_run?: boolean;
 };
 type Msg = {
   id: string; role: "user" | "assistant"; content: string; at: number;
@@ -290,6 +293,8 @@ function AiAssistantPage() {
             tool_name: p.tool_name,
             arguments_json: p.arguments_json,
             status: "pending" as const,
+            approval: (p as any).approval,
+            supports_dry_run: (p as any).supports_dry_run,
           }))
         : undefined;
       const assistantMsg: Msg = {
