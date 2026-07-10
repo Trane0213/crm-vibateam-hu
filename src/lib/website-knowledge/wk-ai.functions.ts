@@ -11,6 +11,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // kliens-view csak READ-re. RLS + middleware továbbra is teljes védelmet ad.
 type LooseClient = SupabaseClient<any, any, any>;
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [k: string]: JsonValue };
+
 export const wkGetPageSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { page_id: string }) => {
@@ -25,6 +33,14 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
       confidence: number | null;
       entity: { id: string; entity_kind: string; name: string } | null;
     };
+    type SummaryOut = {
+      id: string;
+      summary: string | null;
+      summary_json: JsonValue;
+      model: string | null;
+      created_at: string;
+      page_version_id: string;
+    };
     const { data: page, error: pErr } = await sb
       .from("website_pages")
       .select("id, url, title, current_version_id")
@@ -32,7 +48,7 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
       .maybeSingle();
     if (pErr) throw new Error(pErr.message);
     if (!page || !page.current_version_id) {
-      return { summary: null, entity_links: [] as EntityLink[] };
+      return { summary: null as SummaryOut | null, entity_links: [] as EntityLink[] };
     }
     const { data: summary, error: sErr } = await sb
       .from("website_page_summaries")
@@ -69,14 +85,7 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
     }));
 
     return {
-      summary: (summary ?? null) as null | {
-        id: string;
-        summary: string | null;
-        summary_json: Record<string, unknown>;
-        model: string | null;
-        created_at: string;
-        page_version_id: string;
-      },
+      summary: (summary ?? null) as SummaryOut | null,
       entity_links: enriched,
     };
   });
