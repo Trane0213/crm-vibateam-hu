@@ -1,193 +1,237 @@
-# Michael — Google Ads Specialista (Technikai terv)
+# Michael — Google Ads Specialista (Technikai terv, v3)
 
-Michael egy új **specialista agent** a meglévő AI OS-en belül. **Nem** új AI rendszer, **nem** külön chat, **nem** külön memória. Ugyanaz a runtime, tool registry, `ai_memory`, `agent_runs` napló, ugyanaz az OpenAI provider (`gpt-4o-mini`), ugyanaz a chat UI. Csak: új `AgentDefinition` + új tool-domain (`ads.google`) + új adapter modul + Google OAuth secretek + Owner-only jogosultság.
+## 0) Alapelv — Michael elsődleges célja
+
+**Michael elsődleges célja NEM a Google Ads mutatóinak javítása, hanem a VIBA-TEAM üzleti céljainak támogatása.**
+
+- Ha egy Google Ads ajánlás (vagy bármilyen metrika-javító lépés) ellentmond a VIBA Ads Constitutionnek vagy a tulajdonos által meghatározott stratégiának, akkor Michael **nem hajthatja végre**, és **köteles ezt egyértelműen jelezni** — akkor is, ha az adott lépés a CTR-t, CPC-t, CPA-t vagy ROAS-t javítaná.
+- A metrikák eszközök, nem célok.
+- Hard szabály, minden run elején a system prompt tetején. A javaslati sablonba (9. pont) beépül egy `ÜZLETI CÉL-ILLESZKEDÉS` sor.
+
+---
+
+Michael önálló **specialista agent** a meglévő AI OS-en belül. Nem új rendszer, nem külön chat, nem külön memória. Ugyanaz a runtime, tool registry, `ai_memory`, `agent_runs` napló, ugyanaz az OpenAI provider (`gpt-4o-mini`), ugyanaz a chat UI. Új elemek: `AgentDefinition` (michael), `ads.google` tool-domain + adapter, Google OAuth, Owner-only jogosultság, **háromszintű approval + Dry Run**, **VIBA Ads Constitution**, **számított baseline**, **change history**.
 
 ---
 
 ## 1) AI OS integráció
 
-**Hova kerül az agent struktúrában**
-- Új sor a `AGENTS` regiszterben (`src/lib/ai-os/agents.ts`), id: `michael`.
-- Nem orchestrator — specialista, mint Scarlet/Timothy/Boss.
-- Kizárólag George-on keresztül hívható (handoff_to). Direkt is elérhető chatből, ha az Owner az `/ai-assistant?agent=michael` felületet nyitja.
-- George system promptja bővül egy sorral: "Google Ads / kampányoptimalizálás → Michael".
-
-**Újrahasznált (nem érintett) komponensek**
-- `runtime.server.ts` (`runAgent`) — változatlan.
-- `providers.server.ts` (OpenAI hívás) — változatlan.
-- `tool-registry.ts` — változatlan; új domain (`ads.google`) csak regisztrációként jelenik meg.
-- `memory.server.ts` + `ai_memory` tábla — változatlan; új `subject_type` értékek (`ads_account`, `ads_campaign`) minden migráció nélkül működnek (a séma szabad-szöveges).
-- `audit.server.ts` (`agent_runs`, `agent_run_steps`) — változatlan.
-- Chat UI: `/ai-assistant`, `AgentGate`, `AiSheet` — változatlan; csak az `AGENT_REGISTRY` (`visible-agents.ts`) kap új Michael kártyát.
-
-**Új komponensek (minimalizálva)**
-- `src/lib/ai-os/adapters/google-ads-tools.server.ts` — Google Ads toolok regisztrálása (read + write, minden write `needs_approval: true`).
-- `src/lib/google-ads/oauth.server.ts` — OAuth2 authorize/callback + refresh token.
-- `src/lib/google-ads/client.server.ts` — access token cache + `google-ads-api` (v17) SDK wrapper.
-- Két új publikus route: `src/routes/api/google-ads/oauth.start.ts`, `.../oauth.callback.ts` — a meglévő `api/gmail/oauth.*` mintájára.
-- Egy új Settings oldal: `src/routes/_authenticated/settings.google-ads.tsx` — connect / disconnect / kiválasztott customer_id.
-- Egy új DB migráció: `database/2026-07-XX_google_ads_connection.sql` — `google_ads_connections` tábla (user_id, refresh_token titkosítva, login_customer_id, selected_customer_id), RLS owner-only + grants.
-
-**Ami NEM készül**
-- Új chat engine, új memória tábla, új agent runtime, új provider absztrakció, új UI keret — semmi.
+- Új `AGENTS.michael` (`src/lib/ai-os/agents.ts`), önálló specialista. Közvetlenül elérhető `/ai-assistant?agent=michael`; George opcionálisan delegálhat, de nem kötelező.
+- Érintetlen: `runtime.server.ts`, `providers.server.ts`, `tool-registry.ts`, `memory.server.ts`, `audit.server.ts`, `ai_threads`/`ai_messages`, `AgentGate`, chat route-ok.
+- Új komponensek:
+  - `src/lib/ai-os/adapters/google-ads-tools.server.ts`
+  - `src/lib/google-ads/oauth.server.ts` + `client.server.ts`
+  - `src/routes/api/google-ads/oauth.start.ts`, `.../oauth.callback.ts`
+  - `src/routes/_authenticated/settings.google-ads.tsx` (connect + Constitution)
+  - Migráció: `google_ads_connections`, `google_ads_constitution`, `google_ads_snapshots`, `google_ads_change_log` (RLS owner-only + grants).
 
 ---
 
 ## 2) Google Ads API
 
-**Szükséges Google API-k**
-- **Google Ads API v17** (REST + gRPC; a `google-ads-api` npm csomag REST-en megy → Workers-kompatibilis).
-- **Google OAuth 2.0** (a Gmail integrációnál már használt endpoint).
-- Fejlesztői előfeltétel: **Google Ads Developer Token** (Standard access ajánlott; test account is elég induláshoz).
-- **Login Customer ID** (MCC, ha manager-fiók a belépési pont).
-
-**OAuth folyamat**
-1. `/api/google-ads/oauth/start` → 302 a Google authorize URL-re, `access_type=offline`, `prompt=consent`, PKCE state cookie.
-2. Google callback → `/api/google-ads/oauth/callback` beváltja a code-ot refresh + access tokenre.
-3. Refresh tokent titkosítva a `google_ads_connections` táblába mentjük (`user_id = auth.uid()`). Access token nem perzisztálódik.
-4. Első connect után a felhasználó a Settings oldalon választ egy `customer_id`-t a `listAccessibleCustomers` eredményből.
-
-**Scope-ok**
-- `https://www.googleapis.com/auth/adwords` (Google Ads teljes API — nincs finomabb bontás).
-- `openid email` — csak azonosításra.
-
-**Hitelesítés request-időben**
-- Minden Ads API hívás előtt: friss access token (in-memory cache, TTL 55 perc).
-- HTTP fejlécek: `Authorization: Bearer <access>`, `developer-token: <env>`, `login-customer-id: <MCC opcionális>`.
-
-**Token frissítés**
-- `client.server.ts` a Google `/token` endpointon refresh tokennel új access tokent kér, ha a cache lejárt.
-- Refresh hiba (invalid_grant) → connection státusz `revoked`, UI-n újracsatlakozást kérünk.
-
-**Secretek (Lovable Cloud secretek, add_secret-tel bekérve)**
-- `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET` (a Gmail-től eltérő OAuth kliens is lehet, de közös is — külön ajánlott).
-- `GOOGLE_ADS_DEVELOPER_TOKEN`.
-- `GOOGLE_ADS_LOGIN_CUSTOMER_ID` (opcionális, MCC esetén; user szinten is felülírható).
-- `GOOGLE_ADS_TOKEN_ENC_KEY` (a refresh token AES-GCM titkosításához; `generate_secret`).
+- Google Ads API v17 (REST, Workers-kompatibilis).
+- OAuth 2.0: `access_type=offline`, `prompt=consent`, PKCE state cookie.
+- Scope: `.../auth/adwords` + `openid email`.
+- Access token in-memory cache 55 perc TTL; refresh token AES-GCM titkosítva DB-ben. `invalid_grant` → `revoked`.
+- Fejélcek: `Authorization: Bearer`, `developer-token`, `login-customer-id` (opcionális MCC).
+- Secretek: `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_DEVELOPER_TOKEN`, `GOOGLE_ADS_TOKEN_ENC_KEY` (`generate_secret`).
 
 ---
 
-## 3) Tool architektúra
+## 3) Tool architektúra — üzleti nevekkel, adatszolgáltató szereppel
 
-Michael tool-domain: **`ads.google`**. Egyetlen adapter fájl regisztrálja az összes toolt a meglévő `registerTool()` API-n; a runtime a `tool_domains: ["core.memory", "ads.google"]` alapján adja át.
-
-Minden **write** tool `needs_approval: true` és `allowed_roles: ["owner"]`. Minden **read** tool `allowed_roles: ["owner"]` (v1).
+Domain: **`ads.google`**. A toolok üzleti fogalmakat képviselnek, nem API végpontokat. **Egyik sem hoz ítéletet** — az ítéletet, auditot, javaslatot Michael maga állítja össze a system prompt kötelező sablonjai szerint.
 
 ```text
-[ads.google] read
-  ads_list_accounts            — listAccessibleCustomers
-  ads_account_overview         — spend/CTR/CPA/Conv utolsó 7/30/90 nap
-  ads_list_campaigns           — státusz, budget, bid strategy, KPI
-  ads_campaign_performance     — kampány idősor + segment (device/network)
-  ads_list_ad_groups           — ad_group szint KPI
-  ads_list_keywords            — kulcsszó szint (impr/CTR/QS/CPC/conv)
-  ads_search_terms             — search_term_view (negatív jelöltek)
-  ads_list_ads                 — ad_group_ad + asset_group
-  ads_budget_status            — budget vs. spend, IS lost budget
-  ads_recommendations_list     — Google saját recommendation feed
-  ads_audit_report             — összegző audit (bid strat, negatívok, konverzió, tracking)
+[ads.google] — READ (SAFE, ítélet nélkül)
+  list_ads_accounts
+  get_account_snapshot            — spend/CTR/CPA/ROAS idősoron (nyers Ads API)
+  list_campaigns
+  get_campaign_performance
+  list_ad_groups
+  list_keywords
+  list_search_terms
+  list_ads
+  get_budget_status
+  get_conversion_setup
+  get_google_recommendations      — CSAK BEMENET, háttér-jelzés
+  get_baseline_comparison         — számított nézet (lásd 6. pont)
+  get_change_history
 
-[ads.google] write (mind needs_approval)
-  ads_pause_campaign / ads_enable_campaign
-  ads_update_campaign_budget
-  ads_add_negative_keyword
-  ads_pause_keyword / ads_pause_ad
-  ads_apply_recommendation
-  ads_create_experiment        — (későbbi sprint; váz most készül)
-
-[core.memory]      (közös)
-  memory_upsert / memory_search  — ads_account / ads_campaign subject_type-okkal
+[ads.google] — WRITE (üzleti nevek)
+  pause_campaign                  — CONFIRM
+  enable_campaign                 — CONFIRM
+  change_campaign_budget          — CONFIRM
+  add_negative_keyword            — CONFIRM
+  pause_keyword                   — CONFIRM
+  pause_ad                        — CONFIRM
+  apply_google_recommendation     — CONFIRM (csak saját indoklással)
+  delete_campaign                 — DANGEROUS
+  change_conversion_action        — DANGEROUS
+  change_conversion_tracking      — DANGEROUS
+  change_bid_strategy_type        — DANGEROUS
 ```
 
-**Miért így**: az AI OS registry már domain-alapú, tehát Michael tool-készlete egyetlen új domain — a többi agent semmit nem lát belőle, mert a `tool_domains`-ük nem tartalmazza az `ads.google`-t.
+Nincs `audit_report` tool. Google recommendations = bemenet, nem kimenet.
 
 ---
 
-## 4) Chat működés
+## 4) Approval — háromszintű + kötelező Dry Run
 
-- Belépés: **George-on át handoffal** vagy közvetlenül a Michael kártyáról az AI Asszisztensek gallery-ből (`/ai-assistant?agent=michael`).
-- Ugyanaz a thread modell (`ai_threads` + `ai_messages`), thread `agent_id = "michael"`.
-- System prompt szigorú: csak Google Ads / kampányoptimalizálás; minden más kérdést George-nak ad vissza.
-- Példa promptok, amelyeket a system prompt-ban is felsorolunk mintaként:
-  - "Michael, nézd át a Google Ads fiókomat." → `ads_list_accounts` → `ads_account_overview` → `ads_audit_report`.
-  - "Michael, miért romlott ez a kampány?" → `ads_campaign_performance` (7 vs. előző 7 nap) → diagnózis.
-  - "Michael, mit javasolsz?" → `ads_recommendations_list` + `ads_search_terms` → javaslatlista.
-  - "Michael, készíts optimalizálási tervet." → strukturált terv (mit, miért, várható hatás, kockázat) + write toolok javaslatként (jóváhagyásra vár).
-- Approval flow: a write tool `needs_approval: true` → a chat UI a meglévő tool-approval megjelenítést kapja (ugyanaz, mint a Sales write toolnál).
+Új `ToolSpec` mező: `approval: "safe" | "confirm" | "dangerous"`.
 
----
+| Szint | Viselkedés |
+|-------|------------|
+| **SAFE** | Nincs kérdés. Minden READ. |
+| **CONFIRM** | Dry Run + egy jóváhagyó dialógus. |
+| **DANGEROUS** | Dry Run + két lépcsős megerősítés (második lépés szöveges: "ERŐSÍTS MEG"). |
 
-## 5) Sprintek bontása (roadmap)
+**Dry Run — minden CONFIRM és DANGEROUS write előtt kötelező.**
 
-**Sprint M0 — Előkészítés (jelen terv jóváhagyása)**
-- Google Cloud projekt + OAuth kliens létrehozása.
-- Developer token igénylése (Basic elég indulásra).
-- Secretek berögzítése.
+- Michael **nem** hívja közvetlenül a write toolt. Először a `dry_run` fázist futtatja: az AI OS runtime a tool-call-t `mode=dry_run` paraméterrel indítja el, a tool implementáció ilyenkor **nem küld módosítást a Google API felé**, hanem összegyűjti és visszaadja pontosan azt, amit végrehajtana.
+- Dry Run kimenet — kötelező struktúra, ez jelenik meg a jóváhagyó dialógusban:
+  ```text
+  DRY RUN — <tool_name>
+  API HÍVÁSOK (sorrendben):
+    1. GoogleAds.<Service>.<Method>(...)     — 1 mutate
+    2. ...
+  MI VÁLTOZIK:
+    - <entity>#<id>: <field>  "<előtte>" → "<utána>"
+    - ...
+  ÉRINTETT KAPCSOLÓDÓ ELEMEK: <pl. érintett ad_group-ok, aktív hirdetések száma>
+  VISSZAVONHATÓ?              <igen / részben / nem>
+  ALKOTMÁNY-ELLENŐRZÉS:       <mely szabályokkal konzisztens>
+  BASELINE HATÁS BECSLÉS:     <várható eltérés a baseline-hoz képest, tartomány>
+  ```
+- Csak a Dry Run **felhasználói jóváhagyása** után megy be egy második tool-call `mode=execute`-tal, ami a valódi API-hívás.
+- Runtime státuszok az `agent_run_steps`-ben: `dry_run_ready` → `awaiting_approval` → `executed` / `denied`.
+- DANGEROUS toolnál a második lépcső Dry Run + második megerősítés együtt.
+- Minden `execute` fázis után kötelező bejegyzés a `google_ads_change_log`-ba (mi, ki, mikor, indoklás, előtte-utána, Dry Run referencia).
 
-**Sprint M1 — Kapcsolat és jogosultság (backend csak)**
-- Migráció: `google_ads_connections` tábla + RLS owner-only.
-- `oauth.start` / `oauth.callback` route.
-- Settings → Google Ads oldal (connect/disconnect, customer választó).
-- `client.server.ts` token cache + refresh.
-- `AGENT_REGISTRY` bővítés (Michael kártya, Owner-only láthatóság). Chat még nem funkcionális toolok nélkül — de connect már mérhető.
-
-**Sprint M2 — Read toolok + Michael agent élesítése**
-- `ads_list_accounts`, `ads_list_campaigns`, `ads_account_overview`, `ads_campaign_performance`, `ads_list_keywords`, `ads_search_terms`.
-- `AGENTS.michael` bekerül. George handoff útvonal.
-- Manuális smoke: "nézd át a fiókom" végigmegy read toolokon.
-
-**Sprint M3 — Audit + javaslat (még csak olvasás)**
-- `ads_recommendations_list`, `ads_audit_report`.
-- Strukturált optimalizálási terv generálás (write nélkül).
-- Memóriába íródik a fiók-szintű baseline (`subject_type = ads_account`).
-
-**Sprint M4 — Write toolok jóváhagyással**
-- `ads_pause_campaign/enable`, `ads_update_campaign_budget`, `ads_add_negative_keyword`, `ads_apply_recommendation`.
-- Approval UI (a meglévő pattern-nel), audit-log a `agent_run_steps`-ben.
-
-**Sprint M5 — Bővítés hook-pontok (később)**
-- `ads_create_experiment`, automatikus napi audit cron (`/api/public/google-ads/cron-audit`), riasztás romló kampányoknál.
-
-Minden sprint végén STOP + user jóváhagyás — a projekt vasszabálya szerint.
+**Miért így:** a Dry Run pontosan mutatja, milyen API-hívás megy ki és mi változik meg, mielőtt a végleges "OK" gomb megnyomódna. Nincs "elküldés utáni meglepetés".
 
 ---
 
-## 6) UI terv
+## 5) VIBA Ads Constitution — kötelező szabályrendszer
 
-**Nincs új felület.** A meglévő komponensek használódnak:
-- `/ai-assistant` — Michael ugyanolyan chat, mint George/Timothy. `?agent=michael` query paraméter.
-- `AI Asszisztensek` gallery (`/ai-assistants`) — új Michael kártya, portré, leírás. Owner-only a `useVisibleAgents` szűrés miatt.
-- `AiSheet` (Lead Workspace embed) — nem kap Michael-t v1-ben (nincs sales use-case).
-- **Új**: Settings → Google Ads oldal (`/settings/google-ads`) a connect/disconnect vezérlésére, a `settings.gmail.tsx` mintájára — csak Owner szerepkör látja (route permission).
-- Nincs saját dashboard, nincs saját kampány-lista oldal — v1-ben minden a chatben történik. (Ez tudatos scope-vágás; a M5+ sprintekben lehet natív riport-oldal.)
+Nem memória, hanem alkotmány. Minden run elején a system prompt része.
 
-**Jogosultság a UI-ban**
-- `agent_role_access` táblába egy sor: `(role_id = owner, agent_id = "michael", can_view = true)`. Más szerepkör nem kap sort → nem látja a kártyát, nem éri el a route-ot (`AgentGate` védi).
+**Tábla:** `google_ads_constitution` (`rule_key`, `rule_text` magyarul, `severity: hard|soft`, owner-only RLS). Szerkeszthető a Settings → Google Ads oldalon.
+
+Példa induló szabályok (a userrel véglegesítjük):
+- Lakossági szolgáltatás → mindig külön Search kampány, PMAX-be nem kerülhet.
+- PMAX csak akkor javasolt, ha havi költés > X Ft és van saját asset-készlet.
+- Brand kampányhoz Michael nem nyúlhat (pause / budget / bid tiltott).
+- Társasház ajánlatokhoz külön landing kötelező.
+
+A `buildSystemPrompt` betölti a `hard` szabályokat kötelező szekcióba. Ha egy tool-call ütközik egy `hard` szabállyal, Michael köteles elutasítani és megnevezni a szabályt.
 
 ---
 
-## 7) Bővíthetőség (későbbi csatlakozók)
+## 6) Baseline — **számított nézet, nem kézzel karbantartott tábla**
 
-A tervezett struktúra pontosan az AI OS mintáját követi, így új adatforrások **új tool-domainként** csatlakoznak, Michael prompt-jának minimális bővítésével:
+**Nincs kézzel írt/karbantartott baseline adatmodell.** A baseline mindig a meglévő snapshot-adatokból, futásidőben áll elő.
 
-- **Google Analytics 4** → `analytics.ga4` domain, új adapter fájl, ugyanez az OAuth kliens (extra scope `analytics.readonly`).
-- **Search Console** → `search.gsc` domain.
-- **Landing page audit** → `web.audit` domain (fetch + PageSpeed API).
-- **Google Tag Manager** → `tagmanager.gtm` domain (write toolok approval-lal).
-- **CRM keresztkontextus** → Michael megkaphatja a `crm.leads` / `crm.companies` domaint, ha lead-hez akarunk kampány-ROI-t rendelni.
-- **Üzleti KPI** → új `subject_type = campaign_kpi` az `ai_memory`-ban, semmi séma-változtatás.
-- **Automatikus optimalizálás** → cron endpoint `/api/public/google-ads/cron-*` a Gmail cron mintájára, ugyanez a `runAgent` fut headless módban.
+**Alap forrás:** `google_ads_snapshots` — a `get_account_snapshot` és `get_campaign_performance` eredményét naponta egyszer (M7+ cron), addig kérésre eltárolja: `snapshotted_at`, `scope` (`account`/`campaign`/`ad_group`), `entity_id`, `metrics_json` (spend/CTR/CPC/CPA/ROAS/conv/IS). Read-only tábla — Michael és a user nem szerkeszti.
 
-Ezekből most **semmi** nem készül el — de egyik sem igényel architektúra-változtatást, csak új adaptert.
+**Baseline = számított nézet a snapshotok fölött.** Egy Postgres view + egy `get_baseline_comparison(entity_type, entity_id?, window_days=30, compare_last_days=7)` tool. A tool:
+- kiválasztja a `window_days`-en belüli snapshot sorokat,
+- kiszámolja a rolling median-t (robusztus outlier ellen) metrikánként,
+- lekéri a `compare_last_days` aktuális értékeit ugyanabból a snapshot táblából (vagy élő Ads API-ból, ha kimarad),
+- visszaadja: `baseline`, `current`, `delta_abs`, `delta_pct`, `sample_size`, `stale?` (ha kevés a snapshot, jelezi).
+
+**Miért így jobb:**
+- Nincs duplikált igazságforrás, nincs kézzel szerkeszthető szám.
+- A baseline definíció megváltoztatásához nem kell adatot migrálni, csak a view/számítás módosul.
+- Ha a snapshot job szünetel, a baseline `stale=true`-t jelez, Michael nem következtet romlott adatból.
+- Fiók-agnosztikus: később ugyanez a séma működik Meta/TikTok snapshotokra.
+
+**Cache:** a számítás eredményét a `get_baseline_comparison` tool `ai_memory`-ba írhatja rövid TTL-lel (subject: `ads_baseline_cache`), csak gyorsításra — nem igazságforrás.
+
+---
+
+## 7) Change history — ok-okozat követés
+
+**Tábla:** `google_ads_change_log` (`changed_at`, `entity`, `entity_id`, `field`, `old_value`, `new_value`, `changed_by: michael|user|google_auto`, `reason`, `dry_run_ref`).
+- Minden Michael-`execute` után kötelezően ide íródik.
+- Napi job szinkronizálja a Google Ads `change_event` streamet is (kézi módosítások is bekerülnek).
+- `get_change_history` tool: Michael így köti össze "Jul 12 budget nőtt → Jul 15 CPA romlott".
+
+---
+
+## 8) Michael személyisége
+
+Precíz, tömör, marketinges duma nélkül. Minden állítás mögé szám és forrás (tool, időszak, baseline eltérés %). Ha nincs elég adat, kimondja. Nem motivál, nem lelkesít. Magyarul, üzleti szaknyelven. Portré/kártya az `AGENT_REGISTRY`-ben.
+
+---
+
+## 9) Vaskötelező javaslati sablon
+
+```text
+MIT TALÁLTAM:           <metrika, időszak, forrás tool>
+MIÉRT PROBLÉMA:         <baseline vagy alkotmány szemszöge>
+ÜZLETI CÉL-ILLESZKEDÉS: <milyen VIBA-TEAM üzleti célt szolgál — kötelező>
+MIT JAVASLOK:           <konkrét write tool + paraméterek>
+MIÉRT EZT:              <ok-okozati indoklás, change history hivatkozás>
+VÁRHATÓ HATÁS:          <mérhető KPI, +/- tartomány>
+BIZONYTALANSÁG:         <alacsony / közepes / magas + indok>
+ALKOTMÁNY-ELLENŐRZÉS:   <konzisztens; ütközés esetén ELVETVE>
+```
+
+Bármelyik "nem tudom" → nincs javaslat. `ÜZLETI CÉL-ILLESZKEDÉS` = csak metrika → automatikusan **ELVETVE**.
+
+Végrehajtás előtt kötelező a **Dry Run** (4. pont).
+
+---
+
+## 10) Chat működés
+
+- Belépés: közvetlen kártyáról, vagy George handoffal.
+- Példák (system promptban is):
+  - "Michael, nézd át a Google Ads fiókomat." → snapshot + baseline (számított) + change log + alkotmány → audit.
+  - "Michael, miért romlott ez a kampány?" → performance + change history + baseline → diagnózis.
+  - "Michael, mit javasolsz?" → javaslatlista sablonban, Dry Run-nal.
+  - "Michael, készíts optimalizálási tervet." → strukturált terv, write-ok CONFIRM/DANGEROUS + Dry Run-ra várva.
+
+---
+
+## 11) Sprintek
+
+Minden sprint végén STOP + user jóváhagyás.
+
+- **M0 — Előkészítés (user).** Google Cloud projekt + OAuth kliens, developer token, secretek, Constitution első szabályai.
+- **M1 — Kapcsolat + jogosultság.** Migrációk (connections, constitution, snapshots, change_log), OAuth route-ok, Settings oldal, token cache + refresh, Michael kártya (Owner-only), agent regisztráció tool nélkül.
+- **M2 — Read API csak működjön.** Az összes SAFE READ tool. Snapshot-írás minden `get_account_snapshot`/`get_campaign_performance` hívásnál (a nyers Ads API válaszból tárol). Michael képes adatot lekérni, még nem elemez.
+- **M3 — Elemzés (nincs javaslat, nincs write).** `get_baseline_comparison` (számított nézet), `get_change_history`. System prompt megkapja: alkotmány + baseline + change history olvasási kötelezettség. "Miért romlott" típusú kérdésre érdemi válasz forrással.
+- **M4 — Javaslat (nincs write).** Kötelező javaslati sablon aktív. Terv szövegben, write toolhívás nélkül.
+- **M5 — Approval + Dry Run infrastruktúra.** `ToolSpec.approval` mező, runtime `dry_run_ready` → `awaiting_approval` → `executed`, `mode: dry_run | execute` a tool paramétereiben. Chat UI: Dry Run panel + CONFIRM jóváhagyás + DANGEROUS második megerősítés. Egy demo `pause_campaign` dry-run módban végig.
+- **M6 — Write toolok élesben.** CONFIRM: pause/enable/budget/negatívok/keyword/ad, `apply_google_recommendation`. DANGEROUS: delete_campaign, conversion, tracking, bid strategy. Minden `execute` után `change_log` bejegyzés, `dry_run_ref`-fel.
+- **M7+ — Automatizmus.** Napi snapshot cron, Google `change_event` szinkron, riasztás alkotmány-sértésre vagy erős baseline-eltérésre. Későbbi domainek: `analytics.ga4`, `search.gsc`, `web.audit`, `tagmanager.gtm`.
+
+---
+
+## 12) UI terv
+
+- `/ai-assistant?agent=michael` — chat + Dry Run panel + jóváhagyás UI.
+- `/ai-assistants` gallery — Michael kártya (Owner-only).
+- **Új** `/settings/google-ads` — connect/disconnect + customer választó + Constitution szerkesztő + snapshot állapot (utolsó frissítés, `stale?` jelzés). Owner-only.
+
+---
+
+## 13) Bővíthetőség
+
+Új adatforrások új tool-domainként: `analytics.ga4`, `search.gsc`, `web.audit`, `tagmanager.gtm`, `crm.leads`. A snapshot + számított baseline + change_log séma csatorna-agnosztikus (Meta/TikTok is beköthető).
 
 ---
 
 ## Vasszabályok betartva
 
-- Nincs új AI architektúra, nincs duplikáció.
-- Egy új agent + egy új tool-domain + egy új OAuth integráció + egy új settings oldal — semmi több.
-- Owner-only jogosultság a meglévő `agent_role_access` + `AgentGate` rendszeren keresztül.
-- Minden write jóváhagyáshoz kötött.
-- Sprintek kicsik, egymástól függetlenül szállíthatók, mindegyik után STOP.
+- **Michael elsődleges célja a VIBA-TEAM üzleti céljainak támogatása, nem a metrikák javítása.**
+- **Baseline = számított nézet snapshotokból, nem kézzel karbantartott adat.**
+- **Minden write előtt kötelező Dry Run** — pontos API-hívások és változások jóváhagyás előtt.
+- Egy önálló specialista + `ads.google` domain + üzleti nevű toolok + háromszintű approval + alkotmány + számított baseline + change history — a meglévő AI OS-en belül.
+- Owner-only jogosultság.
+- Sprintek kicsik (M1..M7), egymástól függetlenül szállíthatók.
+- Michael soha nem optimalizál pusztán Google-ajánlás alapján, és soha nem optimalizál, ha az ellentmond az alkotmánynak vagy a tulajdonosi stratégiának.
 
-**Fejlesztés csak a terv jóváhagyása után indul. Az első kód-lépés Sprint M0 secretek + Sprint M1 migráció lesz.**
+**Fejlesztés csak a v3 terv jóváhagyása után indul. Első kód-lépés az M1 migráció + OAuth + Settings + Michael-kártya — még tool nélkül.**
