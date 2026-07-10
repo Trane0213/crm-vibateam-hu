@@ -37,7 +37,7 @@ export function GoogleAdsConnectCard() {
   const handleConnect = async () => {
     setBusy("connect");
     const isEmbedded = window.self !== window.top;
-    const oauthWindow = isEmbedded ? window.open("about:blank", "_blank", "noopener,noreferrer") : null;
+    const oauthWindow = isEmbedded ? window.open("about:blank", "_blank") : null;
     try {
       if (isEmbedded && !oauthWindow) {
         throw new Error("A böngésző blokkolta a Google bejelentkezési ablakot. Engedélyezd a felugró ablakot, majd próbáld újra.");
@@ -46,6 +46,7 @@ export function GoogleAdsConnectCard() {
       const j = await r.json();
       if (!r.ok || !j.authorizationUrl) throw new Error(j.error ?? "Indítás sikertelen");
       if (oauthWindow) {
+        oauthWindow.opener = null;
         oauthWindow.location.href = j.authorizationUrl;
         toast.info("Google bejelentkezés", { description: "A Google OAuth folyamat új böngészőfülön indult el." });
         setBusy(null);
