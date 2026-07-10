@@ -699,4 +699,80 @@ export function registerGoogleAdsTools() {
       } catch (e) { return fail(e); }
     },
   );
+
+  // ------------------------------------------------------------------
+  // pause_campaign — M5 demo WRITE tool. Csak dry_run módban működik éles
+  // toolként; execute az M6-ban lesz elérhető. A runtime approval infra
+  // teljes útját ez a tool próbálja végig.
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "pause_campaign",
+      description:
+        "Kampány szüneteltetése (ENABLED → PAUSED). M5-ben csak dry_run futtatható — a végrehajtást (mode='execute') az M6 aktiválja. Dry run: lekéri a kampány aktuális állapotát és visszaadja a tervezett API-hívást; NEM módosít.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      approval: "confirm",
+      supports_dry_run: true,
+      parameters: {
+        type: "object",
+        required: ["campaign_id"],
+        properties: {
+          customer_id: { type: "string", description: "Opcionális; alapból a kapcsolat aktív Customer ID-ja." },
+          campaign_id: { type: "string", description: "A szüneteltetendő kampány id-ja." },
+          reason: { type: "string", description: "Rövid üzleti indok (bekerül a change_log-ba, ha M6-ban execute)." },
+          mode: { type: "string", enum: ["dry_run", "execute"], default: "dry_run", description: "M5-ben csak 'dry_run' engedélyezett; 'execute' M6-tól." },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const mode = (args.mode as string) === "execute" ? "execute" : "dry_run";
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const campaignId = String(args.campaign_id ?? "").trim();
+        if (!campaignId) return fail("campaign_id kötelező.");
+        // Aktuális állapot lekérése — csak olvasás.
+        const rows = await gaqlSearch(
+          conn, cid,
+          `SELECT campaign.id, campaign.name, campaign.status FROM campaign WHERE campaign.id = ${campaignId}`,
+          { pageSize: 1 },
+        );
+        const c: any = rows[0]?.campaign;
+        if (!c?.id) return fail(`Kampány nem található: ${campaignId} (customer ${cid}).`);
+        const plan = {
+          method: "POST",
+          endpoint: `https://googleads.googleapis.com/v17/customers/${cid}/campaigns:mutate`,
+          operation: "update",
+          update_mask: "status",
+          resource_name: `customers/${cid}/campaigns/${campaignId}`,
+          field: "status",
+          before: c.status,
+          after: "PAUSED",
+          reason: (args.reason as string) ?? null,
+        };
+        if (c.status === "PAUSED") {
+          return ok({
+            dry_run: mode === "dry_run",
+            no_op: true,
+            campaign: { id: c.id, name: c.name, status: c.status },
+            message: "A kampány már PAUSED — nincs teendő.",
+          });
+        }
+        if (mode === "dry_run") {
+          return ok({
+            dry_run: true,
+            campaign: { id: c.id, name: c.name, status: c.status },
+            plan,
+            note: "Ez egy előnézet. Semmilyen módosítás nem történt. Az éles végrehajtást az M6 aktiválja.",
+          });
+        }
+        // Execute: M5-ben nem engedélyezett — approval megtörtént, de a mutation
+        // szándékosan hibát ad, hogy az infra tesztelhető legyen éles hívás nélkül.
+        return fail(
+          "Az éles pause_campaign az M6-ban lesz elérhető. Használd mode='dry_run'-t az előnézethez.",
+        );
+      } catch (e) { return fail(e); }
+    },
+  );
 }
