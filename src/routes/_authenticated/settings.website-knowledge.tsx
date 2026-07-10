@@ -12,6 +12,7 @@ import {
   Sparkles,
   Tags,
   Activity,
+  Network,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -566,6 +567,9 @@ function WebsiteKnowledgeContent() {
       {/* WK-3: Entity browser (globális) */}
       <EntityBrowser search={entitySearch} setSearch={setEntitySearch} />
 
+      {/* WK-4: KG snapshot a kiválasztott oldalhoz */}
+      {selectedPageId && <KgSnapshot pageId={selectedPageId} />}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Következő sprintek</CardTitle>
@@ -573,13 +577,93 @@ function WebsiteKnowledgeContent() {
         </CardHeader>
         <CardContent>
           <ul className="space-y-1 text-sm text-muted-foreground">
-            <li>WK-4 · Utolsó KG publikáció mini-státusz.</li>
             <li>WK-5 · Manuális refresh (page / batch / entire).</li>
             <li>WK-6 · Website AI OS toolok agent-hozzáférése.</li>
           </ul>
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// ========== WK-4 szekció ==========
+
+function KgSnapshot({ pageId }: { pageId: string }) {
+  const nodeQ = useQuery({
+    queryKey: ["kg_node_for_page", pageId],
+    enabled: !!pageId,
+    queryFn: async () => {
+      const { data: node } = await supabase
+        .from("kg_nodes")
+        .select("id, kind, label, ref_uri, metadata, updated_at")
+        .eq("kind", "website_page")
+        .eq("ref_table", "website_pages")
+        .eq("ref_id", pageId)
+        .maybeSingle();
+      if (!node) return { node: null, out_edges: [] as Array<{ id: string; relation: string; to_node_id: string; source: string }> };
+      const { data: edges } = await supabase
+        .from("kg_edges")
+        .select("id, relation, to_node_id, source")
+        .eq("from_node_id", (node as { id: string }).id)
+        .limit(200);
+      return { node, out_edges: (edges ?? []) as Array<{ id: string; relation: string; to_node_id: string; source: string }> };
+    },
+  });
+
+  const data = nodeQ.data;
+  const byRel: Record<string, number> = {};
+  for (const e of data?.out_edges ?? []) {
+    byRel[e.relation] = (byRel[e.relation] ?? 0) + 1;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Network className="h-4 w-4" /> Knowledge Graph snapshot
+        </CardTitle>
+        <CardDescription>
+          A kiválasztott oldal KG node-ja és kimenő élei (WK-4 publisher output).
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {nodeQ.isLoading ? (
+          <p className="text-sm text-muted-foreground">Betöltés…</p>
+        ) : !data?.node ? (
+          <p className="text-sm text-muted-foreground">
+            Ehhez az oldalhoz még nem futott le KG publikáció. Az él fog megjelenni a
+            következő crawl után.
+          </p>
+        ) : (
+          <div className="space-y-3 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline">{(data.node as { kind: string }).kind}</Badge>
+              <span className="font-medium">{(data.node as { label: string | null }).label ?? "—"}</span>
+              <span className="text-muted-foreground text-xs">
+                node_id: {(data.node as { id: string }).id}
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Utolsó KG frissítés: {fmt((data.node as { updated_at: string }).updated_at)}
+            </div>
+            <div>
+              <div className="text-xs font-medium mb-1">Kimenő élek relációnként:</div>
+              {Object.keys(byRel).length === 0 ? (
+                <p className="text-xs text-muted-foreground">Nincs kimenő él.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(byRel).map(([rel, n]) => (
+                    <Badge key={rel} variant="secondary">
+                      {rel}: {n}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
