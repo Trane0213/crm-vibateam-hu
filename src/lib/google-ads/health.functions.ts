@@ -81,7 +81,7 @@ export const runGoogleAdsHealthCheck = createServerFn({ method: "POST" })
           "content-type": "application/json",
         };
         if (conn.login_customer_id) headers["login-customer-id"] = conn.login_customer_id.replace(/-/g, "");
-        const r = await fetch("https://googleads.googleapis.com/v17/customers:listAccessibleCustomers", { headers });
+        const r = await fetch("https://googleads.googleapis.com/v21/customers:listAccessibleCustomers", { headers });
         const text = await r.text();
         if (!r.ok) {
           add({ key: "api", label: "Google Ads API kapcsolat", ok: false, detail: `HTTP ${r.status}: ${text.slice(0, 300)}` });
