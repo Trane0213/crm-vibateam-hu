@@ -57,8 +57,17 @@ function normalizeOrigin(raw: string): string | null {
   }
 }
 
+function canonicalizeLovableOrigin(origin: string): string {
+  const url = new URL(origin);
+  const previewProjectId = url.hostname.match(/^([0-9a-f-]{36})\.lovableproject\.com$/i)?.[1];
+  if (previewProjectId) {
+    return `https://id-preview--${previewProjectId}.lovable.app`;
+  }
+  return origin;
+}
+
 function callbackForOrigin(origin: string): string {
-  return `${origin}${GOOGLE_ADS_CALLBACK_PATH}`;
+  return `${canonicalizeLovableOrigin(origin)}${GOOGLE_ADS_CALLBACK_PATH}`;
 }
 
 export function resolveRedirectUri(request: Request): RedirectUriResolution {
