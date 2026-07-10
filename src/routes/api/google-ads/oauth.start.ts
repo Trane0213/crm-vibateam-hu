@@ -23,6 +23,7 @@ export const Route = createFileRoute("/api/google-ads/oauth/start")({
             loginHint,
           });
           console.info("[google-ads-oauth:start] generated authorize URL", {
+            runtime_env_GOOGLE_ADS_CLIENT_ID: process.env.GOOGLE_ADS_CLIENT_ID ?? "",
             ...describeAuthorizationUrl(url),
             redirect_uri_source: redirect.source,
             redirect_uri_candidates: redirect.candidates,
