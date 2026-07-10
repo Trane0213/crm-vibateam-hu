@@ -19,6 +19,12 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
   })
   .handler(async ({ data, context }) => {
     const sb = context.supabase as unknown as LooseClient;
+    type EntityLink = {
+      id: string;
+      role: string | null;
+      confidence: number | null;
+      entity: { id: string; entity_kind: string; name: string } | null;
+    };
     const { data: page, error: pErr } = await sb
       .from("website_pages")
       .select("id, url, title, current_version_id")
@@ -26,7 +32,7 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
       .maybeSingle();
     if (pErr) throw new Error(pErr.message);
     if (!page || !page.current_version_id) {
-      return { summary: null, entity_links: [] as unknown[] };
+      return { summary: null, entity_links: [] as EntityLink[] };
     }
     const { data: summary, error: sErr } = await sb
       .from("website_page_summaries")
@@ -55,14 +61,24 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
     const entityById = new Map<string, { id: string; entity_kind: string; name: string }>();
     for (const e of entities) entityById.set(e.id, e);
 
-    const enriched = (links ?? []).map((l: any) => ({
+    const enriched: EntityLink[] = (links ?? []).map((l: any) => ({
       id: l.id as string,
       role: l.role as string | null,
       confidence: l.confidence as number | null,
       entity: entityById.get(l.entity_id as string) ?? null,
     }));
 
-    return { summary: summary ?? null, entity_links: enriched };
+    return {
+      summary: (summary ?? null) as null | {
+        id: string;
+        summary: string | null;
+        summary_json: unknown;
+        model: string | null;
+        created_at: string;
+        page_version_id: string;
+      },
+      entity_links: enriched,
+    };
   });
 
 export const wkListEntities = createServerFn({ method: "GET" })
