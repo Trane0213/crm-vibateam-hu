@@ -18,7 +18,7 @@ import { finishRun, logStep, startRun } from "./audit.server";
 import { getMemory } from "./memory.server";
 import { callLlm } from "./providers.server";
 import { getTool, toolsForAgent, toSpec } from "./tool-registry";
-import type { ChatMessage, ToolCall } from "./types";
+import type { ApprovalLevel, ChatMessage, ToolCall } from "./types";
 
 const MAX_STEPS = 50;
 
@@ -40,7 +40,13 @@ export type RunAgentResult = {
   agentId: string;
   finalText: string;
   /** Ha az LLM olyan write toolt akart hívni, ami jóváhagyásra vár, itt jelezzük. */
-  pendingApprovals: Array<{ tool_call_id: string; tool_name: string; arguments_json: string }>;
+  pendingApprovals: Array<{
+    tool_call_id: string;
+    tool_name: string;
+    arguments_json: string;
+    approval: ApprovalLevel;
+    supports_dry_run: boolean;
+  }>;
   steps: number;
   usage: { prompt_tokens: number; completion_tokens: number };
 };
@@ -168,30 +174,57 @@ export async function runAgent(
           messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: msg }) });
           continue;
         }
-        // Approval ellenőrzés.
-        if (tool.needs_approval && !approved.has(call.id)) {
+        // M5 approval + dry_run állapotgép.
+        // 1) Approval szint meghatározása (backward compat: needs_approval → confirm).
+        const approvalLevel: ApprovalLevel =
+          tool.approval ?? (tool.needs_approval ? "confirm" : "safe");
+        // 2) Args parse (mode kiolvasásához).
+        let parsedArgs: Record<string, unknown> = {};
+        try { parsedArgs = JSON.parse(call.function.arguments || "{}"); } catch { /* noop */ }
+        // 3) Effektív mode: ha a tool nem támogatja a dry_run-t, minden "execute".
+        //    Ha támogatja és a hívó nem adott meg mode-ot → alapból "dry_run" (biztonság).
+        const rawMode = typeof parsedArgs.mode === "string" ? (parsedArgs.mode as string) : undefined;
+        const effectiveMode: "dry_run" | "execute" = tool.supports_dry_run
+          ? (rawMode === "execute" ? "execute" : "dry_run")
+          : "execute";
+        // 4) Approval csak akkor kell, ha a művelet valóban végrehajtó (execute) ÉS a
+        //    szint nem safe. Dry run soha nem igényel jóváhagyást.
+        const requiresApproval =
+          approvalLevel !== "safe" && effectiveMode === "execute" && !approved.has(call.id);
+        if (requiresApproval) {
           const rawArgs = call.function.arguments || "{}";
-          let parsed: unknown = {};
-          try { parsed = JSON.parse(rawArgs); } catch { /* noop */ }
           pendingApprovals.push({
             tool_call_id: call.id,
             tool_name: tool.name,
             arguments_json: rawArgs,
+            approval: approvalLevel,
+            supports_dry_run: tool.supports_dry_run ?? false,
           });
           await logStep(adminClient, {
             runId, stepNo: ++stepNo, kind: "approval", toolName: tool.name,
-            input: { call_id: call.id, args: parsed },
+            input: { call_id: call.id, args: parsedArgs, approval: approvalLevel, mode: effectiveMode },
           });
           messages.push({
             role: "tool", tool_call_id: call.id,
-            content: JSON.stringify({ pending_approval: true, message: "Felhasználói jóváhagyásra vár." }),
+            content: JSON.stringify({
+              pending_approval: true,
+              approval_level: approvalLevel,
+              message: approvalLevel === "dangerous"
+                ? "DANGEROUS művelet — a felhasználó gépelt megerősítést fog kérni."
+                : "Felhasználói jóváhagyásra vár.",
+            }),
           });
           continue;
         }
-        // Végrehajtás.
+        // Végrehajtás. A tool maga felelős a dry_run vs execute szétválasztásáért
+        // (args.mode alapján). A runtime csak biztosítja, hogy execute-hoz volt approval.
         const tStart = Date.now();
-        let args: Record<string, unknown> = {};
-        try { args = JSON.parse(call.function.arguments || "{}"); } catch { /* noop */ }
+        const args: Record<string, unknown> = {
+          ...parsedArgs,
+          // Ha a tool támogatja a dry_run-t és nem volt explicit mode, injektáljuk a
+          // biztonsági alapot, hogy a tool determinisztikusan lássa.
+          ...(tool.supports_dry_run ? { mode: effectiveMode } : {}),
+        };
         let output: unknown;
         let errMsg: string | undefined;
         try {
@@ -207,7 +240,8 @@ export async function runAgent(
         }
         await logStep(adminClient, {
           runId, stepNo: ++stepNo, kind: "tool", toolName: tool.name,
-          input: args, output, error: errMsg, durationMs: Date.now() - tStart,
+          input: { ...args, __approval: approvalLevel, __mode: effectiveMode },
+          output, error: errMsg, durationMs: Date.now() - tStart,
         });
         messages.push({
           role: "tool", tool_call_id: call.id,
