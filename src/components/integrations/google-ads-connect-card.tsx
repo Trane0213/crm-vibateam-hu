@@ -40,7 +40,17 @@ export function GoogleAdsConnectCard() {
       const r = await authedFetch("/api/google-ads/oauth/start", { method: "POST", body: JSON.stringify({}) });
       const j = await r.json();
       if (!r.ok || !j.authorizationUrl) throw new Error(j.error ?? "Indítás sikertelen");
-      window.location.href = j.authorizationUrl;
+      const isEmbedded = window.self !== window.top;
+      if (isEmbedded) {
+        const opened = window.open(j.authorizationUrl, "_blank", "noopener,noreferrer");
+        if (!opened) {
+          throw new Error("A böngésző blokkolta a Google bejelentkezési ablakot. Engedélyezd a felugró ablakot, majd próbáld újra.");
+        }
+        toast.info("Google bejelentkezés", { description: "A Google OAuth folyamat új böngészőfülön indult el." });
+        setBusy(null);
+        return;
+      }
+      window.location.assign(j.authorizationUrl);
     } catch (e: any) {
       toast.error("Csatlakozás", { description: e?.message ?? String(e) });
       setBusy(null);
