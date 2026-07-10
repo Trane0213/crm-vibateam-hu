@@ -253,11 +253,17 @@ function WebsiteKnowledgeContent() {
                     <th className="py-2 pr-3 font-medium">AI jobs</th>
                     <th className="py-2 pr-3 font-medium">Cost (USD)</th>
                     <th className="py-2 pr-3 font-medium">Finished</th>
+                    <th className="py-2 pr-3 font-medium text-right"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {runs.map((r) => (
-                    <tr key={r.id} className="border-b last:border-b-0">
+                    <tr
+                      key={r.id}
+                      className={`border-b last:border-b-0 ${
+                        selectedRunId === r.id ? "bg-muted/40" : ""
+                      }`}
+                    >
                       <td className="py-2 pr-3 whitespace-nowrap">
                         {fmt(r.started_at)}
                       </td>
@@ -299,6 +305,17 @@ function WebsiteKnowledgeContent() {
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
                         {fmt(r.finished_at)}
+                      </td>
+                      <td className="py-2 pr-3 text-right">
+                        <Button
+                          size="sm"
+                          variant={selectedRunId === r.id ? "default" : "outline"}
+                          onClick={() => setSelectedRunId(r.id)}
+                          disabled={r.ai_jobs_total === 0}
+                        >
+                          <Activity className="mr-1 h-3.5 w-3.5" />
+                          AI jobs
+                        </Button>
                       </td>
                     </tr>
                   ))}
