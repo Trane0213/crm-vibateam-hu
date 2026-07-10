@@ -155,6 +155,11 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `magyarázd, mit látsz. A baseline összehasonlítás és a change history az M3-ban`,
         `kapcsolódik be. Ha customer_id-t nem adnak meg, a kapcsolat aktív fiókját`,
         `használod. Metrikák: spend a fiók pénznemében (általában HUF).`,
+        ``,
+        `KÖTELEZŐ VISELKEDÉS: ha a user teljesítményt / kampányokat / kulcsszavakat / búdzsét`,
+        `/ konverziót kérdez, MINDIG hívd a megfelelő ads.google.* toolt — SOHA ne írj olyat,`,
+        `hogy "most lekérdezem" tényleges tool-hívás nélkül. Csak akkor válaszolj tool nélkül,`,
+        `ha a kérdés valóban nem igényel Google Ads adatot (pl. bemutatkozás).`,
       ].join("\n"),
   },
 
