@@ -15,6 +15,8 @@ import { simpleLineDiff, summarizeDiff } from "./diff.server";
 import { parseHtml, type ExtractedPage } from "./html-parser.server";
 import { upsertPageMedia } from "./media.server";
 import type { AssetKind } from "./types";
+import { summarizePageVersion } from "./ai/summary.server";
+import { extractEntitiesForVersion } from "./ai/entities.server";
 
 function inferAssetKind(url: string): AssetKind {
   const p = new URL(url).pathname.toLowerCase();
@@ -230,6 +232,32 @@ export async function upsertPageAndVersion(input: {
     diff: { added: diff.added_lines, removed: diff.removed_lines },
     run_id: input.run_id,
   });
+
+  // 7) AI feldolgozás (summary + entity extraction) — hibája nem borítja a verziót.
+  try {
+    await summarizePageVersion({
+      run_id: input.run_id,
+      page_id,
+      page_version_id: version_id,
+      url: input.url,
+      title: parsed.title,
+      rendered_text: normalizeForHash(parsed.rendered_text),
+    });
+  } catch (e) {
+    console.error("[WK] summarizePageVersion failed", e);
+  }
+  try {
+    await extractEntitiesForVersion({
+      run_id: input.run_id,
+      page_id,
+      page_version_id: version_id,
+      url: input.url,
+      title: parsed.title,
+      rendered_text: normalizeForHash(parsed.rendered_text),
+    });
+  } catch (e) {
+    console.error("[WK] extractEntitiesForVersion failed", e);
+  }
 
   return {
     page_id,

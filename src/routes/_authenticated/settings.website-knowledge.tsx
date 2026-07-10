@@ -2,7 +2,17 @@ import { useMemo } from "react";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Lock, Globe, RefreshCw, FileText, History, GitCompare } from "lucide-react";
+import {
+  Lock,
+  Globe,
+  RefreshCw,
+  FileText,
+  History,
+  GitCompare,
+  Sparkles,
+  Tags,
+  Activity,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -89,6 +99,8 @@ function WebsiteKnowledgeContent() {
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [fromVersionId, setFromVersionId] = useState<string | null>(null);
   const [toVersionId, setToVersionId] = useState<string | null>(null);
+  const [entitySearch, setEntitySearch] = useState("");
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   const runsQ = useQuery({
     queryKey: ["website_crawl_runs", "recent"],
@@ -241,11 +253,17 @@ function WebsiteKnowledgeContent() {
                     <th className="py-2 pr-3 font-medium">AI jobs</th>
                     <th className="py-2 pr-3 font-medium">Cost (USD)</th>
                     <th className="py-2 pr-3 font-medium">Finished</th>
+                    <th className="py-2 pr-3 font-medium text-right"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {runs.map((r) => (
-                    <tr key={r.id} className="border-b last:border-b-0">
+                    <tr
+                      key={r.id}
+                      className={`border-b last:border-b-0 ${
+                        selectedRunId === r.id ? "bg-muted/40" : ""
+                      }`}
+                    >
                       <td className="py-2 pr-3 whitespace-nowrap">
                         {fmt(r.started_at)}
                       </td>
@@ -287,6 +305,17 @@ function WebsiteKnowledgeContent() {
                       </td>
                       <td className="py-2 pr-3 whitespace-nowrap text-muted-foreground">
                         {fmt(r.finished_at)}
+                      </td>
+                      <td className="py-2 pr-3 text-right">
+                        <Button
+                          size="sm"
+                          variant={selectedRunId === r.id ? "default" : "outline"}
+                          onClick={() => setSelectedRunId(r.id)}
+                          disabled={r.ai_jobs_total === 0}
+                        >
+                          <Activity className="mr-1 h-3.5 w-3.5" />
+                          AI jobs
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -524,6 +553,19 @@ function WebsiteKnowledgeContent() {
         </Card>
       )}
 
+      {/* WK-3: Summary preview a kiválasztott page current version-jéhez */}
+      {selectedPageId && (
+        <SummaryPreview pageId={selectedPageId} />
+      )}
+
+      {/* WK-3: AI run breakdown */}
+      {selectedRunId && (
+        <AiRunBreakdown runId={selectedRunId} />
+      )}
+
+      {/* WK-3: Entity browser (globális) */}
+      <EntityBrowser search={entitySearch} setSearch={setEntitySearch} />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Következő sprintek</CardTitle>
@@ -531,7 +573,6 @@ function WebsiteKnowledgeContent() {
         </CardHeader>
         <CardContent>
           <ul className="space-y-1 text-sm text-muted-foreground">
-            <li>WK-3 · Summary preview, entity browser, AI run breakdown.</li>
             <li>WK-4 · Utolsó KG publikáció mini-státusz.</li>
             <li>WK-5 · Manuális refresh (page / batch / entire).</li>
             <li>WK-6 · Website AI OS toolok agent-hozzáférése.</li>
@@ -539,6 +580,426 @@ function WebsiteKnowledgeContent() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// ========== WK-3 szekciók ==========
+
+type EntityKind =
+  | "service"
+  | "product"
+  | "person"
+  | "company"
+  | "location"
+  | "topic"
+  | "technology"
+  | "other";
+
+function SummaryPreview({ pageId }: { pageId: string }) {
+  const summaryQ = useQuery({
+    queryKey: ["website_page_summary", pageId],
+    queryFn: async () => {
+      const { data: page, error: pErr } = await supabase
+        .from("website_pages")
+        .select("id, url, title, current_version_id")
+        .eq("id", pageId)
+        .maybeSingle();
+      if (pErr) throw new Error(pErr.message);
+      if (!page || !page.current_version_id) return { summary: null, entities: [] };
+
+      const { data: summary } = await supabase
+        .from("website_page_summaries")
+        .select("id, summary, summary_json, model, created_at")
+        .eq("page_version_id", page.current_version_id)
+        .maybeSingle();
+
+      const { data: links } = await supabase
+        .from("website_page_entities")
+        .select("id, role, confidence, entity_id")
+        .eq("page_version_id", page.current_version_id)
+        .limit(50);
+
+      const linkList = (links ?? []) as Array<{
+        id: string;
+        role: string | null;
+        confidence: number | null;
+        entity_id: string;
+      }>;
+      const entityIds = Array.from(new Set(linkList.map((l) => l.entity_id)));
+      let entities: Array<{ id: string; entity_kind: string; name: string }> = [];
+      if (entityIds.length > 0) {
+        const { data: entRows } = await supabase
+          .from("website_entities")
+          .select("id, entity_kind, name")
+          .in("id", entityIds);
+        entities = (entRows ?? []) as typeof entities;
+      }
+      const entMap = new Map(entities.map((e) => [e.id, e]));
+      return {
+        summary: summary as {
+          id: string;
+          summary: string | null;
+          summary_json: Record<string, unknown>;
+          model: string | null;
+          created_at: string;
+        } | null,
+        entities: linkList.map((l) => ({
+          ...l,
+          entity: entMap.get(l.entity_id) ?? null,
+        })),
+      };
+    },
+  });
+
+  const data = summaryQ.data;
+  const sj = (data?.summary?.summary_json ?? {}) as {
+    topic?: string;
+    audience?: string;
+    key_points?: string[];
+    tone?: string;
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Sparkles className="h-4 w-4" />
+          Summary preview
+        </CardTitle>
+        <CardDescription>
+          A kiválasztott oldal aktuális verziójához tartozó AI összefoglaló és
+          kinyert entitások.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {summaryQ.isLoading ? (
+          <div className="text-sm text-muted-foreground">Betöltés…</div>
+        ) : !data?.summary ? (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Ehhez az oldalhoz még nincs AI összefoglaló. Az első sikeres crawl
+            után automatikusan elkészül.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                Összefoglaló
+              </div>
+              <p className="mt-1 text-sm leading-relaxed">
+                {data.summary.summary ?? "—"}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              <MetaCell label="Téma" value={sj.topic ?? "—"} />
+              <MetaCell label="Célközönség" value={sj.audience ?? "—"} />
+              <MetaCell label="Hangnem" value={sj.tone ?? "—"} />
+              <MetaCell label="Modell" value={data.summary.model ?? "—"} />
+            </div>
+            {Array.isArray(sj.key_points) && sj.key_points.length > 0 && (
+              <div>
+                <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Kulcspontok
+                </div>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm">
+                  {sj.key_points.slice(0, 10).map((p, i) => (
+                    <li key={i}>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">
+                Entitások ({data.entities.length})
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {data.entities.length === 0 ? (
+                  <span className="text-sm text-muted-foreground">
+                    Nincs kinyert entitás.
+                  </span>
+                ) : (
+                  data.entities.map((l) => (
+                    <Badge
+                      key={l.id}
+                      variant={l.role === "primary" ? "default" : "outline"}
+                      className="text-[11px]"
+                      title={`${l.role ?? "mentioned"} · confidence ${l.confidence ?? "—"}`}
+                    >
+                      <span className="mr-1 text-muted-foreground">
+                        {l.entity?.entity_kind ?? "?"}
+                      </span>
+                      {l.entity?.name ?? "—"}
+                    </Badge>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MetaCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-0.5 text-sm">{value}</div>
+    </div>
+  );
+}
+
+function AiRunBreakdown({ runId }: { runId: string }) {
+  const jobsQ = useQuery({
+    queryKey: ["website_ai_jobs", runId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("website_ai_jobs")
+        .select(
+          "id, job_kind, model, status, input_tokens, output_tokens, total_cost_usd, latency_ms, error_message, page_id, created_at",
+        )
+        .eq("run_id", runId)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      if (error) throw new Error(error.message);
+      return (data ?? []) as Array<{
+        id: string;
+        job_kind: string;
+        model: string;
+        status: string;
+        input_tokens: number | null;
+        output_tokens: number | null;
+        total_cost_usd: number | null;
+        latency_ms: number | null;
+        error_message: string | null;
+        page_id: string | null;
+        created_at: string;
+      }>;
+    },
+  });
+
+  const jobs = jobsQ.data ?? [];
+  const totalCost = jobs.reduce(
+    (s, j) => s + Number(j.total_cost_usd ?? 0),
+    0,
+  );
+  const totalIn = jobs.reduce((s, j) => s + (j.input_tokens ?? 0), 0);
+  const totalOut = jobs.reduce((s, j) => s + (j.output_tokens ?? 0), 0);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Activity className="h-4 w-4" />
+          AI run breakdown
+        </CardTitle>
+        <CardDescription>
+          A kiválasztott crawl-run AI hívásai. Összesen{" "}
+          <span className="font-medium">{jobs.length}</span> job,{" "}
+          <span className="font-medium">{totalIn}</span> in / {totalOut} out
+          token, <span className="font-medium">${totalCost.toFixed(4)}</span>.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {jobsQ.isLoading ? (
+          <div className="text-sm text-muted-foreground">Betöltés…</div>
+        ) : jobs.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            Nincs AI job ehhez a runhoz.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                  <th className="py-2 pr-3 font-medium">Kind</th>
+                  <th className="py-2 pr-3 font-medium">Model</th>
+                  <th className="py-2 pr-3 font-medium">Status</th>
+                  <th className="py-2 pr-3 font-medium">In / Out</th>
+                  <th className="py-2 pr-3 font-medium">Cost</th>
+                  <th className="py-2 pr-3 font-medium">Latency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobs.map((j) => (
+                  <tr key={j.id} className="border-b last:border-b-0">
+                    <td className="py-2 pr-3">
+                      <Badge variant="outline" className="text-[10px]">
+                        {j.job_kind}
+                      </Badge>
+                    </td>
+                    <td className="py-2 pr-3 font-mono text-xs">{j.model}</td>
+                    <td className="py-2 pr-3">
+                      <Badge
+                        variant={
+                          j.status === "success"
+                            ? "default"
+                            : j.status === "failed"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                        className="text-[10px]"
+                      >
+                        {j.status}
+                      </Badge>
+                      {j.error_message && (
+                        <div
+                          className="mt-1 text-[11px] text-destructive"
+                          title={j.error_message}
+                        >
+                          {j.error_message.slice(0, 60)}
+                          {j.error_message.length > 60 ? "…" : ""}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-xs">
+                      {j.input_tokens ?? "—"} / {j.output_tokens ?? "—"}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-xs">
+                      ${Number(j.total_cost_usd ?? 0).toFixed(4)}
+                    </td>
+                    <td className="py-2 pr-3 tabular-nums text-xs">
+                      {j.latency_ms != null ? `${j.latency_ms} ms` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function EntityBrowser({
+  search,
+  setSearch,
+}: {
+  search: string;
+  setSearch: (v: string) => void;
+}) {
+  const entQ = useQuery({
+    queryKey: ["website_entities", "list", search],
+    queryFn: async () => {
+      let q = supabase
+        .from("website_entities")
+        .select("id, entity_kind, name, normalized_name, updated_at")
+        .order("updated_at", { ascending: false })
+        .limit(200);
+      if (search.trim().length > 0) {
+        const term = `%${search.trim()}%`;
+        q = q.or(`name.ilike.${term},normalized_name.ilike.${term}`);
+      }
+      const { data, error } = await q;
+      if (error) throw new Error(error.message);
+      const entities = (data ?? []) as Array<{
+        id: string;
+        entity_kind: EntityKind;
+        name: string;
+        normalized_name: string;
+        updated_at: string;
+      }>;
+
+      const ids = entities.map((e) => e.id);
+      const counts = new Map<string, number>();
+      if (ids.length > 0) {
+        const { data: linkRows } = await supabase
+          .from("website_page_entities")
+          .select("entity_id")
+          .in("entity_id", ids);
+        for (const l of (linkRows ?? []) as Array<{ entity_id: string }>) {
+          counts.set(l.entity_id, (counts.get(l.entity_id) ?? 0) + 1);
+        }
+      }
+      return entities.map((e) => ({ ...e, occurrences: counts.get(e.id) ?? 0 }));
+    },
+  });
+
+  const entities = entQ.data ?? [];
+  const grouped = useMemo(() => {
+    const m = new Map<string, typeof entities>();
+    for (const e of entities) {
+      const list = m.get(e.entity_kind) ?? [];
+      list.push(e);
+      m.set(e.entity_kind, list);
+    }
+    return Array.from(m.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [entities]);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Tags className="h-4 w-4" />
+          <div>
+            <CardTitle className="text-base">Entity browser</CardTitle>
+            <CardDescription>
+              A `website_entities` katalógus, kategóriák szerint csoportosítva.
+              Zárójelben az előfordulás-szám az oldalakon.
+            </CardDescription>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Szűrés név szerint…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-8 w-64"
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => entQ.refetch()}
+            disabled={entQ.isFetching}
+          >
+            <RefreshCw
+              className={`mr-2 h-3.5 w-3.5 ${entQ.isFetching ? "animate-spin" : ""}`}
+            />
+            Frissítés
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {entQ.isLoading ? (
+          <div className="text-sm text-muted-foreground">Betöltés…</div>
+        ) : entities.length === 0 ? (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Még nincs kinyert entitás. Az első sikeres AI-feldolgozás után
+            jelennek meg itt.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {grouped.map(([kind, list]) => (
+              <div key={kind}>
+                <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {kind} ({list.length})
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {list.map((e) => (
+                    <Badge
+                      key={e.id}
+                      variant="outline"
+                      className="text-[11px]"
+                      title={`Utolsó frissítés: ${fmt(e.updated_at)}`}
+                    >
+                      {e.name}
+                      {e.occurrences > 0 && (
+                        <span className="ml-1 text-muted-foreground">
+                          ({e.occurrences})
+                        </span>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
