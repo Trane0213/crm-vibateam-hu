@@ -12,24 +12,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 
-type EdgeRow = {
-  id: string;
-  from_node_id: string;
-  to_node_id: string;
-  relation: string;
-  direction: string;
-  weight: number | null;
-  confidence: number | null;
-  source: string;
-  origin_ref_table: string | null;
-  origin_ref_id: string | null;
-  evidence: Record<string, unknown> | null;
-  valid_from: string | null;
-  valid_to: string | null;
-  metadata: Record<string, unknown> | null;
-  created_at: string;
-  created_by_user_id: string | null;
-};
 
 type GetNodeInput = {
   node_id?: string | null;
@@ -111,20 +93,21 @@ export const kgFindRelated = createServerFn({ method: "POST" })
 
     const limit = Math.min(Math.max(Number(data.limit ?? 50), 1), 200);
     const dir = data.direction ?? "both";
-    const results: EdgeRow[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const results: any[] = [];
     if (dir === "out" || dir === "both") {
       let q = sb.from("kg_edges").select("*").eq("from_node_id", node.id).limit(limit);
       if (data.relation) q = q.eq("relation", data.relation);
       const { data: rows, error: e1 } = await q;
       if (e1) throw new Error(e1.message);
-      results.push(...((rows ?? []) as EdgeRow[]));
+      results.push(...(rows ?? []));
     }
     if (dir === "in" || dir === "both") {
       let q = sb.from("kg_edges").select("*").eq("to_node_id", node.id).limit(limit);
       if (data.relation) q = q.eq("relation", data.relation);
       const { data: rows, error: e2 } = await q;
       if (e2) throw new Error(e2.message);
-      results.push(...((rows ?? []) as EdgeRow[]));
+      results.push(...(rows ?? []));
     }
     return { node_id: node.id, edges: results.slice(0, limit) };
   });
