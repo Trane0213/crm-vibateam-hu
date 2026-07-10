@@ -7,6 +7,7 @@ import georgePortrait from "@/assets/agent-george.jpg";
 import timothyPortrait from "@/assets/agent-timothy.jpg";
 import bossPortrait from "@/assets/agent-boss.jpg";
 import scarletPortrait from "@/assets/agent-scarlet.jpg";
+import michaelPortrait from "@/assets/agent-michael.jpg";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
 export const Route = createFileRoute("/_authenticated/ai-assistants")({
@@ -68,6 +69,17 @@ const ASSISTANTS: AssistantCard[] = [
       "Segítek új ügyfelek és üzleti lehetőségek felkutatásában.",
     portrait: scarletPortrait,
     to: "/sales/research",
+  },
+  {
+    id: "michael",
+    agentId: "ads",
+    name: "Michael",
+    role: "Google Ads Specialista",
+    description:
+      "Google Ads elemző. Csak Tulajdonos érheti el. Elsődleges célja a VIBA-TEAM üzleti céljainak támogatása, nem a metrikák javítása.",
+    portrait: michaelPortrait,
+    to: "/ai-assistant",
+    search: { agent: "ads" },
   },
 ];
 
