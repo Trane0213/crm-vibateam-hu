@@ -50,6 +50,7 @@ import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings.profile'
 import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
 import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
+import { Route as AuthenticatedSettingsKnowledgeGraphRouteImport } from './routes/_authenticated/settings.knowledge-graph'
 import { Route as AuthenticatedSettingsGoogleAdsRouteImport } from './routes/_authenticated/settings.google-ads'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
 import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
@@ -299,6 +300,12 @@ const AuthenticatedSettingsOpenaiRoute =
     path: '/openai',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsKnowledgeGraphRoute =
+  AuthenticatedSettingsKnowledgeGraphRouteImport.update({
+    id: '/knowledge-graph',
+    path: '/knowledge-graph',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsGoogleAdsRoute =
   AuthenticatedSettingsGoogleAdsRouteImport.update({
     id: '/google-ads',
@@ -477,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/google-ads': typeof AuthenticatedSettingsGoogleAdsRoute
+  '/settings/knowledge-graph': typeof AuthenticatedSettingsKnowledgeGraphRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
@@ -543,6 +551,7 @@ export interface FileRoutesByTo {
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/settings/google-ads': typeof AuthenticatedSettingsGoogleAdsRoute
+  '/settings/knowledge-graph': typeof AuthenticatedSettingsKnowledgeGraphRoute
   '/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/settings/profile': typeof AuthenticatedSettingsProfileRoute
@@ -612,6 +621,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
   '/_authenticated/settings/google-ads': typeof AuthenticatedSettingsGoogleAdsRoute
+  '/_authenticated/settings/knowledge-graph': typeof AuthenticatedSettingsKnowledgeGraphRoute
   '/_authenticated/settings/openai': typeof AuthenticatedSettingsOpenaiRoute
   '/_authenticated/settings/permissions-audit': typeof AuthenticatedSettingsPermissionsAuditRoute
   '/_authenticated/settings/profile': typeof AuthenticatedSettingsProfileRoute
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/settings/dashboard-status'
     | '/settings/gmail'
     | '/settings/google-ads'
+    | '/settings/knowledge-graph'
     | '/settings/openai'
     | '/settings/permissions-audit'
     | '/settings/profile'
@@ -747,6 +758,7 @@ export interface FileRouteTypes {
     | '/settings/dashboard-status'
     | '/settings/gmail'
     | '/settings/google-ads'
+    | '/settings/knowledge-graph'
     | '/settings/openai'
     | '/settings/permissions-audit'
     | '/settings/profile'
@@ -815,6 +827,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/dashboard-status'
     | '/_authenticated/settings/gmail'
     | '/_authenticated/settings/google-ads'
+    | '/_authenticated/settings/knowledge-graph'
     | '/_authenticated/settings/openai'
     | '/_authenticated/settings/permissions-audit'
     | '/_authenticated/settings/profile'
@@ -1153,6 +1166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsOpenaiRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/knowledge-graph': {
+      id: '/_authenticated/settings/knowledge-graph'
+      path: '/knowledge-graph'
+      fullPath: '/settings/knowledge-graph'
+      preLoaderRoute: typeof AuthenticatedSettingsKnowledgeGraphRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/google-ads': {
       id: '/_authenticated/settings/google-ads'
       path: '/google-ads'
@@ -1337,6 +1357,7 @@ interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsDashboardStatusRoute: typeof AuthenticatedSettingsDashboardStatusRoute
   AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
   AuthenticatedSettingsGoogleAdsRoute: typeof AuthenticatedSettingsGoogleAdsRoute
+  AuthenticatedSettingsKnowledgeGraphRoute: typeof AuthenticatedSettingsKnowledgeGraphRoute
   AuthenticatedSettingsOpenaiRoute: typeof AuthenticatedSettingsOpenaiRoute
   AuthenticatedSettingsPermissionsAuditRoute: typeof AuthenticatedSettingsPermissionsAuditRoute
   AuthenticatedSettingsProfileRoute: typeof AuthenticatedSettingsProfileRoute
@@ -1354,6 +1375,8 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
     AuthenticatedSettingsDashboardStatusRoute,
   AuthenticatedSettingsGmailRoute: AuthenticatedSettingsGmailRoute,
   AuthenticatedSettingsGoogleAdsRoute: AuthenticatedSettingsGoogleAdsRoute,
+  AuthenticatedSettingsKnowledgeGraphRoute:
+    AuthenticatedSettingsKnowledgeGraphRoute,
   AuthenticatedSettingsOpenaiRoute: AuthenticatedSettingsOpenaiRoute,
   AuthenticatedSettingsPermissionsAuditRoute:
     AuthenticatedSettingsPermissionsAuditRoute,
