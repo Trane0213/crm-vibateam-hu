@@ -168,6 +168,17 @@ const AGENT_META: Record<AgentId, AgentMeta> = {
     accentRing: "ring-orange-500/40",
     accentText: "text-orange-600 dark:text-orange-300",
   },
+  ads: {
+    firstName: "Michael",
+    role: "Google Ads Specialista",
+    name: "Michael – Google Ads Specialista",
+    tagline: "Google Ads elemzés a VIBA-TEAM üzleti céljainak támogatására",
+    icon: BarChart3,
+    portrait: michaelPortrait,
+    accent: "bg-teal-50 dark:bg-teal-950/30",
+    accentRing: "ring-teal-500/40",
+    accentText: "text-teal-600 dark:text-teal-300",
+  },
 };
 
 function AiAssistantPage() {
