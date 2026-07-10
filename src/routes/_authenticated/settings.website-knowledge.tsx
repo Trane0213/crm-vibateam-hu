@@ -2,7 +2,17 @@ import { useMemo } from "react";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Lock, Globe, RefreshCw, FileText, History, GitCompare } from "lucide-react";
+import {
+  Lock,
+  Globe,
+  RefreshCw,
+  FileText,
+  History,
+  GitCompare,
+  Sparkles,
+  Tags,
+  Activity,
+} from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -89,6 +99,8 @@ function WebsiteKnowledgeContent() {
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [fromVersionId, setFromVersionId] = useState<string | null>(null);
   const [toVersionId, setToVersionId] = useState<string | null>(null);
+  const [entitySearch, setEntitySearch] = useState("");
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   const runsQ = useQuery({
     queryKey: ["website_crawl_runs", "recent"],
