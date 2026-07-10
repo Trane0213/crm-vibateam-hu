@@ -72,7 +72,7 @@ export const wkGetPageSummary = createServerFn({ method: "GET" })
       summary: (summary ?? null) as null | {
         id: string;
         summary: string | null;
-        summary_json: unknown;
+        summary_json: Record<string, unknown>;
         model: string | null;
         created_at: string;
         page_version_id: string;
