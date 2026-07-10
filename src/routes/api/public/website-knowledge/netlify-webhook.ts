@@ -63,7 +63,7 @@ export const Route = createFileRoute(
         const siteId =
           typeof payload.site_id === "string" ? payload.site_id : null;
 
-        const { startCrawlRun } = await import(
+        const { startCrawlRun, runCrawl } = await import(
           "@/lib/website-knowledge/crawler.server"
         );
         try {
@@ -78,10 +78,15 @@ export const Route = createFileRoute(
               name: typeof payload.name === "string" ? payload.name : null,
             },
           });
+          // WK-2: a crawl inline fut (Worker CPU budget ~25s). Ha átcsúszunk,
+          // a runCrawl `partial` státusszal zár, és a run rekord alapján a
+          // WK-5-ös async runner majd folytatja.
+          const result = await runCrawl(run.run_id);
           return Response.json({
             ok: true,
             run_id: run.run_id,
-            status: run.status,
+            status: result.status,
+            stats: result.stats,
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
