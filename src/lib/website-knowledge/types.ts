@@ -72,3 +72,25 @@ export interface CrawlRunRow {
   error_message: string | null;
   metadata: Record<string, unknown>;
 }
+
+export interface PageListRow {
+  id: string;
+  url: string;
+  path: string;
+  title: string | null;
+  asset_kind: AssetKind;
+  is_active: boolean;
+  last_crawled_at: string | null;
+  last_seen_at: string;
+  current_version_id: string | null;
+}
+
+export interface PageVersionListRow {
+  id: string;
+  version_number: number;
+  content_hash: string;
+  http_status: number | null;
+  byte_size: number | null;
+  fetched_at: string;
+  run_id: string | null;
+}
