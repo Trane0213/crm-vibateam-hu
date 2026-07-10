@@ -92,20 +92,20 @@ export const kgFindRelated = createServerFn({ method: "POST" })
 
     const limit = Math.min(Math.max(Number(data.limit ?? 50), 1), 200);
     const dir = data.direction ?? "both";
-    const results: unknown[] = [];
+    const results: Record<string, unknown>[] = [];
     if (dir === "out" || dir === "both") {
       let q = sb.from("kg_edges").select("*").eq("from_node_id", node.id).limit(limit);
       if (data.relation) q = q.eq("relation", data.relation);
       const { data: rows, error: e1 } = await q;
       if (e1) throw new Error(e1.message);
-      results.push(...(rows ?? []));
+      results.push(...((rows ?? []) as Record<string, unknown>[]));
     }
     if (dir === "in" || dir === "both") {
       let q = sb.from("kg_edges").select("*").eq("to_node_id", node.id).limit(limit);
       if (data.relation) q = q.eq("relation", data.relation);
       const { data: rows, error: e2 } = await q;
       if (e2) throw new Error(e2.message);
-      results.push(...(rows ?? []));
+      results.push(...((rows ?? []) as Record<string, unknown>[]));
     }
     return { node_id: node.id, edges: results.slice(0, limit) };
   });
