@@ -41,7 +41,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.quotes", "crm.emails"],
+    tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.quotes", "crm.emails", "kg"],
     is_orchestrator: true,
     buildSystemPrompt: (ctx) =>
       [
@@ -72,7 +72,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.3,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "marketing.workflow"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "marketing.workflow", "kg"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Scarlet (Marketing)"),
@@ -90,7 +90,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "kg"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Timothy (Sales)"),
@@ -108,7 +108,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "pm.workflow"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "pm.workflow", "kg"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Boss (Projektvezető)"),
@@ -131,7 +131,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.1,
-    tool_domains: ["ads.google"], // M2 + M3: SAFE READ toolok + baseline/change history
+    tool_domains: ["ads.google", "kg"], // M2 + M3: SAFE READ toolok + baseline/change history; KG-1: közös tudás
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
