@@ -67,13 +67,21 @@ CREATE TABLE IF NOT EXISTS public.google_ads_snapshots (
 );
 CREATE INDEX IF NOT EXISTS gasnap_user_scope_idx
   ON public.google_ads_snapshots(user_id, customer_id, scope, entity_id, snapshotted_at DESC);
+-- Csak SELECT — a snapshot táblát kizárólag backend job / read-only tool tölti (service_role).
 GRANT SELECT ON public.google_ads_snapshots TO authenticated;
 GRANT ALL ON public.google_ads_snapshots TO service_role;
 ALTER TABLE public.google_ads_snapshots ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS gasnap_owner_read ON public.google_ads_snapshots;
+DROP POLICY IF EXISTS gasnap_owner_all ON public.google_ads_snapshots;
 CREATE POLICY gasnap_owner_read ON public.google_ads_snapshots
   FOR SELECT TO authenticated
   USING (user_id = auth.uid() AND public.is_owner_role(auth.uid()));
+-- Explicit Owner-only tiltás INSERT/UPDATE/DELETE-re (defense-in-depth,
+-- akkor is ha később valaki GRANT-et adna hozzá authenticated-nek).
+CREATE POLICY gasnap_owner_write_block ON public.google_ads_snapshots
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid() AND public.is_owner_role(auth.uid()))
+  WITH CHECK (user_id = auth.uid() AND public.is_owner_role(auth.uid()));
 
 -- ---------- google_ads_change_log ----------
 -- Michael execute-ok + kézi Google módosítások (M7+ change_event sync).
@@ -96,13 +104,19 @@ CREATE INDEX IF NOT EXISTS gachg_user_time_idx
   ON public.google_ads_change_log(user_id, customer_id, changed_at DESC);
 CREATE INDEX IF NOT EXISTS gachg_entity_idx
   ON public.google_ads_change_log(user_id, entity, entity_id, changed_at DESC);
+-- Csak SELECT — a change log-ot Michael execute (service_role) írja.
 GRANT SELECT ON public.google_ads_change_log TO authenticated;
 GRANT ALL ON public.google_ads_change_log TO service_role;
 ALTER TABLE public.google_ads_change_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS gachg_owner_read ON public.google_ads_change_log;
+DROP POLICY IF EXISTS gachg_owner_all ON public.google_ads_change_log;
 CREATE POLICY gachg_owner_read ON public.google_ads_change_log
   FOR SELECT TO authenticated
   USING (user_id = auth.uid() AND public.is_owner_role(auth.uid()));
+CREATE POLICY gachg_owner_write_block ON public.google_ads_change_log
+  FOR ALL TO authenticated
+  USING (user_id = auth.uid() AND public.is_owner_role(auth.uid()))
+  WITH CHECK (user_id = auth.uid() AND public.is_owner_role(auth.uid()));
 
 -- ---------- agent_role_access: Michael (ads) — Owner ONLY ----------
 -- Csak akkor szúrjuk be, ha van 'owner' role sor. Idempotens.

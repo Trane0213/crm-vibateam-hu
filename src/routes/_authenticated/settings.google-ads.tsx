@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { GoogleAdsConnectCard } from "@/components/integrations/google-ads-connect-card";
 import { GoogleAdsConstitutionEditor } from "@/components/integrations/google-ads-constitution-editor";
+import { GoogleAdsDiagnosticsCard } from "@/components/integrations/google-ads-diagnostics-card";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/settings/google-ads")({
@@ -33,6 +34,7 @@ function GoogleAdsSettingsPage() {
         </p>
       </div>
       <GoogleAdsConnectCard />
+      <GoogleAdsDiagnosticsCard />
       <GoogleAdsConstitutionEditor />
     </div>
   );
