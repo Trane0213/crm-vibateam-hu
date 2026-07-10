@@ -8,6 +8,7 @@
 
 import { registerCoreTools } from "./core-tools.server";
 import { registerCrmTools } from "./adapters/crm-tools.server";
+import { registerGoogleAdsTools } from "./adapters/google-ads-tools.server";
 
 let booted = false;
 
@@ -15,5 +16,6 @@ export function ensureBootstrapped() {
   if (booted) return;
   registerCoreTools();
   registerCrmTools();
+  registerGoogleAdsTools();
   booted = true;
 }
