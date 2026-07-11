@@ -75,3 +75,86 @@ export const wkRefreshPagesBatch = createServerFn({ method: "POST" })
     });
     return { ok: true as const, ...res };
   });
+
+/**
+ * KG backfill — HTML fetch NÉLKÜL futtatja a `publishPageChange`-et
+ * a már indexelt `website_pages` sorokra. Létező oldalak KG
+ * publikálására való, amikor a hash-check miatt a crawler „unchanged"
+ * ágban átugorta a publishert. Egy hívás legfeljebb `limit` (max 40) oldalt
+ * dolgoz fel, hogy beleférjen a Worker CPU budgetbe; többszöri hívással
+ * lapozható az `offset` paraméterrel.
+ */
+export const wkBackfillKg = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { limit?: number; offset?: number }) =>
+    z
+      .object({
+        limit: z.number().int().min(1).max(40).optional(),
+        offset: z.number().int().min(0).optional(),
+      })
+      .parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(
+      context.supabase as unknown as { from: (t: string) => any },
+      context.userId,
+    );
+    const limit = data.limit ?? 25;
+    const offset = data.offset ?? 0;
+    const { getAdminClient } = await import("@/integrations/supabase/server");
+    const { publishPageChange } = await import("./kg-publisher.server");
+    const { startCrawlRun } = await import("./crawler.server");
+
+    const admin = getAdminClient();
+    const { data: pages, error } = await admin
+      .from("website_pages")
+      .select("id, url, current_version_id")
+      .eq("is_active", true)
+      .not("current_version_id", "is", null)
+      .order("last_crawled_at", { ascending: false, nullsFirst: false })
+      .range(offset, offset + limit - 1);
+    if (error) throw new Error(`pages select: ${error.message}`);
+    const rows = (pages ?? []) as Array<{ id: string; url: string }>;
+
+    const run = await startCrawlRun({
+      trigger: "manual_batch",
+      triggered_by_user_id: context.userId,
+      metadata: { kg_backfill: true, limit, offset, page_count: rows.length },
+    });
+
+    let ok = 0;
+    let failed = 0;
+    const started = Date.now();
+    const DEADLINE_MS = 22_000;
+    for (const p of rows) {
+      if (Date.now() - started > DEADLINE_MS) break;
+      try {
+        const res = await publishPageChange({ page_id: p.id, run_id: run.run_id });
+        if (!res.skipped && res.status === "ok") ok++;
+        else failed++;
+      } catch {
+        failed++;
+      }
+    }
+
+    await admin
+      .from("website_crawl_runs")
+      .update({
+        status: failed > 0 ? "partial" : "success",
+        finished_at: new Date().toISOString(),
+        pages_crawled: rows.length,
+        pages_updated: ok,
+        pages_failed: failed,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", run.run_id);
+
+    return {
+      ok: true as const,
+      run_id: run.run_id,
+      processed: rows.length,
+      published: ok,
+      failed,
+      next_offset: offset + rows.length,
+    };
+  });
