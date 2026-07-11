@@ -298,7 +298,14 @@ export async function runAgent(
           output = { error: errMsg };
         }
         await logStep(adminClient, {
-          runId, stepNo: ++stepNo, kind: "tool", toolName: tool.name,
+          runId,
+          stepNo: ++stepNo,
+          // AI-1.5: a handoff-jellegű toolokat külön naplózzuk, hogy az
+          // audit-view egyértelműen szét tudja választani a delegálást a
+          // sima tool-hívásoktól.
+          kind: tool.domain === "core.handoff" ? "handoff" : "tool",
+          toolName: tool.name,
+          agentId: agent.id,
           input: { ...args, __approval: approvalLevel, __mode: effectiveMode },
           output, error: errMsg, durationMs: Date.now() - tStart,
         });
