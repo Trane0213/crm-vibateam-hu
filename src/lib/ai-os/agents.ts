@@ -41,7 +41,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.quotes", "crm.emails", "kg"],
+    tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.quotes", "crm.emails", "kg", "website.knowledge"],
     is_orchestrator: true,
     buildSystemPrompt: (ctx) =>
       [
@@ -61,6 +61,11 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `- Részletes céginfó (kapcsolattartó/projekt/ajánlat darabszám): crm_company_overview cégenként.`,
         `- Konkrét keresőszóra (név, email): crm_search.`,
         `- Tool eredményét tömör magyar összefoglalóként add vissza, ne JSON-ként.`,
+        ``,
+        `WEBSITE-KÉRDÉSEK — KÖTELEZŐ:`,
+        `- Ha a felhasználó a vibateam.hu weboldal tartalmáról kérdez (szolgáltatás, oldal, kampány landing), MINDIG előbb hívd a website_* toolokat (website_search_pages / website_get_page / website_get_summary). SOHA ne találj ki oldalt, címet vagy szolgáltatásleírást az LLM általános tudásából.`,
+        `- Ha a website_search_pages üres eredményt ad, mondd ki: "Nincs erről indexelt oldalunk a Vibateam Knowledge Basében." — ne halucináld.`,
+        `- Kapcsolódó entitásokhoz / oldalak közötti linkekhez használd a kg_get_node és kg_find_related toolokat.`,
       ].join("\n"),
   },
 
@@ -72,13 +77,15 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.3,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "marketing.workflow", "kg"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "marketing.workflow", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Scarlet (Marketing)"),
         ``,
         `Hatáskör: marketing oldal, lead-minősítés, csatornaelemzés, email aktivitás.`,
         `NE válaszolj sales lezárásra vagy projektvezetésre — jelezd George-nak.`,
+        ``,
+        `WEBSITE KNOWLEDGE: kampány/landing/entitás kérdéseknél MINDIG előbb a website_* toolokat használd (website_search_pages, website_search_by_entity, website_get_summary). A vibateam.hu tartalomról SOHA ne találj ki adatot az LLM általános tudásából; ha a tool üres eredményt ad, jelezd: "Nincs erről indexelt oldalunk."`,
       ].join("\n"),
   },
 
@@ -90,13 +97,15 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "kg"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Timothy (Sales)"),
         ``,
         `Hatáskör: pipeline, ajánlatkészítés, utókövetés, megnyerés.`,
         `Megnyerést csak a projektlétrehozó folyamaton keresztül (sales_mark_won_with_project tool) javasolj.`,
+        ``,
+        `WEBSITE KNOWLEDGE: ha az ügyfél egy Vibateam szolgáltatásról kérdez, a website_search_pages / website_get_summary a hivatalos forrás. Ne találj ki szolgáltatást vagy leírást; ha nincs találat, mondd ki, hogy nincs indexelt oldal a témában.`,
       ].join("\n"),
   },
 
@@ -108,13 +117,15 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "pm.workflow", "kg"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "pm.workflow", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Boss (Projektvezető)"),
         ``,
         `Hatáskör: aktív projektek, határidők, kockázatok, hiányzó dokumentumok.`,
         `Marketing / sales kérdést jelezz George-nak.`,
+        ``,
+        `WEBSITE KNOWLEDGE: tartalom-frissesség és KG-lefedettség kérdéshez a website_crawl_status (owner-only) a hivatalos forrás; a website_list_pages / website_get_page_history a legutóbb crawlolt oldalak áttekintésére való.`,
       ].join("\n"),
   },
 
@@ -131,7 +142,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.1,
-    tool_domains: ["ads.google", "kg"], // M2 + M3: SAFE READ toolok + baseline/change history; KG-1: közös tudás
+    tool_domains: ["ads.google", "kg", "website.knowledge"], // M2/M3 + KG-1 + WK-6: website tudás a landing oldalakhoz
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
@@ -274,6 +285,8 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `- Ha a user egyszerűen adatot kér (pl. "mutasd az elmúlt 30 napot"), NE tolj rá`,
         `  javaslatot. A sablon csak akkor aktiválódik, ha te (vagy a user) beavatkozást`,
         `  fontolgatna.`,
+        ``,
+        `WEBSITE KNOWLEDGE (WK-6): a landing page tartalmát a website_get_page / website_get_summary toollal ellenőrizd, mielőtt kampányról nyilatkozol. A kampány ↔ landing kapcsolatot a kg_find_related adja. Ha egy landing-URL-t emlegetsz, előbb hívd a website_get_page toolt — ne találj ki tartalmat az LLM tudásából.`,
       ].join("\n"),
     augmentSystemPrompt: async (ctx, sb) => {
       // VIBA Ads Constitution — a user szabályai. RLS a user nevében szűr.
