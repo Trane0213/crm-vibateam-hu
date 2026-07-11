@@ -210,6 +210,29 @@ export async function runAgent(
           messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: msg }) });
           continue;
         }
+        // Szerveroldali access-check (defense in depth). A tool létezik a
+        // registryben, de ellenőrizzük, hogy a jelenlegi agent+role hívhatja-e.
+        const denyReason = assertAgentToolAccess({
+          toolName: tool.name,
+          toolDomain: tool.domain,
+          agentId: agent.id,
+          agentDomains: agent.tool_domains,
+          agentExtraTools: agent.extra_tools,
+          toolAllowedAgents: tool.allowed_agents,
+          toolAllowedRoles: tool.allowed_roles,
+          userRole: input.userRole,
+        });
+        if (denyReason) {
+          await logStep(adminClient, {
+            runId, stepNo: ++stepNo, kind: "error",
+            toolName: tool.name, agentId: agent.id, error: denyReason,
+          });
+          messages.push({
+            role: "tool", tool_call_id: call.id,
+            content: JSON.stringify({ error: denyReason }),
+          });
+          continue;
+        }
         // M5 approval + dry_run állapotgép.
         // 1) Approval szint meghatározása (backward compat: needs_approval → confirm).
         const approvalLevel: ApprovalLevel =
