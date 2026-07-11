@@ -8,33 +8,54 @@
  */
 
 import { registerTool } from "./tool-registry";
+import { listHandoffTargets } from "./agents";
 
 export function registerCoreTools() {
+  const handoffTargets = listHandoffTargets();
   registerTool(
     {
       name: "handoff_to",
       description:
-        "Átadja a kérdést egy specialista agentnek. Csak az orchestrator (George) használhatja.",
+        "Deklarálja, hogy a kérdést egy specialista agentnek kell átadni. " +
+        "Csak az orchestrator (George) hívhatja. A tool nem futtat le másik agentet — " +
+        "a runtime naplózza mint `handoff` lépést, és George a saját válaszában " +
+        "foglalja össze a specialistának feltett kérdést a felhasználó felé.",
       domain: "core.handoff",
       allowed_agents: ["george"],
       parameters: {
         type: "object",
         properties: {
-          agent: { type: "string", enum: ["scarlet", "timothy", "boss"] },
+          agent: {
+            type: "string",
+            enum: handoffTargets,
+            description: "A célagent id-ja. Csak nem-orchestrator agent lehet.",
+          },
           reason: { type: "string", description: "Miért adod át." },
           question: { type: "string", description: "A specialistának feltett kérdés." },
         },
         required: ["agent", "reason", "question"],
       },
     },
-    async (args) => {
-      // A handoff végrehajtása a runtime felső rétegében történik (külön call).
-      // Itt csak jelezzük, hogy az LLM a handoff-ot kérte.
+    async (args, ctx) => {
+      // AI-1.5: kizárólag deklaratív. A tényleges chained-run később, külön
+      // sprintben (nem stabilizációs feladat). Itt szerveroldalon még egyszer
+      // validáljuk a célt — a runtime access-check nem látja a tool argumentumát.
+      const target = String(args.agent ?? "");
+      const validTargets = listHandoffTargets();
+      if (!validTargets.includes(target)) {
+        return {
+          error: `Érvénytelen handoff célpont: "${target}". Engedélyezett: ${validTargets.join(", ")}.`,
+        };
+      }
+      if (target === ctx.agentId) {
+        return { error: "Handoff önmagára nem megengedett." };
+      }
       return {
         handoff_requested: true,
-        agent: args.agent,
-        reason: args.reason,
-        question: args.question,
+        from: ctx.agentId,
+        agent: target,
+        reason: String(args.reason ?? ""),
+        question: String(args.question ?? ""),
       };
     },
   );
