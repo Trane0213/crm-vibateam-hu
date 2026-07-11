@@ -234,17 +234,30 @@ function WebsiteKnowledgeContent() {
               táblából.
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => runsQ.refetch()}
-            disabled={runsQ.isFetching}
-          >
-            <RefreshCw
-              className={`mr-2 h-3.5 w-3.5 ${runsQ.isFetching ? "animate-spin" : ""}`}
-            />
-            Frissítés
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => triggerMut.mutate()}
+              disabled={triggerMut.isPending}
+              title="Owner-only: manuálisan indít egy teljes vibateam.hu crawl-t. Nem használ secretet."
+            >
+              <Play
+                className={`mr-2 h-3.5 w-3.5 ${triggerMut.isPending ? "animate-pulse" : ""}`}
+              />
+              {triggerMut.isPending ? "Fut…" : "Manuális crawl (owner)"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => runsQ.refetch()}
+              disabled={runsQ.isFetching}
+            >
+              <RefreshCw
+                className={`mr-2 h-3.5 w-3.5 ${runsQ.isFetching ? "animate-spin" : ""}`}
+              />
+              Frissítés
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {runsQ.isLoading ? (
