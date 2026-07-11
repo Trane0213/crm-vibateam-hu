@@ -141,6 +141,12 @@ export type AgentDefinition = {
   ) => Promise<string | null>;
   /** Orchestrator-e? Csak orchestrator hívhatja a handoff_to toolt. */
   is_orchestrator?: boolean;
+  /**
+   * Háttér-agent: snapshot-alapú, tool nélkül fut (pl. napi briefing,
+   * összefoglaló, structured JSON kutató). NEM chatable, NEM handoff-célpont.
+   * A `listHandoffTargets()` kiszűri.
+   */
+  is_background?: boolean;
 };
 
 export type SystemPromptContext = {
