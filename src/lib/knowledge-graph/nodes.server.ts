@@ -45,14 +45,37 @@ export async function upsertNode(input: NodePayload): Promise<KgNode> {
   };
 
   if (row.ref_table && row.ref_id) {
-    const { data, error } = await sb
+    // A `uq_kg_nodes_kind_ref` unique index PARTIAL
+    // (WHERE ref_table IS NOT NULL AND ref_id IS NOT NULL), ezért
+    // PostgREST `onConflict` nem tud rá támaszkodni — explicit SELECT +
+    // UPDATE/INSERT ciklust futtatunk, hogy idempotens maradjon.
+    const { data: existing, error: selErr } = await sb
       .from("kg_nodes")
-      .upsert(row, { onConflict: "kind,ref_table,ref_id" })
+      .select("*")
+      .eq("kind", row.kind)
+      .eq("ref_table", row.ref_table)
+      .eq("ref_id", row.ref_id)
+      .maybeSingle();
+    if (selErr) throw new Error(`kg_nodes select: ${selErr.message}`);
+    if (existing) {
+      const { data: updated, error: updErr } = await sb
+        .from("kg_nodes")
+        .update(row)
+        .eq("id", (existing as KgNode).id)
+        .select("*")
+        .maybeSingle();
+      if (updErr) throw new Error(`kg_nodes update: ${updErr.message}`);
+      if (!updated) throw new Error("kg_nodes update: nincs visszatérő sor");
+      return updated as KgNode;
+    }
+    const { data: inserted, error: insErr } = await sb
+      .from("kg_nodes")
+      .insert(row)
       .select("*")
       .maybeSingle();
-    if (error) throw new Error(`kg_nodes upsert: ${error.message}`);
-    if (!data) throw new Error("kg_nodes upsert: nincs visszatérő sor");
-    return data as KgNode;
+    if (insErr) throw new Error(`kg_nodes insert: ${insErr.message}`);
+    if (!inserted) throw new Error("kg_nodes insert: nincs visszatérő sor");
+    return inserted as KgNode;
   }
 
   // ref_uri alapú deduplikáció (opcionális)
