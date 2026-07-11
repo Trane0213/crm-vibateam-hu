@@ -10,6 +10,7 @@ import { registerCoreTools } from "./core-tools.server";
 import { registerCrmTools } from "./adapters/crm-tools.server";
 import { registerGoogleAdsTools } from "./adapters/google-ads-tools.server";
 import { registerKgTools } from "./adapters/kg-tools.server";
+import { registerWebsiteTools } from "./adapters/website-tools.server";
 
 let booted = false;
 
@@ -19,5 +20,6 @@ export function ensureBootstrapped() {
   registerCrmTools();
   registerGoogleAdsTools();
   registerKgTools();
+  registerWebsiteTools();
   booted = true;
 }
