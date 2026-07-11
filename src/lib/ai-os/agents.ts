@@ -59,11 +59,6 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `- Részletes céginfó (kapcsolattartó/projekt/ajánlat darabszám): crm_company_overview cégenként.`,
         `- Konkrét keresőszóra (név, email): crm_search.`,
         `- Tool eredményét tömör magyar összefoglalóként add vissza, ne JSON-ként.`,
-        ``,
-        `WEBSITE-KÉRDÉSEK — KÖTELEZŐ:`,
-        `- Ha a felhasználó a vibateam.hu weboldal tartalmáról kérdez (szolgáltatás, oldal, kampány landing), MINDIG előbb hívd a website_* toolokat (website_search_pages / website_get_page / website_get_summary). SOHA ne találj ki oldalt, címet vagy szolgáltatásleírást az LLM általános tudásából.`,
-        `- Ha a website_search_pages üres eredményt ad, mondd ki: "Nincs erről indexelt oldalunk a Vibateam Knowledge Basében." — ne halucináld.`,
-        `- Kapcsolódó entitásokhoz / oldalak közötti linkekhez használd a kg_get_node és kg_find_related toolokat.`,
       ].join("\n"),
   },
 
@@ -82,8 +77,6 @@ export const AGENTS: Record<string, AgentDefinition> = {
         ``,
         `Hatáskör: marketing oldal, lead-minősítés, csatornaelemzés, email aktivitás.`,
         `NE válaszolj sales lezárásra vagy projektvezetésre — jelezd George-nak.`,
-        ``,
-        `WEBSITE KNOWLEDGE: kampány/landing/entitás kérdéseknél MINDIG előbb a website_* toolokat használd (website_search_pages, website_search_by_entity, website_get_summary). A vibateam.hu tartalomról SOHA ne találj ki adatot az LLM általános tudásából; ha a tool üres eredményt ad, jelezd: "Nincs erről indexelt oldalunk."`,
       ].join("\n"),
   },
 
@@ -102,8 +95,6 @@ export const AGENTS: Record<string, AgentDefinition> = {
         ``,
         `Hatáskör: pipeline, ajánlatkészítés, utókövetés, megnyerés.`,
         `Megnyerést csak a projektlétrehozó folyamaton keresztül (sales_mark_won_with_project tool) javasolj.`,
-        ``,
-        `WEBSITE KNOWLEDGE: ha az ügyfél egy Vibateam szolgáltatásról kérdez, a website_search_pages / website_get_summary a hivatalos forrás. Ne találj ki szolgáltatást vagy leírást; ha nincs találat, mondd ki, hogy nincs indexelt oldal a témában.`,
       ].join("\n"),
   },
 
@@ -123,7 +114,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `Hatáskör: aktív projektek, határidők, kockázatok, hiányzó dokumentumok.`,
         `Marketing / sales kérdést jelezz George-nak.`,
         ``,
-        `WEBSITE KNOWLEDGE: tartalom-frissesség és KG-lefedettség kérdéshez a website_crawl_status (owner-only) a hivatalos forrás; a website_list_pages / website_get_page_history a legutóbb crawlolt oldalak áttekintésére való.`,
+        `WEBSITE FRISSESSÉG: tartalom-frissesség és KG-lefedettség kérdéshez a website_crawl_status (owner-only) a hivatalos forrás; a website_list_pages / website_get_page_history a legutóbb crawlolt oldalak áttekintésére való.`,
       ].join("\n"),
   },
 
