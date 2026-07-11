@@ -8,6 +8,7 @@ import {
   wkTriggerManualCrawl,
   wkRefreshPage,
   wkRefreshPagesBatch,
+  wkBackfillKg,
 } from "@/lib/website-knowledge/wk-admin.functions";
 import {
   Lock,
@@ -114,6 +115,7 @@ function WebsiteKnowledgeContent() {
   const triggerFn = useServerFn(wkTriggerManualCrawl);
   const refreshPageFn = useServerFn(wkRefreshPage);
   const refreshBatchFn = useServerFn(wkRefreshPagesBatch);
+  const backfillFn = useServerFn(wkBackfillKg);
   const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
 
   function invalidateAfterRefresh() {
@@ -157,6 +159,17 @@ function WebsiteKnowledgeContent() {
       invalidateAfterRefresh();
     },
     onError: (e) => toast.error(`Crawl hiba: ${(e as Error).message}`),
+  });
+
+  const backfillMut = useMutation({
+    mutationFn: async (offset: number) => backfillFn({ data: { limit: 25, offset } }),
+    onSuccess: (res) => {
+      toast.success(
+        `KG backfill — ${res.published} publikálva / ${res.failed} hiba · next offset: ${res.next_offset}`,
+      );
+      invalidateAfterRefresh();
+    },
+    onError: (e) => toast.error(`KG backfill hiba: ${(e as Error).message}`),
   });
 
   const runsQ = useQuery({
@@ -289,6 +302,18 @@ function WebsiteKnowledgeContent() {
                 className={`mr-2 h-3.5 w-3.5 ${triggerMut.isPending ? "animate-pulse" : ""}`}
               />
               {triggerMut.isPending ? "Fut…" : "Teljes újracrawlolás (owner)"}
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => backfillMut.mutate(0)}
+              disabled={backfillMut.isPending}
+              title="Owner-only: HTML fetch nélkül újrafuttatja a KG publishert a már indexelt oldalakra (25-ösével)."
+            >
+              <Network
+                className={`mr-2 h-3.5 w-3.5 ${backfillMut.isPending ? "animate-pulse" : ""}`}
+              />
+              {backfillMut.isPending ? "KG backfill…" : "KG backfill (25)"}
             </Button>
             <Button
               variant="outline"
