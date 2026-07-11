@@ -106,6 +106,19 @@ function WebsiteKnowledgeContent() {
   const [toVersionId, setToVersionId] = useState<string | null>(null);
   const [entitySearch, setEntitySearch] = useState("");
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const triggerFn = useServerFn(wkTriggerManualCrawl);
+  const triggerMut = useMutation({
+    mutationFn: async () => triggerFn({}),
+    onSuccess: (res) => {
+      toast.success(
+        `Manuális crawl kész — run ${String(res.run_id).slice(0, 8)}… · ${res.status ?? "ok"}`,
+      );
+      qc.invalidateQueries({ queryKey: ["website_crawl_runs"] });
+      qc.invalidateQueries({ queryKey: ["website_pages"] });
+    },
+    onError: (e) => toast.error(`Crawl hiba: ${(e as Error).message}`),
+  });
 
   const runsQ = useQuery({
     queryKey: ["website_crawl_runs", "recent"],
