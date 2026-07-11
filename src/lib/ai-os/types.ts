@@ -29,7 +29,28 @@ export type JsonSchema = Record<string, unknown>;
  */
 export type ApprovalLevel = "safe" | "confirm" | "dangerous";
 
-/** Egy tool publikus deklarációja a registryben — provider-független. */
+/**
+ * Egy tool publikus deklarációja a registryben — provider-független.
+ *
+ * JOGOSULTSÁGI RÉTEGEK (AI-1 kanonikus leképezés a meglévő mezőkre):
+ *   1. READ (ki hívhatja egyáltalán): `allowed_agents` + `allowed_roles`.
+ *      Üres lista = nincs korlát az adott dimenzióban.
+ *   2. DOMAIN-FÓKUSZ (agent szintű szűrés): `domain` + agent
+ *      `tool_domains` / `extra_tools`. A registryben a `domain` besorolás
+ *      dönt, az agents.ts adja meg, ki melyik domaint látja.
+ *   3. WRITE / EXECUTE / DANGEROUS (mit tehet): `approval`.
+ *        - "safe":      olvasás vagy hatás nélküli hívás, jóváhagyás nem kell.
+ *        - "confirm":   írás vagy hatással bíró művelet — egy jóváhagyás.
+ *        - "dangerous": irreverzibilis (delete, konverzió stb.) — a UI
+ *                       második, gépelt megerősítést kér.
+ *   4. DRY-RUN VÉDELEM: `supports_dry_run`. Ha true, a runtime alapból
+ *      `mode="dry_run"`-t injektál; execute-hoz kell approval.
+ *
+ * A négy réteget a `tool-registry.toolsForAgent` (1+2) és a
+ * `runtime.server.assertAgentToolAccess` (1) + approval-loop (3+4)
+ * érvényesíti szerveroldalon minden hívásnál. A kliensoldali szűrés
+ * (visible-agents, agent-gate) csak UX, nem biztonsági határ.
+ */
 export type ToolSpec = {
   /** Egyedi név (snake_case). Ez kerül az LLM-nek. */
   name: string;

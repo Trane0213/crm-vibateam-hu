@@ -16,6 +16,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { OWNER_ROLES } from "@/lib/ai-os/roles";
 
 async function assertOwner(
   supabase: { from: (t: string) => any },
@@ -29,8 +30,10 @@ async function assertOwner(
   if (error) throw new Error(`role lookup: ${error.message}`);
   const raw = (data as { roles?: { name?: string | null } | null } | null)
     ?.roles?.name ?? null;
-  const name = (raw ?? "owner").toString().trim().toLowerCase();
-  const isOwner = ["owner", "tulajdonos", "admin", "superadmin"].includes(name);
+  // Fail-CLOSED: ha nincs role, denied. (Korábbi `?? "owner"` fail-open volt.)
+  if (!raw) throw new Error("Csak owner indíthat manuális crawl-t (nincs role).");
+  const name = raw.toString().trim().toLowerCase();
+  const isOwner = (OWNER_ROLES as readonly string[]).includes(name);
   if (!isOwner) throw new Error("Csak owner indíthat manuális crawl-t.");
 }
 
