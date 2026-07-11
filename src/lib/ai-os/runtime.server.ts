@@ -22,6 +22,42 @@ import type { ApprovalLevel, ChatMessage, ToolCall } from "./types";
 
 const MAX_STEPS = 50;
 
+/**
+ * Szerveroldali jogosultság-ellenőrzés MINDEN tool-hívás előtt.
+ *
+ * Védelem az ellen, hogy egy jailbroken prompt olyan tool nevet emittáljon,
+ * amit a spec-listában NEM adtunk át az LLM-nek. A kliens visible-agents /
+ * agent-gate szűrése csak UX — a valós határ itt van.
+ *
+ * Visszatérés: null = OK, string = deny indoklás (kerül az LLM-hez).
+ */
+function assertAgentToolAccess(opts: {
+  toolName: string;
+  toolDomain: string;
+  agentId: string;
+  agentDomains: string[];
+  agentExtraTools?: string[];
+  toolAllowedAgents?: string[];
+  toolAllowedRoles?: string[];
+  userRole: string | null;
+}): string | null {
+  const domainOk =
+    opts.agentDomains.includes(opts.toolDomain) ||
+    (opts.agentExtraTools?.includes(opts.toolName) ?? false);
+  if (!domainOk) {
+    return `Access denied: a(z) "${opts.toolName}" tool (${opts.toolDomain}) nem érhető el a(z) "${opts.agentId}" agent számára.`;
+  }
+  if (opts.toolAllowedAgents?.length && !opts.toolAllowedAgents.includes(opts.agentId)) {
+    return `Access denied: a(z) "${opts.toolName}" tool ehhez az agenthez nem engedélyezett.`;
+  }
+  if (opts.toolAllowedRoles?.length) {
+    if (!opts.userRole || !opts.toolAllowedRoles.includes(opts.userRole)) {
+      return `Access denied: a(z) "${opts.toolName}" tool a jelenlegi felhasználói szerepkörrel ("${opts.userRole ?? "ismeretlen"}") nem hívható.`;
+    }
+  }
+  return null;
+}
+
 export type RunAgentInput = {
   agentId: string;
   userId: string;
