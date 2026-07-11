@@ -4,7 +4,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { wkTriggerManualCrawl } from "@/lib/website-knowledge/wk-admin.functions";
+import {
+  wkTriggerManualCrawl,
+  wkRefreshPage,
+  wkRefreshPagesBatch,
+} from "@/lib/website-knowledge/wk-admin.functions";
 import {
   Lock,
   Globe,
@@ -108,14 +112,49 @@ function WebsiteKnowledgeContent() {
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const qc = useQueryClient();
   const triggerFn = useServerFn(wkTriggerManualCrawl);
+  const refreshPageFn = useServerFn(wkRefreshPage);
+  const refreshBatchFn = useServerFn(wkRefreshPagesBatch);
+  const [selectedPageIds, setSelectedPageIds] = useState<Set<string>>(new Set());
+
+  function invalidateAfterRefresh() {
+    qc.invalidateQueries({ queryKey: ["website_crawl_runs"] });
+    qc.invalidateQueries({ queryKey: ["website_pages"] });
+    qc.invalidateQueries({ queryKey: ["website_page_history"] });
+    qc.invalidateQueries({ queryKey: ["wk_kg_snapshot"] });
+  }
+
+  const refreshPageMut = useMutation({
+    mutationFn: async (page_id: string) => refreshPageFn({ data: { page_id } }),
+    onSuccess: (res) => {
+      const s = res.stats;
+      toast.success(
+        `Oldal frissítve — run ${String(res.run_id).slice(0, 8)}… · ${res.status} · +${s.updated} / ↷${s.skipped}${s.failed ? ` · !${s.failed}` : ""}`,
+      );
+      invalidateAfterRefresh();
+    },
+    onError: (e) => toast.error(`Oldal-frissítés hiba: ${(e as Error).message}`),
+  });
+
+  const refreshBatchMut = useMutation({
+    mutationFn: async (page_ids: string[]) => refreshBatchFn({ data: { page_ids } }),
+    onSuccess: (res) => {
+      const s = res.stats;
+      toast.success(
+        `Batch frissítés — run ${String(res.run_id).slice(0, 8)}… · ${res.status} · ${res.pages_requested} oldal · +${s.updated} / ↷${s.skipped}${s.failed ? ` · !${s.failed}` : ""}`,
+      );
+      setSelectedPageIds(new Set());
+      invalidateAfterRefresh();
+    },
+    onError: (e) => toast.error(`Batch frissítés hiba: ${(e as Error).message}`),
+  });
+
   const triggerMut = useMutation({
     mutationFn: async () => triggerFn({}),
     onSuccess: (res) => {
       toast.success(
         `Manuális crawl kész — run ${String(res.run_id).slice(0, 8)}… · ${res.status ?? "ok"}`,
       );
-      qc.invalidateQueries({ queryKey: ["website_crawl_runs"] });
-      qc.invalidateQueries({ queryKey: ["website_pages"] });
+      invalidateAfterRefresh();
     },
     onError: (e) => toast.error(`Crawl hiba: ${(e as Error).message}`),
   });
@@ -244,7 +283,7 @@ function WebsiteKnowledgeContent() {
               <Play
                 className={`mr-2 h-3.5 w-3.5 ${triggerMut.isPending ? "animate-pulse" : ""}`}
               />
-              {triggerMut.isPending ? "Fut…" : "Manuális crawl (owner)"}
+              {triggerMut.isPending ? "Fut…" : "Teljes újracrawlolás (owner)"}
             </Button>
             <Button
               variant="outline"
@@ -377,6 +416,19 @@ function WebsiteKnowledgeContent() {
               className="h-8 w-64"
             />
             <Button
+              size="sm"
+              onClick={() => refreshBatchMut.mutate(Array.from(selectedPageIds))}
+              disabled={selectedPageIds.size === 0 || refreshBatchMut.isPending}
+              title="A kijelölt oldalak (max 20) manuális újracrawlolása."
+            >
+              <Play
+                className={`mr-2 h-3.5 w-3.5 ${refreshBatchMut.isPending ? "animate-pulse" : ""}`}
+              />
+              {refreshBatchMut.isPending
+                ? "Fut…"
+                : `Kijelöltek frissítése (${selectedPageIds.size})`}
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={() => pagesQ.refetch()}
@@ -405,6 +457,7 @@ function WebsiteKnowledgeContent() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium w-6"></th>
                     <th className="py-2 pr-3 font-medium">Path</th>
                     <th className="py-2 pr-3 font-medium">Title</th>
                     <th className="py-2 pr-3 font-medium">Kind</th>
@@ -420,6 +473,26 @@ function WebsiteKnowledgeContent() {
                         selectedPageId === p.id ? "bg-muted/40" : ""
                       }`}
                     >
+                      <td className="py-2 pr-3">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 cursor-pointer"
+                          checked={selectedPageIds.has(p.id)}
+                          onChange={(e) => {
+                            setSelectedPageIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) {
+                                if (next.size >= 20) return prev;
+                                next.add(p.id);
+                              } else {
+                                next.delete(p.id);
+                              }
+                              return next;
+                            });
+                          }}
+                          aria-label="Kijelölés batch frissítéshez"
+                        />
+                      </td>
                       <td className="py-2 pr-3 font-mono text-xs">{p.path}</td>
                       <td className="py-2 pr-3">{p.title ?? "—"}</td>
                       <td className="py-2 pr-3">
@@ -431,18 +504,37 @@ function WebsiteKnowledgeContent() {
                         {fmt(p.last_crawled_at)}
                       </td>
                       <td className="py-2 pr-3 text-right">
-                        <Button
-                          size="sm"
-                          variant={selectedPageId === p.id ? "default" : "outline"}
-                          onClick={() => {
-                            setSelectedPageId(p.id);
-                            setFromVersionId(null);
-                            setToVersionId(null);
-                          }}
-                        >
-                          <History className="mr-1 h-3.5 w-3.5" />
-                          Verziók
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => refreshPageMut.mutate(p.id)}
+                            disabled={refreshPageMut.isPending}
+                            title="Csak ezt az oldalt crawloljuk újra, teljes sitemap nélkül."
+                          >
+                            <RefreshCw
+                              className={`mr-1 h-3.5 w-3.5 ${
+                                refreshPageMut.isPending &&
+                                refreshPageMut.variables === p.id
+                                  ? "animate-spin"
+                                  : ""
+                              }`}
+                            />
+                            Frissítés
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={selectedPageId === p.id ? "default" : "outline"}
+                            onClick={() => {
+                              setSelectedPageId(p.id);
+                              setFromVersionId(null);
+                              setToVersionId(null);
+                            }}
+                          >
+                            <History className="mr-1 h-3.5 w-3.5" />
+                            Verziók
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}

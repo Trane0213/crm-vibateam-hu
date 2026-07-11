@@ -15,6 +15,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 async function assertOwner(
   supabase: { from: (t: string) => any },
@@ -41,4 +42,36 @@ export const wkTriggerManualCrawl = createServerFn({ method: "POST" })
     const run = await startCrawlRun({ trigger: "manual_full" });
     const result = await runCrawl(run.run_id);
     return { ok: true as const, run_id: run.run_id, ...result };
+  });
+
+export const wkRefreshPage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { page_id: string }) =>
+    z.object({ page_id: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase as unknown as { from: (t: string) => any }, context.userId);
+    const { refreshSinglePage } = await import("./wk-refresh.server");
+    const res = await refreshSinglePage({
+      page_id: data.page_id,
+      triggered_by_user_id: context.userId,
+    });
+    return { ok: true as const, ...res };
+  });
+
+export const wkRefreshPagesBatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { page_ids: string[] }) =>
+    z
+      .object({ page_ids: z.array(z.string().uuid()).min(1).max(20) })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertOwner(context.supabase as unknown as { from: (t: string) => any }, context.userId);
+    const { refreshPagesBatch } = await import("./wk-refresh.server");
+    const res = await refreshPagesBatch({
+      page_ids: data.page_ids,
+      triggered_by_user_id: context.userId,
+    });
+    return { ok: true as const, ...res };
   });
