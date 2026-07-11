@@ -92,9 +92,16 @@ export function registerCoreTools() {
     {
       name: "memory_write",
       description:
-        "Új memória-darab írása egy objektumhoz. Felhasználói jóváhagyást igényel.",
+        "Új memória-darab írása egy objektumhoz. Felhasználói jóváhagyást igényel. " +
+        "Csak azok az agentek használhatják, akik hosszú távú tényeket rögzítenek " +
+        "(orchestrator, projektvezető, Google Ads specialista).",
       domain: "core.memory",
       needs_approval: true,
+      // AI-1.7: memóriaírás szűkítése a valós írókra. A többi agent (Scarlet,
+      // Timothy) továbbra is olvashat (`memory_read`), de nem hozhat létre új
+      // memória-darabot — ezzel megelőzzük a tudás-elmosódást és az ütköző
+      // kulcs-értékek felhalmozódását.
+      allowed_agents: ["george", "boss", "michael"],
       parameters: {
         type: "object",
         properties: {
