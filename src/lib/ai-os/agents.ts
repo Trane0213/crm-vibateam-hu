@@ -39,7 +39,9 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.quotes", "crm.emails", "kg", "website.knowledge"],
+    // AI-1.4a: `crm.quotes` eltávolítva — ajánlat írási/lezárási műveletek kizárólag Timothy hatásköre.
+    // George handoffal továbbítja az ajánlat-jellegű kéréseket.
+    tool_domains: ["core.handoff", "core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.projects", "crm.leads", "crm.emails", "kg", "website.knowledge"],
     is_orchestrator: true,
     buildSystemPrompt: (ctx) =>
       [
@@ -70,7 +72,9 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.3,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "marketing.workflow", "kg", "website.knowledge"],
+    // AI-1.4a: `marketing.workflow` eltávolítva — jelenleg üres domain, egyetlen tool sincs regisztrálva rá.
+    // Ha később write toolok készülnek (AI-1.4b), akkor visszakerül a listába.
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.emails", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Scarlet (Marketing)"),
@@ -106,7 +110,9 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "pm.workflow", "kg", "website.knowledge"],
+    // AI-1.4a: `pm.workflow` eltávolítva — jelenleg üres domain, egyetlen tool sincs regisztrálva rá.
+    // Ha később write toolok készülnek (AI-1.4b), akkor visszakerül a listába.
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.projects", "crm.tasks", "crm.followups", "crm.meetings", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Boss (Projektvezető)"),
