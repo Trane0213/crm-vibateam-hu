@@ -22,6 +22,7 @@
  */
 
 import { registerTool } from "../tool-registry";
+import { OWNER_ROLES } from "../roles";
 
 function ok<T>(data: T) {
   return { ok: true, data };
@@ -615,7 +616,7 @@ export function registerWebsiteTools() {
       description:
         "Owner-only: a Website Knowledge crawl állapota — utolsó futások (trigger, status, pages, AI cost) + oldalak összesített darabszáma + entitás katalógus mérete.",
       domain: DOMAIN,
-      allowed_roles: ["owner", "tulajdonos", "admin", "superadmin"],
+      allowed_roles: [...OWNER_ROLES],
       parameters: {
         type: "object",
         properties: {

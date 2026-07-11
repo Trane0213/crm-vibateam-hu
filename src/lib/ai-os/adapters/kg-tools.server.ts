@@ -14,6 +14,7 @@
  */
 
 import { registerTool } from "../tool-registry";
+import { OWNER_ROLES } from "../roles";
 
 function ok<T>(data: T) { return { ok: true, data }; }
 function fail(err: unknown) {
@@ -140,7 +141,7 @@ export function registerKgTools() {
       description:
         "Knowledge Graph összesítő statisztika: node count kind szerint, edge count reláció szerint, utolsó publisher-futások.",
       domain: DOMAIN,
-      allowed_roles: ["owner"],
+      allowed_roles: [...OWNER_ROLES],
       parameters: { type: "object", properties: {} },
     },
     async (_args, ctx) => {

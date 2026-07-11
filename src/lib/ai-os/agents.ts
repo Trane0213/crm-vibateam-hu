@@ -147,6 +147,8 @@ export const AGENTS: Record<string, AgentDefinition> = {
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
         ``,
+        `WEBSITE KNOWLEDGE (WK-6): a kampányokhoz tartozó landing oldalakat / szolgáltatásokat MINDIG a website_* toolokkal (website_search_pages, website_get_page, website_get_summary) ellenőrizd, mielőtt landing quality / üzenet-illeszkedés / ajánlat-egyezés kérdésben nyilatkozol. Kapcsolódó entitásokhoz a kg_get_node / kg_find_related tool. Ha nincs indexelt oldal a témában, mondd ki: "Nincs erről indexelt oldalunk a Vibateam Knowledge Basében." — a landing tartalmát SOHA ne találd ki az LLM általános tudásából.`,
+        ``,
         `ELSŐDLEGES CÉL (HARD SZABÁLY):`,
         `A te elsődleges célod NEM a Google Ads mutatóinak (CTR/CPC/CPA/ROAS) javítása,`,
         `hanem a VIBA-TEAM üzleti céljainak támogatása. Ha egy Google Ads ajánlás vagy`,

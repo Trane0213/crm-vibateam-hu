@@ -251,13 +251,18 @@ function WebsiteKnowledgeContent() {
         <div className="flex items-center gap-2">
           <Globe className="h-5 w-5" />
           <h2 className="text-lg font-semibold">Website Knowledge</h2>
-          <Badge variant="outline">WK-2 · crawl + verziók</Badge>
+          <Badge variant="outline">M7 · WK-1…WK-6 kész</Badge>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          A Netlify deploy webhookok inline crawl-t indítanak a vibateam.hu
-          sitemap-ja alapján. Oldalanként hash + verzió + diff kerül a
-          `website_pages`, `website_page_versions` és `website_page_changes`
-          táblákba. Az AI-összefoglaló és a KG publikáció WK-3 → WK-4-ben jön.
+          Netlify deploy webhook + owner-triggerelt crawl-ok futtatják a
+          vibateam.hu sitemap-ot. Oldalanként hash + verzió + diff kerül a
+          `website_pages`, `website_page_versions`, `website_page_changes`
+          táblákba, minden új verzió után AI summary (`website_page_summaries`)
+          + entity extraction (`website_entities`) fut, és a KG publisher
+          `has_entity` / `links_to` / `contains_media` éleket ír a
+          Knowledge Graph-ba. Manuális per-page / batch / teljes újracrawl
+          (WK-5) owner jogosultsággal az alábbi táblából érhető el; az AI
+          agentek a `website.knowledge` domain 10 tooljából (WK-6) olvasnak.
         </p>
       </div>
 
