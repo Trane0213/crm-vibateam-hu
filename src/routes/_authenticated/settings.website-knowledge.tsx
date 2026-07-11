@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { wkTriggerManualCrawl } from "@/lib/website-knowledge/wk-admin.functions";
 import {
   Lock,
   Globe,
@@ -13,6 +16,7 @@ import {
   Tags,
   Activity,
   Network,
+  Play,
 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -102,6 +106,19 @@ function WebsiteKnowledgeContent() {
   const [toVersionId, setToVersionId] = useState<string | null>(null);
   const [entitySearch, setEntitySearch] = useState("");
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
+  const qc = useQueryClient();
+  const triggerFn = useServerFn(wkTriggerManualCrawl);
+  const triggerMut = useMutation({
+    mutationFn: async () => triggerFn({}),
+    onSuccess: (res) => {
+      toast.success(
+        `Manuális crawl kész — run ${String(res.run_id).slice(0, 8)}… · ${res.status ?? "ok"}`,
+      );
+      qc.invalidateQueries({ queryKey: ["website_crawl_runs"] });
+      qc.invalidateQueries({ queryKey: ["website_pages"] });
+    },
+    onError: (e) => toast.error(`Crawl hiba: ${(e as Error).message}`),
+  });
 
   const runsQ = useQuery({
     queryKey: ["website_crawl_runs", "recent"],
@@ -217,17 +234,30 @@ function WebsiteKnowledgeContent() {
               táblából.
             </CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => runsQ.refetch()}
-            disabled={runsQ.isFetching}
-          >
-            <RefreshCw
-              className={`mr-2 h-3.5 w-3.5 ${runsQ.isFetching ? "animate-spin" : ""}`}
-            />
-            Frissítés
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => triggerMut.mutate()}
+              disabled={triggerMut.isPending}
+              title="Owner-only: manuálisan indít egy teljes vibateam.hu crawl-t. Nem használ secretet."
+            >
+              <Play
+                className={`mr-2 h-3.5 w-3.5 ${triggerMut.isPending ? "animate-pulse" : ""}`}
+              />
+              {triggerMut.isPending ? "Fut…" : "Manuális crawl (owner)"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => runsQ.refetch()}
+              disabled={runsQ.isFetching}
+            >
+              <RefreshCw
+                className={`mr-2 h-3.5 w-3.5 ${runsQ.isFetching ? "animate-spin" : ""}`}
+              />
+              Frissítés
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {runsQ.isLoading ? (
