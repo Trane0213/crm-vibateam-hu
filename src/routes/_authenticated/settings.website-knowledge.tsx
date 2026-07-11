@@ -712,7 +712,7 @@ function WebsiteKnowledgeContent() {
               ["website_list_pages", "Utoljára crawlolt oldalak, asset_kind szűrővel."],
               ["website_get_page", "Egy oldal teljes rekordja + AI summary + top entitások + media count."],
               ["website_get_summary", "Az adott oldal legfrissebb AI summary + summary_json."],
-              ["website_search_by_entity", "Entitás (pl. „Google Ads") előfordulásai az oldalakon."],
+              ["website_search_by_entity", "Entitás (pl. 'Google Ads') előfordulásai az oldalakon."],
               ["website_list_entities", "Entitás katalógus (kind + prefix szűrő)."],
               ["website_get_page_history", "Oldal verziólista (version_number, hash, byte_size)."],
               ["website_get_page_diff", "Két verzió közötti hozzáadott/eltávolított sorok."],
