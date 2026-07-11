@@ -423,3 +423,14 @@ export function getAgent(id: string): AgentDefinition | null {
 export function listAgents(): AgentDefinition[] {
   return Object.values(AGENTS);
 }
+
+/**
+ * AI-1.5: A handoff célpontjai — minden nem-orchestrator agent, aki UI-ban
+ * chatelhető. Egyetlen forrás a specialisták listájára, így új agent
+ * felvételekor nem kell a `handoff_to` tool enum-ját külön karbantartani.
+ */
+export function listHandoffTargets(): string[] {
+  return Object.values(AGENTS)
+    .filter((a) => !a.is_orchestrator)
+    .map((a) => a.id);
+}
