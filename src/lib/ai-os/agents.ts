@@ -285,6 +285,8 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `- Ha a user egyszerűen adatot kér (pl. "mutasd az elmúlt 30 napot"), NE tolj rá`,
         `  javaslatot. A sablon csak akkor aktiválódik, ha te (vagy a user) beavatkozást`,
         `  fontolgatna.`,
+        ``,
+        `WEBSITE KNOWLEDGE (WK-6): a landing page tartalmát a website_get_page / website_get_summary toollal ellenőrizd, mielőtt kampányról nyilatkozol. A kampány ↔ landing kapcsolatot a kg_find_related adja. Ha egy landing-URL-t emlegetsz, előbb hívd a website_get_page toolt — ne találj ki tartalmat az LLM tudásából.`,
       ].join("\n"),
     augmentSystemPrompt: async (ctx, sb) => {
       // VIBA Ads Constitution — a user szabályai. RLS a user nevében szűr.
