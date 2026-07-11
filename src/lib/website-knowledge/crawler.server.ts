@@ -14,6 +14,7 @@ import { getAdminClient } from "@/integrations/supabase/server";
 import type { StartCrawlRunInput, StartCrawlRunResult } from "./types";
 import { fetchSitemapUrls, guessSitemapUrl } from "./sitemap.server";
 import { upsertPageAndVersion } from "./pages.server";
+import { publishPageChange } from "./kg-publisher.server";
 
 const HARD_DEADLINE_MS = 25_000;
 const MAX_CONCURRENT = 4;
@@ -165,7 +166,19 @@ export async function runCrawl(run_id: string): Promise<{
           run_id,
         });
         if (res.status === "updated" || res.status === "created") stats.updated++;
-        else if (res.status === "unchanged") stats.skipped++;
+        else if (res.status === "unchanged") {
+          stats.skipped++;
+          // KG backfill: az „unchanged" oldalakon is lefuttatjuk a
+          // publishert, hogy a Knowledge Graph feltöltődjön akkor is,
+          // ha a content hash nem változott. Hibája nem borítja a runt.
+          if (res.page_id) {
+            try {
+              await publishPageChange({ page_id: res.page_id, run_id });
+            } catch {
+              /* KG-hiba nem borítja a crawl-t */
+            }
+          }
+        }
         else stats.failed++;
       } catch {
         stats.failed++;
