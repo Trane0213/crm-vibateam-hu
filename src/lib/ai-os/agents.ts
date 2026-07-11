@@ -9,6 +9,7 @@
  */
 
 import type { AgentDefinition, SystemPromptContext } from "./types";
+import { buildConstitutionBlock } from "./constitution";
 
 function commonHeader(ctx: SystemPromptContext, agentName: string): string {
   const memBlock = ctx.memory.length
@@ -25,10 +26,7 @@ function commonHeader(ctx: SystemPromptContext, agentName: string): string {
     `Központi memória (releváns darabok):`,
     memBlock,
     ``,
-    `Szabályok:`,
-    `- Adatot CSAK toolon keresztül érj el. Találgatás tilos.`,
-    `- Írási műveleteket csak jóváhagyás után indíts (a tool jelzi, ha kell).`,
-    `- Magyarul válaszolj, tömören.`,
+    buildConstitutionBlock(ctx),
   ].join("\n");
 }
 
