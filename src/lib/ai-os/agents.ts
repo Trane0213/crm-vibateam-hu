@@ -137,7 +137,9 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.1,
-    tool_domains: ["ads.google", "kg", "website.knowledge"], // M2/M3 + KG-1 + WK-6: website tudás a landing oldalakhoz
+    // AI-1.7: `core.memory` felvéve, mert Michael a `memory_write` engedélyezett
+    // agentjei között van. M2/M3 + KG-1 + WK-6: website tudás a landing oldalakhoz.
+    tool_domains: ["ads.google", "kg", "website.knowledge", "core.memory"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
@@ -328,6 +330,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     model: "gpt-4o-mini",
     temperature: 0.2,
     tool_domains: [],
+    is_background: true,
     buildSystemPrompt: () =>
       [
         `Te a VIBA-TEAM értékesítési asszisztense vagy. Napi sales riportot készítesz a CRM aktuális adatai alapján.`,
@@ -354,6 +357,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     model: "gpt-4o-mini",
     temperature: 0.2,
     tool_domains: [],
+    is_background: true,
     buildSystemPrompt: () =>
       [
         `Te a VIBA-TEAM projektvezető asszisztense vagy. Napi projekt riportot készítesz a CRM aktuális adatai alapján.`,
@@ -385,6 +389,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     model: "gpt-4o-mini",
     temperature: 0.2,
     tool_domains: [],
+    is_background: true,
     buildSystemPrompt: () =>
       [
         `Te a VIBA-TEAM CRM asszisztense vagy. A felhasználó megadja a CRM kontextust és egy kérdést / utasítást.`,
@@ -407,6 +412,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     model: "gpt-4o-mini",
     temperature: 0.3,
     tool_domains: [],
+    is_background: true,
     buildSystemPrompt: () =>
       [
         `Magyar B2B cégkutató asszisztens vagy a VIBA-TEAM értékesítési csapatának (Timothy felügyelete alatt).`,
@@ -431,6 +437,6 @@ export function listAgents(): AgentDefinition[] {
  */
 export function listHandoffTargets(): string[] {
   return Object.values(AGENTS)
-    .filter((a) => !a.is_orchestrator)
+    .filter((a) => !a.is_orchestrator && !a.is_background)
     .map((a) => a.id);
 }
