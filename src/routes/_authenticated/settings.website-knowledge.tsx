@@ -694,14 +694,43 @@ function WebsiteKnowledgeContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Következő sprintek</CardTitle>
-          <CardDescription>Ezek a szekciók a következő sprintekben jelennek meg.</CardDescription>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            AI OS toolok · Website Knowledge
+          </CardTitle>
+          <CardDescription>
+            WK-6-tól az AI ügynökök az alábbi READ toolokon keresztül férnek hozzá
+            a Website Knowledge-ben tárolt tudáshoz. A hívások az{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">ai_os_tool_calls</code>{" "}
+            táblában auditálva.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <ul className="space-y-1 text-sm text-muted-foreground">
-            <li>WK-5 · Manuális refresh (page / batch / entire).</li>
-            <li>WK-6 · Website AI OS toolok agent-hozzáférése.</li>
+        <CardContent className="space-y-3">
+          <ul className="grid grid-cols-1 gap-2 text-sm md:grid-cols-2">
+            {[
+              ["website_search_pages", "Kulcsszavas oldal-keresés (title/path/url) + summary preview."],
+              ["website_list_pages", "Utoljára crawlolt oldalak, asset_kind szűrővel."],
+              ["website_get_page", "Egy oldal teljes rekordja + AI summary + top entitások + media count."],
+              ["website_get_summary", "Az adott oldal legfrissebb AI summary + summary_json."],
+              ["website_search_by_entity", "Entitás (pl. „Google Ads") előfordulásai az oldalakon."],
+              ["website_list_entities", "Entitás katalógus (kind + prefix szűrő)."],
+              ["website_get_page_history", "Oldal verziólista (version_number, hash, byte_size)."],
+              ["website_get_page_diff", "Két verzió közötti hozzáadott/eltávolított sorok."],
+              ["website_list_media", "Media assetek (kép/video/dok) alt szöveggel."],
+              ["website_crawl_status", "Owner-only crawl összesítő (runs, ai_cost, KG stat)."],
+            ].map(([name, desc]) => (
+              <li key={name} className="rounded-md border p-2">
+                <div className="font-mono text-xs">{name}</div>
+                <div className="text-xs text-muted-foreground">{desc}</div>
+              </li>
+            ))}
           </ul>
+          <div className="text-xs text-muted-foreground">
+            Domain: <code className="rounded bg-muted px-1 py-0.5">website.knowledge</code> ·
+            Hozzáférés: George · Scarlet · Timothy · Michael · Boss.
+            A <code className="rounded bg-muted px-1 py-0.5">website_crawl_status</code>{" "}
+            tool csak Owner szerepkörrel hívható.
+          </div>
         </CardContent>
       </Card>
     </div>
