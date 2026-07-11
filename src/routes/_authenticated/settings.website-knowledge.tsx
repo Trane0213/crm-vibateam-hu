@@ -283,7 +283,7 @@ function WebsiteKnowledgeContent() {
               <Play
                 className={`mr-2 h-3.5 w-3.5 ${triggerMut.isPending ? "animate-pulse" : ""}`}
               />
-              {triggerMut.isPending ? "Fut…" : "Manuális crawl (owner)"}
+              {triggerMut.isPending ? "Fut…" : "Teljes újracrawlolás (owner)"}
             </Button>
             <Button
               variant="outline"
@@ -416,6 +416,19 @@ function WebsiteKnowledgeContent() {
               className="h-8 w-64"
             />
             <Button
+              size="sm"
+              onClick={() => refreshBatchMut.mutate(Array.from(selectedPageIds))}
+              disabled={selectedPageIds.size === 0 || refreshBatchMut.isPending}
+              title="A kijelölt oldalak (max 20) manuális újracrawlolása."
+            >
+              <Play
+                className={`mr-2 h-3.5 w-3.5 ${refreshBatchMut.isPending ? "animate-pulse" : ""}`}
+              />
+              {refreshBatchMut.isPending
+                ? "Fut…"
+                : `Kijelöltek frissítése (${selectedPageIds.size})`}
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={() => pagesQ.refetch()}
@@ -444,6 +457,7 @@ function WebsiteKnowledgeContent() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium w-6"></th>
                     <th className="py-2 pr-3 font-medium">Path</th>
                     <th className="py-2 pr-3 font-medium">Title</th>
                     <th className="py-2 pr-3 font-medium">Kind</th>
@@ -459,6 +473,26 @@ function WebsiteKnowledgeContent() {
                         selectedPageId === p.id ? "bg-muted/40" : ""
                       }`}
                     >
+                      <td className="py-2 pr-3">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 cursor-pointer"
+                          checked={selectedPageIds.has(p.id)}
+                          onChange={(e) => {
+                            setSelectedPageIds((prev) => {
+                              const next = new Set(prev);
+                              if (e.target.checked) {
+                                if (next.size >= 20) return prev;
+                                next.add(p.id);
+                              } else {
+                                next.delete(p.id);
+                              }
+                              return next;
+                            });
+                          }}
+                          aria-label="Kijelölés batch frissítéshez"
+                        />
+                      </td>
                       <td className="py-2 pr-3 font-mono text-xs">{p.path}</td>
                       <td className="py-2 pr-3">{p.title ?? "—"}</td>
                       <td className="py-2 pr-3">
@@ -470,18 +504,37 @@ function WebsiteKnowledgeContent() {
                         {fmt(p.last_crawled_at)}
                       </td>
                       <td className="py-2 pr-3 text-right">
-                        <Button
-                          size="sm"
-                          variant={selectedPageId === p.id ? "default" : "outline"}
-                          onClick={() => {
-                            setSelectedPageId(p.id);
-                            setFromVersionId(null);
-                            setToVersionId(null);
-                          }}
-                        >
-                          <History className="mr-1 h-3.5 w-3.5" />
-                          Verziók
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => refreshPageMut.mutate(p.id)}
+                            disabled={refreshPageMut.isPending}
+                            title="Csak ezt az oldalt crawloljuk újra, teljes sitemap nélkül."
+                          >
+                            <RefreshCw
+                              className={`mr-1 h-3.5 w-3.5 ${
+                                refreshPageMut.isPending &&
+                                refreshPageMut.variables === p.id
+                                  ? "animate-spin"
+                                  : ""
+                              }`}
+                            />
+                            Frissítés
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={selectedPageId === p.id ? "default" : "outline"}
+                            onClick={() => {
+                              setSelectedPageId(p.id);
+                              setFromVersionId(null);
+                              setToVersionId(null);
+                            }}
+                          >
+                            <History className="mr-1 h-3.5 w-3.5" />
+                            Verziók
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
