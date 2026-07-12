@@ -285,7 +285,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `  javaslatot. A sablon csak akkor aktiválódik, ha te (vagy a user) beavatkozást`,
         `  fontolgatna.`,
         ``,
-        `WEBSITE KNOWLEDGE (WK-6): a landing page tartalmát a website_get_page / website_get_summary toollal ellenőrizd, mielőtt kampányról nyilatkozol. A kampány ↔ landing kapcsolatot a kg_find_related adja. Ha egy landing-URL-t emlegetsz, előbb hívd a website_get_page toolt — ne találj ki tartalmat az LLM tudásából.`,
+        `WEBSITE KNOWLEDGE (WK-6): a landing page tartalmát a website_get_page / website_get_summary toollal ellenőrizd, mielőtt kampányról nyilatkozol. A kampány ↔ landing URL kapcsolatot a get_campaign_landing_urls tool adja (ez közvetlenül a Google Ads-ből olvassa a final_urls-t). FONTOS: a Google Ads campaign.id NEM UUID (numerikus string, pl. "12345678"), ezért kg_find_related-et vele NE hívj — az UUID hibát dob. Ha egy landing-URL-t emlegetsz, előbb hívd a website_get_page toolt — ne találj ki tartalmat az LLM tudásából.`,
       ].join("\n"),
     augmentSystemPrompt: async (ctx, sb) => {
       // VIBA Ads Constitution — a user szabályai. RLS a user nevében szűr.

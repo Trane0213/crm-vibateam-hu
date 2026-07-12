@@ -24,6 +24,11 @@ function fail(err: unknown) {
 
 const DOMAIN = "kg";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(v: unknown): boolean {
+  return typeof v === "string" && UUID_RE.test(v);
+}
+
 export function registerKgTools() {
   // -------------------- kg_get_node --------------------
   registerTool(
@@ -51,10 +56,16 @@ export function registerKgTools() {
         if (args.node_id) {
           q = q.eq("id", String(args.node_id));
         } else if (args.kind && args.ref_table && args.ref_id) {
+          const refId = String(args.ref_id);
+          if (!isUuid(refId)) {
+            // Nem-UUID külső azonosító (pl. Google Ads campaign.id = "12345678").
+            // A kg_nodes.ref_id UUID típusú — helyette ref_uri-t próbálunk.
+            return ok({ node: null, out_edges: [], in_edges: [], hint: "ref_id nem UUID; próbáld `ref_uri`-vel." });
+          }
           q = q
             .eq("kind", String(args.kind))
             .eq("ref_table", String(args.ref_table))
-            .eq("ref_id", String(args.ref_id));
+            .eq("ref_id", refId);
         } else if (args.kind && args.ref_uri) {
           q = q.eq("kind", String(args.kind)).eq("ref_uri", String(args.ref_uri));
         } else {
@@ -88,23 +99,31 @@ export function registerKgTools() {
         type: "object",
         properties: {
           kind: { type: "string" },
-          ref_id: { type: "string", description: "Forrás-rekord uuid." },
+          ref_id: { type: "string", description: "Forrás-rekord uuid (belső CRM rekordokhoz)." },
+          ref_uri: { type: "string", description: "Külső URI (pl. `google_ads://campaign/12345`). Nem-UUID külső ID esetén ezt használd." },
           relation: { type: "string", description: "Opcionális kg_relations.relation szűrő." },
           direction: { type: "string", enum: ["out", "in", "both"], default: "both" },
           limit: { type: "integer", default: 50, minimum: 1, maximum: 200 },
         },
-        required: ["kind", "ref_id"],
+        required: ["kind"],
       },
     },
     async (args, ctx) => {
       try {
         const sb = ctx.supabaseUser;
-        const { data: nodes, error } = await sb
-          .from("kg_nodes")
-          .select("id")
-          .eq("kind", String(args.kind))
-          .eq("ref_id", String(args.ref_id))
-          .limit(1);
+        let nq = sb.from("kg_nodes").select("id").eq("kind", String(args.kind)).limit(1);
+        if (args.ref_uri) {
+          nq = nq.eq("ref_uri", String(args.ref_uri));
+        } else if (args.ref_id) {
+          const refId = String(args.ref_id);
+          if (!isUuid(refId)) {
+            return ok({ node_id: null, edges: [], hint: "ref_id nem UUID; próbáld `ref_uri`-vel (pl. google_ads://campaign/<id>)." });
+          }
+          nq = nq.eq("ref_id", refId);
+        } else {
+          return fail("Add meg vagy `ref_id`-t (uuid), vagy `ref_uri`-t.");
+        }
+        const { data: nodes, error } = await nq;
         if (error) throw new Error(error.message);
         const node = (nodes ?? [])[0];
         if (!node) return ok({ node_id: null, edges: [] });
