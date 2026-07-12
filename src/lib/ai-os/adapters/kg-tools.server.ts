@@ -56,10 +56,16 @@ export function registerKgTools() {
         if (args.node_id) {
           q = q.eq("id", String(args.node_id));
         } else if (args.kind && args.ref_table && args.ref_id) {
+          const refId = String(args.ref_id);
+          if (!isUuid(refId)) {
+            // Nem-UUID külső azonosító (pl. Google Ads campaign.id = "12345678").
+            // A kg_nodes.ref_id UUID típusú — helyette ref_uri-t próbálunk.
+            return ok({ node: null, out_edges: [], in_edges: [], hint: "ref_id nem UUID; próbáld `ref_uri`-vel." });
+          }
           q = q
             .eq("kind", String(args.kind))
             .eq("ref_table", String(args.ref_table))
-            .eq("ref_id", String(args.ref_id));
+            .eq("ref_id", refId);
         } else if (args.kind && args.ref_uri) {
           q = q.eq("kind", String(args.kind)).eq("ref_uri", String(args.ref_uri));
         } else {
