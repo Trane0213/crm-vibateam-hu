@@ -103,15 +103,16 @@ export async function gaqlSearch(
 ): Promise<GaqlRow[]> {
   const at = await getAccessToken(conn);
   const cid = normalizeCustomerId(customerId);
-  const body = JSON.stringify({ query, pageSize: opts?.pageSize ?? 500 });
+  // Google Ads API v21+ nem engedi a pageSize paramétert (PAGE_SIZE_NOT_SUPPORTED);
+  // a szerver fix 10 000 soros oldalakat ad vissza, a pageToken-t továbbra is használjuk.
+  void opts;
+  const body = JSON.stringify({ query });
   const rows: GaqlRow[] = [];
   let pageToken: string | undefined;
   // Egyszerű lapozás (search endpoint). Legfeljebb 5 oldalt kérünk, hogy egy tool-hívás
   // ne fusson végtelenül.
   for (let i = 0; i < 5; i++) {
-    const paged = pageToken
-      ? JSON.stringify({ query, pageSize: opts?.pageSize ?? 500, pageToken })
-      : body;
+    const paged = pageToken ? JSON.stringify({ query, pageToken }) : body;
     const r = await fetch(`${API_BASE}/customers/${cid}/googleAds:search`, {
       method: "POST",
       headers: baseHeaders(at, conn),
