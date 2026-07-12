@@ -24,6 +24,11 @@ function fail(err: unknown) {
 
 const DOMAIN = "kg";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(v: unknown): boolean {
+  return typeof v === "string" && UUID_RE.test(v);
+}
+
 export function registerKgTools() {
   // -------------------- kg_get_node --------------------
   registerTool(
