@@ -404,6 +404,76 @@ export function registerGoogleAdsTools() {
   // ------------------------------------------------------------------
   // get_budget_status — kampányonkénti napi keret + tényleges költés arány
   // ------------------------------------------------------------------
+  // ------------------------------------------------------------------
+  // get_campaign_landing_urls — kampányonként az összes final_url + ad_group
+  // Michael így közvetlenül a Google Ads-ből kapja a landing oldalakat.
+  // Nem függ a Knowledge Graph-tól, nem kell UUID lookup.
+  // ------------------------------------------------------------------
+  registerTool(
+    {
+      name: "get_campaign_landing_urls",
+      description:
+        "Kampányonként az összes hirdetés `final_urls` (landing URL) listája, ad_group szerint csoportosítva. Ha egy adott kampány érdekel, add meg a `campaign_id`-t (Google Ads numerikus ID — NEM UUID). Ez a helyes tool a kampány ↔ landing kapcsolat felderítéséhez; NE kg_find_related-et használj Google Ads campaign ID-val.",
+      domain: DOMAIN,
+      allowed_agents: MICHAEL_ONLY,
+      parameters: {
+        type: "object",
+        properties: {
+          customer_id: { type: "string" },
+          campaign_id: { type: "string", description: "Google Ads campaign.id (numerikus)." },
+          only_active: { type: "boolean", default: true, description: "Csak ENABLED hirdetések." },
+          limit: { type: "integer", default: 500, minimum: 1, maximum: 2000 },
+        },
+      },
+    },
+    async (args, ctx) => {
+      try {
+        const conn = await loadConnection(ctx.supabaseUser);
+        const cid = resolveCustomerId(conn, args.customer_id as string | undefined);
+        const conds: string[] = [];
+        if (args.campaign_id) conds.push(`campaign.id = ${Number(args.campaign_id)}`);
+        if (args.only_active !== false) conds.push(`ad_group_ad.status = 'ENABLED'`);
+        const where = conds.length ? ` WHERE ${conds.join(" AND ")}` : "";
+        const limit = Math.min(2000, Number(args.limit ?? 500));
+        const query = `SELECT campaign.id, campaign.name, ad_group.id, ad_group.name, ad_group_ad.ad.final_urls FROM ad_group_ad${where} LIMIT ${limit}`;
+        const rows = await gaqlSearch(conn, cid, query);
+        type Camp = { campaign_id: string; campaign_name: string; landing_urls: Set<string>; ad_groups: Map<string, { name: string; urls: Set<string> }> };
+        const byCamp = new Map<string, Camp>();
+        for (const r of rows as any[]) {
+          const campId = String(r.campaign?.id ?? "");
+          if (!campId) continue;
+          const camp = byCamp.get(campId) ?? {
+            campaign_id: campId,
+            campaign_name: r.campaign?.name ?? "",
+            landing_urls: new Set<string>(),
+            ad_groups: new Map(),
+          };
+          const agId = String(r.adGroup?.id ?? "");
+          const ag = camp.ad_groups.get(agId) ?? { name: r.adGroup?.name ?? "", urls: new Set<string>() };
+          const urls: string[] = r.adGroupAd?.ad?.finalUrls ?? [];
+          for (const u of urls) {
+            if (!u) continue;
+            camp.landing_urls.add(u);
+            ag.urls.add(u);
+          }
+          camp.ad_groups.set(agId, ag);
+          byCamp.set(campId, camp);
+        }
+        const items = Array.from(byCamp.values()).map((c) => ({
+          campaign_id: c.campaign_id,
+          campaign_name: c.campaign_name,
+          landing_urls: Array.from(c.landing_urls),
+          ad_groups: Array.from(c.ad_groups.entries()).map(([id, ag]) => ({
+            ad_group_id: id,
+            ad_group_name: ag.name,
+            landing_urls: Array.from(ag.urls),
+          })),
+        }));
+        return ok({ customer_id: cid, count: items.length, items });
+      } catch (e) { return fail(e); }
+    },
+  );
+
   registerTool(
     {
       name: "get_budget_status",
