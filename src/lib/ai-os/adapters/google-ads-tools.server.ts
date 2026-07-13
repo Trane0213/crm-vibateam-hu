@@ -161,7 +161,7 @@ export function registerGoogleAdsTools() {
     {
       name: "get_campaign_performance",
       description:
-        "Kampányonkénti teljesítmény a megadott időszakra: költés, CTR, CPA, ROAS, konverzió. Snapshot íródik minden kampányhoz.",
+        "Kampányonkénti teljesítmény a megadott időszakra: költés, CTR, avg CPC, konverzió, konverziós érték, cost/conv, search_impression_share, lost IS budget miatt, lost IS rank miatt. Snapshot íródik minden kampányhoz.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       parameters: {
@@ -180,21 +180,45 @@ export function registerGoogleAdsTools() {
         const days = Math.min(365, Math.max(1, Number(args.days_back ?? 30)));
         const { from, to } = periodRange(days);
         const statusWhere = args.only_active === false ? "" : " AND campaign.status = 'ENABLED'";
-        const query = `SELECT campaign.id, campaign.name, campaign.status, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}'${statusWhere}`;
+        const query = `SELECT campaign.id, campaign.name, campaign.status, campaign.bidding_strategy_type, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value, metrics.ctr, metrics.average_cpc, metrics.average_cpm, metrics.cost_per_conversion, metrics.search_impression_share, metrics.search_budget_lost_impression_share, metrics.search_rank_lost_impression_share FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}'${statusWhere}`;
         const rows = await gaqlSearch(conn, cid, query);
         // Csoportosítás kampányonként (a Google visszaadhat napi bontásban is).
-        const byCampaign = new Map<string, { name: string; status: string; rows: any[] }>();
+        const byCampaign = new Map<string, { name: string; status: string; bidding: string; rows: any[]; is_samples: { imp: number[]; lost_b: number[]; lost_r: number[] } }>();
         for (const r of rows as any[]) {
           const id = String(r.campaign?.id ?? "");
           if (!id) continue;
-          if (!byCampaign.has(id)) byCampaign.set(id, { name: r.campaign?.name ?? "", status: r.campaign?.status ?? "", rows: [] });
-          byCampaign.get(id)!.rows.push(r);
+          if (!byCampaign.has(id)) byCampaign.set(id, { name: r.campaign?.name ?? "", status: r.campaign?.status ?? "", bidding: r.campaign?.biddingStrategyType ?? "", rows: [], is_samples: { imp: [], lost_b: [], lost_r: [] } });
+          const entry = byCampaign.get(id)!;
+          entry.rows.push(r);
+          // Impression share metrikák napi átlagolása (Google 0..1 skálán adja).
+          const imp = Number(r.metrics?.searchImpressionShare);
+          const lb = Number(r.metrics?.searchBudgetLostImpressionShare);
+          const lr = Number(r.metrics?.searchRankLostImpressionShare);
+          if (Number.isFinite(imp)) entry.is_samples.imp.push(imp);
+          if (Number.isFinite(lb)) entry.is_samples.lost_b.push(lb);
+          if (Number.isFinite(lr)) entry.is_samples.lost_r.push(lr);
         }
         const items: any[] = [];
         for (const [id, entry] of byCampaign) {
           const agg = aggregateMetricRows(entry.rows);
-          const metrics = { ...agg, period: { from, to, grain: "day" as const } };
-          items.push({ campaign_id: id, name: entry.name, status: entry.status, ...metrics });
+          const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+          const impShare = avg(entry.is_samples.imp);
+          const lostBudget = avg(entry.is_samples.lost_b);
+          const lostRank = avg(entry.is_samples.lost_r);
+          const clicks = Number(agg.clicks) || 0;
+          const impressions = Number(agg.impressions) || 0;
+          const spend = Number(agg.spend) || 0;
+          const conversions = Number(agg.conversions) || 0;
+          const derived = {
+            ctr: impressions > 0 ? clicks / impressions : null,
+            avg_cpc: clicks > 0 ? spend / clicks : null,
+            cost_per_conversion: conversions > 0 ? spend / conversions : null,
+            search_impression_share: impShare,
+            lost_is_budget: lostBudget,
+            lost_is_rank: lostRank,
+          };
+          const metrics = { ...agg, ...derived, period: { from, to, grain: "day" as const } };
+          items.push({ campaign_id: id, name: entry.name, status: entry.status, bidding_strategy_type: entry.bidding, ...metrics });
           await writeSnapshot(ctx.supabaseUser, {
             user_id: ctx.userId, customer_id: cid, scope: "campaign", entity_id: id, metrics,
           });
