@@ -181,7 +181,7 @@ export function registerWebsiteTools() {
     {
       name: "website_get_page",
       description:
-        "Egy Vibateam oldal teljes rekordja page_id vagy url alapján: meta + current version + legfrissebb AI summary + top entitások + media darabszám. Ezt hívd, ha egy konkrét oldalról kell strukturált tudás.",
+        "Egy Vibateam oldal teljes rekordja page_id vagy url alapján: meta + current version + legfrissebb AI summary + kinyert BLOKKOK (hero, cta, text, features, faq) + rendered_text preview + top entitások + media darabszám. Ezt hívd, ha egy konkrét landing / szolgáltatás oldalról kell strukturált tudás — a blokkok akkor is elérhetők, ha AI summary még nem készült.",
       domain: DOMAIN,
       parameters: {
         type: "object",
@@ -189,6 +189,8 @@ export function registerWebsiteTools() {
           page_id: { type: "string", description: "website_pages.id (uuid)." },
           url: { type: "string", description: "Teljes URL (pl. https://vibateam.hu/szolgaltatasok)." },
           entity_limit: { type: "integer", default: 15, minimum: 1, maximum: 50 },
+          include_rendered_text: { type: "boolean", default: true, description: "Ha true, a rendered_text első ~8000 karakterét is visszaadja (nyers landing tartalom fallbackként, ha nincs AI summary)." },
+          rendered_text_limit: { type: "integer", default: 8000, minimum: 500, maximum: 20000 },
         },
       },
     },
@@ -210,12 +212,25 @@ export function registerWebsiteTools() {
         if (!page) return ok({ page: null });
 
         const eLimit = Math.min(Math.max(Number(args.entity_limit ?? 15), 1), 50);
+        const versionId = (page as { current_version_id: string | null }).current_version_id ?? "";
+        const wantText = args.include_rendered_text !== false;
+        const textLimit = Math.min(20000, Math.max(500, Number(args.rendered_text_limit ?? 8000)));
 
-        const [{ data: summary }, entityLinksRes, mediaCountRes] = await Promise.all([
+        const [
+          { data: summary },
+          entityLinksRes,
+          mediaCountRes,
+          versionRes,
+          heroRes,
+          textBlocksRes,
+          featuresRes,
+          faqRes,
+          ctaRes,
+        ] = await Promise.all([
           sb
             .from("website_page_summaries")
             .select("summary, summary_json, model, created_at")
-            .eq("page_version_id", page.current_version_id ?? "")
+            .eq("page_version_id", versionId)
             .maybeSingle(),
           sb
             .from("website_page_entities")
@@ -226,6 +241,53 @@ export function registerWebsiteTools() {
             .from("website_media")
             .select("id", { count: "exact", head: true })
             .eq("page_id", page.id),
+          versionId
+            ? sb
+                .from("website_page_versions")
+                .select("rendered_text, byte_size, http_status, fetched_at")
+                .eq("id", versionId)
+                .maybeSingle()
+            : Promise.resolve({ data: null } as { data: null }),
+          versionId
+            ? sb
+                .from("website_page_blocks_hero")
+                .select("position, headline, subheadline, cta_label, cta_url, media_url")
+                .eq("page_version_id", versionId)
+                .order("position", { ascending: true })
+                .limit(5)
+            : Promise.resolve({ data: [] as unknown[] }),
+          versionId
+            ? sb
+                .from("website_page_blocks_text")
+                .select("position, heading, body_text")
+                .eq("page_version_id", versionId)
+                .order("position", { ascending: true })
+                .limit(20)
+            : Promise.resolve({ data: [] as unknown[] }),
+          versionId
+            ? sb
+                .from("website_page_blocks_features")
+                .select("position, heading, items")
+                .eq("page_version_id", versionId)
+                .order("position", { ascending: true })
+                .limit(10)
+            : Promise.resolve({ data: [] as unknown[] }),
+          versionId
+            ? sb
+                .from("website_page_blocks_faq")
+                .select("position, heading, items")
+                .eq("page_version_id", versionId)
+                .order("position", { ascending: true })
+                .limit(10)
+            : Promise.resolve({ data: [] as unknown[] }),
+          versionId
+            ? sb
+                .from("website_page_blocks_cta")
+                .select("position, headline, description, cta_label, cta_url")
+                .eq("page_version_id", versionId)
+                .order("position", { ascending: true })
+                .limit(10)
+            : Promise.resolve({ data: [] as unknown[] }),
         ]);
 
         const links = (entityLinksRes.data ?? []) as Array<{
@@ -266,6 +328,14 @@ export function registerWebsiteTools() {
             .filter((v): v is NonNullable<typeof v> => !!v);
         }
 
+        const versionMeta = (versionRes as { data: { rendered_text: string | null; byte_size: number | null; http_status: number | null; fetched_at: string | null } | null }).data ?? null;
+        const renderedRaw = versionMeta?.rendered_text ?? null;
+        const renderedText = wantText && renderedRaw
+          ? (renderedRaw.length > textLimit
+              ? `${renderedRaw.slice(0, textLimit)}\n\n…[truncated ${renderedRaw.length - textLimit} chars]`
+              : renderedRaw)
+          : null;
+
         return ok({
           page,
           summary: summary
@@ -276,6 +346,22 @@ export function registerWebsiteTools() {
                 created_at: (summary as { created_at: string }).created_at,
               }
             : null,
+          version: versionMeta
+            ? {
+                byte_size: versionMeta.byte_size,
+                http_status: versionMeta.http_status,
+                fetched_at: versionMeta.fetched_at,
+                rendered_text_length: renderedRaw?.length ?? 0,
+              }
+            : null,
+          rendered_text: renderedText,
+          blocks: {
+            hero: (heroRes.data ?? []) as unknown[],
+            text: (textBlocksRes.data ?? []) as unknown[],
+            features: (featuresRes.data ?? []) as unknown[],
+            faq: (faqRes.data ?? []) as unknown[],
+            cta: (ctaRes.data ?? []) as unknown[],
+          },
           entities,
           media_count: mediaCountRes.count ?? 0,
         });

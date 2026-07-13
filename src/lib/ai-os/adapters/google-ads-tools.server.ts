@@ -161,7 +161,7 @@ export function registerGoogleAdsTools() {
     {
       name: "get_campaign_performance",
       description:
-        "Kampányonkénti teljesítmény a megadott időszakra: költés, CTR, CPA, ROAS, konverzió. Snapshot íródik minden kampányhoz.",
+        "Kampányonkénti teljesítmény a megadott időszakra: költés, CTR, avg CPC, konverzió, konverziós érték, cost/conv, search_impression_share, lost IS budget miatt, lost IS rank miatt. Snapshot íródik minden kampányhoz.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       parameters: {
@@ -180,21 +180,45 @@ export function registerGoogleAdsTools() {
         const days = Math.min(365, Math.max(1, Number(args.days_back ?? 30)));
         const { from, to } = periodRange(days);
         const statusWhere = args.only_active === false ? "" : " AND campaign.status = 'ENABLED'";
-        const query = `SELECT campaign.id, campaign.name, campaign.status, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}'${statusWhere}`;
+        const query = `SELECT campaign.id, campaign.name, campaign.status, campaign.bidding_strategy_type, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.conversions_value, metrics.ctr, metrics.average_cpc, metrics.average_cpm, metrics.cost_per_conversion, metrics.search_impression_share, metrics.search_budget_lost_impression_share, metrics.search_rank_lost_impression_share FROM campaign WHERE segments.date BETWEEN '${from}' AND '${to}'${statusWhere}`;
         const rows = await gaqlSearch(conn, cid, query);
         // Csoportosítás kampányonként (a Google visszaadhat napi bontásban is).
-        const byCampaign = new Map<string, { name: string; status: string; rows: any[] }>();
+        const byCampaign = new Map<string, { name: string; status: string; bidding: string; rows: any[]; is_samples: { imp: number[]; lost_b: number[]; lost_r: number[] } }>();
         for (const r of rows as any[]) {
           const id = String(r.campaign?.id ?? "");
           if (!id) continue;
-          if (!byCampaign.has(id)) byCampaign.set(id, { name: r.campaign?.name ?? "", status: r.campaign?.status ?? "", rows: [] });
-          byCampaign.get(id)!.rows.push(r);
+          if (!byCampaign.has(id)) byCampaign.set(id, { name: r.campaign?.name ?? "", status: r.campaign?.status ?? "", bidding: r.campaign?.biddingStrategyType ?? "", rows: [], is_samples: { imp: [], lost_b: [], lost_r: [] } });
+          const entry = byCampaign.get(id)!;
+          entry.rows.push(r);
+          // Impression share metrikák napi átlagolása (Google 0..1 skálán adja).
+          const imp = Number(r.metrics?.searchImpressionShare);
+          const lb = Number(r.metrics?.searchBudgetLostImpressionShare);
+          const lr = Number(r.metrics?.searchRankLostImpressionShare);
+          if (Number.isFinite(imp)) entry.is_samples.imp.push(imp);
+          if (Number.isFinite(lb)) entry.is_samples.lost_b.push(lb);
+          if (Number.isFinite(lr)) entry.is_samples.lost_r.push(lr);
         }
         const items: any[] = [];
         for (const [id, entry] of byCampaign) {
           const agg = aggregateMetricRows(entry.rows);
-          const metrics = { ...agg, period: { from, to, grain: "day" as const } };
-          items.push({ campaign_id: id, name: entry.name, status: entry.status, ...metrics });
+          const avg = (arr: number[]) => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+          const impShare = avg(entry.is_samples.imp);
+          const lostBudget = avg(entry.is_samples.lost_b);
+          const lostRank = avg(entry.is_samples.lost_r);
+          const clicks = Number(agg.clicks) || 0;
+          const impressions = Number(agg.impressions) || 0;
+          const spend = Number(agg.spend) || 0;
+          const conversions = Number(agg.conversions) || 0;
+          const derived = {
+            ctr: impressions > 0 ? clicks / impressions : null,
+            avg_cpc: clicks > 0 ? spend / clicks : null,
+            cost_per_conversion: conversions > 0 ? spend / conversions : null,
+            search_impression_share: impShare,
+            lost_is_budget: lostBudget,
+            lost_is_rank: lostRank,
+          };
+          const metrics = { ...agg, ...derived, period: { from, to, grain: "day" as const } };
+          items.push({ campaign_id: id, name: entry.name, status: entry.status, bidding_strategy_type: entry.bidding, ...metrics });
           await writeSnapshot(ctx.supabaseUser, {
             user_id: ctx.userId, customer_id: cid, scope: "campaign", entity_id: id, metrics,
           });
@@ -254,7 +278,7 @@ export function registerGoogleAdsTools() {
   registerTool(
     {
       name: "list_keywords",
-      description: "Kulcsszavak listája (opcionálisan hirdetéscsoportra/kampányra szűkítve), teljesítménnyel.",
+      description: "Kulcsszavak listája (opcionálisan hirdetéscsoportra/kampányra szűkítve), teljesítménnyel + Quality Score + CTR + avg CPC + first_page/top_of_page CPC becslés.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       parameters: {
@@ -280,13 +304,19 @@ export function registerGoogleAdsTools() {
         if (args.ad_group_id) conds.push(`ad_group.id = ${Number(args.ad_group_id)}`);
         if (args.only_active !== false) conds.push(`ad_group_criterion.status = 'ENABLED'`);
         const limit = Math.min(1000, Number(args.limit ?? 200));
-        const query = `SELECT ad_group_criterion.criterion_id, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type, ad_group_criterion.status, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions FROM keyword_view WHERE ${conds.join(" AND ")} ORDER BY metrics.cost_micros DESC LIMIT ${limit}`;
+        const query = `SELECT ad_group_criterion.criterion_id, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type, ad_group_criterion.status, ad_group_criterion.quality_info.quality_score, ad_group_criterion.quality_info.creative_quality_score, ad_group_criterion.quality_info.post_click_quality_score, ad_group_criterion.quality_info.search_predicted_ctr, ad_group_criterion.position_estimates.first_page_cpc_micros, ad_group_criterion.position_estimates.top_of_page_cpc_micros, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.ctr, metrics.average_cpc FROM keyword_view WHERE ${conds.join(" AND ")} ORDER BY metrics.cost_micros DESC LIMIT ${limit}`;
         const rows = await gaqlSearch(conn, cid, query);
         const items = (rows as any[]).map((r) => ({
           criterion_id: r.adGroupCriterion?.criterionId,
           text: r.adGroupCriterion?.keyword?.text,
           match_type: r.adGroupCriterion?.keyword?.matchType,
           status: r.adGroupCriterion?.status,
+          quality_score: r.adGroupCriterion?.qualityInfo?.qualityScore ?? null,
+          creative_quality_score: r.adGroupCriterion?.qualityInfo?.creativeQualityScore ?? null,
+          post_click_quality_score: r.adGroupCriterion?.qualityInfo?.postClickQualityScore ?? null,
+          predicted_ctr: r.adGroupCriterion?.qualityInfo?.searchPredictedCtr ?? null,
+          first_page_cpc: fromMicros(r.adGroupCriterion?.positionEstimates?.firstPageCpcMicros),
+          top_of_page_cpc: fromMicros(r.adGroupCriterion?.positionEstimates?.topOfPageCpcMicros),
           ad_group_id: r.adGroup?.id,
           ad_group_name: r.adGroup?.name,
           campaign_id: r.campaign?.id,
@@ -295,6 +325,8 @@ export function registerGoogleAdsTools() {
           clicks: safeNum(r.metrics?.clicks),
           spend: fromMicros(r.metrics?.costMicros),
           conversions: safeNum(r.metrics?.conversions),
+          ctr: r.metrics?.ctr ?? null,
+          avg_cpc: fromMicros(r.metrics?.averageCpc),
         }));
         return ok({ customer_id: cid, period: { from, to }, count: items.length, items });
       } catch (e) { return fail(e); }
@@ -356,7 +388,7 @@ export function registerGoogleAdsTools() {
   registerTool(
     {
       name: "list_ads",
-      description: "Hirdetések (ad_group_ad) listája alap adatokkal és teljesítménnyel.",
+      description: "Hirdetések (ad_group_ad) listája alap adatokkal, teljesítménnyel, ad_strength-el és RSA esetén a headline / description asset szövegekkel (performance_label-lel együtt).",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       parameters: {
@@ -380,13 +412,28 @@ export function registerGoogleAdsTools() {
         if (args.campaign_id) conds.push(`campaign.id = ${Number(args.campaign_id)}`);
         if (args.ad_group_id) conds.push(`ad_group.id = ${Number(args.ad_group_id)}`);
         const limit = Math.min(500, Number(args.limit ?? 100));
-        const query = `SELECT ad_group_ad.ad.id, ad_group_ad.ad.type, ad_group_ad.status, ad_group_ad.ad.final_urls, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions FROM ad_group_ad WHERE ${conds.join(" AND ")} ORDER BY metrics.impressions DESC LIMIT ${limit}`;
+        const query = `SELECT ad_group_ad.ad.id, ad_group_ad.ad.type, ad_group_ad.status, ad_group_ad.ad_strength, ad_group_ad.ad.final_urls, ad_group_ad.ad.responsive_search_ad.headlines, ad_group_ad.ad.responsive_search_ad.descriptions, ad_group_ad.ad.responsive_search_ad.path1, ad_group_ad.ad.responsive_search_ad.path2, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.ctr, metrics.average_cpc FROM ad_group_ad WHERE ${conds.join(" AND ")} ORDER BY metrics.impressions DESC LIMIT ${limit}`;
         const rows = await gaqlSearch(conn, cid, query);
         const items = (rows as any[]).map((r) => ({
           ad_id: r.adGroupAd?.ad?.id,
           ad_type: r.adGroupAd?.ad?.type,
           status: r.adGroupAd?.status,
+          ad_strength: r.adGroupAd?.adStrength ?? null,
           final_urls: r.adGroupAd?.ad?.finalUrls ?? [],
+          rsa: r.adGroupAd?.ad?.responsiveSearchAd
+            ? {
+                headlines: (r.adGroupAd.ad.responsiveSearchAd.headlines ?? []).map((h: any) => ({
+                  text: h?.text ?? null,
+                  pinned_field: h?.pinnedField ?? null,
+                })),
+                descriptions: (r.adGroupAd.ad.responsiveSearchAd.descriptions ?? []).map((d: any) => ({
+                  text: d?.text ?? null,
+                  pinned_field: d?.pinnedField ?? null,
+                })),
+                path1: r.adGroupAd.ad.responsiveSearchAd.path1 ?? null,
+                path2: r.adGroupAd.ad.responsiveSearchAd.path2 ?? null,
+              }
+            : null,
           ad_group_id: r.adGroup?.id,
           ad_group_name: r.adGroup?.name,
           campaign_id: r.campaign?.id,
@@ -395,6 +442,8 @@ export function registerGoogleAdsTools() {
           clicks: safeNum(r.metrics?.clicks),
           spend: fromMicros(r.metrics?.costMicros),
           conversions: safeNum(r.metrics?.conversions),
+          ctr: r.metrics?.ctr ?? null,
+          avg_cpc: fromMicros(r.metrics?.averageCpc),
         }));
         return ok({ customer_id: cid, period: { from, to }, count: items.length, items });
       } catch (e) { return fail(e); }
