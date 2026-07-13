@@ -278,7 +278,7 @@ export function registerGoogleAdsTools() {
   registerTool(
     {
       name: "list_keywords",
-      description: "Kulcsszavak listája (opcionálisan hirdetéscsoportra/kampányra szűkítve), teljesítménnyel.",
+      description: "Kulcsszavak listája (opcionálisan hirdetéscsoportra/kampányra szűkítve), teljesítménnyel + Quality Score + CTR + avg CPC + first_page/top_of_page CPC becslés.",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       parameters: {
@@ -304,13 +304,19 @@ export function registerGoogleAdsTools() {
         if (args.ad_group_id) conds.push(`ad_group.id = ${Number(args.ad_group_id)}`);
         if (args.only_active !== false) conds.push(`ad_group_criterion.status = 'ENABLED'`);
         const limit = Math.min(1000, Number(args.limit ?? 200));
-        const query = `SELECT ad_group_criterion.criterion_id, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type, ad_group_criterion.status, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions FROM keyword_view WHERE ${conds.join(" AND ")} ORDER BY metrics.cost_micros DESC LIMIT ${limit}`;
+        const query = `SELECT ad_group_criterion.criterion_id, ad_group_criterion.keyword.text, ad_group_criterion.keyword.match_type, ad_group_criterion.status, ad_group_criterion.quality_info.quality_score, ad_group_criterion.quality_info.creative_quality_score, ad_group_criterion.quality_info.post_click_quality_score, ad_group_criterion.quality_info.search_predicted_ctr, ad_group_criterion.position_estimates.first_page_cpc_micros, ad_group_criterion.position_estimates.top_of_page_cpc_micros, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.ctr, metrics.average_cpc FROM keyword_view WHERE ${conds.join(" AND ")} ORDER BY metrics.cost_micros DESC LIMIT ${limit}`;
         const rows = await gaqlSearch(conn, cid, query);
         const items = (rows as any[]).map((r) => ({
           criterion_id: r.adGroupCriterion?.criterionId,
           text: r.adGroupCriterion?.keyword?.text,
           match_type: r.adGroupCriterion?.keyword?.matchType,
           status: r.adGroupCriterion?.status,
+          quality_score: r.adGroupCriterion?.qualityInfo?.qualityScore ?? null,
+          creative_quality_score: r.adGroupCriterion?.qualityInfo?.creativeQualityScore ?? null,
+          post_click_quality_score: r.adGroupCriterion?.qualityInfo?.postClickQualityScore ?? null,
+          predicted_ctr: r.adGroupCriterion?.qualityInfo?.searchPredictedCtr ?? null,
+          first_page_cpc: fromMicros(r.adGroupCriterion?.positionEstimates?.firstPageCpcMicros),
+          top_of_page_cpc: fromMicros(r.adGroupCriterion?.positionEstimates?.topOfPageCpcMicros),
           ad_group_id: r.adGroup?.id,
           ad_group_name: r.adGroup?.name,
           campaign_id: r.campaign?.id,
@@ -319,6 +325,8 @@ export function registerGoogleAdsTools() {
           clicks: safeNum(r.metrics?.clicks),
           spend: fromMicros(r.metrics?.costMicros),
           conversions: safeNum(r.metrics?.conversions),
+          ctr: r.metrics?.ctr ?? null,
+          avg_cpc: fromMicros(r.metrics?.averageCpc),
         }));
         return ok({ customer_id: cid, period: { from, to }, count: items.length, items });
       } catch (e) { return fail(e); }
