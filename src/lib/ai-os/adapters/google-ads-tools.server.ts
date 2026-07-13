@@ -388,7 +388,7 @@ export function registerGoogleAdsTools() {
   registerTool(
     {
       name: "list_ads",
-      description: "Hirdetések (ad_group_ad) listája alap adatokkal és teljesítménnyel.",
+      description: "Hirdetések (ad_group_ad) listája alap adatokkal, teljesítménnyel, ad_strength-el és RSA esetén a headline / description asset szövegekkel (performance_label-lel együtt).",
       domain: DOMAIN,
       allowed_agents: MICHAEL_ONLY,
       parameters: {
@@ -412,13 +412,28 @@ export function registerGoogleAdsTools() {
         if (args.campaign_id) conds.push(`campaign.id = ${Number(args.campaign_id)}`);
         if (args.ad_group_id) conds.push(`ad_group.id = ${Number(args.ad_group_id)}`);
         const limit = Math.min(500, Number(args.limit ?? 100));
-        const query = `SELECT ad_group_ad.ad.id, ad_group_ad.ad.type, ad_group_ad.status, ad_group_ad.ad.final_urls, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions FROM ad_group_ad WHERE ${conds.join(" AND ")} ORDER BY metrics.impressions DESC LIMIT ${limit}`;
+        const query = `SELECT ad_group_ad.ad.id, ad_group_ad.ad.type, ad_group_ad.status, ad_group_ad.ad_strength, ad_group_ad.ad.final_urls, ad_group_ad.ad.responsive_search_ad.headlines, ad_group_ad.ad.responsive_search_ad.descriptions, ad_group_ad.ad.responsive_search_ad.path1, ad_group_ad.ad.responsive_search_ad.path2, ad_group.id, ad_group.name, campaign.id, campaign.name, metrics.impressions, metrics.clicks, metrics.cost_micros, metrics.conversions, metrics.ctr, metrics.average_cpc FROM ad_group_ad WHERE ${conds.join(" AND ")} ORDER BY metrics.impressions DESC LIMIT ${limit}`;
         const rows = await gaqlSearch(conn, cid, query);
         const items = (rows as any[]).map((r) => ({
           ad_id: r.adGroupAd?.ad?.id,
           ad_type: r.adGroupAd?.ad?.type,
           status: r.adGroupAd?.status,
+          ad_strength: r.adGroupAd?.adStrength ?? null,
           final_urls: r.adGroupAd?.ad?.finalUrls ?? [],
+          rsa: r.adGroupAd?.ad?.responsiveSearchAd
+            ? {
+                headlines: (r.adGroupAd.ad.responsiveSearchAd.headlines ?? []).map((h: any) => ({
+                  text: h?.text ?? null,
+                  pinned_field: h?.pinnedField ?? null,
+                })),
+                descriptions: (r.adGroupAd.ad.responsiveSearchAd.descriptions ?? []).map((d: any) => ({
+                  text: d?.text ?? null,
+                  pinned_field: d?.pinnedField ?? null,
+                })),
+                path1: r.adGroupAd.ad.responsiveSearchAd.path1 ?? null,
+                path2: r.adGroupAd.ad.responsiveSearchAd.path2 ?? null,
+              }
+            : null,
           ad_group_id: r.adGroup?.id,
           ad_group_name: r.adGroup?.name,
           campaign_id: r.campaign?.id,
@@ -427,6 +442,8 @@ export function registerGoogleAdsTools() {
           clicks: safeNum(r.metrics?.clicks),
           spend: fromMicros(r.metrics?.costMicros),
           conversions: safeNum(r.metrics?.conversions),
+          ctr: r.metrics?.ctr ?? null,
+          avg_cpc: fromMicros(r.metrics?.averageCpc),
         }));
         return ok({ customer_id: cid, period: { from, to }, count: items.length, items });
       } catch (e) { return fail(e); }
