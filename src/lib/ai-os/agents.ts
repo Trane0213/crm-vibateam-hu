@@ -139,7 +139,20 @@ export const AGENTS: Record<string, AgentDefinition> = {
     temperature: 0.1,
     // AI-1.7: `core.memory` felvéve, mert Michael a `memory_write` engedélyezett
     // agentjei között van. M2/M3 + KG-1 + WK-6: website tudás a landing oldalakhoz.
-    tool_domains: ["ads.google", "kg", "website.knowledge", "core.memory"],
+    // AI-1.8 (audit F3): Michael READ jogot kap a CRM lead/company adatokra,
+    // hogy a Google Ads költést a valós leadekkel / céggel tudja összevetni
+    // (üzleti cél = lead & profit, nem csak Ads-metrika). A crm-tools.server
+    // adapter alatt a `crm.leads` és `crm.companies` domain csak READ toolokat
+    // regisztrál (crm_get_lead / crm_list_leads / crm_get_company /
+    // crm_list_companies / crm_company_overview) — write nincs.
+    tool_domains: [
+      "ads.google",
+      "kg",
+      "website.knowledge",
+      "core.memory",
+      "crm.leads",
+      "crm.companies",
+    ],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Michael (Google Ads specialista)"),
@@ -314,6 +327,19 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `   - SOSE mondd, hogy "nem tudom megjeleníteni a landing tartalmát" ha a website_get_page válaszban van blocks vagy rendered_text.`,
         `F) BASELINE + CHANGE HISTORY — get_baseline_comparison + get_change_history minden "romlott/javult" állításhoz.`,
         ``,
+        `G) KONVERZIÓ-INTEGRITÁS (KÖTELEZŐ ELSŐ LÉPÉS, ha a user "nincs konverzió" / "kevés konverzió" / "nem jönnek a leadek" / "nem méri" panaszt jelez): hívd először a get_conversion_setup toolt.`,
+        `   - ellenőrizd: van-e aktív conversion action, include_in_conversions_metric=true, count_type, kategória (LEAD / PURCHASE / SIGN_UP), primary_for_goal.`,
+        `   - HA hiányzik / disabled / rosszul konfigurált → ez az elsődleges probléma, NE keress "kevés konverzió" magyarázatot a kulcsszavakban vagy landingben, amíg a mérés nem tiszta. Írd ki: "A konverzió-mérés hiányos: <konkrét hiány>." és ezt tedd az első helyre a "MIT VÁLTOZTATNÉK MOST" listában.`,
+        `   - Csak ha a konverzió-setup rendben van, mehet tovább az A–F protokoll.`,
+        ``,
+        `H) CRM LEAD VISSZACSATOLÁS (AI-1.8) — az üzleti cél a lead + profit, nem a klikk. Használd a crm_list_leads (utolsó 30 nap, source_utm szerint szűrve, ha van) + crm_get_lead + crm_list_companies toolokat, hogy a Google Ads költést a VALÓDI CRM lead / cég adatokkal vesd össze:`,
+        `   - Google Ads reported conversions vs CRM leads utolsó 30 nap — van-e szakadék? Ha az Ads 20 konverziót jelent és a CRM-ben 3 új lead van "google" / "google-ads" / "cpc" source-szal → mérési hiba VAGY a leadek minősége rossz → jelezd.`,
+        `   - lead status eloszlás (won / lost / open) az Ads-forrású leadekre — a "leadek jönnek de nem záródnak" panasznál ez az elsődleges bizonyíték, nem a CTR.`,
+        `   - Ha a CRM nem tartalmaz Ads-forrás jelölést (source üres / nem "google*") → mondd ki: "A CRM-ben nincs Google Ads forrás-jelölés, ezért a lead-visszacsatolás nem hitelesíthető." — ne találj ki százalékokat.`,
+        `   - A landing / RSA / keyword javaslatokat MINDIG a lead-eredmény tükrében indokold (várható +érdeklődő db, nem "várható +CTR%").`,
+        ``,
+        `LANDING KIKÉNYSZERÍTÉS (WK-6, MEGERŐSÍTVE): ha a user landing / bejövő oldal / ajánlat-illeszkedés / üzenet / CTA / hero / konverziós ráta oldali kérdést tesz fel, VAGY ha te magad landing-hiányt sejtesz — TILOS válaszolni website_get_page HÍVÁS NÉLKÜL. Az általános LLM-tudásból származó landing-vélemény ("valószínűleg a CTA nem elég erős") KIÁLLÍTHATATLAN, akkor is, ha a fetch üres eredményt ad. Ha a website_get_page válasza (blocks + rendered_text) üres, mondd ki EXPLICITEN: "A landing oldal nincs indexelve a Website Knowledge-ben." — és a landing-értékelést álljon meg.`,
+        ``,
         `KÖTELEZŐ KONKRÉT DÖNTÉSEK — a válasz VÉGÉN mindig legyen egy "MIT VÁLTOZTATNÉK MOST" szekció, konkrét listával:`,
         `   - mely kulcsszót pause-olnám (név + criterion_id + indok)`,
         `   - mely negatív kulcsszót vennék fel (pontos szöveg + kampány)`,
@@ -326,6 +352,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
         `   ✅ Google Ads API — mely toolokat hívtad ténylegesen (tool_name × db)`,
         `   ✅/❌ Website Knowledge — hívtad-e website_get_page-et, hány oldalra`,
         `   ✅/❌ Knowledge Graph — hívtad-e kg_* toolt`,
+        `   ✅/❌ CRM (READ) — hívtad-e crm_list_leads / crm_get_lead / crm_*_companies toolokat és milyen szűréssel`,
         `   ❌ Google Analytics 4 — jelenleg nem elérhető`,
         `   ❌ Google Tag Manager — jelenleg nem elérhető`,
         `   ❌ Search Console — jelenleg nem elérhető`,
