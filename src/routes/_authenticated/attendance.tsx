@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState, Navigate } from "@tanstack/react-router";
-import { ClipboardList, CalendarPlus, BarChart3, Users } from "lucide-react";
+import { ClipboardList, CalendarPlus, BarChart3, Users, BookOpen } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/attendance")({
@@ -11,6 +11,7 @@ const tabs = [
   { to: "/attendance/new", label: "Új rögzítés", icon: CalendarPlus },
   { to: "/attendance/summary", label: "Időszak", icon: BarChart3 },
   { to: "/attendance/workers", label: "Dolgozók / projektek", icon: Users },
+  { to: "/attendance/guide", label: "Útmutató", icon: BookOpen },
 ];
 
 function AttendanceLayout() {
