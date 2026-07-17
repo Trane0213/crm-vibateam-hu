@@ -27,7 +27,7 @@ import {
   CheckSquare,
   Inbox,
 } from "lucide-react";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Wallet } from "lucide-react";
 import { XCircle } from "lucide-react";
 import {
   Sidebar,
@@ -153,6 +153,11 @@ const sys: Item[] = [
   { title: "Dokumentumok",       url: "/documents",        icon: FolderOpen,  hideForRoles: ["project_manager"] },
   { title: "Marketing súgó",     url: "/help/marketing",   icon: BookOpen,    hideForRoles: ["sales"] },
   { title: "Beállítások",        url: "/settings",         icon: Settings },
+];
+
+// Tulajdonos — csak owner számára látható riport/ellenőrző képernyők.
+const ownerOnly: Item[] = [
+  { title: "Adott Fizetések", url: "/attendance/payouts", icon: Wallet },
 ];
 
 export function AppSidebar() {
@@ -286,6 +291,7 @@ export function AppSidebar() {
         {visible(contacts).length > 0 && renderGroup("Ügyfelek", visible(contacts))}
         {visible(comms).length > 0 && renderGroup("Kommunikáció", visible(comms))}
         {visible(reports).length > 0 && renderGroup("Nézetek", visible(reports))}
+        {role === "owner" && visible(ownerOnly).length > 0 && renderGroup("Tulajdonos", visible(ownerOnly))}
         {visible(sys).length > 0 && renderGroup("Rendszer", visible(sys))}
       </SidebarContent>
     </Sidebar>

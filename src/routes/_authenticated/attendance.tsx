@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState, Navigate } from "@tanstack/react-router";
-import { ClipboardList, CalendarPlus, BarChart3, Users, BookOpen, Zap, Wallet } from "lucide-react";
+import { ClipboardList, CalendarPlus, BarChart3, Users, BookOpen, Zap } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/attendance")({
@@ -11,7 +11,6 @@ const tabs = [
   { to: "/attendance/quick", label: "Gyors rögzítés", icon: Zap },
   { to: "/attendance/new", label: "Új rögzítés", icon: CalendarPlus },
   { to: "/attendance/summary", label: "Időszak", icon: BarChart3 },
-  { to: "/attendance/payouts", label: "Adott Fizetések", icon: Wallet, ownerOnly: true },
   { to: "/attendance/workers", label: "Dolgozók / projektek", icon: Users },
   { to: "/attendance/guide", label: "Útmutató", icon: BookOpen },
 ] as const;
@@ -32,9 +31,7 @@ function AttendanceLayout() {
         </p>
       </div>
       <nav className="flex gap-1 border-b px-4 pt-2">
-        {tabs
-          .filter((t) => !("ownerOnly" in t && t.ownerOnly) || role === "owner")
-          .map((t) => {
+        {tabs.map((t) => {
           const exact = "exact" in t && t.exact;
           const active = exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
           return (
