@@ -25,6 +25,7 @@ import { Route as AuthenticatedDataQualityRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCampaignListRouteImport } from './routes/_authenticated/campaign-list'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
@@ -160,6 +161,11 @@ const AuthenticatedCampaignListRoute =
 const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   id: '/calls',
   path: '/calls',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAiAssistantsRoute =
@@ -482,6 +488,7 @@ export interface FileRoutesByFullPath {
   '/activity': typeof AuthenticatedActivityRoute
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
+  '/attendance': typeof AuthenticatedAttendanceRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/campaign-list': typeof AuthenticatedCampaignListRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -554,6 +561,7 @@ export interface FileRoutesByTo {
   '/activity': typeof AuthenticatedActivityRoute
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
+  '/attendance': typeof AuthenticatedAttendanceRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/campaign-list': typeof AuthenticatedCampaignListRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -627,6 +635,7 @@ export interface FileRoutesById {
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/_authenticated/ai-assistants': typeof AuthenticatedAiAssistantsRoute
+  '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/campaign-list': typeof AuthenticatedCampaignListRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -701,6 +710,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/ai-assistant'
     | '/ai-assistants'
+    | '/attendance'
     | '/calls'
     | '/campaign-list'
     | '/dashboard'
@@ -773,6 +783,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/ai-assistant'
     | '/ai-assistants'
+    | '/attendance'
     | '/calls'
     | '/campaign-list'
     | '/dashboard'
@@ -845,6 +856,7 @@ export interface FileRouteTypes {
     | '/_authenticated/activity'
     | '/_authenticated/ai-assistant'
     | '/_authenticated/ai-assistants'
+    | '/_authenticated/attendance'
     | '/_authenticated/calls'
     | '/_authenticated/campaign-list'
     | '/_authenticated/dashboard'
@@ -1043,6 +1055,13 @@ declare module '@tanstack/react-router' {
       path: '/calls'
       fullPath: '/calls'
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/attendance': {
+      id: '/_authenticated/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ai-assistants': {
@@ -1483,6 +1502,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
   AuthenticatedAiAssistantsRoute: typeof AuthenticatedAiAssistantsRoute
+  AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedCampaignListRoute: typeof AuthenticatedCampaignListRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1524,6 +1544,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
   AuthenticatedAiAssistantsRoute: AuthenticatedAiAssistantsRoute,
+  AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedCampaignListRoute: AuthenticatedCampaignListRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
