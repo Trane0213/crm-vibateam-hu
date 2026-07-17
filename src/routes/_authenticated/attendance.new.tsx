@@ -18,7 +18,7 @@ import {
 } from "@/lib/attendance/attendance.functions";
 
 export const Route = createFileRoute("/_authenticated/attendance/new")({
-  component: AttendanceNew;
+  component: AttendanceNew,
 });
 
 function todayISO() {
