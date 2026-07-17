@@ -35,7 +35,8 @@ function AttendanceLayout() {
         {tabs
           .filter((t) => !("ownerOnly" in t && t.ownerOnly) || role === "owner")
           .map((t) => {
-          const active = t.exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
+          const exact = "exact" in t && t.exact;
+          const active = exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
           return (
             <Link
               key={t.to}
