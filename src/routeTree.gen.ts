@@ -25,6 +25,7 @@ import { Route as AuthenticatedDataQualityRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCampaignListRouteImport } from './routes/_authenticated/campaign-list'
 import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
 import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
 import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
@@ -38,6 +39,7 @@ import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
 import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
@@ -72,6 +74,9 @@ import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
+import { Route as AuthenticatedAttendanceWorkersRouteImport } from './routes/_authenticated/attendance.workers'
+import { Route as AuthenticatedAttendanceSummaryRouteImport } from './routes/_authenticated/attendance.summary'
+import { Route as AuthenticatedAttendanceNewRouteImport } from './routes/_authenticated/attendance.new'
 import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
 import { Route as ApiPublicWebsiteKnowledgeManualTriggerRouteImport } from './routes/api/public/website-knowledge/manual-trigger'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
@@ -162,6 +167,11 @@ const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAiAssistantsRoute =
   AuthenticatedAiAssistantsRouteImport.update({
     id: '/ai-assistants',
@@ -236,6 +246,12 @@ const AuthenticatedCompaniesIndexRoute =
     id: '/companies/',
     path: '/companies/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAttendanceIndexRoute =
+  AuthenticatedAttendanceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
 const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
   id: '/api/gmail/sync',
@@ -429,6 +445,24 @@ const AuthenticatedCompaniesIdRoute =
     path: '/companies/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAttendanceWorkersRoute =
+  AuthenticatedAttendanceWorkersRouteImport.update({
+    id: '/workers',
+    path: '/workers',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
+const AuthenticatedAttendanceSummaryRoute =
+  AuthenticatedAttendanceSummaryRouteImport.update({
+    id: '/summary',
+    path: '/summary',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
+const AuthenticatedAttendanceNewRoute =
+  AuthenticatedAttendanceNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
 const ApiPublicWebsiteKnowledgeNetlifyWebhookRoute =
   ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport.update({
     id: '/api/public/website-knowledge/netlify-webhook',
@@ -482,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/activity': typeof AuthenticatedActivityRoute
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
+  '/attendance': typeof AuthenticatedAttendanceRouteWithChildren
   '/calls': typeof AuthenticatedCallsRoute
   '/campaign-list': typeof AuthenticatedCampaignListRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -493,6 +528,9 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
+  '/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
+  '/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -527,6 +565,7 @@ export interface FileRoutesByFullPath {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -564,6 +603,9 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
+  '/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
+  '/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -598,6 +640,7 @@ export interface FileRoutesByTo {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/attendance': typeof AuthenticatedAttendanceIndexRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
@@ -627,6 +670,7 @@ export interface FileRoutesById {
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/_authenticated/ai-assistants': typeof AuthenticatedAiAssistantsRoute
+  '/_authenticated/attendance': typeof AuthenticatedAttendanceRouteWithChildren
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/campaign-list': typeof AuthenticatedCampaignListRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -638,6 +682,9 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
+  '/_authenticated/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/_authenticated/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
+  '/_authenticated/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
   '/_authenticated/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -672,6 +719,7 @@ export interface FileRoutesById {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -701,6 +749,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/ai-assistant'
     | '/ai-assistants'
+    | '/attendance'
     | '/calls'
     | '/campaign-list'
     | '/dashboard'
@@ -712,6 +761,9 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/today'
     | '/api/r2-upload'
+    | '/attendance/new'
+    | '/attendance/summary'
+    | '/attendance/workers'
     | '/companies/$id'
     | '/contacts/$id'
     | '/customers/$id'
@@ -746,6 +798,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/attendance/'
     | '/companies/'
     | '/contacts/'
     | '/customers/'
@@ -783,6 +836,9 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/today'
     | '/api/r2-upload'
+    | '/attendance/new'
+    | '/attendance/summary'
+    | '/attendance/workers'
     | '/companies/$id'
     | '/contacts/$id'
     | '/customers/$id'
@@ -817,6 +873,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/attendance'
     | '/companies'
     | '/contacts'
     | '/customers'
@@ -845,6 +902,7 @@ export interface FileRouteTypes {
     | '/_authenticated/activity'
     | '/_authenticated/ai-assistant'
     | '/_authenticated/ai-assistants'
+    | '/_authenticated/attendance'
     | '/_authenticated/calls'
     | '/_authenticated/campaign-list'
     | '/_authenticated/dashboard'
@@ -856,6 +914,9 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/_authenticated/today'
     | '/api/r2-upload'
+    | '/_authenticated/attendance/new'
+    | '/_authenticated/attendance/summary'
+    | '/_authenticated/attendance/workers'
     | '/_authenticated/companies/$id'
     | '/_authenticated/contacts/$id'
     | '/_authenticated/customers/$id'
@@ -890,6 +951,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/_authenticated/attendance/'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
     | '/_authenticated/customers/'
@@ -1045,6 +1107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCallsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/attendance': {
+      id: '/_authenticated/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ai-assistants': {
       id: '/_authenticated/ai-assistants'
       path: '/ai-assistants'
@@ -1135,6 +1204,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/companies/'
       preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/attendance/': {
+      id: '/_authenticated/attendance/'
+      path: '/'
+      fullPath: '/attendance/'
+      preLoaderRoute: typeof AuthenticatedAttendanceIndexRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
     }
     '/api/gmail/sync': {
       id: '/api/gmail/sync'
@@ -1374,6 +1450,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/attendance/workers': {
+      id: '/_authenticated/attendance/workers'
+      path: '/workers'
+      fullPath: '/attendance/workers'
+      preLoaderRoute: typeof AuthenticatedAttendanceWorkersRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/attendance/summary': {
+      id: '/_authenticated/attendance/summary'
+      path: '/summary'
+      fullPath: '/attendance/summary'
+      preLoaderRoute: typeof AuthenticatedAttendanceSummaryRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/attendance/new': {
+      id: '/_authenticated/attendance/new'
+      path: '/new'
+      fullPath: '/attendance/new'
+      preLoaderRoute: typeof AuthenticatedAttendanceNewRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
     '/api/public/website-knowledge/netlify-webhook': {
       id: '/api/public/website-knowledge/netlify-webhook'
       path: '/api/public/website-knowledge/netlify-webhook'
@@ -1433,6 +1530,26 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAttendanceRouteChildren {
+  AuthenticatedAttendanceNewRoute: typeof AuthenticatedAttendanceNewRoute
+  AuthenticatedAttendanceSummaryRoute: typeof AuthenticatedAttendanceSummaryRoute
+  AuthenticatedAttendanceWorkersRoute: typeof AuthenticatedAttendanceWorkersRoute
+  AuthenticatedAttendanceIndexRoute: typeof AuthenticatedAttendanceIndexRoute
+}
+
+const AuthenticatedAttendanceRouteChildren: AuthenticatedAttendanceRouteChildren =
+  {
+    AuthenticatedAttendanceNewRoute: AuthenticatedAttendanceNewRoute,
+    AuthenticatedAttendanceSummaryRoute: AuthenticatedAttendanceSummaryRoute,
+    AuthenticatedAttendanceWorkersRoute: AuthenticatedAttendanceWorkersRoute,
+    AuthenticatedAttendanceIndexRoute: AuthenticatedAttendanceIndexRoute,
+  }
+
+const AuthenticatedAttendanceRouteWithChildren =
+  AuthenticatedAttendanceRoute._addFileChildren(
+    AuthenticatedAttendanceRouteChildren,
+  )
+
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAgentAuditRoute: typeof AuthenticatedSettingsAgentAuditRoute
   AuthenticatedSettingsAgentVisibilityRoute: typeof AuthenticatedSettingsAgentVisibilityRoute
@@ -1483,6 +1600,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
   AuthenticatedAiAssistantsRoute: typeof AuthenticatedAiAssistantsRoute
+  AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRouteWithChildren
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedCampaignListRoute: typeof AuthenticatedCampaignListRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1524,6 +1642,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
   AuthenticatedAiAssistantsRoute: AuthenticatedAiAssistantsRoute,
+  AuthenticatedAttendanceRoute: AuthenticatedAttendanceRouteWithChildren,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedCampaignListRoute: AuthenticatedCampaignListRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -1590,13 +1709,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

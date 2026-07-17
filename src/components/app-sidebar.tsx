@@ -27,6 +27,7 @@ import {
   CheckSquare,
   Inbox,
 } from "lucide-react";
+import { ClipboardList } from "lucide-react";
 import { XCircle } from "lucide-react";
 import {
   Sidebar,
@@ -107,12 +108,14 @@ const workspacesByRole: WorkspaceMap = {
     { title: "Feladatok",   url: "/tasks",     icon: CheckSquare, highlight: true },
     { title: "Találkozók",  url: "/meetings",  icon: Calendar,  highlight: true },
     { title: "Dokumentumok", url: "/documents", icon: FolderOpen, highlight: true },
+    { title: "Jelenlét",    url: "/attendance", icon: ClipboardList, highlight: true },
   ],
   owner: [
     { title: "Irányítópult", url: "/dashboard",   icon: LayoutDashboard, highlight: true },
     { title: "Pipeline",     url: "/sales/leads", icon: Target,          highlight: true },
     { title: "Projektek",    url: "/projects",    icon: Briefcase,       highlight: true },
     { title: "Ajánlatok",    url: "/quotes",      icon: FileText,        highlight: true },
+    { title: "Jelenlét",     url: "/attendance",  icon: ClipboardList,   highlight: true },
   ],
 };
 
