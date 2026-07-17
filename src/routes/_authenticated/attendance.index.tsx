@@ -136,7 +136,7 @@ function AttendanceIndex() {
       ) : rows.length === 0 ? (
         <EmptyState
           title="Nincs rögzített nap a szűrésre."
-          description="Rögzíts új napot az „Új rögzítés" fülön."
+          description={"Rögzíts új napot az \u201EÚj rögzítés\u201D fülön."}
           icon={ClipboardList}
         />
       ) : (
