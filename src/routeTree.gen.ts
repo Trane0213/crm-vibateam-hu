@@ -77,6 +77,7 @@ import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAttendanceWorkersRouteImport } from './routes/_authenticated/attendance.workers'
 import { Route as AuthenticatedAttendanceSummaryRouteImport } from './routes/_authenticated/attendance.summary'
 import { Route as AuthenticatedAttendanceQuickRouteImport } from './routes/_authenticated/attendance.quick'
+import { Route as AuthenticatedAttendancePayoutsRouteImport } from './routes/_authenticated/attendance.payouts'
 import { Route as AuthenticatedAttendanceNewRouteImport } from './routes/_authenticated/attendance.new'
 import { Route as AuthenticatedAttendanceGuideRouteImport } from './routes/_authenticated/attendance.guide'
 import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
@@ -465,6 +466,12 @@ const AuthenticatedAttendanceQuickRoute =
     path: '/quick',
     getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
+const AuthenticatedAttendancePayoutsRoute =
+  AuthenticatedAttendancePayoutsRouteImport.update({
+    id: '/payouts',
+    path: '/payouts',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
 const AuthenticatedAttendanceNewRoute =
   AuthenticatedAttendanceNewRouteImport.update({
     id: '/new',
@@ -544,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/attendance/payouts': typeof AuthenticatedAttendancePayoutsRoute
   '/attendance/quick': typeof AuthenticatedAttendanceQuickRoute
   '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
@@ -621,6 +629,7 @@ export interface FileRoutesByTo {
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/attendance/payouts': typeof AuthenticatedAttendancePayoutsRoute
   '/attendance/quick': typeof AuthenticatedAttendanceQuickRoute
   '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
@@ -702,6 +711,7 @@ export interface FileRoutesById {
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/_authenticated/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/_authenticated/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/_authenticated/attendance/payouts': typeof AuthenticatedAttendancePayoutsRoute
   '/_authenticated/attendance/quick': typeof AuthenticatedAttendanceQuickRoute
   '/_authenticated/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/_authenticated/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
@@ -783,6 +793,7 @@ export interface FileRouteTypes {
     | '/api/r2-upload'
     | '/attendance/guide'
     | '/attendance/new'
+    | '/attendance/payouts'
     | '/attendance/quick'
     | '/attendance/summary'
     | '/attendance/workers'
@@ -860,6 +871,7 @@ export interface FileRouteTypes {
     | '/api/r2-upload'
     | '/attendance/guide'
     | '/attendance/new'
+    | '/attendance/payouts'
     | '/attendance/quick'
     | '/attendance/summary'
     | '/attendance/workers'
@@ -940,6 +952,7 @@ export interface FileRouteTypes {
     | '/api/r2-upload'
     | '/_authenticated/attendance/guide'
     | '/_authenticated/attendance/new'
+    | '/_authenticated/attendance/payouts'
     | '/_authenticated/attendance/quick'
     | '/_authenticated/attendance/summary'
     | '/_authenticated/attendance/workers'
@@ -1497,6 +1510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttendanceQuickRouteImport
       parentRoute: typeof AuthenticatedAttendanceRoute
     }
+    '/_authenticated/attendance/payouts': {
+      id: '/_authenticated/attendance/payouts'
+      path: '/payouts'
+      fullPath: '/attendance/payouts'
+      preLoaderRoute: typeof AuthenticatedAttendancePayoutsRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
     '/_authenticated/attendance/new': {
       id: '/_authenticated/attendance/new'
       path: '/new'
@@ -1573,6 +1593,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAttendanceRouteChildren {
   AuthenticatedAttendanceGuideRoute: typeof AuthenticatedAttendanceGuideRoute
   AuthenticatedAttendanceNewRoute: typeof AuthenticatedAttendanceNewRoute
+  AuthenticatedAttendancePayoutsRoute: typeof AuthenticatedAttendancePayoutsRoute
   AuthenticatedAttendanceQuickRoute: typeof AuthenticatedAttendanceQuickRoute
   AuthenticatedAttendanceSummaryRoute: typeof AuthenticatedAttendanceSummaryRoute
   AuthenticatedAttendanceWorkersRoute: typeof AuthenticatedAttendanceWorkersRoute
@@ -1583,6 +1604,7 @@ const AuthenticatedAttendanceRouteChildren: AuthenticatedAttendanceRouteChildren
   {
     AuthenticatedAttendanceGuideRoute: AuthenticatedAttendanceGuideRoute,
     AuthenticatedAttendanceNewRoute: AuthenticatedAttendanceNewRoute,
+    AuthenticatedAttendancePayoutsRoute: AuthenticatedAttendancePayoutsRoute,
     AuthenticatedAttendanceQuickRoute: AuthenticatedAttendanceQuickRoute,
     AuthenticatedAttendanceSummaryRoute: AuthenticatedAttendanceSummaryRoute,
     AuthenticatedAttendanceWorkersRoute: AuthenticatedAttendanceWorkersRoute,
