@@ -39,6 +39,7 @@ import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
 import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
 import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
 import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
@@ -242,6 +243,12 @@ const AuthenticatedCompaniesIndexRoute =
     id: '/companies/',
     path: '/companies/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAttendanceIndexRoute =
+  AuthenticatedAttendanceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
 const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
   id: '/api/gmail/sync',
@@ -488,7 +495,7 @@ export interface FileRoutesByFullPath {
   '/activity': typeof AuthenticatedActivityRoute
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
-  '/attendance': typeof AuthenticatedAttendanceRoute
+  '/attendance': typeof AuthenticatedAttendanceRouteWithChildren
   '/calls': typeof AuthenticatedCallsRoute
   '/campaign-list': typeof AuthenticatedCampaignListRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -534,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
   '/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -561,7 +569,6 @@ export interface FileRoutesByTo {
   '/activity': typeof AuthenticatedActivityRoute
   '/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/ai-assistants': typeof AuthenticatedAiAssistantsRoute
-  '/attendance': typeof AuthenticatedAttendanceRoute
   '/calls': typeof AuthenticatedCallsRoute
   '/campaign-list': typeof AuthenticatedCampaignListRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -606,6 +613,7 @@ export interface FileRoutesByTo {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/attendance': typeof AuthenticatedAttendanceIndexRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
   '/customers': typeof AuthenticatedCustomersIndexRoute
@@ -635,7 +643,7 @@ export interface FileRoutesById {
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/ai-assistant': typeof AuthenticatedAiAssistantRoute
   '/_authenticated/ai-assistants': typeof AuthenticatedAiAssistantsRoute
-  '/_authenticated/attendance': typeof AuthenticatedAttendanceRoute
+  '/_authenticated/attendance': typeof AuthenticatedAttendanceRouteWithChildren
   '/_authenticated/calls': typeof AuthenticatedCallsRoute
   '/_authenticated/campaign-list': typeof AuthenticatedCampaignListRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -681,6 +689,7 @@ export interface FileRoutesById {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
   '/_authenticated/customers/': typeof AuthenticatedCustomersIndexRoute
@@ -756,6 +765,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/attendance/'
     | '/companies/'
     | '/contacts/'
     | '/customers/'
@@ -783,7 +793,6 @@ export interface FileRouteTypes {
     | '/activity'
     | '/ai-assistant'
     | '/ai-assistants'
-    | '/attendance'
     | '/calls'
     | '/campaign-list'
     | '/dashboard'
@@ -828,6 +837,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/attendance'
     | '/companies'
     | '/contacts'
     | '/customers'
@@ -902,6 +912,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/_authenticated/attendance/'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
     | '/_authenticated/customers/'
@@ -1154,6 +1165,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/companies/'
       preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/attendance/': {
+      id: '/_authenticated/attendance/'
+      path: '/'
+      fullPath: '/attendance/'
+      preLoaderRoute: typeof AuthenticatedAttendanceIndexRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
     }
     '/api/gmail/sync': {
       id: '/api/gmail/sync'
@@ -1452,6 +1470,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedAttendanceRouteChildren {
+  AuthenticatedAttendanceIndexRoute: typeof AuthenticatedAttendanceIndexRoute
+}
+
+const AuthenticatedAttendanceRouteChildren: AuthenticatedAttendanceRouteChildren =
+  {
+    AuthenticatedAttendanceIndexRoute: AuthenticatedAttendanceIndexRoute,
+  }
+
+const AuthenticatedAttendanceRouteWithChildren =
+  AuthenticatedAttendanceRoute._addFileChildren(
+    AuthenticatedAttendanceRouteChildren,
+  )
+
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAgentAuditRoute: typeof AuthenticatedSettingsAgentAuditRoute
   AuthenticatedSettingsAgentVisibilityRoute: typeof AuthenticatedSettingsAgentVisibilityRoute
@@ -1502,7 +1534,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAiAssistantRoute: typeof AuthenticatedAiAssistantRoute
   AuthenticatedAiAssistantsRoute: typeof AuthenticatedAiAssistantsRoute
-  AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRoute
+  AuthenticatedAttendanceRoute: typeof AuthenticatedAttendanceRouteWithChildren
   AuthenticatedCallsRoute: typeof AuthenticatedCallsRoute
   AuthenticatedCampaignListRoute: typeof AuthenticatedCampaignListRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1544,7 +1576,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAiAssistantRoute: AuthenticatedAiAssistantRoute,
   AuthenticatedAiAssistantsRoute: AuthenticatedAiAssistantsRoute,
-  AuthenticatedAttendanceRoute: AuthenticatedAttendanceRoute,
+  AuthenticatedAttendanceRoute: AuthenticatedAttendanceRouteWithChildren,
   AuthenticatedCallsRoute: AuthenticatedCallsRoute,
   AuthenticatedCampaignListRoute: AuthenticatedCampaignListRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
