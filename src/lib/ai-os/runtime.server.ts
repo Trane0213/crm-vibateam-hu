@@ -19,6 +19,7 @@ import { getMemory } from "./memory.server";
 import { callLlm } from "./providers.server";
 import { getTool, toolsForAgent, toSpec } from "./tool-registry";
 import type { ApprovalLevel, ChatMessage, ToolCall } from "./types";
+import { isToolErrorEnvelope, sanitizeErrorForLlm, toolError } from "./tool-errors";
 
 const MAX_STEPS = 50;
 
@@ -277,26 +278,49 @@ export async function runAgent(
         }
         // Végrehajtás. A tool maga felelős a dry_run vs execute szétválasztásáért
         // (args.mode alapján). A runtime csak biztosítja, hogy execute-hoz volt approval.
+        // E1: strukturált hiba normalizálás + automatikus retry retriable hibáknál.
         const tStart = Date.now();
         const args: Record<string, unknown> = {
           ...parsedArgs,
-          // Ha a tool támogatja a dry_run-t és nem volt explicit mode, injektáljuk a
-          // biztonsági alapot, hogy a tool determinisztikusan lássa.
           ...(tool.supports_dry_run ? { mode: effectiveMode } : {}),
         };
         let output: unknown;
         let errMsg: string | undefined;
-        try {
-          output = await tool.execute(args, {
-            userId: input.userId, agentId: agent.id,
-            threadId: input.threadId, runId,
-            supabaseUser: userClient,
-            supabaseAdmin: adminClient,
-          });
-        } catch (e: any) {
-          errMsg = e?.message ?? String(e);
-          output = { error: errMsg };
+        let attempts = 0;
+        const MAX_ATTEMPTS = 2; // egy retry — csak retriable hibáknál, csak read-only toolnál
+        // Retry csak olyan hívásoknál engedélyezett, amelyeknek nincs
+        // állapotváltoztató hatása: safe read-only tool, vagy dry_run mód.
+        const canRetry = approvalLevel === "safe" || effectiveMode === "dry_run";
+        while (attempts < MAX_ATTEMPTS) {
+          attempts++;
+          try {
+            output = await tool.execute(args, {
+              userId: input.userId, agentId: agent.id,
+              threadId: input.threadId, runId,
+              supabaseUser: userClient,
+              supabaseAdmin: adminClient,
+            });
+            errMsg = undefined;
+          } catch (e: unknown) {
+            output = toolError.fromException(e);
+            errMsg = e instanceof Error ? e.message : String(e);
+          }
+          // Retry döntés: csak strukturált, retriable hiba + safe (read-only) tool.
+          if (
+            attempts < MAX_ATTEMPTS &&
+            canRetry &&
+            isToolErrorEnvelope(output) &&
+            output.error.retriable
+          ) {
+            await new Promise((r) => setTimeout(r, 250 * attempts));
+            continue;
+          }
+          break;
         }
+        // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
+        const llmPayload: unknown = isToolErrorEnvelope(output)
+          ? { ok: false, error: sanitizeErrorForLlm(output.error) }
+          : output;
         await logStep(adminClient, {
           runId,
           stepNo: ++stepNo,
@@ -307,11 +331,15 @@ export async function runAgent(
           toolName: tool.name,
           agentId: agent.id,
           input: { ...args, __approval: approvalLevel, __mode: effectiveMode },
-          output, error: errMsg, durationMs: Date.now() - tStart,
+          // A teljes (technical_reason-nel együtt) output kerül auditba,
+          // a `retry_attempts` mező jelzi ha volt retry.
+          output: { ...(typeof output === "object" && output ? output : { value: output }), __attempts: attempts },
+          error: errMsg,
+          durationMs: Date.now() - tStart,
         });
         messages.push({
           role: "tool", tool_call_id: call.id,
-          content: JSON.stringify(output).slice(0, 24_000),
+          content: JSON.stringify(llmPayload).slice(0, 24_000),
         });
       }
 

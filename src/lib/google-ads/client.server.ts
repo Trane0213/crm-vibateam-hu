@@ -13,6 +13,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptRefreshToken } from "./token-crypto.server";
 import { refreshAccessToken } from "./oauth.server";
+import { ToolFailure } from "@/lib/ai-os/tool-errors";
 
 export const GOOGLE_ADS_API_VERSION = "v21";
 const API_BASE = `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}`;
@@ -38,10 +39,27 @@ export async function loadConnection(sb: SupabaseClient): Promise<GoogleAdsConne
       "user_id, refresh_token_cipher, refresh_token_iv, active_customer_id, login_customer_id, manager_customer_id, google_email, status",
     )
     .maybeSingle();
-  if (error) throw new Error(`google_ads_connections olvasás sikertelen: ${error.message}`);
-  if (!data) throw new Error("Nincs mentett Google Ads kapcsolat. Csatlakozz a Beállítások → Google Ads oldalon.");
+  if (error) {
+    throw new ToolFailure({
+      error_type: "CONNECTION_READ_FAILED",
+      technical_reason: `google_ads_connections olvasás sikertelen: ${error.message}`,
+    });
+  }
+  if (!data) {
+    throw new ToolFailure({
+      error_type: "CONNECTION_MISSING",
+      technical_reason: "Nincs mentett Google Ads kapcsolat.",
+      user_safe_message:
+        "A Google Ads kapcsolat még nincs csatlakoztatva — a Beállítások → Google Ads oldalon lehet elindítani.",
+      hint: "list_ads_accounts sikeres, üres eredménye erősíti meg ezt a hipotézist.",
+    });
+  }
   if (!data.refresh_token_cipher || !data.refresh_token_iv) {
-    throw new Error("Refresh token hiányzik a kapcsolatból — kösd újra a Google fiókot.");
+    throw new ToolFailure({
+      error_type: "AUTH_EXPIRED",
+      technical_reason: "Refresh token hiányzik a kapcsolatból.",
+      user_safe_message: "A Google fiók hozzáférése lejárt vagy hiányos — újra kell csatlakoztatni.",
+    });
   }
   return data as GoogleAdsConnection;
 }
@@ -60,7 +78,12 @@ export async function getAccessToken(conn: GoogleAdsConnection): Promise<string>
 
 function devToken(): string {
   const d = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
-  if (!d) throw new Error("GOOGLE_ADS_DEVELOPER_TOKEN secret hiányzik.");
+  if (!d) {
+    throw new ToolFailure({
+      error_type: "CONFIG_MISSING",
+      technical_reason: "GOOGLE_ADS_DEVELOPER_TOKEN secret hiányzik.",
+    });
+  }
   return d;
 }
 
@@ -70,7 +93,15 @@ function normalizeCustomerId(cid: string): string {
 
 export function resolveCustomerId(conn: GoogleAdsConnection, override?: string | null): string {
   const raw = (override && String(override).trim()) || conn.active_customer_id;
-  if (!raw) throw new Error("Nincs megadott customer_id és a kapcsolathoz sincs aktív Ads fiók.");
+  if (!raw) {
+    throw new ToolFailure({
+      error_type: "CONFIG_MISSING",
+      technical_reason: "Nincs megadott customer_id és a kapcsolathoz sincs aktív Ads fiók.",
+      user_safe_message:
+        "Nincs megadva Customer ID és a kapcsolathoz nincs aktív Ads fiók beállítva.",
+      hint: "Használd a list_ads_accounts toolt, majd a Beállítások → Google Ads oldalon állítsd be az aktív fiókot.",
+    });
+  }
   return normalizeCustomerId(raw);
 }
 
@@ -88,7 +119,16 @@ export async function listAccessibleCustomers(conn: GoogleAdsConnection): Promis
   const at = await getAccessToken(conn);
   const r = await fetch(`${API_BASE}/customers:listAccessibleCustomers`, { headers: baseHeaders(at, conn) });
   const text = await r.text();
-  if (!r.ok) throw new Error(`listAccessibleCustomers HTTP ${r.status}: ${text.slice(0, 300)}`);
+  if (!r.ok) {
+    throw new ToolFailure({
+      error_type: r.status === 401 ? "AUTH_EXPIRED" :
+        r.status === 403 ? "UPSTREAM_FORBIDDEN" :
+        r.status === 429 ? "UPSTREAM_RATE_LIMIT" :
+        r.status >= 500 ? "UPSTREAM_UNAVAILABLE" : "UPSTREAM_ERROR",
+      http_status: r.status,
+      technical_reason: `listAccessibleCustomers HTTP ${r.status}: ${text.slice(0, 300)}`,
+    });
+  }
   const j = JSON.parse(text) as { resourceNames?: string[] };
   return (j.resourceNames ?? []).map((n) => n.replace(/^customers\//, ""));
 }
@@ -119,7 +159,16 @@ export async function gaqlSearch(
       body: paged,
     });
     const text = await r.text();
-    if (!r.ok) throw new Error(`googleAds:search HTTP ${r.status}: ${text.slice(0, 500)}`);
+    if (!r.ok) {
+      throw new ToolFailure({
+        error_type: r.status === 401 ? "AUTH_EXPIRED" :
+          r.status === 403 ? "UPSTREAM_FORBIDDEN" :
+          r.status === 429 ? "UPSTREAM_RATE_LIMIT" :
+          r.status >= 500 ? "UPSTREAM_UNAVAILABLE" : "UPSTREAM_ERROR",
+        http_status: r.status,
+        technical_reason: `googleAds:search HTTP ${r.status}: ${text.slice(0, 500)}`,
+      });
+    }
     const j = JSON.parse(text) as { results?: GaqlRow[]; nextPageToken?: string };
     if (j.results?.length) rows.push(...j.results);
     if (!j.nextPageToken) break;
@@ -194,7 +243,16 @@ export async function adsMutate(
     body: JSON.stringify(body),
   });
   const text = await r.text();
-  if (!r.ok) throw new Error(`Google Ads ${resourcePath} HTTP ${r.status}: ${text.slice(0, 600)}`);
+  if (!r.ok) {
+    throw new ToolFailure({
+      error_type: r.status === 401 ? "AUTH_EXPIRED" :
+        r.status === 403 ? "UPSTREAM_FORBIDDEN" :
+        r.status === 429 ? "UPSTREAM_RATE_LIMIT" :
+        r.status >= 500 ? "UPSTREAM_UNAVAILABLE" : "UPSTREAM_ERROR",
+      http_status: r.status,
+      technical_reason: `Google Ads ${resourcePath} HTTP ${r.status}: ${text.slice(0, 600)}`,
+    });
+  }
   try { return JSON.parse(text); } catch { return { raw: text }; }
 }
 

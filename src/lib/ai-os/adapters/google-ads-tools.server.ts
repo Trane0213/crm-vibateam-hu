@@ -12,6 +12,9 @@
  */
 
 import { registerTool } from "../tool-registry";
+import { toolError } from "../tool-errors";
+
+const fail = (err: unknown) => toolError.fromException(err);
 import {
   adsMutate,
   fromMicros,
@@ -27,10 +30,6 @@ import {
 } from "@/lib/google-ads/client.server";
 
 function ok<T>(data: T) { return { ok: true, data }; }
-function fail(err: unknown) {
-  const message = err instanceof Error ? err.message : String(err);
-  return { ok: false, error: message };
-}
 
 const DOMAIN = "ads.google";
 const MICHAEL_ONLY: string[] = ["michael"];
