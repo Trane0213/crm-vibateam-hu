@@ -22,14 +22,13 @@
  */
 
 import { registerTool } from "../tool-registry";
+import { toolError } from "../tool-errors";
+
+const fail = (err: unknown) => toolError.fromException(err);
 import { OWNER_ROLES } from "../roles";
 
 function ok<T>(data: T) {
   return { ok: true, data };
-}
-function fail(err: unknown) {
-  const message = err instanceof Error ? err.message : String(err);
-  return { ok: false, error: message };
 }
 
 const DOMAIN = "website.knowledge";
