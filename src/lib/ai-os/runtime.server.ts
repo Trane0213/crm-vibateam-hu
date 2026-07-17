@@ -288,7 +288,9 @@ export async function runAgent(
         let errMsg: string | undefined;
         let attempts = 0;
         const MAX_ATTEMPTS = 2; // egy retry — csak retriable hibáknál, csak read-only toolnál
-        const canRetry = approvalLevel === "safe" && effectiveMode !== "execute" || approvalLevel === "safe";
+        // Retry csak olyan hívásoknál engedélyezett, amelyeknek nincs
+        // állapotváltoztató hatása: safe read-only tool, vagy dry_run mód.
+        const canRetry = approvalLevel === "safe" || effectiveMode === "dry_run";
         while (attempts < MAX_ATTEMPTS) {
           attempts++;
           try {
