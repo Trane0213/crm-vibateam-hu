@@ -77,6 +77,7 @@ import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAttendanceWorkersRouteImport } from './routes/_authenticated/attendance.workers'
 import { Route as AuthenticatedAttendanceSummaryRouteImport } from './routes/_authenticated/attendance.summary'
 import { Route as AuthenticatedAttendanceNewRouteImport } from './routes/_authenticated/attendance.new'
+import { Route as AuthenticatedAttendanceGuideRouteImport } from './routes/_authenticated/attendance.guide'
 import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
 import { Route as ApiPublicWebsiteKnowledgeManualTriggerRouteImport } from './routes/api/public/website-knowledge/manual-trigger'
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
@@ -463,6 +464,12 @@ const AuthenticatedAttendanceNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
+const AuthenticatedAttendanceGuideRoute =
+  AuthenticatedAttendanceGuideRouteImport.update({
+    id: '/guide',
+    path: '/guide',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
 const ApiPublicWebsiteKnowledgeNetlifyWebhookRoute =
   ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport.update({
     id: '/api/public/website-knowledge/netlify-webhook',
@@ -528,6 +535,7 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
+  '/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
   '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
@@ -603,6 +611,7 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
+  '/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
   '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
@@ -682,6 +691,7 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
+  '/_authenticated/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/_authenticated/attendance/new': typeof AuthenticatedAttendanceNewRoute
   '/_authenticated/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/_authenticated/attendance/workers': typeof AuthenticatedAttendanceWorkersRoute
@@ -761,6 +771,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/today'
     | '/api/r2-upload'
+    | '/attendance/guide'
     | '/attendance/new'
     | '/attendance/summary'
     | '/attendance/workers'
@@ -836,6 +847,7 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/today'
     | '/api/r2-upload'
+    | '/attendance/guide'
     | '/attendance/new'
     | '/attendance/summary'
     | '/attendance/workers'
@@ -914,6 +926,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/_authenticated/today'
     | '/api/r2-upload'
+    | '/_authenticated/attendance/guide'
     | '/_authenticated/attendance/new'
     | '/_authenticated/attendance/summary'
     | '/_authenticated/attendance/workers'
@@ -1471,6 +1484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttendanceNewRouteImport
       parentRoute: typeof AuthenticatedAttendanceRoute
     }
+    '/_authenticated/attendance/guide': {
+      id: '/_authenticated/attendance/guide'
+      path: '/guide'
+      fullPath: '/attendance/guide'
+      preLoaderRoute: typeof AuthenticatedAttendanceGuideRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
     '/api/public/website-knowledge/netlify-webhook': {
       id: '/api/public/website-knowledge/netlify-webhook'
       path: '/api/public/website-knowledge/netlify-webhook'
@@ -1531,6 +1551,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAttendanceRouteChildren {
+  AuthenticatedAttendanceGuideRoute: typeof AuthenticatedAttendanceGuideRoute
   AuthenticatedAttendanceNewRoute: typeof AuthenticatedAttendanceNewRoute
   AuthenticatedAttendanceSummaryRoute: typeof AuthenticatedAttendanceSummaryRoute
   AuthenticatedAttendanceWorkersRoute: typeof AuthenticatedAttendanceWorkersRoute
@@ -1539,6 +1560,7 @@ interface AuthenticatedAttendanceRouteChildren {
 
 const AuthenticatedAttendanceRouteChildren: AuthenticatedAttendanceRouteChildren =
   {
+    AuthenticatedAttendanceGuideRoute: AuthenticatedAttendanceGuideRoute,
     AuthenticatedAttendanceNewRoute: AuthenticatedAttendanceNewRoute,
     AuthenticatedAttendanceSummaryRoute: AuthenticatedAttendanceSummaryRoute,
     AuthenticatedAttendanceWorkersRoute: AuthenticatedAttendanceWorkersRoute,
