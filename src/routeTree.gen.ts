@@ -74,6 +74,7 @@ import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
 import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
 import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
+import { Route as AuthenticatedAttendanceSummaryRouteImport } from './routes/_authenticated/attendance.summary'
 import { Route as AuthenticatedAttendanceNewRouteImport } from './routes/_authenticated/attendance.new'
 import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
 import { Route as ApiPublicWebsiteKnowledgeManualTriggerRouteImport } from './routes/api/public/website-knowledge/manual-trigger'
@@ -443,6 +444,12 @@ const AuthenticatedCompaniesIdRoute =
     path: '/companies/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAttendanceSummaryRoute =
+  AuthenticatedAttendanceSummaryRouteImport.update({
+    id: '/summary',
+    path: '/summary',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
 const AuthenticatedAttendanceNewRoute =
   AuthenticatedAttendanceNewRouteImport.update({
     id: '/new',
@@ -515,6 +522,7 @@ export interface FileRoutesByFullPath {
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -588,6 +596,7 @@ export interface FileRoutesByTo {
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -665,6 +674,7 @@ export interface FileRoutesById {
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/_authenticated/attendance/new': typeof AuthenticatedAttendanceNewRoute
+  '/_authenticated/attendance/summary': typeof AuthenticatedAttendanceSummaryRoute
   '/_authenticated/companies/$id': typeof AuthenticatedCompaniesIdRoute
   '/_authenticated/contacts/$id': typeof AuthenticatedContactsIdRoute
   '/_authenticated/customers/$id': typeof AuthenticatedCustomersIdRoute
@@ -742,6 +752,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/api/r2-upload'
     | '/attendance/new'
+    | '/attendance/summary'
     | '/companies/$id'
     | '/contacts/$id'
     | '/customers/$id'
@@ -815,6 +826,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/api/r2-upload'
     | '/attendance/new'
+    | '/attendance/summary'
     | '/companies/$id'
     | '/contacts/$id'
     | '/customers/$id'
@@ -891,6 +903,7 @@ export interface FileRouteTypes {
     | '/_authenticated/today'
     | '/api/r2-upload'
     | '/_authenticated/attendance/new'
+    | '/_authenticated/attendance/summary'
     | '/_authenticated/companies/$id'
     | '/_authenticated/contacts/$id'
     | '/_authenticated/customers/$id'
@@ -1424,6 +1437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/attendance/summary': {
+      id: '/_authenticated/attendance/summary'
+      path: '/summary'
+      fullPath: '/attendance/summary'
+      preLoaderRoute: typeof AuthenticatedAttendanceSummaryRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
     '/_authenticated/attendance/new': {
       id: '/_authenticated/attendance/new'
       path: '/new'
@@ -1492,12 +1512,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAttendanceRouteChildren {
   AuthenticatedAttendanceNewRoute: typeof AuthenticatedAttendanceNewRoute
+  AuthenticatedAttendanceSummaryRoute: typeof AuthenticatedAttendanceSummaryRoute
   AuthenticatedAttendanceIndexRoute: typeof AuthenticatedAttendanceIndexRoute
 }
 
 const AuthenticatedAttendanceRouteChildren: AuthenticatedAttendanceRouteChildren =
   {
     AuthenticatedAttendanceNewRoute: AuthenticatedAttendanceNewRoute,
+    AuthenticatedAttendanceSummaryRoute: AuthenticatedAttendanceSummaryRoute,
     AuthenticatedAttendanceIndexRoute: AuthenticatedAttendanceIndexRoute,
   }
 
