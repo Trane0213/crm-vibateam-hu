@@ -262,19 +262,33 @@ function EmailsPage() {
   // Tulajdonosi postafiók-váltó (null = összes csatlakoztatott mailbox)
   const [mailboxFilter, setMailboxFilter] = useState<string | null>(null);
 
-  const matchesMailbox = (g: ThreadAgg, mbox: string) => {
-    if (norm(g.last.from_email) === mbox) return true;
-    if (norm(g.last.to_email) === mbox) return true;
-    for (const a of g.last.to_emails ?? []) if (norm(a) === mbox) return true;
-    // szálszintű résztvevők között is
-    if (g.participants.has(mbox)) return true;
-    return false;
-  };
+  // A kiválasztott postafiókhoz tartozó thread-ID-k. Az `email_thread_access`
+  // tábla mailbox_email-enként tárolja, hogy melyik szál melyik postafiókhoz
+  // tartozik — ez a "valódi mailbox nézet" forrása. Owner esetében az RLS
+  // mindenkit lát, ezért itt explicit szűrünk.
+  const mailboxThreads = useQuery({
+    queryKey: ["email_thread_access", mailboxFilter ?? ""],
+    enabled: isOwner && !!mailboxFilter,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("email_thread_access")
+        .select("thread_id,mailbox_email")
+        .eq("mailbox_email", mailboxFilter!);
+      if (error) throw error;
+      return new Set<string>((data ?? []).map((r: any) => r.thread_id as string));
+    },
+  });
 
   const filtered = useMemo(() => {
     let list = grouped;
     if (isOwner && mailboxFilter) {
-      list = list.filter((g) => matchesMailbox(g, mailboxFilter));
+      const allowed = mailboxThreads.data;
+      if (!allowed) {
+        // amíg tölt: ne mutassunk félrevezető listát
+        list = [];
+      } else {
+        list = list.filter((g) => g.threadId && allowed.has(g.threadId));
+      }
     }
     if (tab === "inbox") list = list.filter((g) => !g.isAutomated && !(g.last.is_outbound ?? false));
     else if (tab === "sent") list = list.filter((g) => g.last.is_outbound ?? isOurs(g.last.from_email));
@@ -291,7 +305,7 @@ function EmailsPage() {
     }
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grouped, tab, q, mailboxFilter, isOwner]);
+  }, [grouped, tab, q, mailboxFilter, isOwner, mailboxThreads.data]);
 
   const counts = useMemo(() => {
     let inbox = 0, sent = 0, waiting = 0, auto = 0;
