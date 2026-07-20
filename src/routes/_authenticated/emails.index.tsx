@@ -262,10 +262,14 @@ function EmailsPage() {
   // Tulajdonosi postafiók-váltó (null = összes csatlakoztatott mailbox)
   const [mailboxFilter, setMailboxFilter] = useState<string | null>(null);
 
-  // A kiválasztott postafiókhoz tartozó thread-ID-k. Az `email_thread_access`
-  // tábla mailbox_email-enként tárolja, hogy melyik szál melyik postafiókhoz
-  // tartozik — ez a "valódi mailbox nézet" forrása. Owner esetében az RLS
-  // mindenkit lát, ezért itt explicit szűrünk.
+  // A kiválasztott postafiókhoz tartozó thread-ID-k. Két forrást uniózunk,
+  // hogy a továbbított / válaszként érkezett szálak se essenek ki:
+  //   1) `email_thread_access` — a szinkron által rögzített hozzárendelés
+  //      (mailbox_email → thread_id). Ez a "hivatalos" nézet.
+  //   2) A szálban szereplő üzenetek résztvevői (from / to / to_emails) +
+  //      az `email_threads.participants` tömb. Ez fogja el azokat a
+  //      szálakat, ahol a postafiók valaha küldött, kapott vagy címzett
+  //      volt — ideértve a Forward / Reply / Reply All eseteket is.
   const mailboxThreads = useQuery({
     queryKey: ["email_thread_access", mailboxFilter ?? ""],
     enabled: isOwner && !!mailboxFilter,
@@ -279,16 +283,33 @@ function EmailsPage() {
     },
   });
 
+  const matchesMailbox = (g: ThreadAgg, mailbox: string): boolean => {
+    const mb = norm(mailbox);
+    if (!mb) return false;
+    // 1) email üzenetekből aggregált résztvevők
+    for (const p of g.participants) {
+      if (!p) continue;
+      if (p === mb || p.includes(mb) || mb.includes(p)) return true;
+    }
+    // 2) email_threads.participants (a szál teljes története, akkor is,
+    //    ha nem minden üzenet töltődött be a listába)
+    const t = threadMap.get(g.threadId);
+    for (const p of t?.participants ?? []) {
+      const n = norm(p);
+      if (!n) continue;
+      if (n === mb || n.includes(mb) || mb.includes(n)) return true;
+    }
+    return false;
+  };
+
   const filtered = useMemo(() => {
     let list = grouped;
     if (isOwner && mailboxFilter) {
       const allowed = mailboxThreads.data;
-      if (!allowed) {
-        // amíg tölt: ne mutassunk félrevezető listát
-        list = [];
-      } else {
-        list = list.filter((g) => g.threadId && allowed.has(g.threadId));
-      }
+      list = list.filter((g) => {
+        if (allowed && g.threadId && allowed.has(g.threadId)) return true;
+        return matchesMailbox(g, mailboxFilter);
+      });
     }
     if (tab === "inbox") list = list.filter((g) => !g.isAutomated && !(g.last.is_outbound ?? false));
     else if (tab === "sent") list = list.filter((g) => g.last.is_outbound ?? isOurs(g.last.from_email));
