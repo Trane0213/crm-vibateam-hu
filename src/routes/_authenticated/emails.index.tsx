@@ -79,18 +79,14 @@ function EmailsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("gmail_email,email,full_name,display_name,name");
+        .select("gmail_email,email,full_name");
       if (error) throw error;
       const s = new Set<string>();
       const list: { email: string; label: string }[] = [];
       for (const r of (data ?? []) as any[]) {
         const a = norm(r.gmail_email);
         const b = norm(r.email);
-        const label =
-          (r.full_name as string | null) ||
-          (r.display_name as string | null) ||
-          (r.name as string | null) ||
-          "";
+        const label = (r.full_name as string | null) || "";
         if (a) {
           if (!s.has(a)) list.push({ email: a, label: label || a });
           s.add(a);
