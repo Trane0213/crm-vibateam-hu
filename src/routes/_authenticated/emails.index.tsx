@@ -79,16 +79,30 @@ function EmailsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("gmail_email,email");
+        .select("gmail_email,email,full_name,display_name,name");
       if (error) throw error;
       const s = new Set<string>();
+      const list: { email: string; label: string }[] = [];
       for (const r of (data ?? []) as any[]) {
         const a = norm(r.gmail_email);
         const b = norm(r.email);
-        if (a) s.add(a);
-        if (b) s.add(b);
+        const label =
+          (r.full_name as string | null) ||
+          (r.display_name as string | null) ||
+          (r.name as string | null) ||
+          "";
+        if (a) {
+          if (!s.has(a)) list.push({ email: a, label: label || a });
+          s.add(a);
+        }
+        if (b && !s.has(b)) {
+          // csak akkor listázzuk külön "postafiókként", ha gmail_email megegyezik vagy hiányzik
+          if (!a) list.push({ email: b, label: label || b });
+          s.add(b);
+        }
       }
-      return s;
+      list.sort((x, y) => x.label.localeCompare(y.label, "hu"));
+      return { set: s, list };
     },
   });
 
@@ -183,7 +197,8 @@ function EmailsPage() {
     projectId: string | null;
   };
 
-  const ours = ourMailboxes.data ?? new Set<string>();
+  const ours = ourMailboxes.data?.set ?? new Set<string>();
+  const mailboxList = ourMailboxes.data?.list ?? [];
   const isOurs = (addr: string | null) => {
     const a = norm(addr);
     if (!a) return false;
@@ -248,9 +263,23 @@ function EmailsPage() {
   const [tab, setTab] = useState<"inbox" | "sent" | "waiting" | "auto" | "all">("inbox");
   const [q, setQ] = useState("");
   const [composeOpen, setComposeOpen] = useState(false);
+  // Tulajdonosi postafiók-váltó (null = összes csatlakoztatott mailbox)
+  const [mailboxFilter, setMailboxFilter] = useState<string | null>(null);
+
+  const matchesMailbox = (g: ThreadAgg, mbox: string) => {
+    if (norm(g.last.from_email) === mbox) return true;
+    if (norm(g.last.to_email) === mbox) return true;
+    for (const a of g.last.to_emails ?? []) if (norm(a) === mbox) return true;
+    // szálszintű résztvevők között is
+    if (g.participants.has(mbox)) return true;
+    return false;
+  };
 
   const filtered = useMemo(() => {
     let list = grouped;
+    if (isOwner && mailboxFilter) {
+      list = list.filter((g) => matchesMailbox(g, mailboxFilter));
+    }
     if (tab === "inbox") list = list.filter((g) => !g.isAutomated && !(g.last.is_outbound ?? false));
     else if (tab === "sent") list = list.filter((g) => g.last.is_outbound ?? isOurs(g.last.from_email));
     else if (tab === "waiting") list = list.filter((g) => g.lastIsInbound && !g.isAutomated);
@@ -266,7 +295,7 @@ function EmailsPage() {
     }
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grouped, tab, q]);
+  }, [grouped, tab, q, mailboxFilter, isOwner]);
 
   const counts = useMemo(() => {
     let inbox = 0, sent = 0, waiting = 0, auto = 0;
@@ -300,6 +329,33 @@ function EmailsPage() {
         }
       />
       <div className="p-6 space-y-4">
+        {isOwner && mailboxList.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground mr-1">
+              Postafiók:
+            </span>
+            <Button
+              size="sm"
+              variant={mailboxFilter === null ? "default" : "outline"}
+              className="h-7 px-2.5 text-[12px]"
+              onClick={() => setMailboxFilter(null)}
+            >
+              Összes
+            </Button>
+            {mailboxList.map((m) => (
+              <Button
+                key={m.email}
+                size="sm"
+                variant={mailboxFilter === m.email ? "default" : "outline"}
+                className="h-7 px-2.5 text-[12px]"
+                onClick={() => setMailboxFilter(m.email)}
+                title={m.email}
+              >
+                {m.label}
+              </Button>
+            ))}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
             <TabsList>
