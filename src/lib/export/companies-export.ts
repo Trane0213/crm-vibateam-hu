@@ -135,7 +135,6 @@ export async function exportCompaniesToExcel(rows: Row[]): Promise<CompaniesExpo
     };
   });
 
-  const allLeadCount = countBy(leads);
   const withCompany = (list: Row[]): Row[] =>
     list
       .filter((r) => r.company_id && ids.has(r.company_id))
