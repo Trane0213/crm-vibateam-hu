@@ -68,6 +68,18 @@ function CompaniesIndex() {
       order="name"
       ascending
       filter={filterFn}
+      actionsFor={(rows) => (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={exporting || rows.length === 0}
+          onClick={() => handleExport(rows)}
+          title="A cégek listája minden adatával, Excel munkafüzetben (kapcsolattartók, leadek, projektek, ajánlatok, email szálak külön lapokon)"
+        >
+          <FileDown className="mr-1 h-4 w-4" />
+          {exporting ? "Exportálás…" : "Excel export"}
+        </Button>
+      )}
       toolbar={
         <FilterBar
           search={search}
