@@ -92,6 +92,7 @@ export function ResourcePage({
   emptyDescription,
   newButtonLabel = "Új",
   extraActions,
+  actionsFor,
 }: {
   title: string;
   description?: string;
@@ -143,6 +144,7 @@ export function ResourcePage({
         actions={
           <div className="flex items-center gap-2">
             {extraActions}
+            {actionsFor?.(rows)}
             <Button
               size="sm"
               onClick={() => {
