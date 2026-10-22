@@ -123,7 +123,7 @@ export async function exportCompaniesToExcel(rows: Row[]): Promise<CompaniesExpo
       "Létrehozva": dateOnly(c.created_at),
       "Kapcsolattartók": contactCount.get(c.id) ?? 0,
       "Aktív lead": leadCount.get(c.id) ?? 0,
-      "Összes lead": countBy(leads).get(c.id) ?? 0,
+      "Összes lead": allLeadCount.get(c.id) ?? 0,
       "Projektek": projectCount.get(c.id) ?? 0,
       "Aktív projektek": k?.active_projects ?? 0,
       "Nyitott ajánlatok": openQuotes.get(c.id) ?? k?.open_quotes ?? 0,
@@ -134,7 +134,8 @@ export async function exportCompaniesToExcel(rows: Row[]): Promise<CompaniesExpo
     };
   });
 
-  const withCompany = (list: Row[]) =>
+  const allLeadCount = countBy(leads);
+  const withCompany = (list: Row[]): Row[] =>
     list
       .filter((r) => r.company_id && ids.has(r.company_id))
       .map((r) => ({ "Cég": nameOf.get(r.company_id) ?? "", ...r }));
