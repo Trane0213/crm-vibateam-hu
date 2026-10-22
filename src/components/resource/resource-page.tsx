@@ -108,6 +108,8 @@ export function ResourcePage({
   emptyDescription?: string;
   newButtonLabel?: string;
   extraActions?: React.ReactNode;
+  /** A fejléc akciógombjai a jelenleg szűrt sorokkal (pl. Excel-export). */
+  actionsFor?: (rows: any[]) => ReactNode;
 }) {
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
