@@ -9,94 +9,93 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiR2UploadRouteImport } from './routes/api/r2-upload'
-import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
-import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
-import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
-import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
-import { Route as AuthenticatedDataQualityRouteImport } from './routes/_authenticated/data-quality'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedCampaignListRouteImport } from './routes/_authenticated/campaign-list'
-import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
-import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
-import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
-import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
-import { Route as AuthenticatedWebQuoteRequestsIndexRouteImport } from './routes/_authenticated/web-quote-requests.index'
-import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
-import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
-import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
-import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
-import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
-import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
-import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
-import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
-import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as AuthenticatedAiAssistantRouteImport } from './routes/_authenticated/ai-assistant'
+import { Route as AuthenticatedAiAssistantsRouteImport } from './routes/_authenticated/ai-assistants'
+import { Route as AuthenticatedAttendanceRouteImport } from './routes/_authenticated/attendance'
+import { Route as AuthenticatedCallsRouteImport } from './routes/_authenticated/calls'
+import { Route as AuthenticatedCampaignListRouteImport } from './routes/_authenticated/campaign-list'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDataQualityRouteImport } from './routes/_authenticated/data-quality'
+import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
+import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
+import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as ApiR2UploadRouteImport } from './routes/api/r2-upload'
 import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
-import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
-import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
-import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
-import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
-import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
-import { Route as AuthenticatedWebQuoteRequestsIdRouteImport } from './routes/_authenticated/web-quote-requests.$id'
-import { Route as AuthenticatedSettingsWebsiteKnowledgeRouteImport } from './routes/_authenticated/settings.website-knowledge'
-import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
-import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
-import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
-import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings.profile'
-import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
-import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
-import { Route as AuthenticatedSettingsKnowledgeGraphRouteImport } from './routes/_authenticated/settings.knowledge-graph'
-import { Route as AuthenticatedSettingsGoogleAdsRouteImport } from './routes/_authenticated/settings.google-ads'
-import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
-import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
-import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
-import { Route as AuthenticatedSettingsAgentVisibilityRouteImport } from './routes/_authenticated/settings.agent-visibility'
-import { Route as AuthenticatedSettingsAgentAuditRouteImport } from './routes/_authenticated/settings.agent-audit'
-import { Route as AuthenticatedSalesTodoRouteImport } from './routes/_authenticated/sales.todo'
-import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
-import { Route as AuthenticatedSalesQuotesRouteImport } from './routes/_authenticated/sales.quotes'
-import { Route as AuthenticatedSalesLeadsRouteImport } from './routes/_authenticated/sales.leads'
-import { Route as AuthenticatedSalesHandoffRouteImport } from './routes/_authenticated/sales.handoff'
-import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
-import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
-import { Route as AuthenticatedLeadsLostRouteImport } from './routes/_authenticated/leads.lost'
-import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
-import { Route as AuthenticatedHelpMarketingRouteImport } from './routes/_authenticated/help.marketing'
-import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authenticated/emails.$threadId'
-import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
-import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
-import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
-import { Route as AuthenticatedAttendanceWorkersRouteImport } from './routes/_authenticated/attendance.workers'
-import { Route as AuthenticatedAttendanceSummaryRouteImport } from './routes/_authenticated/attendance.summary'
-import { Route as AuthenticatedAttendanceQuickRouteImport } from './routes/_authenticated/attendance.quick'
-import { Route as AuthenticatedAttendancePayoutsRouteImport } from './routes/_authenticated/attendance.payouts'
-import { Route as AuthenticatedAttendanceNewRouteImport } from './routes/_authenticated/attendance.new'
 import { Route as AuthenticatedAttendanceGuideRouteImport } from './routes/_authenticated/attendance.guide'
-import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
-import { Route as ApiPublicWebsiteKnowledgeManualTriggerRouteImport } from './routes/api/public/website-knowledge/manual-trigger'
-import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
-import { Route as ApiGoogleAdsOauthStartRouteImport } from './routes/api/google-ads/oauth.start'
-import { Route as ApiGoogleAdsOauthCallbackRouteImport } from './routes/api/google-ads/oauth.callback'
-import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
-import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
+import { Route as AuthenticatedAttendanceNewRouteImport } from './routes/_authenticated/attendance.new'
+import { Route as AuthenticatedAttendancePayoutsRouteImport } from './routes/_authenticated/attendance.payouts'
+import { Route as AuthenticatedAttendanceQuickRouteImport } from './routes/_authenticated/attendance.quick'
+import { Route as AuthenticatedAttendanceSummaryRouteImport } from './routes/_authenticated/attendance.summary'
+import { Route as AuthenticatedAttendanceWorkersRouteImport } from './routes/_authenticated/attendance.workers'
+import { Route as AuthenticatedCompaniesIndexRouteImport } from './routes/_authenticated/companies.index'
+import { Route as AuthenticatedCompaniesIdRouteImport } from './routes/_authenticated/companies.$id'
+import { Route as AuthenticatedContactsIndexRouteImport } from './routes/_authenticated/contacts.index'
+import { Route as AuthenticatedContactsIdRouteImport } from './routes/_authenticated/contacts.$id'
+import { Route as AuthenticatedCustomersIndexRouteImport } from './routes/_authenticated/customers.index'
+import { Route as AuthenticatedCustomersIdRouteImport } from './routes/_authenticated/customers.$id'
+import { Route as AuthenticatedEmailsIndexRouteImport } from './routes/_authenticated/emails.index'
+import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authenticated/emails.$threadId'
+import { Route as AuthenticatedHelpMarketingRouteImport } from './routes/_authenticated/help.marketing'
+import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
+import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
+import { Route as AuthenticatedLeadsLostRouteImport } from './routes/_authenticated/leads.lost'
+import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
+import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
+import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
+import { Route as AuthenticatedQuotesIdRouteImport } from './routes/_authenticated/quotes.$id'
+import { Route as AuthenticatedSalesIndexRouteImport } from './routes/_authenticated/sales.index'
+import { Route as AuthenticatedSalesHandoffRouteImport } from './routes/_authenticated/sales.handoff'
+import { Route as AuthenticatedSalesLeadsRouteImport } from './routes/_authenticated/sales.leads'
+import { Route as AuthenticatedSalesQuotesRouteImport } from './routes/_authenticated/sales.quotes'
+import { Route as AuthenticatedSalesResearchRouteImport } from './routes/_authenticated/sales.research'
+import { Route as AuthenticatedSalesTodoRouteImport } from './routes/_authenticated/sales.todo'
+import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
+import { Route as AuthenticatedSettingsAgentAuditRouteImport } from './routes/_authenticated/settings.agent-audit'
+import { Route as AuthenticatedSettingsAgentVisibilityRouteImport } from './routes/_authenticated/settings.agent-visibility'
+import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
+import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
+import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
+import { Route as AuthenticatedSettingsGoogleAdsRouteImport } from './routes/_authenticated/settings.google-ads'
+import { Route as AuthenticatedSettingsKnowledgeGraphRouteImport } from './routes/_authenticated/settings.knowledge-graph'
+import { Route as AuthenticatedSettingsOpenaiRouteImport } from './routes/_authenticated/settings.openai'
+import { Route as AuthenticatedSettingsPermissionsAuditRouteImport } from './routes/_authenticated/settings.permissions-audit'
+import { Route as AuthenticatedSettingsProfileRouteImport } from './routes/_authenticated/settings.profile'
+import { Route as AuthenticatedSettingsRolesRouteImport } from './routes/_authenticated/settings.roles'
+import { Route as AuthenticatedSettingsStorageRouteImport } from './routes/_authenticated/settings.storage'
+import { Route as AuthenticatedSettingsUsersRouteImport } from './routes/_authenticated/settings.users'
+import { Route as AuthenticatedSettingsWebsiteKnowledgeRouteImport } from './routes/_authenticated/settings.website-knowledge'
+import { Route as AuthenticatedWebQuoteRequestsIndexRouteImport } from './routes/_authenticated/web-quote-requests.index'
+import { Route as AuthenticatedWebQuoteRequestsIdRouteImport } from './routes/_authenticated/web-quote-requests.$id'
+import { Route as ApiGmailDisconnectRouteImport } from './routes/api/gmail/disconnect'
+import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refresh-body'
+import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
+import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
+import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
 import { Route as AuthenticatedQuotesIdPrintRouteImport } from './routes/_authenticated/quotes.$id_.print'
+import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
+import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
+import { Route as ApiGoogleAdsOauthCallbackRouteImport } from './routes/api/google-ads/oauth.callback'
+import { Route as ApiGoogleAdsOauthStartRouteImport } from './routes/api/google-ads/oauth.start'
+import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
+import { Route as ApiPublicWebsiteKnowledgeManualTriggerRouteImport } from './routes/api/public/website-knowledge/manual-trigger'
+import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
 
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -104,59 +103,41 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiR2UploadRoute = ApiR2UploadRouteImport.update({
-  id: '/api/r2-upload',
-  path: '/api/r2-upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
-  id: '/today',
-  path: '/today',
+const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
-  id: '/tasks',
-  path: '/tasks',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
-  id: '/meetings',
-  path: '/meetings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedFollowupsRoute = AuthenticatedFollowupsRouteImport.update({
-  id: '/followups',
-  path: '/followups',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
-  id: '/documents',
-  path: '/documents',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDataQualityRoute =
-  AuthenticatedDataQualityRouteImport.update({
-    id: '/data-quality',
-    path: '/data-quality',
+const AuthenticatedAiAssistantRoute =
+  AuthenticatedAiAssistantRouteImport.update({
+    id: '/ai-assistant',
+    path: '/ai-assistant',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AuthenticatedAiAssistantsRoute =
+  AuthenticatedAiAssistantsRouteImport.update({
+    id: '/ai-assistants',
+    path: '/ai-assistants',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
+  id: '/calls',
+  path: '/calls',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCampaignListRoute =
@@ -165,317 +146,56 @@ const AuthenticatedCampaignListRoute =
     path: '/campaign-list',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCallsRoute = AuthenticatedCallsRouteImport.update({
-  id: '/calls',
-  path: '/calls',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAttendanceRoute = AuthenticatedAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
+const AuthenticatedDataQualityRoute =
+  AuthenticatedDataQualityRouteImport.update({
+    id: '/data-quality',
+    path: '/data-quality',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAiAssistantsRoute =
-  AuthenticatedAiAssistantsRouteImport.update({
-    id: '/ai-assistants',
-    path: '/ai-assistants',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAiAssistantRoute =
-  AuthenticatedAiAssistantRouteImport.update({
-    id: '/ai-assistant',
-    path: '/ai-assistant',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
-  id: '/activity',
-  path: '/activity',
+const AuthenticatedFollowupsRoute = AuthenticatedFollowupsRouteImport.update({
+  id: '/followups',
+  path: '/followups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedWebQuoteRequestsIndexRoute =
-  AuthenticatedWebQuoteRequestsIndexRouteImport.update({
-    id: '/web-quote-requests/',
-    path: '/web-quote-requests/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsIndexRoute =
-  AuthenticatedSettingsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSalesIndexRoute = AuthenticatedSalesIndexRouteImport.update({
-  id: '/sales/',
-  path: '/sales/',
+const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
+  id: '/meetings',
+  path: '/meetings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedQuotesIndexRoute =
-  AuthenticatedQuotesIndexRouteImport.update({
-    id: '/quotes/',
-    path: '/quotes/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedProjectsIndexRoute =
-  AuthenticatedProjectsIndexRouteImport.update({
-    id: '/projects/',
-    path: '/projects/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
-  id: '/leads/',
-  path: '/leads/',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEmailsIndexRoute =
-  AuthenticatedEmailsIndexRouteImport.update({
-    id: '/emails/',
-    path: '/emails/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCustomersIndexRoute =
-  AuthenticatedCustomersIndexRouteImport.update({
-    id: '/customers/',
-    path: '/customers/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedContactsIndexRoute =
-  AuthenticatedContactsIndexRouteImport.update({
-    id: '/contacts/',
-    path: '/contacts/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCompaniesIndexRoute =
-  AuthenticatedCompaniesIndexRouteImport.update({
-    id: '/companies/',
-    path: '/companies/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiR2UploadRoute = ApiR2UploadRouteImport.update({
+  id: '/api/r2-upload',
+  path: '/api/r2-upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAttendanceIndexRoute =
   AuthenticatedAttendanceIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthenticatedAttendanceRoute,
-  } as any)
-const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
-  id: '/api/gmail/sync',
-  path: '/api/gmail/sync',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGmailStatusRoute = ApiGmailStatusRouteImport.update({
-  id: '/api/gmail/status',
-  path: '/api/gmail/status',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGmailSendRoute = ApiGmailSendRouteImport.update({
-  id: '/api/gmail/send',
-  path: '/api/gmail/send',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGmailRefreshBodyRoute = ApiGmailRefreshBodyRouteImport.update({
-  id: '/api/gmail/refresh-body',
-  path: '/api/gmail/refresh-body',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGmailDisconnectRoute = ApiGmailDisconnectRouteImport.update({
-  id: '/api/gmail/disconnect',
-  path: '/api/gmail/disconnect',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedWebQuoteRequestsIdRoute =
-  AuthenticatedWebQuoteRequestsIdRouteImport.update({
-    id: '/web-quote-requests/$id',
-    path: '/web-quote-requests/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSettingsWebsiteKnowledgeRoute =
-  AuthenticatedSettingsWebsiteKnowledgeRouteImport.update({
-    id: '/website-knowledge',
-    path: '/website-knowledge',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsUsersRoute =
-  AuthenticatedSettingsUsersRouteImport.update({
-    id: '/users',
-    path: '/users',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsStorageRoute =
-  AuthenticatedSettingsStorageRouteImport.update({
-    id: '/storage',
-    path: '/storage',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsRolesRoute =
-  AuthenticatedSettingsRolesRouteImport.update({
-    id: '/roles',
-    path: '/roles',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsProfileRoute =
-  AuthenticatedSettingsProfileRouteImport.update({
-    id: '/profile',
-    path: '/profile',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsPermissionsAuditRoute =
-  AuthenticatedSettingsPermissionsAuditRouteImport.update({
-    id: '/permissions-audit',
-    path: '/permissions-audit',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsOpenaiRoute =
-  AuthenticatedSettingsOpenaiRouteImport.update({
-    id: '/openai',
-    path: '/openai',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsKnowledgeGraphRoute =
-  AuthenticatedSettingsKnowledgeGraphRouteImport.update({
-    id: '/knowledge-graph',
-    path: '/knowledge-graph',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsGoogleAdsRoute =
-  AuthenticatedSettingsGoogleAdsRouteImport.update({
-    id: '/google-ads',
-    path: '/google-ads',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsGmailRoute =
-  AuthenticatedSettingsGmailRouteImport.update({
-    id: '/gmail',
-    path: '/gmail',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsDashboardStatusRoute =
-  AuthenticatedSettingsDashboardStatusRouteImport.update({
-    id: '/dashboard-status',
-    path: '/dashboard-status',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsAuditRoute =
-  AuthenticatedSettingsAuditRouteImport.update({
-    id: '/audit',
-    path: '/audit',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsAgentVisibilityRoute =
-  AuthenticatedSettingsAgentVisibilityRouteImport.update({
-    id: '/agent-visibility',
-    path: '/agent-visibility',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSettingsAgentAuditRoute =
-  AuthenticatedSettingsAgentAuditRouteImport.update({
-    id: '/agent-audit',
-    path: '/agent-audit',
-    getParentRoute: () => AuthenticatedSettingsRoute,
-  } as any)
-const AuthenticatedSalesTodoRoute = AuthenticatedSalesTodoRouteImport.update({
-  id: '/sales/todo',
-  path: '/sales/todo',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSalesResearchRoute =
-  AuthenticatedSalesResearchRouteImport.update({
-    id: '/sales/research',
-    path: '/sales/research',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSalesQuotesRoute =
-  AuthenticatedSalesQuotesRouteImport.update({
-    id: '/sales/quotes',
-    path: '/sales/quotes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSalesLeadsRoute = AuthenticatedSalesLeadsRouteImport.update({
-  id: '/sales/leads',
-  path: '/sales/leads',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSalesHandoffRoute =
-  AuthenticatedSalesHandoffRouteImport.update({
-    id: '/sales/handoff',
-    path: '/sales/handoff',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedQuotesIdRoute = AuthenticatedQuotesIdRouteImport.update({
-  id: '/quotes/$id',
-  path: '/quotes/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
-  id: '/projects/$id',
-  path: '/projects/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedLeadsLostRoute = AuthenticatedLeadsLostRouteImport.update({
-  id: '/leads/lost',
-  path: '/leads/lost',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
-  id: '/leads/$id',
-  path: '/leads/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedHelpMarketingRoute =
-  AuthenticatedHelpMarketingRouteImport.update({
-    id: '/help/marketing',
-    path: '/help/marketing',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedEmailsThreadIdRoute =
-  AuthenticatedEmailsThreadIdRouteImport.update({
-    id: '/emails/$threadId',
-    path: '/emails/$threadId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCustomersIdRoute =
-  AuthenticatedCustomersIdRouteImport.update({
-    id: '/customers/$id',
-    path: '/customers/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
-  id: '/contacts/$id',
-  path: '/contacts/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCompaniesIdRoute =
-  AuthenticatedCompaniesIdRouteImport.update({
-    id: '/companies/$id',
-    path: '/companies/$id',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAttendanceWorkersRoute =
-  AuthenticatedAttendanceWorkersRouteImport.update({
-    id: '/workers',
-    path: '/workers',
-    getParentRoute: () => AuthenticatedAttendanceRoute,
-  } as any)
-const AuthenticatedAttendanceSummaryRoute =
-  AuthenticatedAttendanceSummaryRouteImport.update({
-    id: '/summary',
-    path: '/summary',
-    getParentRoute: () => AuthenticatedAttendanceRoute,
-  } as any)
-const AuthenticatedAttendanceQuickRoute =
-  AuthenticatedAttendanceQuickRouteImport.update({
-    id: '/quick',
-    path: '/quick',
-    getParentRoute: () => AuthenticatedAttendanceRoute,
-  } as any)
-const AuthenticatedAttendancePayoutsRoute =
-  AuthenticatedAttendancePayoutsRouteImport.update({
-    id: '/payouts',
-    path: '/payouts',
-    getParentRoute: () => AuthenticatedAttendanceRoute,
-  } as any)
-const AuthenticatedAttendanceNewRoute =
-  AuthenticatedAttendanceNewRouteImport.update({
-    id: '/new',
-    path: '/new',
     getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
 const AuthenticatedAttendanceGuideRoute =
@@ -484,26 +204,300 @@ const AuthenticatedAttendanceGuideRoute =
     path: '/guide',
     getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
-const ApiPublicWebsiteKnowledgeNetlifyWebhookRoute =
-  ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport.update({
-    id: '/api/public/website-knowledge/netlify-webhook',
-    path: '/api/public/website-knowledge/netlify-webhook',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedAttendanceNewRoute =
+  AuthenticatedAttendanceNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
-const ApiPublicWebsiteKnowledgeManualTriggerRoute =
-  ApiPublicWebsiteKnowledgeManualTriggerRouteImport.update({
-    id: '/api/public/website-knowledge/manual-trigger',
-    path: '/api/public/website-knowledge/manual-trigger',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedAttendancePayoutsRoute =
+  AuthenticatedAttendancePayoutsRouteImport.update({
+    id: '/payouts',
+    path: '/payouts',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
   } as any)
-const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
-  id: '/api/public/gmail/cron-sync',
-  path: '/api/public/gmail/cron-sync',
+const AuthenticatedAttendanceQuickRoute =
+  AuthenticatedAttendanceQuickRouteImport.update({
+    id: '/quick',
+    path: '/quick',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
+const AuthenticatedAttendanceSummaryRoute =
+  AuthenticatedAttendanceSummaryRouteImport.update({
+    id: '/summary',
+    path: '/summary',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
+const AuthenticatedAttendanceWorkersRoute =
+  AuthenticatedAttendanceWorkersRouteImport.update({
+    id: '/workers',
+    path: '/workers',
+    getParentRoute: () => AuthenticatedAttendanceRoute,
+  } as any)
+const AuthenticatedCompaniesIndexRoute =
+  AuthenticatedCompaniesIndexRouteImport.update({
+    id: '/companies/',
+    path: '/companies/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCompaniesIdRoute =
+  AuthenticatedCompaniesIdRouteImport.update({
+    id: '/companies/$id',
+    path: '/companies/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsIndexRoute =
+  AuthenticatedContactsIndexRouteImport.update({
+    id: '/contacts/',
+    path: '/contacts/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsIdRoute = AuthenticatedContactsIdRouteImport.update({
+  id: '/contacts/$id',
+  path: '/contacts/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCustomersIndexRoute =
+  AuthenticatedCustomersIndexRouteImport.update({
+    id: '/customers/',
+    path: '/customers/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCustomersIdRoute =
+  AuthenticatedCustomersIdRouteImport.update({
+    id: '/customers/$id',
+    path: '/customers/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmailsIndexRoute =
+  AuthenticatedEmailsIndexRouteImport.update({
+    id: '/emails/',
+    path: '/emails/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedEmailsThreadIdRoute =
+  AuthenticatedEmailsThreadIdRouteImport.update({
+    id: '/emails/$threadId',
+    path: '/emails/$threadId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHelpMarketingRoute =
+  AuthenticatedHelpMarketingRouteImport.update({
+    id: '/help/marketing',
+    path: '/help/marketing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
+  id: '/leads/',
+  path: '/leads/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
+  id: '/leads/$id',
+  path: '/leads/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLeadsLostRoute = AuthenticatedLeadsLostRouteImport.update({
+  id: '/leads/lost',
+  path: '/leads/lost',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProjectsIndexRoute =
+  AuthenticatedProjectsIndexRouteImport.update({
+    id: '/projects/',
+    path: '/projects/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
+  id: '/projects/$id',
+  path: '/projects/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedQuotesIndexRoute =
+  AuthenticatedQuotesIndexRouteImport.update({
+    id: '/quotes/',
+    path: '/quotes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedQuotesIdRoute = AuthenticatedQuotesIdRouteImport.update({
+  id: '/quotes/$id',
+  path: '/quotes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalesIndexRoute = AuthenticatedSalesIndexRouteImport.update({
+  id: '/sales/',
+  path: '/sales/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalesHandoffRoute =
+  AuthenticatedSalesHandoffRouteImport.update({
+    id: '/sales/handoff',
+    path: '/sales/handoff',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSalesLeadsRoute = AuthenticatedSalesLeadsRouteImport.update({
+  id: '/sales/leads',
+  path: '/sales/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalesQuotesRoute =
+  AuthenticatedSalesQuotesRouteImport.update({
+    id: '/sales/quotes',
+    path: '/sales/quotes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSalesResearchRoute =
+  AuthenticatedSalesResearchRouteImport.update({
+    id: '/sales/research',
+    path: '/sales/research',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSalesTodoRoute = AuthenticatedSalesTodoRouteImport.update({
+  id: '/sales/todo',
+  path: '/sales/todo',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsIndexRoute =
+  AuthenticatedSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsAgentAuditRoute =
+  AuthenticatedSettingsAgentAuditRouteImport.update({
+    id: '/agent-audit',
+    path: '/agent-audit',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsAgentVisibilityRoute =
+  AuthenticatedSettingsAgentVisibilityRouteImport.update({
+    id: '/agent-visibility',
+    path: '/agent-visibility',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsAuditRoute =
+  AuthenticatedSettingsAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsDashboardStatusRoute =
+  AuthenticatedSettingsDashboardStatusRouteImport.update({
+    id: '/dashboard-status',
+    path: '/dashboard-status',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsGmailRoute =
+  AuthenticatedSettingsGmailRouteImport.update({
+    id: '/gmail',
+    path: '/gmail',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsGoogleAdsRoute =
+  AuthenticatedSettingsGoogleAdsRouteImport.update({
+    id: '/google-ads',
+    path: '/google-ads',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsKnowledgeGraphRoute =
+  AuthenticatedSettingsKnowledgeGraphRouteImport.update({
+    id: '/knowledge-graph',
+    path: '/knowledge-graph',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsOpenaiRoute =
+  AuthenticatedSettingsOpenaiRouteImport.update({
+    id: '/openai',
+    path: '/openai',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsPermissionsAuditRoute =
+  AuthenticatedSettingsPermissionsAuditRouteImport.update({
+    id: '/permissions-audit',
+    path: '/permissions-audit',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsProfileRoute =
+  AuthenticatedSettingsProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsRolesRoute =
+  AuthenticatedSettingsRolesRouteImport.update({
+    id: '/roles',
+    path: '/roles',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsStorageRoute =
+  AuthenticatedSettingsStorageRouteImport.update({
+    id: '/storage',
+    path: '/storage',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsUsersRoute =
+  AuthenticatedSettingsUsersRouteImport.update({
+    id: '/users',
+    path: '/users',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedSettingsWebsiteKnowledgeRoute =
+  AuthenticatedSettingsWebsiteKnowledgeRouteImport.update({
+    id: '/website-knowledge',
+    path: '/website-knowledge',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
+const AuthenticatedWebQuoteRequestsIndexRoute =
+  AuthenticatedWebQuoteRequestsIndexRouteImport.update({
+    id: '/web-quote-requests/',
+    path: '/web-quote-requests/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWebQuoteRequestsIdRoute =
+  AuthenticatedWebQuoteRequestsIdRouteImport.update({
+    id: '/web-quote-requests/$id',
+    path: '/web-quote-requests/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiGmailDisconnectRoute = ApiGmailDisconnectRouteImport.update({
+  id: '/api/gmail/disconnect',
+  path: '/api/gmail/disconnect',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGoogleAdsOauthStartRoute = ApiGoogleAdsOauthStartRouteImport.update({
-  id: '/api/google-ads/oauth/start',
-  path: '/api/google-ads/oauth/start',
+const ApiGmailRefreshBodyRoute = ApiGmailRefreshBodyRouteImport.update({
+  id: '/api/gmail/refresh-body',
+  path: '/api/gmail/refresh-body',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailSendRoute = ApiGmailSendRouteImport.update({
+  id: '/api/gmail/send',
+  path: '/api/gmail/send',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailStatusRoute = ApiGmailStatusRouteImport.update({
+  id: '/api/gmail/status',
+  path: '/api/gmail/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
+  id: '/api/gmail/sync',
+  path: '/api/gmail/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedQuotesIdPrintRoute =
+  AuthenticatedQuotesIdPrintRouteImport.update({
+    id: '/quotes/$id_/print',
+    path: '/quotes/$id/print',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiGmailOauthCallbackRoute = ApiGmailOauthCallbackRouteImport.update({
+  id: '/api/gmail/oauth/callback',
+  path: '/api/gmail/oauth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
+  id: '/api/gmail/oauth/start',
+  path: '/api/gmail/oauth/start',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGoogleAdsOauthCallbackRoute =
@@ -512,21 +506,27 @@ const ApiGoogleAdsOauthCallbackRoute =
     path: '/api/google-ads/oauth/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiGmailOauthStartRoute = ApiGmailOauthStartRouteImport.update({
-  id: '/api/gmail/oauth/start',
-  path: '/api/gmail/oauth/start',
+const ApiGoogleAdsOauthStartRoute = ApiGoogleAdsOauthStartRouteImport.update({
+  id: '/api/google-ads/oauth/start',
+  path: '/api/google-ads/oauth/start',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGmailOauthCallbackRoute = ApiGmailOauthCallbackRouteImport.update({
-  id: '/api/gmail/oauth/callback',
-  path: '/api/gmail/oauth/callback',
+const ApiPublicGmailCronSyncRoute = ApiPublicGmailCronSyncRouteImport.update({
+  id: '/api/public/gmail/cron-sync',
+  path: '/api/public/gmail/cron-sync',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedQuotesIdPrintRoute =
-  AuthenticatedQuotesIdPrintRouteImport.update({
-    id: '/quotes/$id_/print',
-    path: '/quotes/$id/print',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const ApiPublicWebsiteKnowledgeManualTriggerRoute =
+  ApiPublicWebsiteKnowledgeManualTriggerRouteImport.update({
+    id: '/api/public/website-knowledge/manual-trigger',
+    path: '/api/public/website-knowledge/manual-trigger',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWebsiteKnowledgeNetlifyWebhookRoute =
+  ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport.update({
+    id: '/api/public/website-knowledge/netlify-webhook',
+    path: '/api/public/website-knowledge/netlify-webhook',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -1034,25 +1034,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -1062,102 +1048,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/r2-upload': {
-      id: '/api/r2-upload'
-      path: '/api/r2-upload'
-      fullPath: '/api/r2-upload'
-      preLoaderRoute: typeof ApiR2UploadRouteImport
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/today': {
-      id: '/_authenticated/today'
-      path: '/today'
-      fullPath: '/today'
-      preLoaderRoute: typeof AuthenticatedTodayRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/tasks': {
-      id: '/_authenticated/tasks'
-      path: '/tasks'
-      fullPath: '/tasks'
-      preLoaderRoute: typeof AuthenticatedTasksRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meetings': {
-      id: '/_authenticated/meetings'
-      path: '/meetings'
-      fullPath: '/meetings'
-      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/followups': {
-      id: '/_authenticated/followups'
-      path: '/followups'
-      fullPath: '/followups'
-      preLoaderRoute: typeof AuthenticatedFollowupsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/documents': {
-      id: '/_authenticated/documents'
-      path: '/documents'
-      fullPath: '/documents'
-      preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/data-quality': {
-      id: '/_authenticated/data-quality'
-      path: '/data-quality'
-      fullPath: '/data-quality'
-      preLoaderRoute: typeof AuthenticatedDataQualityRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/campaign-list': {
-      id: '/_authenticated/campaign-list'
-      path: '/campaign-list'
-      fullPath: '/campaign-list'
-      preLoaderRoute: typeof AuthenticatedCampaignListRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calls': {
-      id: '/_authenticated/calls'
-      path: '/calls'
-      fullPath: '/calls'
-      preLoaderRoute: typeof AuthenticatedCallsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/attendance': {
-      id: '/_authenticated/attendance'
-      path: '/attendance'
-      fullPath: '/attendance'
-      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ai-assistants': {
-      id: '/_authenticated/ai-assistants'
-      path: '/ai-assistants'
-      fullPath: '/ai-assistants'
-      preLoaderRoute: typeof AuthenticatedAiAssistantsRouteImport
+    '/_authenticated/activity': {
+      id: '/_authenticated/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AuthenticatedActivityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ai-assistant': {
@@ -1167,361 +1083,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAiAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/activity': {
-      id: '/_authenticated/activity'
-      path: '/activity'
-      fullPath: '/activity'
-      preLoaderRoute: typeof AuthenticatedActivityRouteImport
+    '/_authenticated/ai-assistants': {
+      id: '/_authenticated/ai-assistants'
+      path: '/ai-assistants'
+      fullPath: '/ai-assistants'
+      preLoaderRoute: typeof AuthenticatedAiAssistantsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/web-quote-requests/': {
-      id: '/_authenticated/web-quote-requests/'
-      path: '/web-quote-requests'
-      fullPath: '/web-quote-requests/'
-      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIndexRouteImport
+    '/_authenticated/attendance': {
+      id: '/_authenticated/attendance'
+      path: '/attendance'
+      fullPath: '/attendance'
+      preLoaderRoute: typeof AuthenticatedAttendanceRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/settings/': {
-      id: '/_authenticated/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/sales/': {
-      id: '/_authenticated/sales/'
-      path: '/sales'
-      fullPath: '/sales/'
-      preLoaderRoute: typeof AuthenticatedSalesIndexRouteImport
+    '/_authenticated/calls': {
+      id: '/_authenticated/calls'
+      path: '/calls'
+      fullPath: '/calls'
+      preLoaderRoute: typeof AuthenticatedCallsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/quotes/': {
-      id: '/_authenticated/quotes/'
-      path: '/quotes'
-      fullPath: '/quotes/'
-      preLoaderRoute: typeof AuthenticatedQuotesIndexRouteImport
+    '/_authenticated/campaign-list': {
+      id: '/_authenticated/campaign-list'
+      path: '/campaign-list'
+      fullPath: '/campaign-list'
+      preLoaderRoute: typeof AuthenticatedCampaignListRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/projects/': {
-      id: '/_authenticated/projects/'
-      path: '/projects'
-      fullPath: '/projects/'
-      preLoaderRoute: typeof AuthenticatedProjectsIndexRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/leads/': {
-      id: '/_authenticated/leads/'
-      path: '/leads'
-      fullPath: '/leads/'
-      preLoaderRoute: typeof AuthenticatedLeadsIndexRouteImport
+    '/_authenticated/data-quality': {
+      id: '/_authenticated/data-quality'
+      path: '/data-quality'
+      fullPath: '/data-quality'
+      preLoaderRoute: typeof AuthenticatedDataQualityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/emails/': {
-      id: '/_authenticated/emails/'
-      path: '/emails'
-      fullPath: '/emails/'
-      preLoaderRoute: typeof AuthenticatedEmailsIndexRouteImport
+    '/_authenticated/documents': {
+      id: '/_authenticated/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/customers/': {
-      id: '/_authenticated/customers/'
-      path: '/customers'
-      fullPath: '/customers/'
-      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
+    '/_authenticated/followups': {
+      id: '/_authenticated/followups'
+      path: '/followups'
+      fullPath: '/followups'
+      preLoaderRoute: typeof AuthenticatedFollowupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/contacts/': {
-      id: '/_authenticated/contacts/'
-      path: '/contacts'
-      fullPath: '/contacts/'
-      preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+    '/_authenticated/meetings': {
+      id: '/_authenticated/meetings'
+      path: '/meetings'
+      fullPath: '/meetings'
+      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/companies/': {
-      id: '/_authenticated/companies/'
-      path: '/companies'
-      fullPath: '/companies/'
-      preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/today': {
+      id: '/_authenticated/today'
+      path: '/today'
+      fullPath: '/today'
+      preLoaderRoute: typeof AuthenticatedTodayRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/r2-upload': {
+      id: '/api/r2-upload'
+      path: '/api/r2-upload'
+      fullPath: '/api/r2-upload'
+      preLoaderRoute: typeof ApiR2UploadRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/attendance/': {
       id: '/_authenticated/attendance/'
       path: '/'
       fullPath: '/attendance/'
       preLoaderRoute: typeof AuthenticatedAttendanceIndexRouteImport
-      parentRoute: typeof AuthenticatedAttendanceRoute
-    }
-    '/api/gmail/sync': {
-      id: '/api/gmail/sync'
-      path: '/api/gmail/sync'
-      fullPath: '/api/gmail/sync'
-      preLoaderRoute: typeof ApiGmailSyncRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/gmail/status': {
-      id: '/api/gmail/status'
-      path: '/api/gmail/status'
-      fullPath: '/api/gmail/status'
-      preLoaderRoute: typeof ApiGmailStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/gmail/send': {
-      id: '/api/gmail/send'
-      path: '/api/gmail/send'
-      fullPath: '/api/gmail/send'
-      preLoaderRoute: typeof ApiGmailSendRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/gmail/refresh-body': {
-      id: '/api/gmail/refresh-body'
-      path: '/api/gmail/refresh-body'
-      fullPath: '/api/gmail/refresh-body'
-      preLoaderRoute: typeof ApiGmailRefreshBodyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/gmail/disconnect': {
-      id: '/api/gmail/disconnect'
-      path: '/api/gmail/disconnect'
-      fullPath: '/api/gmail/disconnect'
-      preLoaderRoute: typeof ApiGmailDisconnectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/web-quote-requests/$id': {
-      id: '/_authenticated/web-quote-requests/$id'
-      path: '/web-quote-requests/$id'
-      fullPath: '/web-quote-requests/$id'
-      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings/website-knowledge': {
-      id: '/_authenticated/settings/website-knowledge'
-      path: '/website-knowledge'
-      fullPath: '/settings/website-knowledge'
-      preLoaderRoute: typeof AuthenticatedSettingsWebsiteKnowledgeRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/users': {
-      id: '/_authenticated/settings/users'
-      path: '/users'
-      fullPath: '/settings/users'
-      preLoaderRoute: typeof AuthenticatedSettingsUsersRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/storage': {
-      id: '/_authenticated/settings/storage'
-      path: '/storage'
-      fullPath: '/settings/storage'
-      preLoaderRoute: typeof AuthenticatedSettingsStorageRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/roles': {
-      id: '/_authenticated/settings/roles'
-      path: '/roles'
-      fullPath: '/settings/roles'
-      preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/profile': {
-      id: '/_authenticated/settings/profile'
-      path: '/profile'
-      fullPath: '/settings/profile'
-      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/permissions-audit': {
-      id: '/_authenticated/settings/permissions-audit'
-      path: '/permissions-audit'
-      fullPath: '/settings/permissions-audit'
-      preLoaderRoute: typeof AuthenticatedSettingsPermissionsAuditRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/openai': {
-      id: '/_authenticated/settings/openai'
-      path: '/openai'
-      fullPath: '/settings/openai'
-      preLoaderRoute: typeof AuthenticatedSettingsOpenaiRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/knowledge-graph': {
-      id: '/_authenticated/settings/knowledge-graph'
-      path: '/knowledge-graph'
-      fullPath: '/settings/knowledge-graph'
-      preLoaderRoute: typeof AuthenticatedSettingsKnowledgeGraphRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/google-ads': {
-      id: '/_authenticated/settings/google-ads'
-      path: '/google-ads'
-      fullPath: '/settings/google-ads'
-      preLoaderRoute: typeof AuthenticatedSettingsGoogleAdsRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/gmail': {
-      id: '/_authenticated/settings/gmail'
-      path: '/gmail'
-      fullPath: '/settings/gmail'
-      preLoaderRoute: typeof AuthenticatedSettingsGmailRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/dashboard-status': {
-      id: '/_authenticated/settings/dashboard-status'
-      path: '/dashboard-status'
-      fullPath: '/settings/dashboard-status'
-      preLoaderRoute: typeof AuthenticatedSettingsDashboardStatusRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/audit': {
-      id: '/_authenticated/settings/audit'
-      path: '/audit'
-      fullPath: '/settings/audit'
-      preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/agent-visibility': {
-      id: '/_authenticated/settings/agent-visibility'
-      path: '/agent-visibility'
-      fullPath: '/settings/agent-visibility'
-      preLoaderRoute: typeof AuthenticatedSettingsAgentVisibilityRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/settings/agent-audit': {
-      id: '/_authenticated/settings/agent-audit'
-      path: '/agent-audit'
-      fullPath: '/settings/agent-audit'
-      preLoaderRoute: typeof AuthenticatedSettingsAgentAuditRouteImport
-      parentRoute: typeof AuthenticatedSettingsRoute
-    }
-    '/_authenticated/sales/todo': {
-      id: '/_authenticated/sales/todo'
-      path: '/sales/todo'
-      fullPath: '/sales/todo'
-      preLoaderRoute: typeof AuthenticatedSalesTodoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/sales/research': {
-      id: '/_authenticated/sales/research'
-      path: '/sales/research'
-      fullPath: '/sales/research'
-      preLoaderRoute: typeof AuthenticatedSalesResearchRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/sales/quotes': {
-      id: '/_authenticated/sales/quotes'
-      path: '/sales/quotes'
-      fullPath: '/sales/quotes'
-      preLoaderRoute: typeof AuthenticatedSalesQuotesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/sales/leads': {
-      id: '/_authenticated/sales/leads'
-      path: '/sales/leads'
-      fullPath: '/sales/leads'
-      preLoaderRoute: typeof AuthenticatedSalesLeadsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/sales/handoff': {
-      id: '/_authenticated/sales/handoff'
-      path: '/sales/handoff'
-      fullPath: '/sales/handoff'
-      preLoaderRoute: typeof AuthenticatedSalesHandoffRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/quotes/$id': {
-      id: '/_authenticated/quotes/$id'
-      path: '/quotes/$id'
-      fullPath: '/quotes/$id'
-      preLoaderRoute: typeof AuthenticatedQuotesIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/projects/$id': {
-      id: '/_authenticated/projects/$id'
-      path: '/projects/$id'
-      fullPath: '/projects/$id'
-      preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/leads/lost': {
-      id: '/_authenticated/leads/lost'
-      path: '/leads/lost'
-      fullPath: '/leads/lost'
-      preLoaderRoute: typeof AuthenticatedLeadsLostRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/leads/$id': {
-      id: '/_authenticated/leads/$id'
-      path: '/leads/$id'
-      fullPath: '/leads/$id'
-      preLoaderRoute: typeof AuthenticatedLeadsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/help/marketing': {
-      id: '/_authenticated/help/marketing'
-      path: '/help/marketing'
-      fullPath: '/help/marketing'
-      preLoaderRoute: typeof AuthenticatedHelpMarketingRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/emails/$threadId': {
-      id: '/_authenticated/emails/$threadId'
-      path: '/emails/$threadId'
-      fullPath: '/emails/$threadId'
-      preLoaderRoute: typeof AuthenticatedEmailsThreadIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/customers/$id': {
-      id: '/_authenticated/customers/$id'
-      path: '/customers/$id'
-      fullPath: '/customers/$id'
-      preLoaderRoute: typeof AuthenticatedCustomersIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contacts/$id': {
-      id: '/_authenticated/contacts/$id'
-      path: '/contacts/$id'
-      fullPath: '/contacts/$id'
-      preLoaderRoute: typeof AuthenticatedContactsIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/companies/$id': {
-      id: '/_authenticated/companies/$id'
-      path: '/companies/$id'
-      fullPath: '/companies/$id'
-      preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/attendance/workers': {
-      id: '/_authenticated/attendance/workers'
-      path: '/workers'
-      fullPath: '/attendance/workers'
-      preLoaderRoute: typeof AuthenticatedAttendanceWorkersRouteImport
-      parentRoute: typeof AuthenticatedAttendanceRoute
-    }
-    '/_authenticated/attendance/summary': {
-      id: '/_authenticated/attendance/summary'
-      path: '/summary'
-      fullPath: '/attendance/summary'
-      preLoaderRoute: typeof AuthenticatedAttendanceSummaryRouteImport
-      parentRoute: typeof AuthenticatedAttendanceRoute
-    }
-    '/_authenticated/attendance/quick': {
-      id: '/_authenticated/attendance/quick'
-      path: '/quick'
-      fullPath: '/attendance/quick'
-      preLoaderRoute: typeof AuthenticatedAttendanceQuickRouteImport
-      parentRoute: typeof AuthenticatedAttendanceRoute
-    }
-    '/_authenticated/attendance/payouts': {
-      id: '/_authenticated/attendance/payouts'
-      path: '/payouts'
-      fullPath: '/attendance/payouts'
-      preLoaderRoute: typeof AuthenticatedAttendancePayoutsRouteImport
-      parentRoute: typeof AuthenticatedAttendanceRoute
-    }
-    '/_authenticated/attendance/new': {
-      id: '/_authenticated/attendance/new'
-      path: '/new'
-      fullPath: '/attendance/new'
-      preLoaderRoute: typeof AuthenticatedAttendanceNewRouteImport
       parentRoute: typeof AuthenticatedAttendanceRoute
     }
     '/_authenticated/attendance/guide': {
@@ -1531,39 +1188,361 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAttendanceGuideRouteImport
       parentRoute: typeof AuthenticatedAttendanceRoute
     }
-    '/api/public/website-knowledge/netlify-webhook': {
-      id: '/api/public/website-knowledge/netlify-webhook'
-      path: '/api/public/website-knowledge/netlify-webhook'
-      fullPath: '/api/public/website-knowledge/netlify-webhook'
-      preLoaderRoute: typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport
+    '/_authenticated/attendance/new': {
+      id: '/_authenticated/attendance/new'
+      path: '/new'
+      fullPath: '/attendance/new'
+      preLoaderRoute: typeof AuthenticatedAttendanceNewRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/attendance/payouts': {
+      id: '/_authenticated/attendance/payouts'
+      path: '/payouts'
+      fullPath: '/attendance/payouts'
+      preLoaderRoute: typeof AuthenticatedAttendancePayoutsRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/attendance/quick': {
+      id: '/_authenticated/attendance/quick'
+      path: '/quick'
+      fullPath: '/attendance/quick'
+      preLoaderRoute: typeof AuthenticatedAttendanceQuickRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/attendance/summary': {
+      id: '/_authenticated/attendance/summary'
+      path: '/summary'
+      fullPath: '/attendance/summary'
+      preLoaderRoute: typeof AuthenticatedAttendanceSummaryRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/attendance/workers': {
+      id: '/_authenticated/attendance/workers'
+      path: '/workers'
+      fullPath: '/attendance/workers'
+      preLoaderRoute: typeof AuthenticatedAttendanceWorkersRouteImport
+      parentRoute: typeof AuthenticatedAttendanceRoute
+    }
+    '/_authenticated/companies/': {
+      id: '/_authenticated/companies/'
+      path: '/companies'
+      fullPath: '/companies/'
+      preLoaderRoute: typeof AuthenticatedCompaniesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/companies/$id': {
+      id: '/_authenticated/companies/$id'
+      path: '/companies/$id'
+      fullPath: '/companies/$id'
+      preLoaderRoute: typeof AuthenticatedCompaniesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts/': {
+      id: '/_authenticated/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof AuthenticatedContactsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/contacts/$id': {
+      id: '/_authenticated/contacts/$id'
+      path: '/contacts/$id'
+      fullPath: '/contacts/$id'
+      preLoaderRoute: typeof AuthenticatedContactsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customers/': {
+      id: '/_authenticated/customers/'
+      path: '/customers'
+      fullPath: '/customers/'
+      preLoaderRoute: typeof AuthenticatedCustomersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/customers/$id': {
+      id: '/_authenticated/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/customers/$id'
+      preLoaderRoute: typeof AuthenticatedCustomersIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails/': {
+      id: '/_authenticated/emails/'
+      path: '/emails'
+      fullPath: '/emails/'
+      preLoaderRoute: typeof AuthenticatedEmailsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/emails/$threadId': {
+      id: '/_authenticated/emails/$threadId'
+      path: '/emails/$threadId'
+      fullPath: '/emails/$threadId'
+      preLoaderRoute: typeof AuthenticatedEmailsThreadIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/help/marketing': {
+      id: '/_authenticated/help/marketing'
+      path: '/help/marketing'
+      fullPath: '/help/marketing'
+      preLoaderRoute: typeof AuthenticatedHelpMarketingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leads/': {
+      id: '/_authenticated/leads/'
+      path: '/leads'
+      fullPath: '/leads/'
+      preLoaderRoute: typeof AuthenticatedLeadsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leads/$id': {
+      id: '/_authenticated/leads/$id'
+      path: '/leads/$id'
+      fullPath: '/leads/$id'
+      preLoaderRoute: typeof AuthenticatedLeadsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/leads/lost': {
+      id: '/_authenticated/leads/lost'
+      path: '/leads/lost'
+      fullPath: '/leads/lost'
+      preLoaderRoute: typeof AuthenticatedLeadsLostRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projects/': {
+      id: '/_authenticated/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof AuthenticatedProjectsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projects/$id': {
+      id: '/_authenticated/projects/$id'
+      path: '/projects/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quotes/': {
+      id: '/_authenticated/quotes/'
+      path: '/quotes'
+      fullPath: '/quotes/'
+      preLoaderRoute: typeof AuthenticatedQuotesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/quotes/$id': {
+      id: '/_authenticated/quotes/$id'
+      path: '/quotes/$id'
+      fullPath: '/quotes/$id'
+      preLoaderRoute: typeof AuthenticatedQuotesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/': {
+      id: '/_authenticated/sales/'
+      path: '/sales'
+      fullPath: '/sales/'
+      preLoaderRoute: typeof AuthenticatedSalesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/handoff': {
+      id: '/_authenticated/sales/handoff'
+      path: '/sales/handoff'
+      fullPath: '/sales/handoff'
+      preLoaderRoute: typeof AuthenticatedSalesHandoffRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/leads': {
+      id: '/_authenticated/sales/leads'
+      path: '/sales/leads'
+      fullPath: '/sales/leads'
+      preLoaderRoute: typeof AuthenticatedSalesLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/quotes': {
+      id: '/_authenticated/sales/quotes'
+      path: '/sales/quotes'
+      fullPath: '/sales/quotes'
+      preLoaderRoute: typeof AuthenticatedSalesQuotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/research': {
+      id: '/_authenticated/sales/research'
+      path: '/sales/research'
+      fullPath: '/sales/research'
+      preLoaderRoute: typeof AuthenticatedSalesResearchRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales/todo': {
+      id: '/_authenticated/sales/todo'
+      path: '/sales/todo'
+      fullPath: '/sales/todo'
+      preLoaderRoute: typeof AuthenticatedSalesTodoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings/': {
+      id: '/_authenticated/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof AuthenticatedSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/agent-audit': {
+      id: '/_authenticated/settings/agent-audit'
+      path: '/agent-audit'
+      fullPath: '/settings/agent-audit'
+      preLoaderRoute: typeof AuthenticatedSettingsAgentAuditRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/agent-visibility': {
+      id: '/_authenticated/settings/agent-visibility'
+      path: '/agent-visibility'
+      fullPath: '/settings/agent-visibility'
+      preLoaderRoute: typeof AuthenticatedSettingsAgentVisibilityRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/audit': {
+      id: '/_authenticated/settings/audit'
+      path: '/audit'
+      fullPath: '/settings/audit'
+      preLoaderRoute: typeof AuthenticatedSettingsAuditRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/dashboard-status': {
+      id: '/_authenticated/settings/dashboard-status'
+      path: '/dashboard-status'
+      fullPath: '/settings/dashboard-status'
+      preLoaderRoute: typeof AuthenticatedSettingsDashboardStatusRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/gmail': {
+      id: '/_authenticated/settings/gmail'
+      path: '/gmail'
+      fullPath: '/settings/gmail'
+      preLoaderRoute: typeof AuthenticatedSettingsGmailRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/google-ads': {
+      id: '/_authenticated/settings/google-ads'
+      path: '/google-ads'
+      fullPath: '/settings/google-ads'
+      preLoaderRoute: typeof AuthenticatedSettingsGoogleAdsRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/knowledge-graph': {
+      id: '/_authenticated/settings/knowledge-graph'
+      path: '/knowledge-graph'
+      fullPath: '/settings/knowledge-graph'
+      preLoaderRoute: typeof AuthenticatedSettingsKnowledgeGraphRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/openai': {
+      id: '/_authenticated/settings/openai'
+      path: '/openai'
+      fullPath: '/settings/openai'
+      preLoaderRoute: typeof AuthenticatedSettingsOpenaiRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/permissions-audit': {
+      id: '/_authenticated/settings/permissions-audit'
+      path: '/permissions-audit'
+      fullPath: '/settings/permissions-audit'
+      preLoaderRoute: typeof AuthenticatedSettingsPermissionsAuditRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/profile': {
+      id: '/_authenticated/settings/profile'
+      path: '/profile'
+      fullPath: '/settings/profile'
+      preLoaderRoute: typeof AuthenticatedSettingsProfileRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/roles': {
+      id: '/_authenticated/settings/roles'
+      path: '/roles'
+      fullPath: '/settings/roles'
+      preLoaderRoute: typeof AuthenticatedSettingsRolesRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/storage': {
+      id: '/_authenticated/settings/storage'
+      path: '/storage'
+      fullPath: '/settings/storage'
+      preLoaderRoute: typeof AuthenticatedSettingsStorageRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/users': {
+      id: '/_authenticated/settings/users'
+      path: '/users'
+      fullPath: '/settings/users'
+      preLoaderRoute: typeof AuthenticatedSettingsUsersRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/settings/website-knowledge': {
+      id: '/_authenticated/settings/website-knowledge'
+      path: '/website-knowledge'
+      fullPath: '/settings/website-knowledge'
+      preLoaderRoute: typeof AuthenticatedSettingsWebsiteKnowledgeRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
+    '/_authenticated/web-quote-requests/': {
+      id: '/_authenticated/web-quote-requests/'
+      path: '/web-quote-requests'
+      fullPath: '/web-quote-requests/'
+      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/web-quote-requests/$id': {
+      id: '/_authenticated/web-quote-requests/$id'
+      path: '/web-quote-requests/$id'
+      fullPath: '/web-quote-requests/$id'
+      preLoaderRoute: typeof AuthenticatedWebQuoteRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/gmail/disconnect': {
+      id: '/api/gmail/disconnect'
+      path: '/api/gmail/disconnect'
+      fullPath: '/api/gmail/disconnect'
+      preLoaderRoute: typeof ApiGmailDisconnectRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/website-knowledge/manual-trigger': {
-      id: '/api/public/website-knowledge/manual-trigger'
-      path: '/api/public/website-knowledge/manual-trigger'
-      fullPath: '/api/public/website-knowledge/manual-trigger'
-      preLoaderRoute: typeof ApiPublicWebsiteKnowledgeManualTriggerRouteImport
+    '/api/gmail/refresh-body': {
+      id: '/api/gmail/refresh-body'
+      path: '/api/gmail/refresh-body'
+      fullPath: '/api/gmail/refresh-body'
+      preLoaderRoute: typeof ApiGmailRefreshBodyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/gmail/cron-sync': {
-      id: '/api/public/gmail/cron-sync'
-      path: '/api/public/gmail/cron-sync'
-      fullPath: '/api/public/gmail/cron-sync'
-      preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
+    '/api/gmail/send': {
+      id: '/api/gmail/send'
+      path: '/api/gmail/send'
+      fullPath: '/api/gmail/send'
+      preLoaderRoute: typeof ApiGmailSendRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/google-ads/oauth/start': {
-      id: '/api/google-ads/oauth/start'
-      path: '/api/google-ads/oauth/start'
-      fullPath: '/api/google-ads/oauth/start'
-      preLoaderRoute: typeof ApiGoogleAdsOauthStartRouteImport
+    '/api/gmail/status': {
+      id: '/api/gmail/status'
+      path: '/api/gmail/status'
+      fullPath: '/api/gmail/status'
+      preLoaderRoute: typeof ApiGmailStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/google-ads/oauth/callback': {
-      id: '/api/google-ads/oauth/callback'
-      path: '/api/google-ads/oauth/callback'
-      fullPath: '/api/google-ads/oauth/callback'
-      preLoaderRoute: typeof ApiGoogleAdsOauthCallbackRouteImport
+    '/api/gmail/sync': {
+      id: '/api/gmail/sync'
+      path: '/api/gmail/sync'
+      fullPath: '/api/gmail/sync'
+      preLoaderRoute: typeof ApiGmailSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/quotes/$id_/print': {
+      id: '/_authenticated/quotes/$id_/print'
+      path: '/quotes/$id/print'
+      fullPath: '/quotes/$id/print'
+      preLoaderRoute: typeof AuthenticatedQuotesIdPrintRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/gmail/oauth/callback': {
+      id: '/api/gmail/oauth/callback'
+      path: '/api/gmail/oauth/callback'
+      fullPath: '/api/gmail/oauth/callback'
+      preLoaderRoute: typeof ApiGmailOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/gmail/oauth/start': {
@@ -1573,19 +1552,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGmailOauthStartRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/gmail/oauth/callback': {
-      id: '/api/gmail/oauth/callback'
-      path: '/api/gmail/oauth/callback'
-      fullPath: '/api/gmail/oauth/callback'
-      preLoaderRoute: typeof ApiGmailOauthCallbackRouteImport
+    '/api/google-ads/oauth/callback': {
+      id: '/api/google-ads/oauth/callback'
+      path: '/api/google-ads/oauth/callback'
+      fullPath: '/api/google-ads/oauth/callback'
+      preLoaderRoute: typeof ApiGoogleAdsOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/quotes/$id_/print': {
-      id: '/_authenticated/quotes/$id_/print'
-      path: '/quotes/$id/print'
-      fullPath: '/quotes/$id/print'
-      preLoaderRoute: typeof AuthenticatedQuotesIdPrintRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/api/google-ads/oauth/start': {
+      id: '/api/google-ads/oauth/start'
+      path: '/api/google-ads/oauth/start'
+      fullPath: '/api/google-ads/oauth/start'
+      preLoaderRoute: typeof ApiGoogleAdsOauthStartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/gmail/cron-sync': {
+      id: '/api/public/gmail/cron-sync'
+      path: '/api/public/gmail/cron-sync'
+      fullPath: '/api/public/gmail/cron-sync'
+      preLoaderRoute: typeof ApiPublicGmailCronSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/website-knowledge/manual-trigger': {
+      id: '/api/public/website-knowledge/manual-trigger'
+      path: '/api/public/website-knowledge/manual-trigger'
+      fullPath: '/api/public/website-knowledge/manual-trigger'
+      preLoaderRoute: typeof ApiPublicWebsiteKnowledgeManualTriggerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/website-knowledge/netlify-webhook': {
+      id: '/api/public/website-knowledge/netlify-webhook'
+      path: '/api/public/website-knowledge/netlify-webhook'
+      fullPath: '/api/public/website-knowledge/netlify-webhook'
+      preLoaderRoute: typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1775,3 +1775,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

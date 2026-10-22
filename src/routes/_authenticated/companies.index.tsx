@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, AlertTriangle, Copy, Mail } from "lucide-react";
+import { Building2, AlertTriangle, Copy, Mail, FileDown } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { ResourcePage } from "@/components/resource/resource-page";
 import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
+import { exportCompaniesToExcel } from "@/lib/export/companies-export";
 import { FilterBar, FilterSelect, QualityBar } from "@/components/marketing-ui";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
@@ -33,6 +36,26 @@ function CompaniesIndex() {
 
   const surface = surfaceQ.data;
 
+  // Excel-export: a jelenleg szűrt cégek, minden mezőjükkel és a hozzájuk
+  // tartozó kapcsolattartókkal, leadekkel, projektekkel, ajánlatokkal,
+  // email-szálakkal. Minden adat egy gombnyomásra, Excel formátumban.
+  const [exporting, setExporting] = useState(false);
+  async function handleExport(rows: any[]) {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const r = await exportCompaniesToExcel(rows);
+      toast.success(
+        `${r.companies} cég letöltve (${r.filename}) — ${r.contacts} kapcsolattartó, ${r.leads} lead, ${r.projects} projekt, ${r.quotes} ajánlat, ${r.threads} email szál.`,
+      );
+    } catch (e) {
+      toast.error(`Export hiba: ${(e as Error).message}`);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+
   return (
     <ResourcePage
       title="Cégek"
@@ -45,6 +68,18 @@ function CompaniesIndex() {
       order="name"
       ascending
       filter={filterFn}
+      actionsFor={(rows) => (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={exporting || rows.length === 0}
+          onClick={() => handleExport(rows)}
+          title="A cégek listája minden adatával, Excel munkafüzetben (kapcsolattartók, leadek, projektek, ajánlatok, email szálak külön lapokon)"
+        >
+          <FileDown className="mr-1 h-4 w-4" />
+          {exporting ? "Exportálás…" : "Excel export"}
+        </Button>
+      )}
       toolbar={
         <FilterBar
           search={search}

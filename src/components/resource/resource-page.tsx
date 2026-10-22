@@ -92,6 +92,7 @@ export function ResourcePage({
   emptyDescription,
   newButtonLabel = "Új",
   extraActions,
+  actionsFor,
 }: {
   title: string;
   description?: string;
@@ -108,6 +109,8 @@ export function ResourcePage({
   emptyDescription?: string;
   newButtonLabel?: string;
   extraActions?: React.ReactNode;
+  /** A fejléc akciógombjai a jelenleg szűrt sorokkal (pl. Excel-export). */
+  actionsFor?: (rows: any[]) => ReactNode;
 }) {
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
@@ -141,6 +144,7 @@ export function ResourcePage({
         actions={
           <div className="flex items-center gap-2">
             {extraActions}
+            {actionsFor?.(rows)}
             <Button
               size="sm"
               onClick={() => {
