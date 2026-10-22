@@ -36,6 +36,26 @@ function CompaniesIndex() {
 
   const surface = surfaceQ.data;
 
+  // Excel-export: a jelenleg szűrt cégek, minden mezőjükkel és a hozzájuk
+  // tartozó kapcsolattartókkal, leadekkel, projektekkel, ajánlatokkal,
+  // email-szálakkal. Minden adat egy gombnyomásra, Excel formátumban.
+  const [exporting, setExporting] = useState(false);
+  async function handleExport(rows: any[]) {
+    if (exporting) return;
+    setExporting(true);
+    try {
+      const r = await exportCompaniesToExcel(rows);
+      toast.success(
+        `${r.companies} cég letöltve (${r.filename}) — ${r.contacts} kapcsolattartó, ${r.leads} lead, ${r.projects} projekt, ${r.quotes} ajánlat, ${r.threads} email szál.`,
+      );
+    } catch (e) {
+      toast.error(`Export hiba: ${(e as Error).message}`);
+    } finally {
+      setExporting(false);
+    }
+  }
+
+
   return (
     <ResourcePage
       title="Cégek"
