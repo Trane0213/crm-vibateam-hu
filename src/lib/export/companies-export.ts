@@ -103,6 +103,7 @@ export async function exportCompaniesToExcel(rows: Row[]): Promise<CompaniesExpo
   const leadCount = countBy(leads, (r) => ACTIVE_LEAD_STATUSES.has(String(r.status)));
   const projectCount = countBy(projects);
   const threadCount = countBy(threads);
+  const allLeadCount = countBy(leads);
 
   const pipeline = new Map<string, number>();
   const openQuotes = countBy(quotes);
