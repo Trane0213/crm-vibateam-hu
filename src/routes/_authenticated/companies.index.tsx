@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Building2, AlertTriangle, Copy, Mail } from "lucide-react";
+import { Building2, AlertTriangle, Copy, Mail, FileDown } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { ResourcePage } from "@/components/resource/resource-page";
 import { COMPANY_TYPE, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
+import { exportCompaniesToExcel } from "@/lib/export/companies-export";
 import { FilterBar, FilterSelect, QualityBar } from "@/components/marketing-ui";
 
 export const Route = createFileRoute("/_authenticated/companies/")({
