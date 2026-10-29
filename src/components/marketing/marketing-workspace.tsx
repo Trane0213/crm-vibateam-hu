@@ -210,9 +210,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("id,full_name,email,roles(name)");
+        .select("id,auth_user_id,full_name,email,active,roles(name)");
       if (error) throw error;
-      return ((data ?? []) as any[]).filter((row) => normalizeRole(row.roles?.name) === "sales");
+      return ((data ?? []) as any[]).filter(
+        (row) => normalizeRole(row.roles?.name) === "sales" && row.active !== false && row.auth_user_id,
+      );
     },
   });
 
@@ -303,7 +305,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const handoff = useMutation({
-    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => {
+    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
       const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
@@ -314,6 +316,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         source: input.lead_source,
         project_type: input.project_type,
         status: "new",
+        // Kötelező felelős értékesítő (DB szabály: nyitott lead felelős nélkül nem menthető).
+        assigned_to: input.assigned_to,
       };
       const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
       if (error) throw error;
