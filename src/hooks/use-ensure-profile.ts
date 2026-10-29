@@ -28,15 +28,7 @@ export function useEnsureProfile() {
           .maybeSingle();
         if (existing?.id) return;
 
-        let roleId: string | null = null;
-        const { data: roles } = await supabase.from("roles").select("id, name");
-        if (roles && roles.length) {
-          const owner = roles.find((r: any) =>
-            /tulajdonos|owner|admin/i.test(String(r.name ?? "")),
-          );
-          roleId = (owner ?? roles[0])?.id ?? null;
-        }
-
+        // Új profil szerepkör nélkül jön létre; szerepkört csak tulajdonos adhat (DB is kényszeríti).
         const payload: Record<string, any> = {
           auth_user_id: user.id,
           email: user.email ?? null,
@@ -46,7 +38,6 @@ export function useEnsureProfile() {
             (user.email ? user.email.split("@")[0] : null),
           active: true,
         };
-        if (roleId) payload.role_id = roleId;
 
         const { error } = await supabase.from("users_profile").insert(payload);
         if (error) {

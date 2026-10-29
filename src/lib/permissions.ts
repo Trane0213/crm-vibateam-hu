@@ -20,7 +20,8 @@ export const ROLE_LABEL: Record<RoleSlug, string> = {
  */
 export function normalizeRole(input: unknown): RoleSlug {
   const v = String(input ?? "").toLowerCase().trim();
-  if (!v) return "owner";
+  // Szerepkör nélkül a legszűkebb jogkör jár, soha nem tulajdonosi.
+  if (!v) return "marketing";
   if (["owner", "tulajdonos", "admin", "superadmin"].includes(v)) return "owner";
   if (["project_manager", "projektvezeto", "projektvezető", "pm", "manager"].includes(v))
     return "project_manager";
