@@ -4,7 +4,10 @@
  * body-ban vagy `*.server.ts` modulokban.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./client";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ?? "https://uepqejecsiuhodegbcff.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  process.env.SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_rSXwIJI7nXcp12wzqOlODw_PLBdBvvs";
 
 function requireServiceKey(): string {
   const key =

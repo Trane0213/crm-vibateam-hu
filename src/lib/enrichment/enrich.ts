@@ -99,7 +99,7 @@ export async function enrichCompanyFromExistingData(companyId: string): Promise<
   }
 
   if (Object.keys(patch).length === 0) return EMPTY;
-  const { error } = await supabase.from("companies").update(patch).eq("id", companyId);
+  const { error } = await supabase.from("companies").update(patch as any).eq("id", companyId);
   if (error) return { ok: false, patch, changed: [], reason: error.message };
   return { ok: true, patch, changed };
 }
@@ -152,7 +152,7 @@ export async function enrichContactFromExistingData(contactId: string): Promise<
   }
 
   if (Object.keys(patch).length === 0) return EMPTY;
-  const { error } = await supabase.from("contacts").update(patch).eq("id", contactId);
+  const { error } = await supabase.from("contacts").update(patch as any).eq("id", contactId);
   if (error) return { ok: false, patch, changed: [], reason: error.message };
   return { ok: true, patch, changed };
 }
@@ -161,11 +161,15 @@ export async function enrichContactFromExistingData(contactId: string): Promise<
 
 export async function enrichLeadLinks(leadId: string): Promise<EnrichResult> {
   if (!leadId) return EMPTY;
-  const { data: lead } = await supabase
+  const { data: leadRow } = await supabase
     .from("leads")
-    .select("id,email,company_id,contact_id")
+    .select("id,company_id,contact_id,contacts(email)")
     .eq("id", leadId)
     .maybeSingle();
+  // A leads táblában nincs email oszlop — a kapcsolattartó emailjét használjuk.
+  const lead = leadRow
+    ? { ...leadRow, email: ((leadRow as any).contacts?.email as string | null) ?? null }
+    : null;
   if (!lead) return { ...EMPTY, ok: false, reason: "lead not found" };
 
   const patch: Record<string, any> = {};
@@ -196,7 +200,7 @@ export async function enrichLeadLinks(leadId: string): Promise<EnrichResult> {
   }
 
   if (Object.keys(patch).length === 0) return EMPTY;
-  const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+  const { error } = await supabase.from("leads").update(patch as any).eq("id", leadId);
   if (error) return { ok: false, patch, changed: [], reason: error.message };
   return { ok: true, patch, changed };
 }

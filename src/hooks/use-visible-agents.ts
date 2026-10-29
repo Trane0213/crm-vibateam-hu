@@ -22,7 +22,7 @@ export function useVisibleAgents() {
       const { data, error } = await supabase
         .from("agent_role_access")
         .select("agent_id, can_view")
-        .eq("role_id", roleId)
+        .eq("role_id", roleId!)
         .eq("can_view", true);
       if (error) {
         console.warn("[useVisibleAgents] lekérdezés sikertelen:", error.message);

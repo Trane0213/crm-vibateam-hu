@@ -140,7 +140,7 @@ function LostLeadsPage() {
         patch.next_step_due_at = new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString();
         patch.next_step_note = "Reaktiválás után újrafelvett utánkövetés.";
       }
-      const { error } = await supabase.from("leads").update(patch).eq("id", lead.id);
+      const { error } = await supabase.from("leads").update(patch as any).eq("id", lead.id);
       if (error) throw error;
       await logActivity("leads", "status_change", lead.id, {
         from: "lost",
