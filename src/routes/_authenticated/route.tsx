@@ -13,6 +13,7 @@ import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permission
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, Sparkles } from "lucide-react";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { AiPanel, AiPanelProvider, useAiPanel } from "@/components/ai/ai-panel";
 import { BrandLogo } from "@/components/brand-logo";
 import { CrmNotificationsMenu } from "@/components/crm-notifications-menu";
 
@@ -36,6 +37,7 @@ function AppShell() {
     ? true
     : resolveAccess(role, pathname, rp.data);
   return (
+    <AiPanelProvider>
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
@@ -55,12 +57,7 @@ function AppShell() {
                 <GlobalSearch />
               </div>
               <QuickAddMenu />
-              {/* AI-panel helye: a 3. lépésben ez a gomb nyitja az állandó panelt. */}
-              <Button asChild size="sm" variant="glow" className="hidden h-8 gap-1.5 rounded-full px-3 sm:inline-flex" data-ai-panel-trigger>
-                <Link to="/ai-assistant" search={{ agent: "crm" } as never}>
-                  <Sparkles className="h-4 w-4" /> George
-                </Link>
-              </Button>
+              <AiPanelButton />
               <CrmNotificationsMenu />
               <UserMenu />
             </div>
@@ -75,8 +72,10 @@ function AppShell() {
           </main>
           <MobileBottomNav />
         </div>
+        <AiPanel />
       </div>
     </SidebarProvider>
+    </AiPanelProvider>
   );
 }
 
@@ -99,5 +98,15 @@ function Forbidden({ role }: { role: string }) {
         </div>
       </div>
     </div>
+  );
+}
+/** Felső sáv „George” gombja: az állandó AI-panelt nyitja/zárja. */
+function AiPanelButton() {
+  const { open, toggle } = useAiPanel();
+  return (
+    <Button size="sm" variant={open ? "secondary" : "glow"} onClick={toggle} aria-pressed={open}
+      className="h-8 gap-1.5 rounded-full px-2.5 sm:px-3" aria-label="AI-asszisztens">
+      <Sparkles className="h-4 w-4" /> <span className="hidden sm:inline">George</span>
+    </Button>
   );
 }
