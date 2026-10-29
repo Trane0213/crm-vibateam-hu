@@ -739,6 +739,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         contacts={contacts.data ?? []}
         defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
         defaultLeadSource={meta.leadSource}
+        salesUsers={salesUsers.data ?? []}
         submitting={handoff.isPending}
         onSubmit={(d) => handoff.mutate(d)}
       />
@@ -1002,7 +1003,7 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, submitting, onSubmit,
+  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, salesUsers, submitting, onSubmit,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1010,13 +1011,15 @@ function HandoffDialog({
   contacts: any[];
   defaultSummary: string;
   defaultLeadSource: LeadSource | null;
+  salesUsers: any[];
   submitting: boolean;
-  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => void;
+  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => void;
 }) {
   const [summary, setSummary] = useState(defaultSummary);
   const [projectType, setProjectType] = useState<string>("");
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
   const [leadSource, setLeadSource] = useState<string>(defaultLeadSource ?? "");
+  const [assignee, setAssignee] = useState<string>("");
   // Minden megnyitáskor szinkronizáljuk a defaultokat (sales note vagy első kontakt).
   useEffect(() => {
     if (!open) return;
@@ -1024,7 +1027,8 @@ function HandoffDialog({
     setProjectType("");
     setContactId(contacts[0]?.id ?? "");
     setLeadSource(defaultLeadSource ?? "");
-  }, [open, defaultSummary, contacts, defaultLeadSource]);
+    setAssignee(salesUsers.length === 1 ? salesUsers[0].auth_user_id : "");
+  }, [open, defaultSummary, contacts, defaultLeadSource, salesUsers]);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
