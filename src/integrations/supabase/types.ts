@@ -1339,6 +1339,7 @@ export type Database = {
       followups: {
         Row: {
           assigned_agent_id: string | null
+          assigned_to: string | null
           company_id: string | null
           completed: boolean | null
           created_at: string | null
@@ -1352,6 +1353,7 @@ export type Database = {
         }
         Insert: {
           assigned_agent_id?: string | null
+          assigned_to?: string | null
           company_id?: string | null
           completed?: boolean | null
           created_at?: string | null
@@ -1365,6 +1367,7 @@ export type Database = {
         }
         Update: {
           assigned_agent_id?: string | null
+          assigned_to?: string | null
           company_id?: string | null
           completed?: boolean | null
           created_at?: string | null
@@ -2494,6 +2497,7 @@ export type Database = {
           handoff_payload: Json | null
           id: string
           lead_id: string | null
+          project_manager_user_id: string | null
           project_type: string | null
           start_date: string | null
           status: string | null
@@ -2509,6 +2513,7 @@ export type Database = {
           handoff_payload?: Json | null
           id?: string
           lead_id?: string | null
+          project_manager_user_id?: string | null
           project_type?: string | null
           start_date?: string | null
           status?: string | null
@@ -2524,6 +2529,7 @@ export type Database = {
           handoff_payload?: Json | null
           id?: string
           lead_id?: string | null
+          project_manager_user_id?: string | null
           project_type?: string | null
           start_date?: string | null
           status?: string | null
@@ -4125,6 +4131,7 @@ export type Database = {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
       }
+      crm_role_of: { Args: { _auth_user: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
