@@ -19,7 +19,15 @@ const STATUS_OPTIONS = [
   { value: "quote_sent", label: "Ajánlat kiadva" },
   { value: "follow_up", label: "Utánkövetés" },
   { value: "contract", label: "Szerződés" },
+  { value: "won", label: "Megnyert" },
+  { value: "lost", label: "Elveszett" },
 ];
+
+// Az admin listából csak a Pipeline előtti státusz állítható. Az ajánlat- és
+// szerződésfázisokba kizárólag a munkafelület „Pipeline-ba" lépésén és a
+// Pipeline fázisváltásain át lehet jutni (kötelező tevékenység és következő
+// lépés), így az admin lista nem kerülheti meg ezeket a szabályokat.
+const EDITABLE_STATUS_OPTIONS = STATUS_OPTIONS.filter((o) => o.value === "new" || o.value === "contacted");
 
 // Megjegyzés: a „Megnyert" és „Elveszett" státuszok szándékosan NEM
 // választhatóak az admin listából. A Sales folyamat végleges útvonala:
@@ -113,7 +121,7 @@ function LeadsListView() {
         },
         { name: "source", label: "Forrás", type: "text", placeholder: "pl. Weboldal, Ajánlás" },
         { name: "project_type", label: "Projekt típus", type: "text" },
-        { name: "status", label: "Státusz", type: "select", options: STATUS_OPTIONS, required: true },
+        { name: "status", label: "Státusz", type: "select", options: EDITABLE_STATUS_OPTIONS, required: true },
         { name: "summary", label: "Összefoglaló", type: "textarea" },
       ]}
       columns={[
