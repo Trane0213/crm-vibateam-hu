@@ -4,7 +4,10 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { createHmac, timingSafeEqual } from "crypto";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "@/integrations/supabase/client";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ?? "https://uepqejecsiuhodegbcff.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  process.env.SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_rSXwIJI7nXcp12wzqOlODw_PLBdBvvs";
 
 export async function getAuthedUserId(request: Request): Promise<string> {
   const auth = request.headers.get("authorization") ?? "";

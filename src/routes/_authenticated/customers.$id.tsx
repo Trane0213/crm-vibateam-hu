@@ -235,7 +235,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   const activeProjectList = (projects.data ?? []).filter((p) => ACTIVE_PROJECT_STATUSES.includes(p.status));
   const totalProjects   = kpi.data?.total_projects    ?? projects.data?.length ?? 0;
   const activeProjects  = kpi.data?.active_projects   ?? activeProjectList.length;
-  const openQuotesCount = kpi.data?.open_quotes       ?? (quotes.data ?? []).filter((q) => ["draft","sent","negotiation"].includes(q.status)).length;
+  const openQuotesCount = kpi.data?.open_quotes       ?? (quotes.data ?? []).filter((q) => ["draft","sent","negotiation"].includes(q.status ?? "")).length;
   const overdueCount    = kpi.data?.overdue_followups ?? overdueFollowups.length;
   const lastActivityAtView = kpi.data?.last_activity_at ?? null;
   const wonRevenue      = Number(kpi.data?.won_revenue ?? 0);

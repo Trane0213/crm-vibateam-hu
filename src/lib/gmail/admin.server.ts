@@ -3,7 +3,8 @@
  * handlerben szabad importálni. SOHA ne kerüljön kliens bundle-be.
  */
 import { createClient } from "@supabase/supabase-js";
-import { SUPABASE_URL } from "@/integrations/supabase/client";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ?? "https://uepqejecsiuhodegbcff.supabase.co";
 
 export function getAdminClient() {
   const key = process.env.GMAIL_SUPABASE_SERVICE_KEY;

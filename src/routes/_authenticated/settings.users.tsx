@@ -40,7 +40,7 @@ function UsersPage() {
 
   const updateProfile = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Record<string, any> }) => {
-      const { error } = await supabase.from("users_profile").update(patch).eq("id", id);
+      const { error } = await supabase.from("users_profile").update(patch as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

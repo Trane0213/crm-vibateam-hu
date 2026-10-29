@@ -44,7 +44,7 @@ function AuditPage() {
       // READ-ONLY: HEAD count. Ez az audit oldal SEMMILYEN INSERT/UPDATE/DELETE
       // műveletet NEM hajt végre. Csak a tábla olvashatóságát ellenőrzi a jelenlegi
       // bejelentkezett szerepkör nevében, a publishable kulccsal.
-      const r = await supabase.from(t).select("*", { count: "exact", head: true });
+      const r = await (supabase as any).from(t).select("*", { count: "exact", head: true });
       let read: Row["read"] = "unknown";
       let status: Status = "unknown";
       let message: string | undefined;

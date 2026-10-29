@@ -54,7 +54,7 @@ async function deliverFile(blob: Blob, filename: string) {
 
 export async function exportCompaniesToExcel(rows: Row[]): Promise<CompaniesExportResult> {
   const ids = new Set(rows.map((r) => r.id as string));
-  const inIds = (col: string) => supabase.from(col).select();
+  const inIds = (col: string) => (supabase as any).from(col).select();
 
   const [companiesRes, contactsRes, leadsRes, projectsRes, quotesRes, threadsRes, kpiRes] =
     await Promise.allSettled([
