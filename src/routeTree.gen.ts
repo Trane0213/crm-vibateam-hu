@@ -24,6 +24,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDataQualityRouteImport } from './routes/_authenticated/data-quality'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
+import { Route as AuthenticatedImportReviewRouteImport } from './routes/_authenticated/import-review'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
@@ -167,6 +168,12 @@ const AuthenticatedFollowupsRoute = AuthenticatedFollowupsRouteImport.update({
   path: '/followups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedImportReviewRoute =
+  AuthenticatedImportReviewRouteImport.update({
+    id: '/import-review',
+    path: '/import-review',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
   id: '/meetings',
   path: '/meetings',
@@ -544,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/data-quality': typeof AuthenticatedDataQualityRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/followups': typeof AuthenticatedFollowupsRoute
+  '/import-review': typeof AuthenticatedImportReviewRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/tasks': typeof AuthenticatedTasksRoute
@@ -623,6 +631,7 @@ export interface FileRoutesByTo {
   '/data-quality': typeof AuthenticatedDataQualityRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/followups': typeof AuthenticatedFollowupsRoute
+  '/import-review': typeof AuthenticatedImportReviewRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
@@ -704,6 +713,7 @@ export interface FileRoutesById {
   '/_authenticated/data-quality': typeof AuthenticatedDataQualityRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/followups': typeof AuthenticatedFollowupsRoute
+  '/_authenticated/import-review': typeof AuthenticatedImportReviewRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
@@ -786,6 +796,7 @@ export interface FileRouteTypes {
     | '/data-quality'
     | '/documents'
     | '/followups'
+    | '/import-review'
     | '/meetings'
     | '/settings'
     | '/tasks'
@@ -865,6 +876,7 @@ export interface FileRouteTypes {
     | '/data-quality'
     | '/documents'
     | '/followups'
+    | '/import-review'
     | '/meetings'
     | '/tasks'
     | '/today'
@@ -945,6 +957,7 @@ export interface FileRouteTypes {
     | '/_authenticated/data-quality'
     | '/_authenticated/documents'
     | '/_authenticated/followups'
+    | '/_authenticated/import-review'
     | '/_authenticated/meetings'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
@@ -1137,6 +1150,13 @@ declare module '@tanstack/react-router' {
       path: '/followups'
       fullPath: '/followups'
       preLoaderRoute: typeof AuthenticatedFollowupsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/import-review': {
+      id: '/_authenticated/import-review'
+      path: '/import-review'
+      fullPath: '/import-review'
+      preLoaderRoute: typeof AuthenticatedImportReviewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/meetings': {
@@ -1673,6 +1693,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDataQualityRoute: typeof AuthenticatedDataQualityRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedFollowupsRoute: typeof AuthenticatedFollowupsRoute
+  AuthenticatedImportReviewRoute: typeof AuthenticatedImportReviewRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
@@ -1715,6 +1736,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDataQualityRoute: AuthenticatedDataQualityRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedFollowupsRoute: AuthenticatedFollowupsRoute,
+  AuthenticatedImportReviewRoute: AuthenticatedImportReviewRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,

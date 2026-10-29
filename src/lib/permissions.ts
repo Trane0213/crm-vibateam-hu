@@ -72,6 +72,7 @@ export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/attendance", roles: ["owner", "project_manager"] },
   { prefix: "/help", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/settings", roles: ["owner"] },
+  { prefix: "/import-review", roles: ["owner"] },
 ];
 
 export function canAccessRoute(role: RoleSlug, pathname: string): boolean {

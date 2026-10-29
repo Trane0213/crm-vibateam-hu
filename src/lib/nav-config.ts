@@ -94,7 +94,10 @@ export const MORE_GROUPS: NavGroup[] = [
   },
   {
     label: "Tulajdonos",
-    items: [{ title: "Adott fizetések", url: "/attendance/payouts", icon: Wallet, hideForRoles: ["sales", "marketing", "project_manager"] }],
+    items: [
+      { title: "Adatellenőrzés", url: "/import-review", icon: ShieldCheck },
+      { title: "Adott fizetések", url: "/attendance/payouts", icon: Wallet, hideForRoles: ["sales", "marketing", "project_manager"] },
+    ],
   },
   {
     label: "Rendszer",
