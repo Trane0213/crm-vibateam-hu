@@ -167,7 +167,7 @@ function EmailsPage() {
     enabled: projectIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("projects").select("id,title,name").in("id", projectIds);
+        .from("projects").select("id,title").in("id", projectIds);
       if (error) throw error;
       const m = new Map<string, string>();
       for (const p of data ?? []) m.set((p as any).id, (p as any).title ?? (p as any).name ?? "—");
