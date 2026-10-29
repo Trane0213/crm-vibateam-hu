@@ -45,7 +45,9 @@ export function PipelineDetailSheet({
   const newQuote = useMutation({
     mutationFn: async () => {
       if (!lead) throw new Error("Nincs lead.");
-      return await createDraftQuote({ leadId: lead.id });
+      const id = await createDraftQuote({ leadId: lead.id });
+      await logActivity("quotes", "create", String(id), { lead_id: lead.id });
+      return id;
     },
     onError: (e: any) =>
       toast.error("Nem sikerült létrehozni", { description: humanizeSupabaseError(e) }),

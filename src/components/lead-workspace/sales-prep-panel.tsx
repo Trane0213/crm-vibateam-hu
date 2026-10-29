@@ -124,6 +124,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         .update(patch as any)
         .eq("id", leadId);
       if (error) throw error;
+      await logActivity("leads", "pipeline_entered", leadId, { from: current, to: patch.status ?? current });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["leads"] });
