@@ -595,7 +595,7 @@ function SalesHistory({ leadId }: { leadId: string }) {
     queryKey: ["leads", "status-history", leadId],
     queryFn: async () => {
       const { data } = await supabase.from("lead_status_history")
-        .select("id,from_status,to_status,created_at").eq("lead_id", leadId).order("created_at");
+        .select("id,from_status,to_status,changed_at").eq("lead_id", leadId).order("changed_at");
       return (data ?? []) as any[];
     },
   });
@@ -613,7 +613,7 @@ function SalesHistory({ leadId }: { leadId: string }) {
         {(hist.data ?? []).map((h) => (
           <li key={h.id} className="flex justify-between gap-2">
             <span>{h.from_status ? `${LEAD_STATUS_HU[h.from_status] ?? h.from_status} → ` : ""}{LEAD_STATUS_HU[h.to_status] ?? h.to_status}</span>
-            <span className="text-muted-foreground">{fmtDateTime(h.created_at)}</span>
+            <span className="text-muted-foreground">{fmtDateTime(h.changed_at)}</span>
           </li>
         ))}
         {hist.data && hist.data.length === 0 && <li className="text-muted-foreground">Nincs rögzített státuszváltás.</li>}
