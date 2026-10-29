@@ -136,7 +136,7 @@ function AiAssistantPage() {
       const history = [...(thread.messages ?? []), userMsg]
         .filter((m) => m.role === "user" || m.role === "assistant")
         .slice(-20)
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
       const result = await runAiAgent({ data: { agentId: aiAgentId, history } });
       const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
         ? result.pendingApprovals.map((p) => ({
@@ -189,7 +189,7 @@ function AiAssistantPage() {
         .slice(0, idx)
         .filter((m) => m.role === "user" || m.role === "assistant")
         .slice(-20)
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
       const result = await runAiAgent({
         data: { agentId: aiAgentId, history, approvedToolCallIds: [toolCallId] },
       });
