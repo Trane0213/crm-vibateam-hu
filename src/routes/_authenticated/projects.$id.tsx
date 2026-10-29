@@ -26,6 +26,8 @@ import { ProjectContactsPanel } from "@/components/projects/project-contacts-pan
 import { ProjectEmailAttach } from "@/components/projects/project-email-attach";
 import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import { usePermissions } from "@/hooks/use-permissions";
+import { canAccessRoute } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -497,6 +499,8 @@ function SalesHandoffCard({
   project: Record<string, any>;
   assigneeName: (id: string | null | undefined) => string;
 }) {
+  const { role } = usePermissions();
+  const canOpenLead = canAccessRoute(role, "/leads");
   const payload = (project.handoff_payload ?? {}) as Record<string, any>;
   const pmId: string | null = payload.project_manager_user_id ?? null;
   const source: string | null = payload.source ?? null;
@@ -527,7 +531,7 @@ function SalesHandoffCard({
           <span className={source ? "" : "text-muted-foreground"}>{source ?? "—"}</span>
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Lead</span>
           <span>
-            {project.lead_id ? (
+            {project.lead_id && canOpenLead ? (
               <Link
                 to="/leads/$id"
                 params={{ id: project.lead_id }}
@@ -535,6 +539,10 @@ function SalesHandoffCard({
               >
                 Lead megnyitása
               </Link>
+            ) : project.lead_id ? (
+              // A projektvezető nem látja a lead munkafelületet — az átadott
+              // adatokat ez a kártya mutatja, ezért itt nincs halott link.
+              <span className="text-muted-foreground">Csatolva (sales adatai lent)</span>
             ) : (
               <span className="text-muted-foreground">Nincs csatolva</span>
             )}

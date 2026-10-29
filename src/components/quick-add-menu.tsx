@@ -26,17 +26,12 @@ export function QuickAddMenu() {
     { key: "lead",    label: "Új érdeklődő",      icon: Sparkles,   to: "/leads" },
     { key: "doc",     label: "Új dokumentum",icon: FolderOpen, to: "/documents" },
   ]
-    .map((i) =>
-      // Marketing szerepkörben az „Új érdeklődő" a /today LeadWorkspace-re visz,
-      // mert a /leads route a marketingnek tiltott — ugyanazt a QuickCreate
-      // dialógust kapja meg ott.
-      role === "marketing" && i.key === "lead" ? { ...i, to: "/today" as const } : i,
-    )
     .filter((i) => canAccessRoute(role, i.to))
-    // Marketing szerepkörben CSAK „Új érdeklődő" jelenjen meg — a marketinges
-    // feladata kizárólag lead-rögzítés, minden más (ügyfél, projekt, ajánlat,
-    // feladat, utókövetés, dokumentum) értékesítői / PM hatáskör.
-    .filter((i) => (role === "marketing" ? i.key === "lead" : true));
+    // Marketing szerepkörben nincs gyors hozzáadás: a marketinges leadet
+    // kizárólag a cég munkalapján, a „Saleshez átadás" lépéssel hoz létre
+    // (felelős értékesítővel). A korábbi „Új érdeklődő" → /today menüpont
+    // nem nyitott meg semmit.
+    .filter(() => role !== "marketing");
 
   if (items.length === 0) return null;
 
