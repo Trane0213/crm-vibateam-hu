@@ -48,6 +48,15 @@ export function PulseBar() {
       q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd),
     "today",
   );
+  const followupsToday = useCount(
+    "followups",
+    (q) => q.eq("completed", false).gte("due_date", todayStart).lte("due_date", todayEnd),
+    "today",
+  );
+  const dueToday =
+    tasksToday.data == null && followupsToday.data == null
+      ? "—"
+      : (tasksToday.data ?? 0) + (followupsToday.data ?? 0);
   const newLeads = useCount(
     "leads",
     (q) => q.gte("created_at", weekStart),
@@ -72,7 +81,7 @@ export function PulseBar() {
     {
       icon: ListChecks,
       label: "ma esedékes",
-      value: tasksToday.data ?? "—",
+      value: dueToday,
       to: "/tasks" as const,
       tone: "warning" as const,
     },

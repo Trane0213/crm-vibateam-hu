@@ -325,6 +325,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
       const nextNotes = withMarketingStatus(withSrc, "handoff", leadId);
       const { error: e2 } = await supabase.from("companies").update({ notes: nextNotes }).eq("id", companyId);
       if (e2) throw e2;
+      await logActivity("leads", "marketing_handoff", leadId, {
+        company_id: companyId, source: input.lead_source, assigned_to: input.assigned_to,
+      });
       return leadId;
     },
     onSuccess: () => {

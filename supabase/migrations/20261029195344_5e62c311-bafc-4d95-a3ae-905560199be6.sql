@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.projects_link_lead_records() FROM PUBLIC, anon, authenticated;

@@ -6,7 +6,9 @@ export type ActivityAction =
   | "delete"
   | "status_change"
   | "upload"
-  | "download";
+  | "download"
+  | "pipeline_entered"
+  | "marketing_handoff";
 
 /**
  * Best-effort audit napló az élő `activities` táblába.

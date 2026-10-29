@@ -160,7 +160,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
     if (!leadId || !lead.data) return;
     if (lead.data.status === next) return;
     updateLead.mutate({ status: next });
-    toast.success(`Státusz: ${next}`);
   }
 
   async function handleEmailSent() {

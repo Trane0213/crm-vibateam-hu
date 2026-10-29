@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { useUpdateLead } from "./use-lead-mutations";
+import { logActivity } from "@/lib/activity-log";
 import { statusToLostStage } from "@/lib/sales/constants";
 
 type ActivityType = "call" | "email" | "meeting";
@@ -124,6 +125,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         .update(patch as any)
         .eq("id", leadId);
       if (error) throw error;
+      await logActivity("leads", "pipeline_entered", leadId, { from: current, to: patch.status ?? current });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["leads"] });

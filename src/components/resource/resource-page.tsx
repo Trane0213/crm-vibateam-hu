@@ -94,6 +94,7 @@ export function ResourcePage({
   extraActions,
   actionsFor,
   beforeCreate,
+  beforeUpdate,
 }: {
   title: string;
   description?: string;
@@ -114,6 +115,8 @@ export function ResourcePage({
   actionsFor?: (rows: any[]) => ReactNode;
   /** Új rekord mentése előtt kiegészíti az értékeket (pl. kötelező felelős). */
   beforeCreate?: (values: Record<string, any>) => Record<string, any> | Promise<Record<string, any>>;
+  /** Meglévő rekord mentése előtt ellenőriz / módosít; hibát dobva megállítja a mentést. */
+  beforeUpdate?: (values: Record<string, any>, current: any) => Record<string, any> | Promise<Record<string, any>>;
 }) {
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
@@ -228,7 +231,9 @@ export function ResourcePage({
         defaults={editing}
         submitting={upsert.isPending}
         onSubmit={async (v) => {
-          const payload = editing ? { id: editing.id, ...v } : (beforeCreate ? await beforeCreate(v) : v);
+          const payload = editing
+            ? { id: editing.id, ...(beforeUpdate ? await beforeUpdate(v, editing) : v) }
+            : (beforeCreate ? await beforeCreate(v) : v);
           await upsert.mutateAsync(payload);
           setOpen(false);
         }}

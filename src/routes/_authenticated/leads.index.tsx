@@ -11,6 +11,7 @@ import {
 import { LeadWorkspace } from "@/components/lead-workspace/lead-workspace";
 import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "Új" },
@@ -19,7 +20,15 @@ const STATUS_OPTIONS = [
   { value: "quote_sent", label: "Ajánlat kiadva" },
   { value: "follow_up", label: "Utánkövetés" },
   { value: "contract", label: "Szerződés" },
+  { value: "won", label: "Megnyert" },
+  { value: "lost", label: "Elveszett" },
 ];
+
+// Az admin listából csak a Pipeline előtti státusz állítható. Az ajánlat- és
+// szerződésfázisokba kizárólag a munkafelület „Pipeline-ba" lépésén és a
+// Pipeline fázisváltásain át lehet jutni (kötelező tevékenység és következő
+// lépés), így az admin lista nem kerülheti meg ezeket a szabályokat.
+const EDITABLE_STATUS_OPTIONS = STATUS_OPTIONS.filter((o) => o.value === "new" || o.value === "contacted");
 
 // Megjegyzés: a „Megnyert" és „Elveszett" státuszok szándékosan NEM
 // választhatóak az admin listából. A Sales folyamat végleges útvonala:
@@ -98,6 +107,17 @@ function LeadsListView() {
         const { data: u } = await supabase.auth.getUser();
         return u.user?.id ? { ...v, assigned_to: u.user.id } : v;
       }}
+      beforeUpdate={(v, current) => {
+        // Pipeline-ba lépett, megnyert vagy elveszett lead státusza itt nem
+        // módosítható — csak a Pipeline / munkafelület gombjaival.
+        const locked = current.pipeline_entered_at || ["won", "lost"].includes(current.status);
+        if (locked && v.status !== current.status) {
+          toast.error("Ennek a leadnek a státusza csak a Pipeline-on módosítható.");
+          throw new Error("status_locked");
+        }
+        if (locked) return { ...v, status: current.status };
+        return v;
+      }}
       fields={[
         {
           name: "company_id",
@@ -113,7 +133,7 @@ function LeadsListView() {
         },
         { name: "source", label: "Forrás", type: "text", placeholder: "pl. Weboldal, Ajánlás" },
         { name: "project_type", label: "Projekt típus", type: "text" },
-        { name: "status", label: "Státusz", type: "select", options: STATUS_OPTIONS, required: true },
+        { name: "status", label: "Státusz", type: "select", options: EDITABLE_STATUS_OPTIONS, required: true },
         { name: "summary", label: "Összefoglaló", type: "textarea" },
       ]}
       columns={[

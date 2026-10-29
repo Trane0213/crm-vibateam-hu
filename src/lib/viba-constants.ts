@@ -1,15 +1,16 @@
 // Központi VIBA enumok — UI címkék + tone classok.
 
+// Kivitelezési projekt-státuszok. A sales fázisok (ajánlat, megnyert,
+// elvesztett) a leadhez tartoznak, nem a projekthez. Az adatbázis is csak
+// ezeket az értékeket fogadja el; új projekt „atadas" állapotban indul.
 export const PROJECT_STATUS = [
-  { value: "uj_megkereses",    label: "Új megkeresés" },
-  { value: "felmeres",         label: "Felmérés" },
-  { value: "ajanlat_keszul",   label: "Ajánlat készül" },
-  { value: "ajanlat_kikuldve", label: "Ajánlat kiküldve" },
-  { value: "utankovetes",      label: "Utánkövetés" },
-  { value: "megnyert",         label: "Megnyert" },
-  { value: "elvesztett",       label: "Elvesztett" },
-  { value: "kivitelezes",      label: "Kivitelezés" },
-  { value: "lezart",           label: "Lezárt" },
+  { value: "atadas",         label: "Átadás / előkészítés" },
+  { value: "felmeres",       label: "Felmérés" },
+  { value: "elokeszites",    label: "Munka-előkészítés" },
+  { value: "kivitelezes",    label: "Kivitelezés" },
+  { value: "muszaki_atadas", label: "Műszaki átadás" },
+  { value: "lezart",         label: "Lezárt" },
+  { value: "felfuggesztve",  label: "Felfüggesztve" },
 ] as const;
 
 export type ProjectStatus = (typeof PROJECT_STATUS)[number]["value"];
@@ -19,15 +20,13 @@ export const PROJECT_STATUS_LABEL: Record<string, string> = Object.fromEntries(
 );
 
 export const PROJECT_STATUS_TONE: Record<string, string> = {
-  uj_megkereses:    "bg-[color:var(--status-info)]/15 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
-  felmeres:         "bg-[color:var(--status-info)]/10 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
-  ajanlat_keszul:   "bg-primary/10 text-primary border-primary/30",
-  ajanlat_kikuldve: "bg-primary/15 text-primary border-primary/40",
-  utankovetes:      "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
-  megnyert:         "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
-  elvesztett:       "bg-destructive/10 text-destructive border-destructive/30",
-  kivitelezes:      "bg-primary/10 text-primary border-primary/30",
-  lezart:           "bg-muted text-muted-foreground border-border",
+  atadas:         "bg-[color:var(--status-info)]/15 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
+  felmeres:       "bg-[color:var(--status-info)]/10 text-[color:var(--status-info)] border-[color:var(--status-info)]/30",
+  elokeszites:    "bg-primary/10 text-primary border-primary/30",
+  kivitelezes:    "bg-primary/15 text-primary border-primary/40",
+  muszaki_atadas: "bg-[color:var(--status-success)]/15 text-[color:var(--status-success)] border-[color:var(--status-success)]/30",
+  lezart:         "bg-muted text-muted-foreground border-border",
+  felfuggesztve:  "bg-[color:var(--status-warning)]/15 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/30",
 };
 
 export const COMPANY_TYPE = [
@@ -58,10 +57,9 @@ export const PROJECT_CONTACT_ROLE_LABEL: Record<string, string> =
 
 // Dashboard csoportosítás
 export const ACTIVE_PROJECT_STATUSES: ProjectStatus[] = [
-  "uj_megkereses",
+  "atadas",
   "felmeres",
-  "ajanlat_keszul",
-  "ajanlat_kikuldve",
-  "utankovetes",
+  "elokeszites",
   "kivitelezes",
+  "muszaki_atadas",
 ];

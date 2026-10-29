@@ -1,3 +1,4 @@
+import { LEAD_STATUS_LABEL, type LeadStatus } from "@/lib/sales/constants";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -34,9 +35,17 @@ export function useUpdateLead(leadId: string | null) {
       }
     },
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),
-    onSuccess: () => {
+    onSuccess: (_d, patch) => {
       qc.invalidateQueries({ queryKey: ["leads"] });
       qc.invalidateQueries({ queryKey: ["pipeline"] });
+      // Egyértelmű visszajelzés minden mentés után (a hibát az onError jelzi).
+      if (patch.status) {
+        toast.success(`Státusz: ${LEAD_STATUS_LABEL[patch.status as LeadStatus] ?? patch.status}`);
+      } else if ("next_step_type" in patch) {
+        toast.success(patch.next_step_type ? "Következő lépés mentve" : "Következő lépés törölve");
+      } else {
+        toast.success("Mentve");
+      }
     },
   });
 }

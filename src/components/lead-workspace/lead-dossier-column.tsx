@@ -20,6 +20,7 @@ import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
 } from "@/lib/marketing-status";
 import { buildTimeline } from "@/lib/marketing-timeline";
+import { LOST_REASON_LABEL, type LostReason } from "@/lib/sales/constants";
 import { relativeTime } from "@/components/marketing-ui";
 
 export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
@@ -172,7 +173,7 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
                   <div className="flex flex-wrap items-center gap-2">
                     {l.lost_reason && (
                       <Badge variant="outline" className="border-destructive/40 text-destructive">
-                        {l.lost_reason}
+                        {LOST_REASON_LABEL[l.lost_reason as LostReason] ?? l.lost_reason}
                       </Badge>
                     )}
                     {l.lost_at && <span className="text-muted-foreground">{fmtDate(l.lost_at)}</span>}
