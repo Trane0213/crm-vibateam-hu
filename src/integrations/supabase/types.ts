@@ -3041,10 +3041,13 @@ export type Database = {
           email: string | null
           full_name: string | null
           gmail_access_token: string | null
+          gmail_auth_error: string | null
+          gmail_auth_error_at: string | null
           gmail_email: string | null
           gmail_expires_at: string | null
           gmail_history_id: string | null
           gmail_last_sync_at: string | null
+          gmail_next_retry_at: string | null
           gmail_refresh_token: string | null
           gmail_scope: string | null
           id: string
@@ -3058,10 +3061,13 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           gmail_access_token?: string | null
+          gmail_auth_error?: string | null
+          gmail_auth_error_at?: string | null
           gmail_email?: string | null
           gmail_expires_at?: string | null
           gmail_history_id?: string | null
           gmail_last_sync_at?: string | null
+          gmail_next_retry_at?: string | null
           gmail_refresh_token?: string | null
           gmail_scope?: string | null
           id?: string
@@ -3075,10 +3081,13 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           gmail_access_token?: string | null
+          gmail_auth_error?: string | null
+          gmail_auth_error_at?: string | null
           gmail_email?: string | null
           gmail_expires_at?: string | null
           gmail_history_id?: string | null
           gmail_last_sync_at?: string | null
+          gmail_next_retry_at?: string | null
           gmail_refresh_token?: string | null
           gmail_scope?: string | null
           id?: string
