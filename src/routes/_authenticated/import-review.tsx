@@ -32,7 +32,7 @@ function useData() {
     queryFn: async () => {
       const [rev, pc, log] = await Promise.all([
         supabase.from("import_review_items").select("id,kind,title,details,company_id,status").eq("batch", BATCH).eq("status", "open").order("title"),
-        supabase.from("project_candidates").select("id,title,source_note,review_status,company_id,companies(name)").order("title"),
+        supabase.from("project_candidates").select("id,title,source_note,review_status,company_id,project_id,companies(name)").order("title"),
         supabase.from("import_log").select("entity_id").eq("batch", BATCH).eq("entity", "lead"),
       ]);
       if (rev.error) throw rev.error;
