@@ -497,6 +497,8 @@ function SalesHandoffCard({
   project: Record<string, any>;
   assigneeName: (id: string | null | undefined) => string;
 }) {
+  const { role } = usePermissions();
+  const canOpenLead = canAccessRoute(role, "/leads");
   const payload = (project.handoff_payload ?? {}) as Record<string, any>;
   const pmId: string | null = payload.project_manager_user_id ?? null;
   const source: string | null = payload.source ?? null;
@@ -527,7 +529,7 @@ function SalesHandoffCard({
           <span className={source ? "" : "text-muted-foreground"}>{source ?? "—"}</span>
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Lead</span>
           <span>
-            {project.lead_id ? (
+            {project.lead_id && canOpenLead ? (
               <Link
                 to="/leads/$id"
                 params={{ id: project.lead_id }}
@@ -535,6 +537,10 @@ function SalesHandoffCard({
               >
                 Lead megnyitása
               </Link>
+            ) : project.lead_id ? (
+              // A projektvezető nem látja a lead munkafelületet — az átadott
+              // adatokat ez a kártya mutatja, ezért itt nincs halott link.
+              <span className="text-muted-foreground">Csatolva (sales adatai lent)</span>
             ) : (
               <span className="text-muted-foreground">Nincs csatolva</span>
             )}
