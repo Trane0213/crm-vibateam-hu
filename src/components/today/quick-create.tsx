@@ -6,6 +6,7 @@ import { RecordDialog, type Field } from "@/components/resource/resource-page";
 import { useUpsert } from "@/lib/db-hooks";
 import { toast } from "sonner";
 import { findOpenLeadDuplicate } from "@/lib/dedupe/detect";
+import { supabase } from "@/integrations/supabase/client";
 
 const LEAD_FIELDS: Field[] = [
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
@@ -14,7 +15,6 @@ const LEAD_FIELDS: Field[] = [
   { name: "project_type", label: "Projekt típus", type: "text" },
   { name: "status", label: "Státusz", type: "select", required: true, options: [
     { value: "new", label: "Új" }, { value: "contacted", label: "Felvettük" },
-    { value: "lost", label: "Elveszett" },
   ]},
   { name: "summary", label: "Összefoglaló", type: "textarea" },
 ];
@@ -99,6 +99,11 @@ export function QuickCreateLeadButton({ onCreated }: { onCreated?: (row: any) =>
         submitting={upsert.isPending}
         onSubmit={async (values) => {
           const merged: Record<string, any> = { status: "new", ...(values as Record<string, any>) };
+          // Kézi lead felelős nélkül nem menthető (DB szabály) → alapból a létrehozó a felelős.
+          if (!merged.assigned_to) {
+            const { data: u } = await supabase.auth.getUser();
+            if (u.user?.id) merged.assigned_to = u.user.id;
+          }
           // Duplikáció ellenőrzés — nyitott lead ugyanahhoz a céghez (a leads tábla
           // nem tárol külön email mezőt, ezért company-alapon szűrünk).
           const dup = await findOpenLeadDuplicate({

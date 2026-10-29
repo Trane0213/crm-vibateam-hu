@@ -313,7 +313,9 @@ export function LeadDetailColumn({
               className="h-7 rounded-md border bg-background px-2 text-xs font-medium"
             >
               {LEAD_STATUS_OPTIONS
-                .filter((o) => o.value)
+                // Marketing csak a pre-pipeline állapotok között vált; pipeline-ba
+                // a „Pipeline-ba" gomb, elveszettbe az okot kérő dialógus visz.
+                .filter((o) => o.value === "new" || o.value === "contacted")
                 .map((o) => (
                   <option key={o.value} value={o.value}>
                     {((o as any).marketingLabel ?? o.label)}

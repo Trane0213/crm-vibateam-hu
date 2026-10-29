@@ -318,7 +318,6 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
             status: "lost",
             // 2026-06-27 invariáns: a lost_stage a tényleges aktuális státusz.
             lost_stage: statusToLostStage(lead.data?.status),
-            lost_at: new Date().toISOString(),
             ...p,
           },
           { onSuccess: () => { setLostOpen(false); qc.invalidateQueries({ queryKey: ["leads"] }); } },
