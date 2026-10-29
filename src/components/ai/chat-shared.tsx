@@ -32,6 +32,9 @@ export type Msg = {
   id: string; role: "user" | "assistant"; content: string; at: number;
   nav?: NavCard; approvals?: ToolApproval[];
   runId?: string;
+  /** A modellnek küldött tartalom (pl. rejtett rekord-kontextussal); megjelenítés a content-ből. */
+  modelContent?: string;
+  contextLabel?: string;
 };
 export type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
 
