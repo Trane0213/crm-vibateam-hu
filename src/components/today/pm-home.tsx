@@ -39,7 +39,7 @@ export function PmHome() {
   const overdueFu = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue-fu");
 
   const tasks = useList<any>("tasks", { order: "due_date", ascending: true });
-  const projects = useList<any>("projects", { order: "updated_at", ascending: false });
+  const projects = useList<any>("projects", { order: "created_at", ascending: false });
 
   const taskList = (tasks.data ?? []).filter((t: any) => t.status !== "done" && t.due_date).slice(0, 8);
   const projectList = (projects.data ?? [])
