@@ -1080,12 +1080,28 @@ function HandoffDialog({
               </Select>
             </div>
           </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Felelős értékesítő <span className="text-destructive">*</span>
+            </label>
+            <Select value={assignee} onValueChange={setAssignee}>
+              <SelectTrigger className="mt-1" aria-label="Felelős értékesítő"><SelectValue placeholder="Válassz értékesítőt" /></SelectTrigger>
+              <SelectContent>
+                {salesUsers.map((u) => (
+                  <SelectItem key={u.auth_user_id} value={u.auth_user_id}>{u.full_name ?? u.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {salesUsers.length === 0 && (
+              <div className="mt-1 text-[11px] text-destructive">Nincs aktív értékesítő — szólj a tulajdonosnak.</div>
+            )}
+          </div>
         </div>
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Mégse</AlertDialogCancel>
           <AlertDialogAction
-            disabled={submitting || !summary.trim() || !leadSource}
+            disabled={submitting || !summary.trim() || !leadSource || !assignee}
             onClick={(e) => {
               e.preventDefault();
               onSubmit({
@@ -1093,6 +1109,7 @@ function HandoffDialog({
                 project_type: projectType.trim() || null,
                 contact_id: contactId || null,
                 lead_source: leadSource as LeadSource,
+                assigned_to: assignee,
               });
             }}
           >
