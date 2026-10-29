@@ -4132,6 +4132,7 @@ export type Database = {
         Returns: boolean
       }
       crm_role_of: { Args: { _auth_user: string }; Returns: string }
+      current_profile_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
