@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.followups_assign_owner() FROM PUBLIC, anon, authenticated;
