@@ -47,6 +47,3 @@ export function useRealtimeSync(enabled: boolean) {
   }, [enabled, qc]);
 }
 
-export function RealtimeSync() {
-  return null;
-}
