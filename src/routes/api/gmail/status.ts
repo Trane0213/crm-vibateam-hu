@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/gmail/status")({
           const admin = getAdminClient();
           const { data } = await admin
             .from("users_profile")
-            .select("gmail_email,gmail_last_sync_at,gmail_scope,gmail_expires_at")
+            .select("gmail_email,gmail_last_sync_at,gmail_scope,gmail_expires_at,gmail_auth_error")
             .eq("auth_user_id", userId)
             .maybeSingle();
           const connected = !!data?.gmail_email && !!data?.gmail_scope;
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/api/gmail/status")({
                   last_sync_at: data!.gmail_last_sync_at,
                   scope: data!.gmail_scope,
                   expires_at: data!.gmail_expires_at,
+                  auth_error: (data as any).gmail_auth_error ?? null,
                 }
               : null,
           });
