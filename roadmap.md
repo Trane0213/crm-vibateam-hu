@@ -1,0 +1,13 @@
+# Roadmap – Végső stabilizálás (2026-10-29)
+- [ ] 1. Projekt adatlap: lead ajánlatai, kapcsolattartók, utánkövetések, előzmények
+- [ ] 2. Projekt-státuszrendszer kivitelezésre, induló státusz = átadás/előkészítés
+- [ ] 3. Élő frissítés (leads, quotes, followups, projects)
+- [ ] 4a. Admin státuszválasztó ne kerülje meg a pipeline szabályokat
+- [ ] 4b. Utánkövetés leadhez kapcsolható
+- [ ] 4c. „Ma esedékes" számolja az utánkövetéseket
+- [ ] 4d. Kis képernyő: sales előkészítő oszlop ne vágódjon
+- [ ] 4e. Magyar feliratok kódok helyett
+- [ ] 4f. Visszajelzés mentésnél (következő lépés)
+- [ ] 4g. Naplózás: átadás, pipeline-ba lépés, ajánlat létrehozás
+- [ ] 5. E2E_TEST_PASSWORD secret törlése, info@ owner, újrateszt, jelentés
+- [ ] 6. UI/UX + AI megújítás — külön jóváhagyásra vár (nem kezdeni)
