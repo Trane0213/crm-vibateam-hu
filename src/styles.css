@@ -62,8 +62,6 @@
   --color-primary-glow: var(--primary-glow);
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
-  --shadow-card: var(--shadow-card);
-  --shadow-glow: var(--shadow-glow);
 }
 
 :root {
