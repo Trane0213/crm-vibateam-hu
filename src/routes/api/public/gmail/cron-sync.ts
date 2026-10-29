@@ -11,7 +11,7 @@ const HARD_DEADLINE_MS = 50 * 1000;
 /** Visszavont / törölt Google-hozzáférésnél naponta egyszer próbálkozunk újra. */
 const AUTH_RETRY_MS = 24 * 60 * 60 * 1000;
 
-export function isPermanentAuthError(msg: string): boolean {
+function isPermanentAuthError(msg: string): boolean {
   return /invalid_grant|unauthorized_client|Nincs csatlakoztatott Gmail/i.test(msg);
 }
 
