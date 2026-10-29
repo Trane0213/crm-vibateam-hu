@@ -566,8 +566,61 @@ function SalesHandoffCard({
             {project.lead_id ? " (korábbi projekt)." : "."}
           </div>
         )}
+        {project.lead_id && <SalesHistory leadId={project.lead_id} />}
       </CardContent>
     </Card>
+  );
+}
+
+const LEAD_STATUS_HU: Record<string, string> = {
+  new: "Új", contacted: "Kapcsolatban", quote_prep: "Ajánlat előkészítés", quote_sent: "Ajánlat kiadva",
+  follow_up: "Utánkövetés", contract: "Szerződés", won: "Megnyert", lost: "Elveszett",
+};
+const NEXT_STEP_HU: Record<string, string> = {
+  call: "Telefon", phone: "Telefon", email: "E-mail", meeting: "Találkozó", site_visit: "Helyszíni bejárás",
+  quote: "Ajánlat", followup: "Utánkövetés", other: "Egyéb",
+};
+
+// A lead sales-előzményei (meglévő rekordok, másolat nélkül): utolsó
+// következő lépés és a teljes státusztörténet.
+function SalesHistory({ leadId }: { leadId: string }) {
+  const lead = useQuery({
+    queryKey: ["leads", "project-history", leadId],
+    queryFn: async () => {
+      const { data } = await supabase.from("leads")
+        .select("id,source,project_type,next_step_type,next_step_note,next_step_due_at,pipeline_entered_at,won_at")
+        .eq("id", leadId).maybeSingle();
+      return data as any;
+    },
+  });
+  const hist = useQuery({
+    queryKey: ["leads", "status-history", leadId],
+    queryFn: async () => {
+      const { data } = await supabase.from("lead_status_history")
+        .select("id,from_status,to_status,created_at").eq("lead_id", leadId).order("created_at");
+      return (data ?? []) as any[];
+    },
+  });
+  const l = lead.data;
+  return (
+    <div className="space-y-2 rounded-md border bg-muted/30 p-2">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sales előzmények</div>
+      {l?.next_step_note && (
+        <div className="text-sm">
+          <span className="text-muted-foreground">Utolsó sales lépés ({NEXT_STEP_HU[l.next_step_type] ?? l.next_step_type ?? "—"}): </span>
+          {l.next_step_note}
+        </div>
+      )}
+      <ol className="space-y-0.5 text-xs">
+        {(hist.data ?? []).map((h) => (
+          <li key={h.id} className="flex justify-between gap-2">
+            <span>{h.from_status ? `${LEAD_STATUS_HU[h.from_status] ?? h.from_status} → ` : ""}{LEAD_STATUS_HU[h.to_status] ?? h.to_status}</span>
+            <span className="text-muted-foreground">{fmtDateTime(h.created_at)}</span>
+          </li>
+        ))}
+        {hist.data && hist.data.length === 0 && <li className="text-muted-foreground">Nincs rögzített státuszváltás.</li>}
+      </ol>
+    </div>
   );
 }
 
