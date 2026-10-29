@@ -23,7 +23,7 @@ function ProfilePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("*")
+        .select("id, auth_user_id, email, full_name, phone, role_id, active, created_at, gmail_email, gmail_last_sync_at")
         .eq("auth_user_id", user!.id)
         .maybeSingle();
       if (error) throw error;
