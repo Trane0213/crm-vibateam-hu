@@ -40,8 +40,8 @@ export function registerCrmTools() {
       const like = `%${q}%`;
       const sb = ctx.supabaseUser;
       const [companies, contacts, leads, projects] = await Promise.all([
-        sb.from("companies").select("id,name,website,company_type,tax_number,notes").or(`name.ilike.${like},domain.ilike.${like}`).limit(limit),
-        sb.from("contacts").select("id,full_name,email,company_id").or(`full_name.ilike.${like},email.ilike.${like}`).limit(limit),
+        sb.from("companies").select("id,name,website,company_type,tax_number,notes").or(`name.ilike.${like},website.ilike.${like}`).limit(limit),
+        sb.from("contacts").select("id,name,email,company_id").or(`name.ilike.${like},email.ilike.${like}`).limit(limit),
         sb.from("leads").select("id,company_id,status,summary,assigned_to").or(`summary.ilike.${like}`).limit(limit),
         sb.from("projects").select("id,title,status").or(`title.ilike.${like}`).limit(limit),
       ]);
@@ -158,7 +158,7 @@ export function registerCrmTools() {
     async (args, ctx) => {
       const { data, error } = await ctx.supabaseUser
         .from("contacts")
-        .select("id,full_name,email,phone,role,is_primary")
+        .select("id,name,email,phone,position")
         .eq("company_id", String(args.company_id))
         .limit(Math.min(Number(args.limit ?? 25), 100));
       if (error) return fail(error.message);
@@ -337,12 +337,12 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       let q = ctx.supabaseUser.from("followups")
-        .select("id,subject_type,subject_id,assigned_to,due_at,status,note")
-        .neq("status", "done")
-        .order("due_at", { ascending: true })
+        .select("id,lead_id,project_id,company_id,quote_id,followup_type,assigned_to,due_date,completed,result")
+        .eq("completed", false)
+        .order("due_date", { ascending: true })
         .limit(Math.min(Number(args.limit ?? 25), 100));
       if (args.assigned_to) q = q.eq("assigned_to", String(args.assigned_to));
-      if (args.due_before) q = q.lte("due_at", String(args.due_before));
+      if (args.due_before) q = q.lte("due_date", String(args.due_before));
       const { data, error } = await q;
       if (error) return fail(error.message);
       return ok(data ?? []);
