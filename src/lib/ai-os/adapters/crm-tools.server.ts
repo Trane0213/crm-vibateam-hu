@@ -242,8 +242,8 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       let q = ctx.supabaseUser.from("projects")
-        .select("id,name,status,project_manager_user_id,start_date,end_date,updated_at")
-        .order("updated_at", { ascending: false })
+        .select("id,title,status,project_manager_user_id,start_date,deadline,created_at")
+        .order("created_at", { ascending: false })
         .limit(Math.min(Number(args.limit ?? 25), 100));
       if (args.status) q = q.eq("status", String(args.status));
       if (args.project_manager_user_id) q = q.eq("project_manager_user_id", String(args.project_manager_user_id));
