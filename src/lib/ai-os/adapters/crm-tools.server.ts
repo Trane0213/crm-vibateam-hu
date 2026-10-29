@@ -197,8 +197,8 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       let q = ctx.supabaseUser.from("leads")
-        .select("id,company_id,status,summary,assigned_to,next_step,updated_at")
-        .order("updated_at", { ascending: false })
+        .select("id,company_id,status,summary,assigned_to,next_step_type,next_step_due_at,created_at")
+        .order("created_at", { ascending: false })
         .limit(Math.min(Number(args.limit ?? 25), 100));
       if (args.status) q = q.eq("status", String(args.status));
       if (args.assigned_to) q = q.eq("assigned_to", String(args.assigned_to));
