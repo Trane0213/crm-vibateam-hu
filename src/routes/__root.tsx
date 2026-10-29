@@ -128,8 +128,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <LiveSync />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );
+}
+
+function LiveSync() {
+  const { session } = useAuth();
+  useRealtimeSync(!!session);
+  return null;
 }
