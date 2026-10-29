@@ -40,7 +40,7 @@ export function registerCrmTools() {
       const like = `%${q}%`;
       const sb = ctx.supabaseUser;
       const [companies, contacts, leads, projects] = await Promise.all([
-        sb.from("companies").select("id,name,domain").or(`name.ilike.${like},domain.ilike.${like}`).limit(limit),
+        sb.from("companies").select("id,name,website,company_type,tax_number,notes").or(`name.ilike.${like},domain.ilike.${like}`).limit(limit),
         sb.from("contacts").select("id,full_name,email,company_id").or(`full_name.ilike.${like},email.ilike.${like}`).limit(limit),
         sb.from("leads").select("id,company_id,status,summary,assigned_to").or(`summary.ilike.${like}`).limit(limit),
         sb.from("projects").select("id,title,status").or(`title.ilike.${like}`).limit(limit),
@@ -72,8 +72,8 @@ export function registerCrmTools() {
     async (args, ctx) => {
       let q = ctx.supabaseUser
         .from("companies")
-        .select("id,name,domain,updated_at")
-        .order("updated_at", { ascending: false })
+        .select("id,name,website,company_type,created_at")
+        .order("created_at", { ascending: false })
         .limit(Math.min(Number(args.limit ?? 50), 200));
       if (args.name_like) q = q.ilike("name", `%${String(args.name_like)}%`);
       const { data, error } = await q;
@@ -97,13 +97,16 @@ export function registerCrmTools() {
     async (args, ctx) => {
       const id = String(args.company_id);
       const sb = ctx.supabaseUser;
-      const [company, contacts, leads, projects, quotes] = await Promise.all([
-        sb.from("companies").select("id,name,domain").eq("id", id).maybeSingle(),
-        sb.from("contacts").select("id,full_name,email,phone").eq("company_id", id).limit(25),
-        sb.from("leads").select("id,status,summary,updated_at").eq("company_id", id).limit(25),
+      const [company, contacts, leads, projects] = await Promise.all([
+        sb.from("companies").select("id,name,website,company_type,tax_number,notes").eq("id", id).maybeSingle(),
+        sb.from("contacts").select("id,name,email,phone,position").eq("company_id", id).limit(25),
+        sb.from("leads").select("id,status,summary,assigned_to,created_at").eq("company_id", id).limit(25),
         sb.from("projects").select("id,title,status").eq("company_id", id).limit(25),
-        sb.from("quotes").select("id,status,total_amount,currency,updated_at").eq("company_id", id).limit(25),
       ]);
+      const leadIds = (leads.data ?? []).map((l: any) => l.id);
+      const quotes = leadIds.length
+        ? await sb.from("quotes").select("id,lead_id,title,status,total_amount,valid_until,created_at").in("lead_id", leadIds).limit(25)
+        : { data: [] as any[] };
       return ok({
         company: company.data,
         counts: {
@@ -202,7 +205,13 @@ export function registerCrmTools() {
         .limit(Math.min(Number(args.limit ?? 25), 100));
       if (args.status) q = q.eq("status", String(args.status));
       if (args.assigned_to) q = q.eq("assigned_to", String(args.assigned_to));
-      if (args.company_id) q = q.eq("company_id", String(args.company_id));
+      if (args.company_id) {
+        // Az ajánlatnak nincs saját cég mezője: a cég leadjein keresztül szűrünk.
+        const { data: ls } = await ctx.supabaseUser.from("leads").select("id").eq("company_id", String(args.company_id));
+        const ids = (ls ?? []).map((l: any) => l.id);
+        if (!ids.length) return ok([]);
+        q = q.in("lead_id", ids);
+      }
       const { data, error } = await q;
       if (error) return fail(error.message);
       return ok(data ?? []);
@@ -270,11 +279,17 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       let q = ctx.supabaseUser.from("quotes")
-        .select("id,lead_id,company_id,status,total_amount,currency,valid_until,updated_at")
-        .order("updated_at", { ascending: false })
+        .select("id,lead_id,project_id,title,status,total_amount,valid_until,created_at")
+        .order("created_at", { ascending: false })
         .limit(Math.min(Number(args.limit ?? 25), 100));
       if (args.lead_id) q = q.eq("lead_id", String(args.lead_id));
-      if (args.company_id) q = q.eq("company_id", String(args.company_id));
+      if (args.company_id) {
+        // Az ajánlatnak nincs saját cég mezője: a cég leadjein keresztül szűrünk.
+        const { data: ls } = await ctx.supabaseUser.from("leads").select("id").eq("company_id", String(args.company_id));
+        const ids = (ls ?? []).map((l: any) => l.id);
+        if (!ids.length) return ok([]);
+        q = q.in("lead_id", ids);
+      }
       const { data, error } = await q;
       if (error) return fail(error.message);
       return ok(data ?? []);
@@ -350,8 +365,8 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       let q = ctx.supabaseUser.from("tasks")
-        .select("id,project_id,title,status,assigned_to,due_at,updated_at")
-        .order("updated_at", { ascending: false })
+        .select("id,project_id,title,status,priority,assigned_user,due_date,created_at")
+        .order("created_at", { ascending: false })
         .limit(Math.min(Number(args.limit ?? 50), 200));
       if (args.project_id) q = q.eq("project_id", String(args.project_id));
       if (args.status) q = q.eq("status", String(args.status));
