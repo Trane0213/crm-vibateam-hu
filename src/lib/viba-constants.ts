@@ -57,10 +57,9 @@ export const PROJECT_CONTACT_ROLE_LABEL: Record<string, string> =
 
 // Dashboard csoportosítás
 export const ACTIVE_PROJECT_STATUSES: ProjectStatus[] = [
-  "uj_megkereses",
+  "atadas",
   "felmeres",
-  "ajanlat_keszul",
-  "ajanlat_kikuldve",
-  "utankovetes",
+  "elokeszites",
   "kivitelezes",
+  "muszaki_atadas",
 ];
