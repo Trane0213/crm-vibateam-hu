@@ -21,7 +21,7 @@ async function authedFetch(path: string, init: RequestInit = {}): Promise<Respon
 async function fetchStatus() {
   const r = await authedFetch("/api/gmail/status");
   if (!r.ok) throw new Error(`Státusz lekérés hiba (${r.status})`);
-  return r.json() as Promise<{ connected: boolean; account: null | { email: string; last_sync_at: string | null; expires_at: string | null } }>;
+  return r.json() as Promise<{ connected: boolean; account: null | { email: string; last_sync_at: string | null; expires_at: string | null; auth_error?: string | null } }>;
 }
 
 export function GmailConnectCard() {
@@ -156,6 +156,11 @@ export function GmailConnectCard() {
                 <div className="text-xs text-muted-foreground mt-0.5">Utolsó szinkron: {new Date(acc.last_sync_at).toLocaleString("hu-HU")}</div>
               )}
             </div>
+            {acc.auth_error && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                A Google visszautasította a hozzáférést, a szinkron szünetel. Kattints a „Csatlakoztatás” / újracsatlakozás gombra, és engedélyezd újra a fiókot.
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button onClick={handleSync} disabled={busy !== null}>
                 <RefreshCw className={`mr-1.5 h-4 w-4 ${busy === "sync" ? "animate-spin" : ""}`} />
