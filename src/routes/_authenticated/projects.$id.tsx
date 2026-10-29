@@ -28,6 +28,8 @@ import { PROJECT_STATUS_LABEL, PROJECT_CONTACT_ROLE_LABEL, COMPANY_TYPE_LABEL } 
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessRoute } from "@/lib/permissions";
+import { NEXT_STEP_LABEL } from "@/lib/sales/constants";
+import { LEAD_SOURCE_LABEL } from "@/lib/marketing-status";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   component: ProjectDetail,
@@ -528,7 +530,7 @@ function SalesHandoffCard({
             {pmId ? assigneeName(pmId) : "—"}
           </span>
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Lead forrása</span>
-          <span className={source ? "" : "text-muted-foreground"}>{source ?? "—"}</span>
+          <span className={source ? "" : "text-muted-foreground"}>{source ? ((LEAD_SOURCE_LABEL as Record<string,string>)[source] ?? source) : "—"}</span>
           <span className="text-xs uppercase tracking-wider text-muted-foreground">Lead</span>
           <span>
             {project.lead_id && canOpenLead ? (
@@ -576,10 +578,6 @@ const LEAD_STATUS_HU: Record<string, string> = {
   new: "Új", contacted: "Kapcsolatban", quote_prep: "Ajánlat előkészítés", quote_sent: "Ajánlat kiadva",
   follow_up: "Utánkövetés", contract: "Szerződés", won: "Megnyert", lost: "Elveszett",
 };
-const NEXT_STEP_HU: Record<string, string> = {
-  call: "Telefon", phone: "Telefon", email: "E-mail", meeting: "Találkozó", site_visit: "Helyszíni bejárás",
-  quote: "Ajánlat", followup: "Utánkövetés", other: "Egyéb",
-};
 
 // A lead sales-előzményei (meglévő rekordok, másolat nélkül): utolsó
 // következő lépés és a teljes státusztörténet.
@@ -607,7 +605,7 @@ function SalesHistory({ leadId }: { leadId: string }) {
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sales előzmények</div>
       {l?.next_step_note && (
         <div className="text-sm">
-          <span className="text-muted-foreground">Utolsó sales lépés ({NEXT_STEP_HU[l.next_step_type] ?? l.next_step_type ?? "—"}): </span>
+          <span className="text-muted-foreground">Utolsó sales lépés ({(NEXT_STEP_LABEL as Record<string,string>)[l.next_step_type] ?? l.next_step_type ?? "—"}): </span>
           {l.next_step_note}
         </div>
       )}
