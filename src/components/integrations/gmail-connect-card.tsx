@@ -158,10 +158,15 @@ export function GmailConnectCard() {
             </div>
             {acc.auth_error && (
               <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                A Google visszautasította a hozzáférést, a szinkron szünetel. Kattints a „Csatlakoztatás” / újracsatlakozás gombra, és engedélyezd újra a fiókot.
+                A Google visszautasította a hozzáférést, a szinkron szünetel. Kattints az „Újracsatlakozás” gombra, és engedélyezd újra a fiókot.
               </div>
             )}
             <div className="flex flex-wrap gap-2">
+              {acc.auth_error && (
+                <Button onClick={handleConnect} disabled={busy !== null}>
+                  {busy === "connect" ? "Átirányítás…" : "Újracsatlakozás Google fiókkal"}
+                </Button>
+              )}
               <Button onClick={handleSync} disabled={busy !== null}>
                 <RefreshCw className={`mr-1.5 h-4 w-4 ${busy === "sync" ? "animate-spin" : ""}`} />
                 {busy === "sync" ? "Szinkronizálás…" : "Szinkron most"}
