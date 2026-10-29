@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.users_profile_guard() FROM PUBLIC, anon, authenticated;
