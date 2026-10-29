@@ -76,7 +76,7 @@ function Dashboard() {
 
   const projectStatusCounts: Record<string, number> = {};
   for (const p of allProjects.data ?? []) {
-    const s = (p.status as string) ?? "uj_megkereses";
+    const s = (p.status as string) ?? "atadas";
     projectStatusCounts[s] = (projectStatusCounts[s] ?? 0) + 1;
   }
   const activeProjectsTotal = ACTIVE_PROJECT_STATUSES.reduce((a, s) => a + (projectStatusCounts[s] ?? 0), 0);

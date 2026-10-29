@@ -7,7 +7,7 @@ import { PROJECT_STATUS, PROJECT_STATUS_TONE, PROJECT_STATUS_LABEL } from "@/lib
 
 export function ProjectStatusSelect({ projectId, value }: { projectId: string; value: string | null | undefined }) {
   const qc = useQueryClient();
-  const current = value ?? "uj_megkereses";
+  const current = value ?? "atadas";
   const tone = PROJECT_STATUS_TONE[current] ?? "";
   const mut = useMutation({
     mutationFn: async (next: string) => {
