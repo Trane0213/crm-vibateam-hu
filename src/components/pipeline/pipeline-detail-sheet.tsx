@@ -87,7 +87,7 @@ export function PipelineDetailSheet({
         .from("leads")
         .update({
           status: "lost",
-          lost_at: new Date().toISOString(),
+          // lost_at-et az adatbázis trigger tölti ki.
           lost_reason: p.lost_reason,
           lost_note: p.lost_note,
           // 2026-06-27 invariáns: a lost_stage a tényleges aktuális
