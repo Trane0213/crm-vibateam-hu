@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { useUpdateLead } from "./use-lead-mutations";
+import { logActivity } from "@/lib/activity-log";
 import { statusToLostStage } from "@/lib/sales/constants";
 
 type ActivityType = "call" | "email" | "meeting";

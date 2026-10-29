@@ -1,3 +1,4 @@
+import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Clock } from "lucide-react";
@@ -60,14 +61,27 @@ export function PipelineActivityLog({ leadId }: { leadId: string }) {
   );
 }
 
+const ST = (s: any) => (s ? (LEAD_STATUS_LABEL as Record<string, string>)[s] ?? s : "?");
+const FIELD_HU: Record<string, string> = {
+  next_step: "következő lépés", next_step_type: "következő lépés", next_step_due_at: "határidő",
+  next_step_note: "jegyzet", assigned_to: "felelős", summary: "összefoglaló",
+};
+
 function describe(action: string, p: any): string {
   switch (action) {
     case "status_change":
-      return `Státuszváltás: ${p?.from ?? "?"} → ${p?.to ?? "?"}`;
+      return `Státuszváltás: ${ST(p?.from)} → ${ST(p?.to)}`;
     case "create":
       return "Lead létrehozva";
-    case "update":
-      return p?.field ? `Frissítve: ${p.field}` : "Frissítve";
+    case "pipeline_entered":
+      return "Pipeline-ba léptetve";
+    case "marketing_handoff":
+      return "Marketing átadta a salesnek";
+    case "update": {
+      const f: string[] = p?.field ? [p.field] : (p?.fields ?? []);
+      const names = Array.from(new Set(f.map((x) => FIELD_HU[x] ?? x)));
+      return names.length ? `Frissítve: ${names.join(", ")}` : "Frissítve";
+    }
     default:
       return action;
   }

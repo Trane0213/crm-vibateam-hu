@@ -30,13 +30,13 @@ export function LeadWorkspace({
   if (mode === "sales") {
     return (
       <div className={shell}>
-        <div className="min-h-0 w-[300px] flex-shrink-0 border-r">
+        <div className="min-h-0 w-[240px] flex-shrink-0 border-r xl:w-[300px]">
           <LeadListColumn selectedId={selectedId} onSelect={setSelectedId} mode="sales" />
         </div>
-        <div className="min-h-0 flex-1 border-r">
+        <div className="min-h-0 min-w-0 flex-1 border-r">
           <LeadDossierColumn leadId={selectedId} />
         </div>
-        <div className="min-h-0 w-[360px] flex-shrink-0">
+        <div className="min-h-0 w-[300px] min-w-0 flex-shrink-0 overflow-y-auto xl:w-[360px]">
           <SalesPrepPanel leadId={selectedId} />
         </div>
       </div>
@@ -46,13 +46,13 @@ export function LeadWorkspace({
   // Marketing mód — meglévő részletek + akciók (változatlan).
   return (
     <div className={shell}>
-      <div className="min-h-0 w-[300px] flex-shrink-0 border-r">
+      <div className="min-h-0 w-[240px] flex-shrink-0 border-r xl:w-[300px]">
         <LeadListColumn selectedId={selectedId} onSelect={setSelectedId} mode="marketing" />
       </div>
-      <div className="min-h-0 flex-1 border-r">
+      <div className="min-h-0 min-w-0 flex-1 border-r">
         <LeadDetailColumn leadId={selectedId} mode="marketing" />
       </div>
-      <div className="min-h-0 w-[340px] flex-shrink-0">
+      <div className="min-h-0 w-[300px] min-w-0 flex-shrink-0 overflow-y-auto xl:w-[340px]">
         <LeadActionPanel leadId={selectedId} mode="marketing" />
       </div>
     </div>
