@@ -1,0 +1,10 @@
+CREATE SCHEMA IF NOT EXISTS backup_pipeline_20261029;
+REVOKE ALL ON SCHEMA backup_pipeline_20261029 FROM PUBLIC, anon, authenticated;
+CREATE TABLE backup_pipeline_20261029.leads AS SELECT * FROM public.leads;
+CREATE TABLE backup_pipeline_20261029.lead_status_history AS SELECT * FROM public.lead_status_history;
+CREATE TABLE backup_pipeline_20261029.followups AS SELECT * FROM public.followups;
+CREATE TABLE backup_pipeline_20261029.quotes AS SELECT * FROM public.quotes;
+CREATE TABLE backup_pipeline_20261029.quote_items AS SELECT * FROM public.quote_items WHERE quote_id IN (SELECT id FROM public.quotes);
+CREATE TABLE backup_pipeline_20261029.activities_leads AS SELECT * FROM public.activities WHERE details->>'entity_type' = 'leads';
+CREATE TABLE backup_pipeline_20261029.email_lead_links AS SELECT id, lead_id FROM public.emails WHERE lead_id IS NOT NULL;
+CREATE TABLE backup_pipeline_20261029.email_thread_lead_links AS SELECT id, lead_id FROM public.email_threads WHERE lead_id IS NOT NULL;
