@@ -25,7 +25,7 @@ function emptyReport(): BackfillReport {
 }
 
 async function fetchAllIds(table: string, extra?: (q: any) => any): Promise<string[]> {
-  let q = supabase.from(table).select("id").limit(5000);
+  let q = (supabase as any).from(table).select("id").limit(5000);
   if (extra) q = extra(q);
   const { data, error } = await q;
   if (error) throw error;
@@ -128,12 +128,13 @@ export async function runHistoricalBackfill(
   // Lead email → lead_id (+ company_id, contact_id ha van)
   const { data: leadsForMap } = await supabase
     .from("leads")
-    .select("id,email,company_id,contact_id")
-    .not("email", "is", null)
+    .select("id,company_id,contact_id,contacts(email)")
+    .not("contact_id", "is", null)
     .limit(20000);
   type LeadRef = { lead_id: string | null; company_id: string | null; contact_id: string | null };
   const emailToLead = new Map<string, LeadRef>();
-  for (const l of (leadsForMap ?? []) as Array<{ id: string; email: string; company_id: string | null; contact_id: string | null }>) {
+  for (const raw of (leadsForMap ?? []) as any[]) {
+    const l = { ...raw, email: String(raw.contacts?.email ?? "") } as { id: string; email: string; company_id: string | null; contact_id: string | null };
     const key = l.email.trim().toLowerCase();
     if (!key) continue;
     const existing = emailToLead.get(key);
@@ -223,7 +224,7 @@ export async function runHistoricalBackfill(
       if (Object.keys(patch).length) {
         const { error } = await supabase
           .from("email_threads")
-          .update(patch)
+          .update(patch as any)
           .eq("id", t.id);
         if (error) report.thread.errors++;
         else changed = true;
@@ -241,7 +242,7 @@ export async function runHistoricalBackfill(
         for (const [field, value] of Object.entries(emailPatch)) {
           await supabase
             .from("emails")
-            .update({ [field]: value })
+            .update({ [field]: value } as any)
             .eq("thread_id", t.id)
             .is(field, null);
         }

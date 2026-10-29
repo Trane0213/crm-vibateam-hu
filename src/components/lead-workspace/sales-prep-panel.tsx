@@ -121,7 +121,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
       if (!pipelineStatuses.has(current)) patch.status = "quote_prep";
       const { error } = await supabase
         .from("leads")
-        .update(patch)
+        .update(patch as any)
         .eq("id", leadId);
       if (error) throw error;
     },

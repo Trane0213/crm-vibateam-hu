@@ -37,7 +37,7 @@ export function EmailThreadProjectPicker({
     enabled: !!thread.data?.project_id,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("projects").select("id,title,name").eq("id", thread.data!.project_id).maybeSingle();
+        .from("projects").select("id,title").eq("id", thread.data!.project_id!).maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -132,7 +132,7 @@ export function EmailThreadProjectPicker({
       {cur ? (
         <div className="space-y-2">
           <Link to="/projects/$id" params={{ id: cur.id }} className="block text-sm font-medium text-primary hover:underline truncate">
-            {(cur as any).title ?? (cur as any).name ?? "—"}
+            {cur.title ?? "—"}
           </Link>
           <div className="flex gap-1.5">
             <Dialog open={open} onOpenChange={setOpen}>

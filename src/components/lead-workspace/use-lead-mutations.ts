@@ -17,7 +17,7 @@ export function useUpdateLead(leadId: string | null) {
           "A megnyert státusz csak a „Megnyertük” gombbal állítható (pipeline → projekt).",
         );
       }
-      const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+      const { error } = await supabase.from("leads").update(patch as any).eq("id", leadId);
       if (error) throw error;
     },
     onError: (e: any) => toast.error("Mentés sikertelen", { description: humanizeSupabaseError(e) }),

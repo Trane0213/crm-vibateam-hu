@@ -80,7 +80,7 @@ export function CreateProjectDialog({
         p_title:                   title.trim() || "Új projekt",
         p_start_date:              startDate,
         p_project_manager_user_id: managerId,
-        p_notes:                   notes || null,
+        p_notes:                   notes || undefined,
       });
       if (error) throw error;
       const projectId = data as unknown as string;

@@ -98,7 +98,7 @@ export function CompanyHealthPanel({
 
   const apply = useMutation({
     mutationFn: async (s: Suggestion) => {
-      const { error } = await supabase.from("companies").update(s.patch).eq("id", company.id);
+      const { error } = await supabase.from("companies").update(s.patch as any).eq("id", company.id);
       if (error) throw error;
     },
     onSuccess: (_d, s) => {

@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity-log";
 
+// Generikus, táblanév-paraméteres hookok: a típusos kliens itt nem tudja szűkíteni a táblát.
+const db = supabase as any;
+
 /** Supabase / PostgREST / R2 hibák emberi nyelvű (magyar) üzenetté formálása. */
 export function humanizeSupabaseError(e: any): string {
   if (!e) return "Ismeretlen hiba történt.";
@@ -42,7 +45,7 @@ export function useList<T = any>(
   return useQuery({
     queryKey: [table, "list", select, order, ascending],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from(table)
         .select(select)
         .order(order, { ascending });
@@ -67,7 +70,7 @@ export function useListWhere<T = any>(
     queryKey: [table, "where", column, value, select, order, ascending],
     enabled,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from(table)
         .select(select)
         .eq(column, value as any)
@@ -82,7 +85,7 @@ export function useRefOptions(table: string, labelColumn: string) {
   return useQuery({
     queryKey: [table, "ref-options", labelColumn],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from(table)
         .select(`id, ${labelColumn}`)
         .order(labelColumn, { ascending: true });
@@ -110,7 +113,7 @@ export function useRefOptionsRich(
   return useQuery({
     queryKey: [table, "ref-options-rich", cols.join(","), order],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from(table)
         .select(cols.join(","))
         .order(order, { ascending: false });
@@ -134,12 +137,12 @@ export function useUpsert(table: string) {
         if (v !== undefined) payload[k] = v === "" ? null : v;
       }
       if (id) {
-        const { error } = await supabase.from(table).update(payload).eq("id", id);
+        const { error } = await db.from(table).update(payload).eq("id", id);
         if (error) throw error;
         logActivity(table, "update", id as string, summarize(payload));
         return id as string;
       }
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from(table)
         .insert(payload)
         .select("id")
@@ -161,7 +164,7 @@ export function useDelete(table: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from(table).delete().eq("id", id);
+      const { error } = await db.from(table).delete().eq("id", id);
       if (error) throw error;
       logActivity(table, "delete", id);
     },
@@ -194,7 +197,7 @@ export function useCount(
   return useQuery({
     queryKey: [table, "count", key],
     queryFn: async () => {
-      let q: any = supabase.from(table).select("*", { count: "exact", head: true });
+      let q: any = db.from(table).select("*", { count: "exact", head: true });
       if (build) q = build(q);
       const { count, error } = await q;
       if (error) throw error;
@@ -212,7 +215,7 @@ export function useAggregateSum(
   return useQuery({
     queryKey: [table, "sum", column, key],
     queryFn: async () => {
-      let q: any = supabase.from(table).select(column);
+      let q: any = db.from(table).select(column);
       if (build) q = build(q);
       const { data, error } = await q;
       if (error) throw error;
