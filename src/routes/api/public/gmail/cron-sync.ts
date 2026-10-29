@@ -8,6 +8,12 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const MAX_CONCURRENCY = 3;
 const HARD_DEADLINE_MS = 50 * 1000;
+/** Visszavont / törölt Google-hozzáférésnél naponta egyszer próbálkozunk újra. */
+const AUTH_RETRY_MS = 24 * 60 * 60 * 1000;
+
+function isPermanentAuthError(msg: string): boolean {
+  return /invalid_grant|unauthorized_client|Nincs csatlakoztatott Gmail/i.test(msg);
+}
 
 function timingSafeEqualStr(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
@@ -35,11 +41,17 @@ export const Route = createFileRoute("/api/public/gmail/cron-sync")({
 
         const { data: users, error: usersErr } = await admin
           .from("users_profile")
-          .select("auth_user_id,gmail_email")
-          .not("gmail_refresh_token", "is", null);
+          .select("auth_user_id,gmail_email,gmail_auth_error,gmail_next_retry_at")
+          .not("gmail_refresh_token", "is", null)
+          // Tartósan hibás (visszavont / törölt) fiókot csak a következő próbaidőpontban hívunk újra.
+          .or(`gmail_next_retry_at.is.null,gmail_next_retry_at.lte.${new Date().toISOString()}`);
         if (usersErr) return Response.json({ error: usersErr.message }, { status: 500 });
 
-        const list = (users ?? []) as { auth_user_id: string; gmail_email: string | null }[];
+        const list = (users ?? []) as {
+          auth_user_id: string;
+          gmail_email: string | null;
+          gmail_auth_error: string | null;
+        }[];
         const startedAt = Date.now();
         const perUser: any[] = [];
         let index = 0;
@@ -53,7 +65,15 @@ export const Route = createFileRoute("/api/public/gmail/cron-sync")({
             const runStarted = new Date().toISOString();
             try {
               const r = await syncInboxIncremental(u.auth_user_id);
-              await admin.from("gmail_sync_runs").insert({
+              if (u.gmail_auth_error) {
+                await admin
+                  .from("users_profile")
+                  .update({ gmail_auth_error: null, gmail_auth_error_at: null, gmail_next_retry_at: null })
+                  .eq("auth_user_id", u.auth_user_id);
+              }
+              // Üres, hibátlan futást nem naplózunk (percenkénti zaj); a gmail_last_sync_at úgyis frissül.
+              const noisy = r.fetched > 0 || r.inserted > 0 || r.errors.length > 0 || r.mode !== "incremental";
+              if (noisy) await admin.from("gmail_sync_runs").insert({
                 user_id: u.auth_user_id,
                 trigger: "cron",
                 started_at: runStarted,
@@ -69,6 +89,16 @@ export const Route = createFileRoute("/api/public/gmail/cron-sync")({
               perUser.push({ user_id: u.auth_user_id, email: u.gmail_email, ...r });
             } catch (e: any) {
               const msg = e?.message ?? String(e);
+              if (isPermanentAuthError(msg)) {
+                await admin
+                  .from("users_profile")
+                  .update({
+                    gmail_auth_error: msg.slice(0, 500),
+                    gmail_auth_error_at: u.gmail_auth_error ? undefined : new Date().toISOString(),
+                    gmail_next_retry_at: new Date(Date.now() + AUTH_RETRY_MS).toISOString(),
+                  })
+                  .eq("auth_user_id", u.auth_user_id);
+              }
               await admin.from("gmail_sync_runs").insert({
                 user_id: u.auth_user_id,
                 trigger: "cron",

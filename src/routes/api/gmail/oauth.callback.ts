@@ -42,6 +42,9 @@ export const Route = createFileRoute("/api/gmail/oauth/callback")({
               gmail_access_token: tokens.access_token,
               gmail_expires_at: expiresAt,
               gmail_scope: tokens.scope,
+              gmail_auth_error: null,
+              gmail_auth_error_at: null,
+              gmail_next_retry_at: null,
             })
             .eq("auth_user_id", userId);
           if (upErr) return htmlResult(false, `DB hiba: ${upErr.message}`);
