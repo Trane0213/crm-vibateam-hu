@@ -10,6 +10,7 @@ import {
 } from "@/components/resource/resource-page";
 import { LeadWorkspace } from "@/components/lead-workspace/lead-workspace";
 import { usePermissions } from "@/hooks/use-permissions";
+import { supabase } from "@/integrations/supabase/client";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "Új" },
@@ -91,6 +92,12 @@ function LeadsListView() {
       newButtonLabel="Új érdeklődő"
       icon={Sparkles}
       table="leads"
+      beforeCreate={async (v) => {
+        // Nyitott lead felelős nélkül nem menthető (DB szabály) → a létrehozó a felelős.
+        if (v.assigned_to) return v;
+        const { data: u } = await supabase.auth.getUser();
+        return u.user?.id ? { ...v, assigned_to: u.user.id } : v;
+      }}
       fields={[
         {
           name: "company_id",

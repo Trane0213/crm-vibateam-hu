@@ -93,6 +93,7 @@ export function ResourcePage({
   newButtonLabel = "Új",
   extraActions,
   actionsFor,
+  beforeCreate,
 }: {
   title: string;
   description?: string;
@@ -111,6 +112,8 @@ export function ResourcePage({
   extraActions?: React.ReactNode;
   /** A fejléc akciógombjai a jelenleg szűrt sorokkal (pl. Excel-export). */
   actionsFor?: (rows: any[]) => ReactNode;
+  /** Új rekord mentése előtt kiegészíti az értékeket (pl. kötelező felelős). */
+  beforeCreate?: (values: Record<string, any>) => Record<string, any> | Promise<Record<string, any>>;
 }) {
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
@@ -225,7 +228,8 @@ export function ResourcePage({
         defaults={editing}
         submitting={upsert.isPending}
         onSubmit={async (v) => {
-          await upsert.mutateAsync(editing ? { id: editing.id, ...v } : v);
+          const payload = editing ? { id: editing.id, ...v } : (beforeCreate ? await beforeCreate(v) : v);
+          await upsert.mutateAsync(payload);
           setOpen(false);
         }}
       />
