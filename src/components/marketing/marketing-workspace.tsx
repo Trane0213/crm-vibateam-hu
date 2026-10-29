@@ -210,9 +210,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("id,full_name,email,roles(name)");
+        .select("id,auth_user_id,full_name,email,active,roles(name)");
       if (error) throw error;
-      return ((data ?? []) as any[]).filter((row) => normalizeRole(row.roles?.name) === "sales");
+      return ((data ?? []) as any[]).filter(
+        (row) => normalizeRole(row.roles?.name) === "sales" && row.active !== false && row.auth_user_id,
+      );
     },
   });
 
@@ -303,7 +305,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const handoff = useMutation({
-    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => {
+    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
       const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
@@ -314,6 +316,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         source: input.lead_source,
         project_type: input.project_type,
         status: "new",
+        // Kötelező felelős értékesítő (DB szabály: nyitott lead felelős nélkül nem menthető).
+        assigned_to: input.assigned_to,
       };
       const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
       if (error) throw error;
@@ -735,6 +739,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         contacts={contacts.data ?? []}
         defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
         defaultLeadSource={meta.leadSource}
+        salesUsers={salesUsers.data ?? []}
         submitting={handoff.isPending}
         onSubmit={(d) => handoff.mutate(d)}
       />
@@ -998,7 +1003,7 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, submitting, onSubmit,
+  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, salesUsers, submitting, onSubmit,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1006,13 +1011,15 @@ function HandoffDialog({
   contacts: any[];
   defaultSummary: string;
   defaultLeadSource: LeadSource | null;
+  salesUsers: any[];
   submitting: boolean;
-  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource }) => void;
+  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => void;
 }) {
   const [summary, setSummary] = useState(defaultSummary);
   const [projectType, setProjectType] = useState<string>("");
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
   const [leadSource, setLeadSource] = useState<string>(defaultLeadSource ?? "");
+  const [assignee, setAssignee] = useState<string>("");
   // Minden megnyitáskor szinkronizáljuk a defaultokat (sales note vagy első kontakt).
   useEffect(() => {
     if (!open) return;
@@ -1020,7 +1027,8 @@ function HandoffDialog({
     setProjectType("");
     setContactId(contacts[0]?.id ?? "");
     setLeadSource(defaultLeadSource ?? "");
-  }, [open, defaultSummary, contacts, defaultLeadSource]);
+    setAssignee(salesUsers.length === 1 ? salesUsers[0].auth_user_id : "");
+  }, [open, defaultSummary, contacts, defaultLeadSource, salesUsers]);
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -1072,12 +1080,28 @@ function HandoffDialog({
               </Select>
             </div>
           </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Felelős értékesítő <span className="text-destructive">*</span>
+            </label>
+            <Select value={assignee} onValueChange={setAssignee}>
+              <SelectTrigger className="mt-1" aria-label="Felelős értékesítő"><SelectValue placeholder="Válassz értékesítőt" /></SelectTrigger>
+              <SelectContent>
+                {salesUsers.map((u) => (
+                  <SelectItem key={u.auth_user_id} value={u.auth_user_id}>{u.full_name ?? u.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {salesUsers.length === 0 && (
+              <div className="mt-1 text-[11px] text-destructive">Nincs aktív értékesítő — szólj a tulajdonosnak.</div>
+            )}
+          </div>
         </div>
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Mégse</AlertDialogCancel>
           <AlertDialogAction
-            disabled={submitting || !summary.trim() || !leadSource}
+            disabled={submitting || !summary.trim() || !leadSource || !assignee}
             onClick={(e) => {
               e.preventDefault();
               onSubmit({
@@ -1085,6 +1109,7 @@ function HandoffDialog({
                 project_type: projectType.trim() || null,
                 contact_id: contactId || null,
                 lead_source: leadSource as LeadSource,
+                assigned_to: assignee,
               });
             }}
           >
