@@ -11,6 +11,7 @@ import {
 import { LeadWorkspace } from "@/components/lead-workspace/lead-workspace";
 import { usePermissions } from "@/hooks/use-permissions";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS = [
   { value: "new", label: "Új" },
@@ -105,6 +106,17 @@ function LeadsListView() {
         if (v.assigned_to) return v;
         const { data: u } = await supabase.auth.getUser();
         return u.user?.id ? { ...v, assigned_to: u.user.id } : v;
+      }}
+      beforeUpdate={(v, current) => {
+        // Pipeline-ba lépett, megnyert vagy elveszett lead státusza itt nem
+        // módosítható — csak a Pipeline / munkafelület gombjaival.
+        const locked = current.pipeline_entered_at || ["won", "lost"].includes(current.status);
+        if (locked && v.status !== current.status) {
+          toast.error("Ennek a leadnek a státusza csak a Pipeline-on módosítható.");
+          throw new Error("status_locked");
+        }
+        if (locked) return { ...v, status: current.status };
+        return v;
       }}
       fields={[
         {
