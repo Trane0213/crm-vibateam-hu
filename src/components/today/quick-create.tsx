@@ -20,6 +20,7 @@ const LEAD_FIELDS: Field[] = [
 ];
 
 const FOLLOWUP_FIELDS: Field[] = [
+  { name: "lead_id", label: "Érdeklődő (lead)", type: "ref", ref: { table: "leads", labelColumn: "summary" } },
   { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" } },
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
   { name: "followup_type", label: "Típus", type: "select", options: [

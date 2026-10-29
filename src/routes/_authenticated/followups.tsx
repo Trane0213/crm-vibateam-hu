@@ -55,6 +55,12 @@ function FollowupsPage() {
       }}
       fields={[
         {
+          name: "lead_id",
+          label: "Érdeklődő (lead)",
+          type: "ref",
+          ref: { table: "leads", labelColumn: "summary" },
+        },
+        {
           name: "project_id",
           label: "Projekt",
           type: "ref",
@@ -76,7 +82,7 @@ function FollowupsPage() {
             extraColumns: ["version", "status", "total_amount", "created_at"],
             formatLabel: (r: any) => {
               const v = r.version != null ? `v${r.version}` : `#${String(r.id).slice(0, 6)}`;
-              const s = r.status ? ` · ${r.status}` : "";
+              const s = r.status ? ` · ${QUOTE_STATUS_HU[r.status] ?? r.status}` : "";
               return `${v}${s}`;
             },
           },
@@ -123,7 +129,7 @@ function FollowupsPage() {
             );
           },
         },
-        { key: "followup_type", label: "Típus" },
+        { key: "followup_type", label: "Típus", render: (r) => FOLLOWUP_TYPE_HU[r.followup_type] ?? r.followup_type ?? "—" },
         { key: "project", label: "Projekt", render: (r) => projectLabel(r.project_id) },
         {
           key: "company",
@@ -157,6 +163,9 @@ function FollowupsPage() {
     </div>
   );
 }
+
+const FOLLOWUP_TYPE_HU: Record<string, string> = { call: "Telefon", email: "E-mail", meeting: "Találkozó", other: "Egyéb" };
+const QUOTE_STATUS_HU: Record<string, string> = { draft: "Készül", sent: "Kiküldve", negotiation: "Tárgyalás", won: "Megnyert", lost: "Elveszett" };
 
 export const Route = createFileRoute("/_authenticated/followups")({
   component: FollowupsPage,
