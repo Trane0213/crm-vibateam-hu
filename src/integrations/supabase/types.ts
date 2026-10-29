@@ -815,6 +815,8 @@ export type Database = {
           company_id: string | null
           created_at: string | null
           email: string | null
+          email_invalid: boolean
+          email_invalid_note: string | null
           id: string
           name: string
           phone: string | null
@@ -824,6 +826,8 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           email?: string | null
+          email_invalid?: boolean
+          email_invalid_note?: string | null
           id?: string
           name: string
           phone?: string | null
@@ -833,6 +837,8 @@ export type Database = {
           company_id?: string | null
           created_at?: string | null
           email?: string | null
+          email_invalid?: boolean
+          email_invalid_note?: string | null
           id?: string
           name?: string
           phone?: string | null
@@ -1747,6 +1753,97 @@ export type Database = {
         }
         Relationships: []
       }
+      import_log: {
+        Row: {
+          action: string
+          batch: string
+          before: Json | null
+          created_at: string
+          entity: string
+          entity_id: string
+          id: string
+          source_ref: string | null
+        }
+        Insert: {
+          action: string
+          batch: string
+          before?: Json | null
+          created_at?: string
+          entity: string
+          entity_id: string
+          id?: string
+          source_ref?: string | null
+        }
+        Update: {
+          action?: string
+          batch?: string
+          before?: Json | null
+          created_at?: string
+          entity?: string
+          entity_id?: string
+          id?: string
+          source_ref?: string | null
+        }
+        Relationships: []
+      }
+      import_review_items: {
+        Row: {
+          batch: string
+          company_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          kind: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          batch: string
+          company_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          kind: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          batch?: string
+          company_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          kind?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_review_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_review_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_360_v"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "import_review_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_kpi_v"
+            referencedColumns: ["customer_id"]
+          },
+        ]
+      }
       kg_edge_history: {
         Row: {
           change_type: string
@@ -2302,6 +2399,68 @@ export type Database = {
           summary?: string | null
         }
         Relationships: []
+      }
+      project_candidates: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          project_id: string | null
+          review_status: string
+          source_note: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          review_status?: string
+          source_note?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          review_status?: string
+          source_note?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_candidates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_candidates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_360_v"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "project_candidates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_kpi_v"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "project_candidates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_contacts: {
         Row: {
