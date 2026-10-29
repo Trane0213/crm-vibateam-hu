@@ -11,7 +11,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { ROLE_LABEL } from "@/lib/permissions";
 import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permissions";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, Sparkles } from "lucide-react";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { BrandLogo } from "@/components/brand-logo";
 import { CrmNotificationsMenu } from "@/components/crm-notifications-menu";
 
@@ -39,28 +40,40 @@ function AppShell() {
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0">
-          <header className="flex h-12 items-center justify-between gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 sticky top-0 z-30">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <Link to="/today" className="flex items-center gap-2">
-                <BrandLogo className="h-6 md:h-7" />
+          <header className="sticky top-0 z-30 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b bg-background/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <SidebarTrigger className="hidden md:inline-flex" />
+              <Link to="/today" className="flex shrink-0 items-center md:hidden">
+                <BrandLogo className="h-6" />
               </Link>
+              <div className="hidden min-w-0 md:block">
+                <GlobalSearch />
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <GlobalSearch />
+            <div className="flex shrink-0 items-center gap-1 md:gap-2">
+              <div className="md:hidden">
+                <GlobalSearch />
+              </div>
               <QuickAddMenu />
+              {/* AI-panel helye: a 3. lépésben ez a gomb nyitja az állandó panelt. */}
+              <Button asChild size="sm" variant="glow" className="hidden h-8 gap-1.5 rounded-full px-3 sm:inline-flex" data-ai-panel-trigger>
+                <Link to="/ai-assistant" search={{ agent: "crm" } as never}>
+                  <Sparkles className="h-4 w-4" /> George
+                </Link>
+              </Button>
               <CrmNotificationsMenu />
               <UserMenu />
             </div>
           </header>
           <PulseBar />
-          <main className="flex-1 min-w-0 overflow-auto">
+          <main className="flex-1 min-w-0 overflow-auto pb-20 md:pb-0">
             {allowed ? (
               <Outlet />
             ) : (
               <Forbidden role={ROLE_LABEL[role]} />
             )}
           </main>
+          <MobileBottomNav />
         </div>
       </div>
     </SidebarProvider>

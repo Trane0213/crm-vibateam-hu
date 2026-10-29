@@ -1,6 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 - [x] 1. Designrendszer (színek, betűk, kártya, gomb)
-- [ ] 2. Keret: oldalsáv, felső sáv, mobil alsó navigáció — vár a jóváhagyásra
+- [x] 2. Keret: oldalsáv, felső sáv, mobil alsó navigáció (belső oldalak vizuális ellenőrzése a felhasználónál)
 - [ ] 3. Állandó AI-panel
 - [ ] 4. Tulajdonosi nézetváltó
 - [ ] 5. „Ma” oldalak egységesítése
