@@ -43,7 +43,7 @@ export function registerCrmTools() {
         sb.from("companies").select("id,name,domain").or(`name.ilike.${like},domain.ilike.${like}`).limit(limit),
         sb.from("contacts").select("id,full_name,email,company_id").or(`full_name.ilike.${like},email.ilike.${like}`).limit(limit),
         sb.from("leads").select("id,company_id,status,summary,assigned_to").or(`summary.ilike.${like}`).limit(limit),
-        sb.from("projects").select("id,name,status").or(`name.ilike.${like}`).limit(limit),
+        sb.from("projects").select("id,title,status").or(`title.ilike.${like}`).limit(limit),
       ]);
       return ok({
         companies: companies.data ?? [],
@@ -101,7 +101,7 @@ export function registerCrmTools() {
         sb.from("companies").select("id,name,domain").eq("id", id).maybeSingle(),
         sb.from("contacts").select("id,full_name,email,phone").eq("company_id", id).limit(25),
         sb.from("leads").select("id,status,summary,updated_at").eq("company_id", id).limit(25),
-        sb.from("projects").select("id,name,status").eq("company_id", id).limit(25),
+        sb.from("projects").select("id,title,status").eq("company_id", id).limit(25),
         sb.from("quotes").select("id,status,total_amount,currency,updated_at").eq("company_id", id).limit(25),
       ]);
       return ok({
