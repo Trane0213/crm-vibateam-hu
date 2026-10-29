@@ -311,7 +311,7 @@ export function registerCrmTools() {
     async (args, ctx) => {
       const { data, error } = await ctx.supabaseUser
         .from("email_threads")
-        .select("id,subject,last_message_at,message_count")
+        .select("id,subject,last_message_at,participants,lead_id,project_id")
         .eq("company_id", String(args.company_id))
         .order("last_message_at", { ascending: false })
         .limit(Math.min(Number(args.limit ?? 20), 100));
@@ -392,9 +392,9 @@ export function registerCrmTools() {
     async (args, ctx) => {
       const fromIso = args.from ? String(args.from) : new Date().toISOString();
       const { data, error } = await ctx.supabaseUser.from("meetings")
-        .select("id,title,starts_at,ends_at,company_id,lead_id,project_id")
-        .gte("starts_at", fromIso)
-        .order("starts_at", { ascending: true })
+        .select("id,title,meeting_date,location,summary,company_id,project_id")
+        .gte("meeting_date", fromIso)
+        .order("meeting_date", { ascending: true })
         .limit(Math.min(Number(args.limit ?? 20), 100));
       if (error) return fail(error.message);
       return ok(data ?? []);
