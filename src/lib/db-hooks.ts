@@ -112,8 +112,12 @@ export function useUpsert(table: string) {
         if (v !== undefined) payload[k] = v === "" ? null : v;
       }
       if (id) {
-        const { error } = await db.from(table).update(payload).eq("id", id);
+        // 0 módosított sor (RLS-tiltás / nem létező rekord) nem siker.
+        const { data: upd, error } = await db.from(table).update(payload).eq("id", id).select("id");
         if (error) throw error;
+        if (!upd || upd.length !== 1) {
+          throw new Error("A rekord nem módosult: nincs jogosultságod, vagy a rekord nem létezik.");
+        }
         logActivity(table, "update", id as string, summarize(payload));
         return id as string;
       }
