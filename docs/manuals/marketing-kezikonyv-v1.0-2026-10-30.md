@@ -7,7 +7,7 @@
 
 ## 0. Röviden
 
-A marketinges feladata: cégeket felkutatni vagy átvenni, kapcsolattartót rögzíteni, felvenni a kapcsolatot (levél, hívás), minősíteni, és a kész céget **átadni a Salesnek**. Lead (értékesítési lehetőség) **csak a Sales-átadáskor** jön létre.
+A marketinges feladata: cégeket felkutatni vagy átvenni, kapcsolattartót rögzíteni, felvenni a kapcsolatot (levél, hívás), minősíteni, és a kész céget **átadni a Salesnek**. Lead (értékesítési lehetőség) a céges **Saleshez átadás** gombbal jön létre a marketinges munkából; emellett létezik külön **Lead munkafelület** (/leads, „Új érdeklődő”), és érkezhet lead más forrásból is (pl. e-mail import). A céges marketingátadás és a meglévő lead feldolgozása két külön dolog: az utóbbi a Sales feladata.
 
 Amit a marketinges **nem lát / nem tehet**: projektek, ajánlatok, Pipeline, vezetői irányítópult, jelenlét, Gmail-beállítás (✅ „Nincs jogosultságod” oldal jelenik meg); más postafiókjának levelei; cégek, kapcsolattartók, hívások törlése (csak tulajdonos, ✅ nincs törlés gomb); találkozó rögzítése (✅ a Találkozók oldalon nincs „Új” gomb).
 
@@ -189,7 +189,9 @@ A B) után **Saleshez átadás** → az ablak kiírja: „Nincs aktív értékes
 ---
 
 ## 7. Nem tesztelt / korlátozott részek (őszintén)
-- ⛔ **Sales-átadás végrehajtása**: nincs aktív értékesítő → nem próbálható. A meglévő-lead figyelmeztetés csak egységteszttel ellenőrzött.
+- 🔎 **Sales-átadás végrehajtása**: aktív értékesítő már van (Ramon Dencsi, Sales). A választó auth-azonosítót ad (adatbázisból ellenőrizve); az élő böngészős átadás és Ramon oldali átvétel még NEM futott, mert nincs biztonságos tesztbelépés. A meglévő-lead figyelmeztetés csak egységteszttel ellenőrzött, és ez **nem adatbázis-szintű duplikációtiltás**.
+- 🔎 **Részleges hiba**: ha a lead létrejön, de a cég státusza nem mentődik, „Átadás részben sikerült” üzenet jelenik meg; az újbóli Átadás (ugyanabban a megnyitásban) nem hoz létre második leadet, csak a státuszt pótolja. Az oldal újratöltése után ez a védelem nem él — ilyenkor a meglévő-lead figyelmeztetés jelez.
+- Az átadott ügy **Sales-előkészítésbe** kerül (status = new), nem a Pipeline-ba; Pipeline-ba az értékesítő lépteti (aktivitás + következő lépés szükséges).
 - 🔎 Valódi levélküldés (kampánylista / cégadatlap Email): biztonsági okból nem próbáltam.
 - 🔎 Scarlet keresés és mentés, George válaszai, dokumentumfeltöltés marketinges fiókkal, Weboldali igény részletei.
 - Az idővonal levélszál-része csak a betöltött oldalt mutatja.
