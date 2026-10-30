@@ -34,6 +34,8 @@ type Input = {
     is_outbound?: boolean | null;
   }[];
   docs: { id: string; name: string | null; created_at: string }[];
+  /** Lapozott céges levélszálak (2. szakasz) — szálanként egy esemény. */
+  threads?: { id: string; subject: string | null; last_message_at: string | null; count: number }[];
   meta: MarketingMeta;
 };
 
@@ -68,6 +70,16 @@ export function buildTimeline(input: Input, notes: string | null): TimelineEvent
       kind: e.is_outbound ? "email_sent" : "email_received",
       label: e.is_outbound ? "Email elküldve" : "Email érkezett",
       detail: e.subject ?? (e.is_outbound ? e.to_email ?? "" : e.from_email ?? ""),
+    });
+  }
+
+  for (const t of input.threads ?? []) {
+    if (!t.last_message_at) continue;
+    events.push({
+      at: t.last_message_at,
+      kind: "email_received",
+      label: `Levélszál – utolsó üzenet (${t.count} levél)`,
+      detail: t.subject ?? "(nincs tárgy)",
     });
   }
 

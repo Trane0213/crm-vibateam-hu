@@ -26,8 +26,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
 import { MarketingWorkspace } from "@/components/marketing/marketing-workspace";
 import {
-  companyCounters, companyEmailQueryKey, emailVisibilityHint, fetchCompanyEmails,
-  fetchEmailFullAccess, groupEmailThreads, mergeById, normalizeContactEmails,
+  companyCounters, companyEmailQueryKey, emailVisibilityHint, fetchCompanyThreadsPage,
+  fetchEmailFullAccess, mergeById, normalizeContactEmails, COMPANY_THREAD_PAGE_SIZE,
 } from "@/lib/company-activity";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
@@ -84,13 +84,16 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   const meetings  = useListWhere<any>("meetings",      "company_id", id, { order: "meeting_date", ascending: false });
   // 2. szakasz: közös levél-forrás a marketinges nézettel (company-activity).
   const contactEmails = normalizeContactEmails((contacts.data ?? []) as any[]);
+  const [threadPage, setThreadPage] = useState(0);
   const companyEmails = useQuery({
-    queryKey: companyEmailQueryKey(id, contactEmails),
+    queryKey: companyEmailQueryKey(id, contactEmails, threadPage),
     enabled: !contacts.isLoading,
-    queryFn: () => fetchCompanyEmails(id, contactEmails),
+    queryFn: () => fetchCompanyThreadsPage(id, contactEmails, threadPage),
+    placeholderData: (prev) => prev,
   });
   const emailFullAccess = useQuery({ queryKey: ["email-full-access"], queryFn: fetchEmailFullAccess, staleTime: 300_000 });
-  const threadRows = groupEmailThreads(companyEmails.data ?? []);
+  const threadRows = companyEmails.data?.rows ?? [];
+  const threadTotal = companyEmails.data?.total ?? 0;
   const threads = { data: threadRows, isLoading: companyEmails.isLoading };
 
   // D7 — Identity Strength a CRM Egészség blokkhoz.
@@ -182,7 +185,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   const counters = companyCounters(quotes.data ?? [], followups.data ?? []);
   const openQuotesCount = counters.openQuotes;
   const overdueCount    = counters.overdueFollowups;
-  const emailHint = emailVisibilityHint(emailFullAccess.data, threads.data.length);
+  const emailHint = emailVisibilityHint(emailFullAccess.data, threadTotal);
   const lastActivityAtView = kpi.data?.last_activity_at ?? null;
   const wonRevenue      = Number(kpi.data?.won_revenue ?? 0);
   const totalQuoteValue = wonRevenue || (quotes.data ?? []).reduce((a, r) => a + (Number(r.total_amount) || 0), 0);
@@ -243,7 +246,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
             {!isMarketing && <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>}
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="leads"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Leadek ({leads.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threads.data.length}{emailHint ? "*" : ""})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threadTotal}{emailHint ? "*" : ""})</TabsTrigger>
             {!isMarketing && <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>}
             {!isMarketing && <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>}
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({(companyDocs.data?.length ?? 0) + (isMarketing ? 0 : (docs.data?.length ?? 0))})</TabsTrigger>
@@ -380,6 +383,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
           </TabsContent>
           <TabsContent value="emails" className="mt-4 space-y-2">
             {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
+            <ThreadPager page={threadPage} total={threadTotal} pageSize={COMPANY_THREAD_PAGE_SIZE} onPage={setThreadPage} />
             <SimpleList rows={threads.data} link={(r) => ({ to: "/emails/$threadId", params: { threadId: r.id } })} cols={[
               { label: "Tárgy", get: (r) => r.subject ?? "(nincs tárgy)" },
               { label: "Résztvevők", get: (r) => (r.participants ?? []).join(", ") || "—" },
@@ -470,6 +474,18 @@ function LegacyCustomerDetail({ id }: { id: string }) {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+function ThreadPager({ page, total, pageSize, onPage }: { page: number; total: number; pageSize: number; onPage: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  if (pages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+      <span>{page * pageSize + 1}–{Math.min(total, (page + 1) * pageSize)} / {total} szál</span>
+      <Button size="sm" variant="outline" disabled={page === 0} onClick={() => onPage(page - 1)}>Előző</Button>
+      <Button size="sm" variant="outline" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>Következő</Button>
     </div>
   );
 }
