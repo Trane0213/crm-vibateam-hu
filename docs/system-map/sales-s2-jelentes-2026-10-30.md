@@ -44,3 +44,12 @@ Vitest teljes csomag + `src/lib/sales` 3/3, AI acceptance 12/12, build OK.
 
 ## Maradó TESZT adatok
 Lead 43b05791-… (quote_sent, Pipeline-ban), ajánlat 6eaab55c-… + 1 tétel, followups 7ab7beb4-… és be29ab04-… (lezárva). Valódi levél nem ment ki.
+
+## Tulajdonosi döntések végrehajtása (2026-10-30 13:21 UTC) — kódszinten, élő teszt nélkül
+- **D2-1 Nettó ajánlat a Pipeline kártyán:** `pipeline-data.ts` az aktuális ajánlat nettóját a `quote_items` tételekből számolja (`src/lib/sales/quote-net.ts`, ugyanaz a képlet, mint a nyomtatási nézet: részösszeg − kedvezmény). Kártya: „Nettó ajánlat: 200 000 Ft (piszkozat)”; ajánlat nélkül „Nincs ajánlat”. Szerkesztő tétel-panel felirata: „nettó részösszeg (kedvezmény előtt)”. Unit teszt 3/3 (200 000 Ft eset is). `total_amount` nem használt, séma változatlan.
+- **D2-2 Mélylink:** `/leads?lead=<id>` a meglévő Workspace-ben a megcélzott leadet választja ki; minden `/leads/$id` hivatkozás (Pipeline „Megnyitás Workspace-ben”, Sales teendők, projekt stb.) ide irányít; ajánlat „Lead” link is. Nem látható/nem létező leadnél hibaüzenet, nem választ csendben másik leadet.
+- **D2-3 Utánkövetés „Ügyfél” oszlop:** ok: `useLookup` csak a szülő oldal újrarenderelésekor kérte le a címkéket, a táblázat (gyermek) renderelésekor nem — ezért maradt „—”. Javítva: a címke-lekérés a táblázat renderelésekor is ütemeződik (id-alapú, 100-as csomagokban, RLS szerint). Minden ResourcePage-listát érint (azonos hiba).
+- **D2-4:** „Ajánlat kiadva” jelenleg draft ajánlattal is választható (meglévő szabály, nem változott). A fázisváltás visszajelzése „Státusz frissítve” — nem állít levélküldést. Kártyán draft ajánlat „(piszkozat)” jelölést kap.
+- Tesztek: Vitest 50/50, AI 12/12, build OK.
+- **NEM TESZTELT élőben:** D2-1…D2-3 megjelenés, ajánlat cég-/lead-képernyős megjelenése, „Ajánlatok (riport)” navigáció, S3 (szerződés/megnyert/projekt, elveszett ág), Sales kézikönyv. Ok: nincs biztonságos belépés (titok nincs megadva).
+- Módosított fájlok: `pipeline-data.ts`, `pipeline-types.ts`, `pipeline-card.tsx`, `quote-items-panel.tsx`, `resource-page.tsx`, `lead-workspace.tsx`, `leads.index.tsx`, `leads.$id.tsx`, `quotes.$id.tsx`; új: `src/lib/sales/quote-net.ts` + teszt. Visszaállítás: verziótörténet.
