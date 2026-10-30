@@ -51,3 +51,14 @@ Séma, RLS (1/B), R2-védelem (1/C), Pipeline-szabályok: **változatlan**. Új 
 
 ## Publikálás
 Szükséges; nem publikáltam.
+
+## Kiegészítés – lezáró ellenőrzés aktív Sales-felhasználóval (2026-10-30 12:10)
+- Szerepkörök (élő DB, csak olvasás): info@ owner, ramon.dencsi@ **sales** (auth 401cc133-…), viktor.csotai@ marketing, pretor.laszlo@ marketing, toth.attila@ marketing (inaktív). Nem módosítva.
+- Átvevő-választó: `crm_record_search('auth_users')` az `auth_user_id`-t adja id-ként → a `leads.assigned_to` auth-azonosítót kap (kódból+DB-ből igazolva). Élő kiválasztás NEM futott.
+- Az 5 importált lead felelőse info@ (owner) — nem változtatva.
+- Javítva: átadási ablak/visszajelzés szövege „Sales-előkészítésbe kerül, nem automatikusan Pipeline-ba”; részleges hiba (lead létrejött, cégstátusz nem) külön üzenet, ugyanabban a munkamenetben az újrapróbálás nem hoz létre új leadet; logActivity hibája nem buktatja az átadást. Teljes atomikusság DB-függvényt igényelne → külön jóváhagyás.
+- Emailek oldal: nem-owner felirat „Számodra elérhető levelezés” / „Nincs saját postafiókod”, „Összes postafiók” csak ownernek.
+- /leads „Új érdeklődő” útvonal: ugyanaz a `leads` tábla, status=new, felelős alapból a létrehozó (marketingesnél ő maga) — eltérés a céges átadástól; cégstátuszt nem állít, meglévő-lead figyelmeztetése nincs. Módosítása Sales-szabályt érint → Sales szakasz.
+- Duplikáció: csak UI-figyelmeztetés + pipa, nincs DB-szintű tiltás.
+- NEM futott (nincs biztonságos belépés): élő marketinges átadás, Ramon oldali átvétel, Pipeline-léptetés próbája. A korábbi tesztjelszó titkot a projektből törölték (titoklista ellenőrizve); a futó sandbox környezetben még látszik a régi változó, NEM használtam.
+- Tesztek: Vitest 44/44. Rollback: `docs/rollback/3-2026-10-30/` + e módosítások visszavonhatók a verziótörténetből.

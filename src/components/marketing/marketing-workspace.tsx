@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -243,43 +243,58 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onError: (e: any) => toast.error("Kapcsolattartó mentése sikertelen", { description: humanizeSupabaseError(e) }),
   });
 
+  // Részleges siker (lead létrejött, de a cég marketingstátusza nem mentődött):
+  // az újrapróbálás NEM hoz létre új leadet, csak a státuszt pótolja.
+  const partialHandoffLeadId = useRef<string | null>(null);
   const handoff = useMutation({
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
       const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
-      const payload: any = {
-        company_id: companyId,
-        contact_id: input.contact_id,
-        summary: input.summary,
-        source: input.lead_source,
-        project_type: input.project_type,
-        status: "new",
-        // Kötelező felelős értékesítő (DB szabály: nyitott lead felelős nélkül nem menthető).
-        assigned_to: input.assigned_to,
-      };
-      const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
-      if (error) throw error;
-      const leadId = (data as any).id as string;
+      let leadId = partialHandoffLeadId.current;
+      if (!leadId) {
+        const payload: any = {
+          company_id: companyId,
+          contact_id: input.contact_id,
+          summary: input.summary,
+          source: input.lead_source,
+          project_type: input.project_type,
+          status: "new",
+          // Kötelező felelős értékesítő (auth user id; DB szabály: nyitott lead felelős nélkül nem menthető).
+          assigned_to: input.assigned_to,
+        };
+        const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
+        if (error) throw error;
+        leadId = (data as any).id as string;
+        partialHandoffLeadId.current = leadId;
+      }
       const nextNotes = withMarketingStatus(withSrc, "handoff", leadId);
       const { error: e2 } = await supabase.from("companies").update({ notes: nextNotes }).eq("id", companyId);
-      if (e2) throw e2;
-      await logActivity("leads", "marketing_handoff", leadId, {
-        company_id: companyId, source: input.lead_source, assigned_to: input.assigned_to,
-      });
+      if (e2) {
+        const err: any = new Error(
+          `A lead létrejött (#${leadId.slice(0, 8)}), de a cég marketingstátusza nem mentődött. Az újbóli „Átadás” csak a státuszt pótolja, új leadet nem hoz létre.`,
+        );
+        err.partial = true;
+        throw err;
+      }
+      partialHandoffLeadId.current = null;
+      try {
+        await logActivity("leads", "marketing_handoff", leadId, {
+          company_id: companyId, source: input.lead_source, assigned_to: input.assigned_to,
+        });
+      } catch { /* a naplózás hibája nem teszi sikertelenné az átadást */ }
       return leadId;
     },
     onSuccess: () => {
-      toast.success("Sikeresen átadva a salesnek", { description: "A lead megjelent a sales pipeline-ban." });
+      toast.success("Átadva a Sales-előkészítésbe", { description: "A lead a kiválasztott értékesítő Sales-előkészítő munkafelületén jelent meg. A Pipeline-ba az értékesítő lépteti." });
       qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
       qc.invalidateQueries({ queryKey: ["leads", "by_company", companyId] });
+      qc.invalidateQueries({ queryKey: ["leads"] });
       setHandoffOpen(false);
     },
     onError: (e: any) => {
-      // Ha a lead már létrejött, de a státusz mentése elbukott, a frissített lista
-      // a következő próbálkozásnál figyelmeztet a meglévő leadre (nincs vak duplikálás).
       qc.invalidateQueries({ queryKey: ["leads", "by_company", companyId] });
-      toast.error("Átadás sikertelen", { description: humanizeSupabaseError(e) });
+      toast.error(e?.partial ? "Átadás részben sikerült" : "Átadás sikertelen", { description: e?.partial ? e.message : humanizeSupabaseError(e) });
     },
   });
 
@@ -1003,7 +1018,8 @@ function HandoffDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             Ez létrehoz egy <strong>új leadet</strong> ehhez a céghez, és a marketing státuszt
-            „Átadva sales-nek" állapotra állítja. A sales pipeline-ban innentől látható.
+            „Átadva sales-nek" állapotra állítja. Az ügy a kiválasztott értékesítő <strong>Sales-előkészítésébe</strong> kerül,
+            nem automatikusan a Pipeline-ba — oda az értékesítő lépteti.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

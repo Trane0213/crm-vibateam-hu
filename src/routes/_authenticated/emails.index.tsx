@@ -57,7 +57,7 @@ function EmailsPage() {
   const error = mailboxes.error ?? messages.error;
   return (
     <div className="flex flex-col">
-      <PageHeader title={mailbox ?? "Összes postafiók"} description={selected ? `${selected.name ?? "Postafiók"}${selected.active ? "" : " · Nem aktív / Archív"}` : "E-mailek"} actions={
+      <PageHeader title={mailbox ?? (isOwner ? "Összes postafiók" : (mailboxes.data?.length ? "Számodra elérhető levelezés" : "Nincs saját postafiókod"))} description={selected ? `${selected.name ?? "Postafiók"}${selected.active ? "" : " · Nem aktív / Archív"}` : (isOwner ? "E-mailek" : "Csak a saját vagy veled megosztott levélszálak látszanak; más postafiókjához nincs hozzáférésed.")} actions={
         <div className="flex gap-2">
           <Button variant="outline" size="icon" title="Postafiók frissítése" aria-label="Postafiók frissítése" onClick={() => qc.invalidateQueries({ queryKey: ["emails"] })}><RefreshCw className="h-4 w-4" /></Button>
           <Button onClick={() => setComposeOpen(true)} disabled={!canCompose} title={canCompose ? `Küldő: ${myMailbox}` : "Csak a saját, aktív Gmail-fiókodból küldhetsz"}><PenSquare className="mr-1.5 h-4 w-4" />Új e-mail</Button>
