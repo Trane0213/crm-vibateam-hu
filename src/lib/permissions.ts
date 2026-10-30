@@ -46,7 +46,8 @@ export function normalizeRole(input: unknown): RoleSlug {
 /** Route → engedélyezett szerepkörök. A „/agents" jellegű utak mindenki számára elérhetők. */
 export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/today", roles: ["owner", "project_manager", "sales", "marketing"] },
-  { prefix: "/dashboard", roles: ["owner", "project_manager", "sales"] },
+  // D7 (2026-10-30): a Vezetői irányítópult kizárólag tulajdonosi, közvetlen URL-lel is.
+  { prefix: "/dashboard", roles: ["owner"] },
   { prefix: "/activity", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/projects", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/quotes", roles: ["owner", "project_manager", "sales"] },

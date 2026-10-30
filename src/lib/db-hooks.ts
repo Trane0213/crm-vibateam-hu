@@ -139,8 +139,10 @@ export function useDelete(table: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db.from(table).delete().eq("id", id);
+      // Jogosultság nélküli törlésnél az adatbázis hiba nélkül 0 sort töröl — ezt hibaként jelezzük.
+      const { data, error } = await db.from(table).delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("Nincs jogosultságod ennek a tételnek a törléséhez.");
       logActivity(table, "delete", id);
     },
     onSuccess: () => {

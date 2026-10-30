@@ -379,6 +379,7 @@ function RelationList({ rows, columns, empty, link }: {
 
 function ProjectNotes({ projectId, notes }: { projectId: string; notes: any[] }) {
   const qc = useQueryClient();
+  const { role, profile } = usePermissions();
   const [text, setText] = useState("");
   const add = useMutation({
     mutationFn: async (note: string) => {
@@ -403,8 +404,9 @@ function ProjectNotes({ projectId, notes }: { projectId: string; notes: any[] })
   });
   const del = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("project_notes").delete().eq("id", id);
+      const { data, error } = await supabase.from("project_notes").delete().eq("id", id).select("id");
       if (error) throw error;
+      if (!data?.length) throw new Error("Nincs jogosultságod ennek a jegyzetnek a törléséhez.");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["project_notes"] });
@@ -437,11 +439,13 @@ function ProjectNotes({ projectId, notes }: { projectId: string; notes: any[] })
               <div className="flex items-start justify-between gap-2">
                 <div className="whitespace-pre-wrap text-sm">{n.note ?? "—"}</div>
                 <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="icon" variant="ghost" className="text-destructive" title="Törlés">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
+                  {(role === "owner" || (!!profile?.id && n.author_id === profile.id)) && (
+                    <AlertDialogTrigger asChild>
+                      <Button size="icon" variant="ghost" className="text-destructive" title="Törlés">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                  )}
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Jegyzet törlése</AlertDialogTitle>
