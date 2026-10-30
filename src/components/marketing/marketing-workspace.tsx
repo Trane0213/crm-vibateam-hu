@@ -47,6 +47,7 @@ import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/ma
 import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
+import { canSubmitHandoff, openLeads } from "@/lib/marketing-handoff-guard";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
@@ -271,9 +272,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     onSuccess: () => {
       toast.success("Sikeresen átadva a salesnek", { description: "A lead megjelent a sales pipeline-ban." });
       qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+      qc.invalidateQueries({ queryKey: ["leads", "by_company", companyId] });
       setHandoffOpen(false);
     },
-    onError: (e: any) => toast.error("Átadás sikertelen", { description: humanizeSupabaseError(e) }),
+    onError: (e: any) => {
+      // Ha a lead már létrejött, de a státusz mentése elbukott, a frissített lista
+      // a következő próbálkozásnál figyelmeztet a meglévő leadre (nincs vak duplikálás).
+      qc.invalidateQueries({ queryKey: ["leads", "by_company", companyId] });
+      toast.error("Átadás sikertelen", { description: humanizeSupabaseError(e) });
+    },
   });
 
   // Minden hook a feltételes returnök előtt fut, különben a marketing oldal
@@ -675,6 +682,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
         defaultLeadSource={meta.leadSource}
         salesUsers={salesUsers.data ?? []}
+        existingOpenLeads={openLeads(companyLeads.data ?? [])}
         submitting={handoff.isPending}
         onSubmit={(d) => handoff.mutate(d)}
       />
@@ -954,8 +962,9 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, companyId, contacts, defaultSummary, defaultLeadSource, salesUsers, submitting, onSubmit,
+  open, onOpenChange, companyName, companyId, contacts, defaultSummary, defaultLeadSource, salesUsers, existingOpenLeads, submitting, onSubmit,
 }: {
+  existingOpenLeads: any[];
   open: boolean;
   onOpenChange: (v: boolean) => void;
   companyName: string;
@@ -972,6 +981,7 @@ function HandoffDialog({
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
   const [leadSource, setLeadSource] = useState<string>(defaultLeadSource ?? "");
   const [assignee, setAssignee] = useState<string>("");
+  const [confirmSeparate, setConfirmSeparate] = useState(false);
   // Minden megnyitáskor szinkronizáljuk a defaultokat (sales note vagy első kontakt).
   useEffect(() => {
     if (!open) return;
@@ -980,6 +990,7 @@ function HandoffDialog({
     setContactId(contacts[0]?.id ?? "");
     setLeadSource(defaultLeadSource ?? "");
     setAssignee(salesUsers.length === 1 ? salesUsers[0].auth_user_id : "");
+    setConfirmSeparate(false);
   }, [open, defaultSummary, contacts, defaultLeadSource, salesUsers]);
 
   return (
@@ -997,6 +1008,27 @@ function HandoffDialog({
         </AlertDialogHeader>
 
         <div className="space-y-3">
+          {existingOpenLeads.length > 0 && (
+            <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs">
+              <div className="font-semibold text-destructive">
+                Ehhez a céghez már van {existingOpenLeads.length} nyitott lead — ne add át ugyanazt az ügyet még egyszer.
+              </div>
+              <ul className="mt-1 space-y-0.5">
+                {existingOpenLeads.slice(0, 5).map((l) => (
+                  <li key={l.id}>
+                    <Link to="/leads/$id" params={{ id: l.id }} className="text-primary hover:underline">
+                      {l.summary || `Lead #${String(l.id).slice(0, 8)}`}
+                    </Link>{" "}
+                    <span className="text-muted-foreground">· {l.status ?? "—"} · {fmtDate(l.created_at)}</span>
+                  </li>
+                ))}
+              </ul>
+              <label className="mt-2 flex items-start gap-2">
+                <input type="checkbox" className="mt-0.5" checked={confirmSeparate} onChange={(e) => setConfirmSeparate(e.target.checked)} />
+                <span>Ellenőriztem: ez egy <strong>külön projektlehetőség</strong>, nem a meglévő lead ismétlése.</span>
+              </label>
+            </div>
+          )}
           <div>
             <label className="text-xs font-medium text-muted-foreground">
               Honnan érkezett a lead? <span className="text-destructive">*</span>
@@ -1041,7 +1073,7 @@ function HandoffDialog({
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Mégse</AlertDialogCancel>
           <AlertDialogAction
-            disabled={submitting || !summary.trim() || !leadSource || !assignee}
+            disabled={!canSubmitHandoff({ summary, leadSource, assignee, submitting, openLeadCount: existingOpenLeads.length, confirmedSeparateOpportunity: confirmSeparate })}
             onClick={(e) => {
               e.preventDefault();
               onSubmit({
