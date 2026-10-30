@@ -10,75 +10,50 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
-export const EMAIL_SELECT =
-  "id,thread_id,subject,from_email,to_email,to_emails,cc_emails,bcc_emails,internal_date,created_at,is_outbound,company_id";
 const THREAD_SELECT = "id,subject,last_message_at,participants,company_id";
 
 export function normalizeContactEmails(contacts: { email?: string | null }[]): string[] {
   return Array.from(new Set(contacts.map((c) => (c.email ?? "").trim().toLowerCase()).filter(Boolean))).sort();
 }
 
-export function companyEmailQueryKey(companyId: string, contactEmails: string[]) {
-  return ["emails", "by_company_aggregate", companyId, contactEmails.join(",")] as const;
+export function companyEmailQueryKey(companyId: string, contactEmails: string[], page = 0) {
+  return ["emails", "by_company_aggregate", companyId, contactEmails.join(","), page] as const;
 }
 
-/** Céghez tartozó levelek: céghez kötött szál/levél + kapcsolattartó résztvevős szálak teljes anyaga. */
-export async function fetchCompanyEmails(companyId: string, contactEmails: string[]) {
-  const threadIds = new Set<string>();
-  const threadMeta = new Map<string, any>();
-  const rowsById = new Map<string, any>();
-  const addThreads = (rows: any[] | null) => {
-    for (const t of rows ?? []) if (t?.id) { threadIds.add(t.id); threadMeta.set(t.id, t); }
-  };
-  const addEmails = (rows: any[] | null) => {
-    for (const e of rows ?? []) {
-      if (!e?.id) continue;
-      rowsById.set(e.id, e);
-      if (e.thread_id) threadIds.add(e.thread_id);
-    }
-  };
+/** PostgREST `or()` szűrő: céghez kötött szál VAGY kapcsolattartó résztvevő. */
+export function companyThreadOrFilter(companyId: string, contactEmails: string[]): string {
+  const parts = [`company_id.eq.${companyId}`];
+  const safe = contactEmails.filter((e) => /^[^\s",{}()]+$/.test(e));
+  if (safe.length) parts.push(`participants.ov.{${safe.map((e) => `"${e}"`).join(",")}}`);
+  return parts.join(",");
+}
 
-  const t1 = await supabase.from("email_threads").select(THREAD_SELECT).eq("company_id", companyId)
-    .order("last_message_at", { ascending: false, nullsFirst: false }).limit(500);
-  if (t1.error) throw t1.error;
-  addThreads(t1.data as any[]);
+export const COMPANY_THREAD_PAGE_SIZE = 25;
 
-  if (contactEmails.length > 0) {
-    const t2 = await supabase.from("email_threads").select(THREAD_SELECT).overlaps("participants", contactEmails)
-      .order("last_message_at", { ascending: false, nullsFirst: false }).limit(500);
-    if (t2.error) throw t2.error;
-    addThreads(t2.data as any[]);
-  }
-
-  const e1 = await supabase.from("emails").select(EMAIL_SELECT).eq("company_id", companyId)
-    .order("internal_date", { ascending: false, nullsFirst: false }).limit(500);
-  if (e1.error) throw e1.error;
-  addEmails(e1.data as any[]);
-
-  if (contactEmails.length > 0) {
-    const rs = await Promise.all([
-      supabase.from("emails").select(EMAIL_SELECT).in("from_email", contactEmails).limit(500),
-      supabase.from("emails").select(EMAIL_SELECT).in("to_email", contactEmails).limit(500),
-      supabase.from("emails").select(EMAIL_SELECT).overlaps("to_emails", contactEmails).limit(500),
-      supabase.from("emails").select(EMAIL_SELECT).overlaps("cc_emails", contactEmails).limit(500),
-      supabase.from("emails").select(EMAIL_SELECT).overlaps("bcc_emails", contactEmails).limit(500),
-    ]);
-    for (const r of rs) { if (r.error) throw r.error; addEmails(r.data as any[]); }
-  }
-
-  const ids = Array.from(threadIds);
-  for (let i = 0; i < ids.length; i += 100) {
-    const r = await supabase.from("emails").select(EMAIL_SELECT).in("thread_id", ids.slice(i, i + 100))
-      .order("internal_date", { ascending: false, nullsFirst: false }).limit(1000);
-    if (r.error) throw r.error;
-    addEmails(r.data as any[]);
-  }
-
-  return Array.from(rowsById.values()).map((row) => ({
-    ...row,
-    subject: row.subject ?? (row.thread_id ? threadMeta.get(row.thread_id)?.subject : null),
-    participants: row.thread_id ? threadMeta.get(row.thread_id)?.participants : undefined,
-  })).sort((a, b) => (b.internal_date ?? b.created_at ?? "").localeCompare(a.internal_date ?? a.created_at ?? ""));
+/**
+ * Céges levélszálak szerveroldali lapozással. A számláló (`total`) és a
+ * lista UGYANABBÓL a szűrőből jön (pontos count), a hívó RLS-jogaival.
+ * Egyszerre csak egy oldal (25 szál) töltődik be, levelek tömegesen nem.
+ */
+export async function fetchCompanyThreadsPage(companyId: string, contactEmails: string[], page = 0, pageSize = COMPANY_THREAD_PAGE_SIZE) {
+  const from = page * pageSize;
+  const r = await supabase.from("email_threads").select(THREAD_SELECT, { count: "exact" })
+    .or(companyThreadOrFilter(companyId, contactEmails))
+    .order("last_message_at", { ascending: false, nullsFirst: false })
+    .order("id", { ascending: true })
+    .range(from, from + pageSize - 1);
+  if (r.error) throw r.error;
+  const threads = (r.data ?? []) as any[];
+  const counts = await Promise.all(threads.map((t) =>
+    supabase.from("emails").select("id", { count: "exact", head: true }).eq("thread_id", t.id)));
+  const rows: CompanyThread[] = threads.map((t, i) => ({
+    id: t.id,
+    subject: t.subject ?? null,
+    last_message_at: t.last_message_at ?? null,
+    count: counts[i].error ? 0 : (counts[i].count ?? 0),
+    participants: (t.participants ?? []) as string[],
+  }));
+  return { rows, total: r.count ?? rows.length, page, pageSize };
 }
 
 export type CompanyThread = {

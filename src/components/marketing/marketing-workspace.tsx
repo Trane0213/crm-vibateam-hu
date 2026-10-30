@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RecordCombobox } from "@/components/resource/record-combobox";
-import { companyEmailQueryKey, emailVisibilityHint, fetchCompanyEmails, fetchEmailFullAccess, groupEmailThreads, normalizeContactEmails } from "@/lib/company-activity";
+import { companyEmailQueryKey, emailVisibilityHint, fetchCompanyThreadsPage, fetchEmailFullAccess, normalizeContactEmails, COMPANY_THREAD_PAGE_SIZE } from "@/lib/company-activity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -86,10 +86,12 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
   // 2. szakasz: közös levél-forrás a tulajdonosi/sales nézettel (company-activity).
   const contactEmails = normalizeContactEmails((contacts.data ?? []) as any[]);
+  const [threadPage, setThreadPage] = useState(0);
   const emails = useQuery({
-    queryKey: companyEmailQueryKey(companyId, contactEmails),
+    queryKey: companyEmailQueryKey(companyId, contactEmails, threadPage),
     enabled: !contacts.isLoading,
-    queryFn: () => fetchCompanyEmails(companyId, contactEmails),
+    queryFn: () => fetchCompanyThreadsPage(companyId, contactEmails, threadPage),
+    placeholderData: (prev) => prev,
   });
   const emailFullAccess = useQuery({ queryKey: ["email-full-access"], queryFn: fetchEmailFullAccess, staleTime: 300_000 });
   // Meglévő leadek — csak megjelenítés, az átadási szabály változatlan.
@@ -250,11 +252,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
   // Minden hook a feltételes returnök előtt fut, különben a marketing oldal
   // loading → loaded váltáskor hook-sorrend hibával elszállna.
-  const emailRows = emails.data ?? [];
-  const emailCount = emailRows.length;
-  const lastEmail = emailRows[0]?.internal_date ?? emailRows[0]?.created_at ?? null;
-  const derivedThreads = useMemo(() => groupEmailThreads(emailRows as any[]), [emailRows]);
-  const threadCount = derivedThreads.length;
+  // 2. szakasz: lapozott szálak; a számláló a szerver pontos darabszáma (szál).
+  const derivedThreads = emails.data?.rows ?? [];
+  const threadCount = emails.data?.total ?? 0;
+  const emailCount = threadCount;
+  const lastEmail = threadPage === 0 ? (derivedThreads[0]?.last_message_at ?? null) : null;
   const emailHint = emailVisibilityHint(emailFullAccess.data, emailCount);
   const leadRows = companyLeads.data ?? [];
 
@@ -281,7 +283,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const timeline = buildTimeline({
     company: { name: c.name, created_at: c.created_at },
     contacts: (contacts.data ?? []) as any[],
-    emails: emailRows as any[],
+    emails: [],
+    threads: derivedThreads,
     docs: (docs.data ?? []) as any[],
     meta,
   }, c.notes ?? null);
@@ -422,8 +425,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         {/* Kompakt KPI csík — informatív, nem akciógomb */}
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
           <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} />
-          <Mini label="Email aktivitás" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail}
-                hint={lastEmail ? `utolsó: ${fmtDate(lastEmail)} · ${threadCount} szál` : emailHint ? "nincs látható levél (jogosultság)" : "nincs üzenet"} />
+          <Mini label="Levélszálak" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail}
+                hint={lastEmail ? `levélszál · utolsó: ${fmtDate(lastEmail)}` : emailHint ? "nincs látható levél (jogosultság)" : "nincs üzenet"} />
           <Mini label="Meglévő lead" value={String(leadRows.length)} icon={Sparkles}
                 hint={leadRows[0] ? `legutóbbi: ${leadRows[0].status ?? "—"}` : undefined} />
           <Mini label="Dokumentumok" value={String(docsCount.data ?? 0)} icon={FolderOpen} />
@@ -437,7 +440,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Email aktivitás ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Levélszálak ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
             <TabsTrigger value="sales-note">
               <StickyNote className="mr-1.5 h-3.5 w-3.5" />
@@ -539,6 +542,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
               )}
             </div>
             {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
+            <ThreadPager page={threadPage} total={threadCount} pageSize={COMPANY_THREAD_PAGE_SIZE} onPage={setThreadPage} />
             {emailCount === 0 ? (
               <EmptyState icon={Mail} title={emailHint ? "Nincs számodra látható levél" : "Nincs email aktivitás"}
                 description={emailHint ? "A levelezés a hozzád rendelt postafiókok szerint szűrt." : "Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül."} />
@@ -651,6 +655,18 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 }
 
 /* ───────── helpers ───────── */
+
+function ThreadPager({ page, total, pageSize, onPage }: { page: number; total: number; pageSize: number; onPage: (p: number) => void }) {
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  if (pages <= 1) return null;
+  return (
+    <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+      <span>{page * pageSize + 1}–{Math.min(total, (page + 1) * pageSize)} / {total} szál</span>
+      <Button size="sm" variant="outline" disabled={page === 0} onClick={() => onPage(page - 1)}>Előző</Button>
+      <Button size="sm" variant="outline" disabled={page + 1 >= pages} onClick={() => onPage(page + 1)}>Következő</Button>
+    </div>
+  );
+}
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
