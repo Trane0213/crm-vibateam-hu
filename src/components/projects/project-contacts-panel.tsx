@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { PROJECT_CONTACT_ROLE, PROJECT_CONTACT_ROLE_LABEL } from "@/lib/viba-constants";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 
 type Row = {
   id: string;
@@ -40,18 +41,6 @@ function useProjectContacts(projectId: string) {
         .eq("project_id", projectId);
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
-    },
-  });
-}
-
-function useContactsList() {
-  return useQuery({
-    queryKey: ["contacts", "all-for-picker"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contacts").select("id,name,email,company_id").order("name");
-      if (error) throw error;
-      return data ?? [];
     },
   });
 }
@@ -136,7 +125,6 @@ function AddContactDialog({ projectId, companyId }: { projectId: string; company
   const [tab, setTab] = useState<"existing" | "new">("existing");
 
   // Existing picker
-  const contacts = useContactsList();
   const [contactId, setContactId] = useState<string>("");
   const [role, setRole] = useState<string>("");
 
@@ -216,16 +204,7 @@ function AddContactDialog({ projectId, companyId }: { projectId: string; company
           <TabsContent value="existing" className="space-y-3 pt-3">
             <div>
               <Label>Kapcsolattartó</Label>
-              <Select value={contactId} onValueChange={setContactId}>
-                <SelectTrigger><SelectValue placeholder="Válassz…" /></SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {(contacts.data ?? []).map((c: any) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name ?? "—"}{c.email ? ` · ${c.email}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RecordCombobox source="contacts" value={contactId} onChange={setContactId} label="Kapcsolattartó" />
             </div>
             <RoleSelect value={role} onChange={setRole} />
             <DialogFooter>

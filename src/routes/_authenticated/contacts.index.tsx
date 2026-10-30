@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserPlus, AlertTriangle, Mail } from "lucide-react";
 import { ResourcePage, useLookup } from "@/components/resource/resource-page";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 import { loadContactSurfaceMap } from "@/lib/crm/crm-surface";
-import { FilterBar, FilterSelect, QualityBar, relativeTime } from "@/components/marketing-ui";
+import { FilterBar, QualityBar, relativeTime } from "@/components/marketing-ui";
 
 function ContactsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -18,15 +19,7 @@ function ContactsPage() {
   });
   const surface = surfaceQ.data;
 
-  const allRowsRef = { current: [] as any[] };
-  const companyOptions = useMemo(() => {
-    const m = new Map<string, string>();
-    for (const r of allRowsRef.current) if (r.company_id) m.set(r.company_id, companyLabel(r.company_id) ?? r.company_id);
-    return [...m.entries()].sort((a, b) => a[1].localeCompare(b[1])).map(([v, l]) => ({ value: v, label: l }));
-  }, [search, companyFilter]); // eslint-disable-line react-hooks/exhaustive-deps
-
   function filterFn(rows: any[]) {
-    allRowsRef.current = rows;
     const s = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (companyFilter && r.company_id !== companyFilter) return false;
@@ -55,12 +48,8 @@ function ContactsPage() {
           searchPlaceholder="Keresés név, email, telefon, beosztás…"
           onReset={search || companyFilter ? () => { setSearch(""); setCompanyFilter(""); } : undefined}
         >
-          <FilterSelect
-            value={companyFilter}
-            onChange={setCompanyFilter}
-            placeholder="Minden cég"
-            options={companyOptions}
-          />
+          <RecordCombobox source="companies" value={companyFilter} onChange={setCompanyFilter} label="Cég"
+            placeholder="Minden cég" allowClear clearLabel="Minden cég" className="w-60 max-w-full" />
         </FilterBar>
       }
       fields={[
@@ -151,5 +140,10 @@ function ContactsPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/contacts/")({
+  head: () => ({ meta: [
+    { title: "Kapcsolattartók | VIBA CRM" }, { name: "description", content: "VIBA CRM kapcsolattartók és céges kapcsolatok." },
+    { property: "og:title", content: "Kapcsolattartók | VIBA CRM" }, { property: "og:description", content: "Kapcsolattartók és céges kapcsolatok a VIBA CRM-ben." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: ContactsPage,
 });
