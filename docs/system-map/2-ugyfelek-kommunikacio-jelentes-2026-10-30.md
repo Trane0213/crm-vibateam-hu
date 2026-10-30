@@ -45,3 +45,33 @@ Ellenőrizve: a hívás/találkozó/kontakt űrlapok cég- és kontaktmezői má
 - D2-2: a rejtett levelek darabszáma séma nélkül nem mutatható; számláló SECURITY DEFINER függvény kellene (jóváhagyás).
 - Sales a más felelősre osztott, nem "new" leadet nem látja (1/B előtti, változatlan RLS).
 - Publikálás szükséges, hogy az éles oldalon is megjelenjen.
+
+---
+## Lezáró javítások (2026-10-30, 2. kör)
+
+### D2-1 – Ügyféllista számlálói (JÓVÁHAGYVA, KÉSZ)
+- Hatáselemzés (előtte, élő DB, csak olvasás): a régi és az új számítás jelenleg minden cégnél 0 nyitott ajánlat / 0 lejárt utánkövetés → megjelenő érték most nem változik; csak a jövőbeli lead-kötésű tételeket számolja.
+- Változás: `customer_kpi_v` `quo`/`fup` része UNION-nal (cég, tétel-id) párokat gyűjt projekt-, lead- és (utánkövetésnél) közvetlen cégkötésből → ugyanaz a tétel egyszer számít. A többi oszlop, az oszlopsorrend és a `customer_360_v` változatlan.
+- Ellenőrizve: `security_invoker=on` mindkét nézeten megmaradt; 445 cég = 445 sor; RLS-szabály nem változott.
+- Visszaállítás: `database/rollback_customer_kpi_v_2026-10-30.sql`.
+- Lista ↔ adatlap: azonos definíció (nyitott: draft/sent/negotiation; lejárt: nincs lezárva, határidő < most), mindkettő a hívó jogaival.
+
+### Levélszálak méretezése (KÉSZ)
+- `fetchCompanyThreadsPage`: egyetlen `email_threads` lekérdezés (`company_id = cég` VAGY kapcsolattartó résztvevő), pontos darabszám + 25-ös szerveroldali lapozás; soronként a levélszám külön darabszám-lekérdezés (levéltartalom nem töltődik).
+- Megszűnt az 500/1000-es korlát és a tömeges levélbetöltés. Mérés: a legnagyobb cégnek 4357 szála van, 3 cégnek több mint 25 → korábban hiányos lett volna.
+- Számláló = szálak pontos száma, ugyanabból a szűrőből, mint a lista (mindkét adatlapon, a marketingesen „Levélszálak” felirattal).
+- Marketing idővonal: a betöltött oldal szálai szálanként egy eseményként.
+- Gmail-hozzáférés, postafiókok, céghozzárendelés változatlan. Szűrő formailag ellenőrizve az élő API-n (200, névtelenül 0 sor – RLS).
+- Változás a korábbihoz képest: a levelek `from/to/cc/bcc` mezőiből való külön keresés megszűnt; a szál résztvevőlistája (`participants`) a forrás.
+
+### D2-2 – ELUTASÍTVA
+Nincs új függvény; a „csak a számodra látható levelezés” tájékoztatás marad.
+
+### Tesztek (2. kör)
+- Vitest 40/40, AI acceptance korábbi 12/12 (AI-kód nem változott), typecheck a módosított fájlokra hibamentes.
+- 12 Raszter: 2 szál a szűrővel (egyezik), lista-KPI 0/0 = adatlap 0/0.
+- **NEM futott:** élő szerepkörös képernyős próba (owner/marketing/sales/PM) – nincs biztonságos teszt-session.
+
+### Fájlok (2. kör)
+`src/lib/company-activity.ts`, `src/lib/company-activity.test.ts`, `src/lib/marketing-timeline.ts`, `src/routes/_authenticated/customers.$id.tsx`, `src/components/marketing/marketing-workspace.tsx`, `database/rollback_customer_kpi_v_2026-10-30.sql`, élő DB: `customer_kpi_v`.
+Publikálás szükséges (a nézet már él, a képernyők a publikálás után).
