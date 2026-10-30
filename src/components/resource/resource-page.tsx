@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +64,7 @@ export type Field = {
   ref?: {
     table: string;
     labelColumn: string;
-    /** Opcionális: extra oszlopok dúsított címkéhez (useRefOptionsRich). */
+    /** Opcionális: extra oszlopok dúsított címkéhez. */
     extraColumns?: string[];
     /** Opcionális: ha megadod, a select labelje ezzel formázódik. */
     formatLabel?: (row: any) => string;
@@ -526,7 +526,17 @@ export function fmtDateTime(v: any): string {
 
 /** Generic resolver of foreign-key id → label, used by columns. */
 export function useLookup(table: string, labelColumn: string) {
-  const { data } = useRefOptions(table, labelColumn);
+  const requested = useRef(new Set<string>());
+  const [ids, setIds] = useState<string[]>([]);
+  useEffect(() => {
+    const next = [...requested.current].sort();
+    if (next.join(",") !== ids.join(",")) setIds(next);
+  });
+  const { data } = useRefOptions(table, labelColumn, ids);
   const map = new Map((data ?? []).map((o) => [o.value, o.label]));
-  return (id: string | null | undefined) => (id ? (map.get(id) ?? "—") : "—");
+  return (id: string | null | undefined) => {
+    if (!id) return "—";
+    requested.current.add(id);
+    return map.get(id) ?? "—";
+  };
 }
