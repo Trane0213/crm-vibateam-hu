@@ -542,6 +542,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
               )}
             </div>
             {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
+            {emails.data?.emailLinkOverflow && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Ehhez a céghez nagyon sok levél van egyenként hozzárendelve; ezek közül csak a céghez vagy kapcsolattartóhoz kötött szálak látszanak. Ellenőrzés tulajdonosi döntésre vár.</p>}
             <ThreadPager page={threadPage} total={threadCount} pageSize={COMPANY_THREAD_PAGE_SIZE} onPage={setThreadPage} />
             {emailCount === 0 ? (
               <EmptyState icon={Mail} title={emailHint ? "Nincs számodra látható levél" : "Nincs email aktivitás"}
