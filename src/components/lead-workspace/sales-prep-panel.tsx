@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { useUpdateLead } from "./use-lead-mutations";
+import { updateLeadOrThrow } from "@/lib/sales/lead-update";
 import { logActivity } from "@/lib/activity-log";
 import { statusToLostStage } from "@/lib/sales/constants";
 
@@ -120,11 +121,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
       // pre-pipeline státuszban van (new/contacted), bumpoljuk quote_prep-re,
       // különben a lead eltűnik a Workspace-ből, de nem jelenik meg a board-on.
       if (!pipelineStatuses.has(current)) patch.status = "quote_prep";
-      const { error } = await supabase
-        .from("leads")
-        .update(patch as any)
-        .eq("id", leadId);
-      if (error) throw error;
+      await updateLeadOrThrow(leadId, patch);
       await logActivity("leads", "pipeline_entered", leadId, { from: current, to: patch.status ?? current });
     },
     onSuccess: () => {

@@ -13,6 +13,7 @@ import { CreateProjectDialog } from "./create-project-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
+import { updateLeadOrThrow } from "@/lib/sales/lead-update";
 import { logActivity } from "@/lib/activity-log";
 import { ExternalLink, Building2, Mail, User, Calendar, FileText } from "lucide-react";
 import { createDraftQuote } from "@/lib/quotes/create";
@@ -69,8 +70,7 @@ export function PipelineDetailSheet({
     mutationFn: async (next: LeadStatus) => {
       if (!lead) throw new Error("Nincs lead.");
       const from = lead.status;
-      const { error } = await supabase.from("leads").update({ status: next }).eq("id", lead.id);
-      if (error) throw error;
+      await updateLeadOrThrow(lead.id, { status: next });
       await logActivity("leads", "status_change", lead.id, { from, to: next });
     },
     onError: (e: any) => toast.error("Státuszváltás sikertelen", { description: humanizeSupabaseError(e) }),
@@ -85,9 +85,7 @@ export function PipelineDetailSheet({
   const lostMut = useMutation({
     mutationFn: async (p: { lost_reason: string; lost_note: string | null }) => {
       if (!lead) throw new Error("Nincs lead.");
-      const { error } = await supabase
-        .from("leads")
-        .update({
+      await updateLeadOrThrow(lead.id, {
           status: "lost",
           // lost_at-et az adatbázis trigger tölti ki.
           lost_reason: p.lost_reason,
@@ -95,9 +93,7 @@ export function PipelineDetailSheet({
           // 2026-06-27 invariáns: a lost_stage a tényleges aktuális
           // pipeline-státusz, hogy a reaktiváló 1:1 vissza tudja állítani.
           lost_stage: statusToLostStage(lead.status),
-        })
-        .eq("id", lead.id);
-      if (error) throw error;
+      });
       await logActivity("leads", "status_change", lead.id, { from: lead.status, to: "lost", reason: p.lost_reason });
     },
     onError: (e: any) => toast.error("Lost-jelölés sikertelen", { description: humanizeSupabaseError(e) }),
@@ -107,8 +103,7 @@ export function PipelineDetailSheet({
   const nextStepMut = useMutation({
     mutationFn: async (p: { next_step_type: any; next_step_due_at: string | null; next_step_note: string | null }) => {
       if (!lead) throw new Error("Nincs lead.");
-      const { error } = await supabase.from("leads").update(p).eq("id", lead.id);
-      if (error) throw error;
+      await updateLeadOrThrow(lead.id, p);
       await logActivity("leads", "update", lead.id, { field: "next_step", ...p });
     },
     onError: (e: any) => toast.error("Next step mentés sikertelen", { description: humanizeSupabaseError(e) }),
