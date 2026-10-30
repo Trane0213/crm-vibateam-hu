@@ -81,46 +81,21 @@ export function useListWhere<T = any>(
   });
 }
 
-export function useRefOptions(table: string, labelColumn: string) {
+/** Display labels only for IDs actually rendered; interactive search uses useRecordSearch. */
+export function useRefOptions(table: string, labelColumn: string, ids: string[]) {
   return useQuery({
-    queryKey: [table, "ref-options", labelColumn],
+    queryKey: [table, "ref-labels", labelColumn, ids],
+    enabled: ids.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from(table)
-        .select(`id, ${labelColumn}`)
-        .order(labelColumn, { ascending: true });
-      if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({
+      const rows: any[] = [];
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const { data, error } = await db.from(table).select(`id, ${labelColumn}`).in("id", ids.slice(offset, offset + 100));
+        if (error) throw error;
+        rows.push(...(data ?? []));
+      }
+      return rows.map((r) => ({
         value: r.id as string,
         label: (r[labelColumn] as string) ?? "—",
-      }));
-    },
-  });
-}
-
-/**
- * Mint a useRefOptions, csak több oszlopot tölt be és egyedi formázót használ.
- * Hasznos pl. ajánlat választóhoz: `v{version} · {status}` formátum.
- */
-export function useRefOptionsRich(
-  table: string,
-  columns: string[],
-  format: (row: any) => string,
-  orderColumn?: string,
-) {
-  const cols = Array.from(new Set(["id", ...columns]));
-  const order = orderColumn ?? "created_at";
-  return useQuery({
-    queryKey: [table, "ref-options-rich", cols.join(","), order],
-    queryFn: async () => {
-      const { data, error } = await db
-        .from(table)
-        .select(cols.join(","))
-        .order(order, { ascending: false });
-      if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({
-        value: r.id as string,
-        label: format(r) || "—",
       }));
     },
   });
