@@ -7,13 +7,14 @@
 - [ ] Belső felületi végigteszt: külső Supabase mellett nincs biztonságos böngészős session; felhasználói ellenőrzés szükséges.
 - [ ] Megosztott szálak hiányzó fiókspecifikus Gmail-címkéinek igazolása: a meglévő adatmodell csak egy üzenettulajdonost tárol; külön Gmail-adatellenőrzés nélkül nem bizonyítható.
 
-## UI megújítás (külön jóváhagyással folytatható)
 ## Kereshető rekordválasztók
-- [ ] Közös, szerveroldali keresés, lapozás és kiválasztott rekord lekérése, meglévő jogosultságokkal.
-- [ ] Kapcsolódó rekordválasztók és nagy listás szűrők átvezetése.
-- [ ] 5000 mesterséges rekordos teszt, keresés, kiválasztás, szerkesztés és mobil ellenőrzése.
+- [x] Közös, szerveroldali keresés, lapozás és kiválasztott rekord lekérése, meglévő jogosultságokkal.
+- [x] Kapcsolódó rekordválasztók és nagy listás szűrők átvezetése.
+- [x] 5000 mesterséges rekordos teszt: elkülönített PostgreSQL 250 lap/RLS; valódi keresőelem asztali és mobil mock próbája.
 - [ ] Élő mentési próba: biztonságos bejelentkezési session szükséges, jelszó nélkül.
+- [ ] Éles szerepkörös keresőlekérdezés: a read-only adatbázis-szerep nem hívhatja az authenticated keresőfüggvényt; a felhasználó saját bejelentkezése szükséges.
 
+## UI megújítás (külön jóváhagyással folytatható)
 - [x] 1. Designrendszer (színek, betűk, kártya, gomb)
 - [x] 2. Keret: oldalsáv, felső sáv, mobil alsó navigáció (belső oldalak vizuális ellenőrzése a felhasználónál)
 - [x] 3. Állandó AI-panel (felületi ellenőrzés a felhasználónál)
