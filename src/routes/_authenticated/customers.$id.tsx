@@ -97,23 +97,34 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   });
 
   const projectIds = (projects.data ?? []).map((p) => p.id);
+  const leadIds = (leads.data ?? []).map((l: any) => l.id);
 
+  // 2. szakasz: projekthez ÉS leadhez (még projekt nélkül) kötött ajánlatok/utánkövetések,
+  // azonosító szerint egyesítve — egy rekord egyszer számít.
   const quotes = useQuery({
-    queryKey: ["customer", id, "quotes", projectIds.length],
-    enabled: projectIds.length > 0,
+    queryKey: ["customer", id, "quotes", projectIds.join(","), leadIds.join(",")],
+    enabled: !projects.isLoading && !leads.isLoading && (projectIds.length > 0 || leadIds.length > 0),
     queryFn: async () => {
-      const { data, error } = await supabase.from("quotes").select("*").in("project_id", projectIds).order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      const [byProject, byLead] = await Promise.all([
+        projectIds.length ? supabase.from("quotes").select("*").in("project_id", projectIds) : Promise.resolve({ data: [], error: null } as any),
+        leadIds.length ? supabase.from("quotes").select("*").in("lead_id", leadIds) : Promise.resolve({ data: [], error: null } as any),
+      ]);
+      if (byProject.error) throw byProject.error;
+      if (byLead.error) throw byLead.error;
+      return mergeById<any>(byProject.data, byLead.data).sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""));
     },
   });
   const followups = useQuery({
-    queryKey: ["customer", id, "followups", projectIds.length],
-    enabled: projectIds.length > 0,
+    queryKey: ["customer", id, "followups", projectIds.join(","), leadIds.join(",")],
+    enabled: !projects.isLoading && !leads.isLoading,
     queryFn: async () => {
-      const { data, error } = await supabase.from("followups").select("*").in("project_id", projectIds).order("due_date", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const [byCompany, byProject, byLead] = await Promise.all([
+        supabase.from("followups").select("*").eq("company_id", id),
+        projectIds.length ? supabase.from("followups").select("*").in("project_id", projectIds) : Promise.resolve({ data: [], error: null } as any),
+        leadIds.length ? supabase.from("followups").select("*").in("lead_id", leadIds) : Promise.resolve({ data: [], error: null } as any),
+      ]);
+      for (const r of [byCompany, byProject, byLead]) if (r.error) throw r.error;
+      return mergeById<any>(byCompany.data, byProject.data, byLead.data).sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""));
     },
   });
   const docs = useQuery({
