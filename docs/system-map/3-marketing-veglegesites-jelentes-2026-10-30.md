@@ -37,7 +37,7 @@ Séma, RLS (1/B), R2-védelem (1/C), Pipeline-szabályok: **változatlan**. Új 
 | Konzolhiba | ✅ nincs |
 
 ## Tesztek
-- Vitest 44/44 (10 fájl), AI acceptance 12/12; typecheck a módosított fájlokra hibamentes; build OK.
+- Vitest 44/44 (8 fájl), AI acceptance 12/12; typecheck a módosított fájlokra hibamentes; build OK.
 
 ## TESZT adatok (élő DB, marketing nem törölheti)
 - Cég `f0761f0b-8765-4631-93ca-65fdd5971302` „TESZT – Marketing E2E 2026-10-30” (+ notes markerek), kontakt „TESZT Kontakt E2E”, hívás „TESZT hívás – E2E, nem valós”. Lead nem jött létre, levél nem ment ki. Törlés: tulajdonos a felületen.
