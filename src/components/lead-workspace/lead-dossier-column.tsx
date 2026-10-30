@@ -138,7 +138,7 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
           <TabsContent value="overview" className="mt-0 space-y-4">
             <Section title="Cég" icon={Building2}>
               {!company.data ? (
-                <Empty>Nincs cég hozzárendelve a leadhez.</Empty>
+                <Empty>{companyId && company.isLoading ? "Cégadatok betöltése…" : "Nincs cég hozzárendelve a leadhez."}</Empty>
               ) : (
                 <dl className="grid grid-cols-3 gap-2 text-xs">
                   <Row label="Név" value={company.data.name} />
