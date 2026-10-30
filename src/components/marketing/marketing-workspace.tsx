@@ -104,6 +104,32 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     },
   });
 
+  // 3. szakasz: idővonalhoz a meglévő táblák céghez kötött sorai (marketing olvasási jog: 1/B).
+  const companyCalls = useQuery({
+    queryKey: ["phone_calls", "by_company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("phone_calls").select("id,created_at,direction,outcome,summary").eq("company_id", companyId).order("created_at", { ascending: false }).limit(200);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const companyMeetings = useQuery({
+    queryKey: ["meetings", "by_company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("meetings").select("id,meeting_date,created_at,title,location").eq("company_id", companyId).order("meeting_date", { ascending: false }).limit(200);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+  const companyFollowups = useQuery({
+    queryKey: ["followups", "by_company", companyId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("followups").select("id,due_date,created_at,followup_type,completed").eq("company_id", companyId).order("due_date", { ascending: false }).limit(200);
+      if (error) throw error;
+      return (data ?? []) as any[];
+    },
+  });
+
   const docs = useQuery({
     queryKey: ["company_documents", "list", companyId],
     queryFn: async () => {
@@ -122,7 +148,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("users_profile")
-        .select("id,auth_user_id,full_name,email,active,roles(name)");
+        .select("id,auth_user_id,full_name,email,active,role_id,roles(name)");
       if (error) throw error;
       return ((data ?? []) as any[]).filter(
         (row) => normalizeRole(row.roles?.name) === "sales" && row.active !== false && row.auth_user_id,
@@ -285,6 +311,10 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     contacts: (contacts.data ?? []) as any[],
     emails: [],
     threads: derivedThreads,
+    calls: companyCalls.data ?? [],
+    meetings: companyMeetings.data ?? [],
+    followups: companyFollowups.data ?? [],
+    leads: companyLeads.data ?? [],
     docs: (docs.data ?? []) as any[],
     meta,
   }, c.notes ?? null);
@@ -598,6 +628,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
           {/* Idővonal — egyszerűsített marketing nézet */}
           <TabsContent value="timeline" className="mt-4">
+            <p className="mb-3 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+              Az idővonal a hívásokat, találkozókat, utánkövetéseket, leadeket, kapcsolattartókat, dokumentumokat és státuszokat teljesen mutatja (max. 200/típus).
+              Levélszálakból csak az <strong>„Levélszálak” fülön éppen megnyitott oldal</strong> {derivedThreads.length} szála szerepel
+              (összesen {threadCount}{emailHint ? ", csak a számodra látható" : ""}) — a teljes levelezést a Levélszálak fülön lapozva nézd.
+            </p>
             <SimpleTimeline events={timeline} />
           </TabsContent>
         </Tabs>
@@ -884,6 +919,10 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
       case "doc_uploaded":    return FolderOpen;
       case "handoff":         return ArrowRightCircle;
       case "status_change":   return AlertCircle;
+      case "call":            return Phone;
+      case "meeting":         return Calendar;
+      case "followup":        return History;
+      case "lead":            return Sparkles;
       default:                return History;
     }
   };

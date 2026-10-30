@@ -16,7 +16,11 @@ export type TimelineEvent = {
     | "email_received"
     | "doc_uploaded"
     | "status_change"
-    | "handoff";
+    | "handoff"
+    | "call"
+    | "meeting"
+    | "followup"
+    | "lead";
   label: string;
   detail?: string;
 };
@@ -36,6 +40,11 @@ type Input = {
   docs: { id: string; name: string | null; created_at: string }[];
   /** Lapozott céges levélszálak (2. szakasz) — szálanként egy esemény. */
   threads?: { id: string; subject: string | null; last_message_at: string | null; count: number }[];
+  /** 3. szakasz: meglévő táblák céghez kötött sorai (hívó RLS-jogaival olvasva). */
+  calls?: { id: string; created_at: string | null; direction?: string | null; outcome?: string | null; summary?: string | null }[];
+  meetings?: { id: string; meeting_date: string | null; created_at?: string | null; title?: string | null; location?: string | null }[];
+  followups?: { id: string; due_date: string | null; created_at?: string | null; followup_type?: string | null; completed?: boolean | null }[];
+  leads?: { id: string; created_at: string | null; status?: string | null; summary?: string | null }[];
   meta: MarketingMeta;
 };
 
@@ -81,6 +90,26 @@ export function buildTimeline(input: Input, notes: string | null): TimelineEvent
       label: `Levélszál – utolsó üzenet (${t.count} levél)`,
       detail: t.subject ?? "(nincs tárgy)",
     });
+  }
+
+  for (const c of input.calls ?? []) {
+    if (!c.created_at) continue;
+    events.push({ at: c.created_at, kind: "call", label: `Hívás${c.direction ? ` (${c.direction})` : ""}`,
+      detail: [c.outcome, c.summary].filter(Boolean).join(" · ") || undefined });
+  }
+  for (const m of input.meetings ?? []) {
+    const at = m.meeting_date ?? m.created_at;
+    if (!at) continue;
+    events.push({ at, kind: "meeting", label: "Találkozó", detail: [m.title, m.location].filter(Boolean).join(" · ") || undefined });
+  }
+  for (const f of input.followups ?? []) {
+    const at = f.due_date ?? f.created_at;
+    if (!at) continue;
+    events.push({ at, kind: "followup", label: f.completed ? "Utánkövetés (lezárva)" : "Utánkövetés esedékes", detail: f.followup_type ?? undefined });
+  }
+  for (const l of input.leads ?? []) {
+    if (!l.created_at) continue;
+    events.push({ at: l.created_at, kind: "lead", label: `Lead létrejött (${l.status ?? "—"})`, detail: l.summary ?? undefined });
   }
 
   for (const d of input.docs) {
