@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -43,22 +41,6 @@ export function CreateProjectDialog({
   const [notes, setNotes] = useState("");
   const [managerId, setManagerId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
-
-  // Projektvezető-választó: a v_sales_user_load minden listázott felhasználót
-  // ad — sales szerepkörnél is engedélyezett, hogy önmagát is választhassa.
-  const users = useQuery({
-    queryKey: ["v_sales_user_load", "all"],
-    staleTime: 5 * 60_000,
-    enabled: open,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_sales_user_load")
-        .select("user_id, full_name, email")
-        .order("full_name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as { user_id: string; full_name: string | null; email: string | null }[];
-    },
-  });
 
   useEffect(() => {
     if (open && lead) {
@@ -131,21 +113,7 @@ export function CreateProjectDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Projektvezető *</Label>
-              <Select value={managerId} onValueChange={setManagerId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={users.isLoading ? "Betöltés…" : "Válassz felhasználót"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {(users.data ?? []).map((u) => (
-                    <SelectItem key={u.user_id} value={u.user_id}>
-                      {u.full_name || u.email || u.user_id}
-                    </SelectItem>
-                  ))}
-                  {!users.isLoading && (users.data ?? []).length === 0 && (
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">Nincs választható felhasználó.</div>
-                  )}
-                </SelectContent>
-              </Select>
+              <RecordCombobox source="v_sales_user_load" value={managerId} onChange={setManagerId} label="Projektvezető" disabled={busy} />
             </div>
             <div className="space-y-1.5">
               <Label>Indulás dátuma *</Label>

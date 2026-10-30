@@ -11,7 +11,7 @@ export const recordSearchSchema = z.object({
 });
 export type RecordSource = z.infer<typeof recordSearchSchema>["source"];
 export type RecordSearchInput = z.input<typeof recordSearchSchema>;
-export type RecordOption = { value: string; label: string; detail: string; fields: Record<string, unknown> };
+export type RecordOption = { value: string; label: string; detail: string; fields: Record<string, string | number | boolean | null> };
 export type RecordSearchPage = { rows: RecordOption[]; hasMore: boolean };
 export function normalizeRecordSearch(value: string) {
   return value.toLocaleLowerCase("hu-HU").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
