@@ -18,6 +18,7 @@ import { EmailComposer } from "@/components/emails/email-composer";
 import { EmailThreadProjectPicker } from "@/components/emails/email-thread-project-picker";
 import { AttachmentGrid } from "@/components/emails/attachment-grid";
 import { usePermissions } from "@/hooks/use-permissions";
+import { getMailboxes } from "@/lib/gmail/mailbox.functions";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   validateSearch: (search: Record<string, unknown>): { mailbox?: string } => ({ mailbox: typeof search.mailbox === "string" ? search.mailbox : undefined }),
@@ -96,6 +97,8 @@ function EmailThread() {
   const { profile } = usePermissions();
   const ownMailbox = (profile?.gmail_email as string | undefined)?.toLowerCase();
   const replyMailbox = mailbox ?? ownMailbox;
+  const mailboxAccounts = useQuery({ queryKey: ["emails", "mailboxes", profile?.auth_user_id], queryFn: () => getMailboxes(), enabled: !!profile?.auth_user_id });
+  const selectedAccount = mailboxAccounts.data?.find(account => account.email === mailbox);
   const [replyOpen, setReplyOpen] = useState(false);
   const emails = useListWhere<any>("emails", "thread_id", threadId, {
     order: "created_at",
@@ -234,9 +237,11 @@ function EmailThread() {
     }
   };
 
-  const visibleEmails = emails.data ?? [];
+  const allThreadEmails = emails.data ?? [];
+  const ownedMessages = selectedAccount ? allThreadEmails.filter((email: any) => email.owner_user_id === selectedAccount.userId) : [];
+  const visibleEmails = mailbox ? ownedMessages : allThreadEmails;
   const last: any = visibleEmails[visibleEmails.length - 1];
-  const defaultReplyTo = last?.from_email ?? "";
+  const defaultReplyTo = last?.gmail_label_ids?.includes("SENT") ? (last?.to_emails?.[0] ?? last?.to_email ?? "") : (last?.from_email ?? "");
   const replySubject = subject?.startsWith("Re:") ? subject : `Re: ${subject}`;
 
   const crmRows: { icon: any; label: string; value: string; to?: any; params?: any }[] = [];
@@ -257,7 +262,7 @@ function EmailThread() {
           <Link to="/emails" className="text-muted-foreground hover:text-foreground inline-flex items-center shrink-0" title="Vissza">
             <ChevronLeft className="h-5 w-5" />
           </Link>
-          <h1 className="min-w-0 flex-1 truncate text-[15px] font-medium text-foreground">{subject}</h1>
+          <div className="min-w-0 flex-1"><h1 className="truncate text-[15px] font-medium text-foreground">{subject}</h1>{mailbox && <p className="truncate text-xs text-muted-foreground">{mailbox}</p>}</div>
           <div className="hidden sm:flex items-center gap-2 shrink-0">
             <EmailThreadProjectPicker threadId={threadId} variant="chip" />
           </div>
@@ -282,7 +287,7 @@ function EmailThread() {
             <EmptyState
               icon={Mail}
               title="Nincs megjeleníthető üzenet"
-              description="Ehhez a szálhoz nincs jogosultságod, vagy üres."
+              description={mailbox && allThreadEmails.length > 0 ? "A szál hozzárendelt, de nincs külön tárolt üzenet ebből a fiókból. Az Összes postafiók nézetben a jogosultan elérhető közös levéltörténet megnyitható." : "Ehhez a szálhoz nincs jogosultságod, vagy üres."}
             />
           ) : (
             <ol className="space-y-2">
