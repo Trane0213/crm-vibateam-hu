@@ -87,12 +87,13 @@ export function useRefOptions(table: string, labelColumn: string, ids: string[])
     queryKey: [table, "ref-labels", labelColumn, ids],
     enabled: ids.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from(table)
-        .select(`id, ${labelColumn}`)
-        .in("id", ids);
-      if (error) throw error;
-      return ((data ?? []) as any[]).map((r) => ({
+      const rows: any[] = [];
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const { data, error } = await db.from(table).select(`id, ${labelColumn}`).in("id", ids.slice(offset, offset + 100));
+        if (error) throw error;
+        rows.push(...(data ?? []));
+      }
+      return rows.map((r) => ({
         value: r.id as string,
         label: (r[labelColumn] as string) ?? "—",
       }));
