@@ -98,17 +98,21 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
   const upload = useMutation({
     mutationFn: async (file: File) => {
       setUploading(true);
-      const ts = Date.now();
-      const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const key = `company-documents/${companyId}/${uploadCategory}/${ts}-${safe}`;
       // Server-side proxy upload — elkerüli a böngésző→R2 CORS preflight hibát.
       const fd = new FormData();
       fd.append("file", file, file.name);
-      fd.append("key", key);
-      if (file.type) fd.append("contentType", file.type);
+      fd.append("purpose", "company");
+      fd.append("targetId", companyId);
+      fd.append("category", uploadCategory);
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
       let putRes: Response;
       try {
-        putRes = await fetch("/api/r2-upload", { method: "POST", body: fd });
+        putRes = await fetch("/api/r2-upload", {
+          method: "POST",
+          body: fd,
+          headers: token ? { authorization: `Bearer ${token}` } : {},
+        });
       } catch (netErr: any) {
         throw new Error(`Hálózati hiba a szerverhez: ${netErr?.message ?? netErr}`);
       }
