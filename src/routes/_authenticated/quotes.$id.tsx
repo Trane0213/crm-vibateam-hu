@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import { useUpsert } from "@/lib/db-hooks";
+import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 
 export const Route = createFileRoute("/_authenticated/quotes/$id")({
   component: QuoteDetail,
@@ -238,6 +239,10 @@ function QuoteDetail() {
               />
             </div>
           </div>
+        </div>
+        {/* Meglévő tétel-panel: a nyomtatási nézet ezekből a tételekből számol. */}
+        <div className="mt-6 rounded-md border bg-card p-5">
+          <QuoteItemsPanel quoteId={quote.id} />
         </div>
       </div>
     </div>
