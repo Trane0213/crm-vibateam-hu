@@ -47,7 +47,8 @@ async function enrich(leads: PipelineLead[]): Promise<PipelineLead[]> {
       ? supabase.from("companies").select("id,name").in("id", companyIds)
       : Promise.resolve({ data: [] as any[], error: null } as any),
     userIds.length
-      ? supabase.from("users_profile_lookup").select("id,full_name").in("id", userIds)
+      ? // leads.assigned_to = auth user id → users_profile.auth_user_id
+        supabase.from("users_profile_lookup").select("auth_user_id,full_name,email").in("auth_user_id", userIds)
       : Promise.resolve({ data: [] as any[], error: null } as any),
     supabase
       .from("quotes")
@@ -57,7 +58,7 @@ async function enrich(leads: PipelineLead[]): Promise<PipelineLead[]> {
   ]);
 
   const cmap = new Map<string, string>((companies.data ?? []).map((c: any) => [c.id, c.name]));
-  const umap = new Map<string, string>((users.data ?? []).map((u: any) => [u.id, u.full_name]));
+  const umap = new Map<string, string>((users.data ?? []).map((u: any) => [u.auth_user_id, u.full_name || u.email]));
   const qmap = new Map<string, number>(
     (quotes.data ?? []).map((q: any) => [q.lead_id as string, Number(q.total_amount ?? 0)]),
   );
