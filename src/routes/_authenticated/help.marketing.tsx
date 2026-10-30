@@ -46,7 +46,7 @@ function MarketingHelpPage() {
         <p>Nyisd meg: <Code><Link to="/sales/research" className="text-primary hover:underline">Scarlet – Marketing Stratéga</Link></Code></p>
         <ol className="ml-5 list-decimal space-y-0.5">
           <li>Add meg a kulcsszót, területet és a kívánt cégszámot, majd <em>Keresés</em>.</li>
-          <li>Scarlet (Gemini) AI-val cégeket keres és pontoz 0–100 között (email, telefon,
+          <li>Scarlet (AI OS) cégeket keres és pontoz 0–100 között (email, telefon,
             website, kulcsszó-egyezés, terület alapján).</li>
           <li>Soronként a <em>Kampány</em> gombbal mented a céget. A rendszer ilyenkor:
             <ul className="ml-5 list-disc space-y-0.5">
@@ -87,9 +87,13 @@ function MarketingHelpPage() {
         <p>A fejléc tartalmazza a státusz-pillt, a <em>Saleshez átadás</em> gombot, és a
           <em>⋯ menüt</em>, ahol kézzel váltható a marketing státusz (<em>Új</em> /
           <em>Kapcsolatban</em> / <em>Átadható</em>).</p>
-        <p className="text-xs text-muted-foreground">Hat tab van: <em>Áttekintés</em>,
-          <em>Kapcsolattartók</em>, <em>Email aktivitás</em>, <em>Dokumentumok</em>,
-          <em>Jegyzet salesnek</em>, <em>Idővonal</em>.</p>
+        <p className="text-xs text-muted-foreground">Hat fül van: <em>Áttekintés</em>,
+          <em>Kapcsolattartók</em>, <em>Levélszálak</em>, <em>Dokumentumok</em>,
+          <em>Jegyzet salesnek</em>, <em>Idővonal</em>. A felső mutatók: Kapcsolattartók,
+          Levélszálak, Meglévő lead, Dokumentumok, Felvéve.</p>
+        <p className="text-xs text-muted-foreground"><strong>Idővonal:</strong> hívások, találkozók,
+          utánkövetések, leadek, kapcsolattartók, dokumentumok és státuszok; levélszálakból csak a
+          Levélszálak fülön éppen megnyitott oldal (25 szál) szerepel — a teljes levelezést ott lapozd.</p>
       </Section>
 
       <Section icon={UserPlus} title="5. Kapcsolattartók kezelése">
@@ -104,14 +108,16 @@ function MarketingHelpPage() {
           email címmel — enélkül az átadás gomb le van tiltva.</p>
       </Section>
 
-      <Section icon={Inbox} title="6. Email aktivitás">
-        <p>Az <em>Email aktivitás</em> tab a céghez tartozó összes email szálat mutatja
-          (a <Code>emails</Code> táblából <Code>thread_id</Code> szerint csoportosítva).
+      <Section icon={Inbox} title="6. Levélszálak">
+        <p>A <em>Levélszálak</em> fül a céghez tartozó, <strong>számodra látható</strong> levélszálakat
+          mutatja, 25-ösével lapozva (céghez rendelt szál, kapcsolattartó résztvevő vagy céghez rendelt levél).
+          Csillag (<em>0*</em>) = lehet további levelezés, de a szálhoz nincs olvasási jogod — a központi
+          postafiókot a marketing nem látja.
           Egy szál sorára kattintva megnyílik az <Code><Link to="/emails" className="text-primary hover:underline">Email</Link></Code>
           modulban a teljes thread.</p>
         <p className="text-xs text-muted-foreground">A thread nézet, a body megjelenítése és a
           csatolmányok minden szerepkörnél (marketing, sales, admin, customer) ugyanazt az adatot
-          mutatják — szerepkör csak jogosultságot szab meg, adatot nem.</p>
+          mutatják, de csak a hozzád rendelt szálakra.</p>
       </Section>
 
       <Section icon={FolderOpen} title="7. Dokumentumok">
@@ -121,7 +127,7 @@ function MarketingHelpPage() {
       </Section>
 
       <Section icon={StickyNote} title="8. Jegyzet sales-nek">
-        <p>A <em>Jegyzet salesnek</em> tabon írd le, amit a sales-nek tudnia kell az átadás előtt
+        <p>A <em>Jegyzet salesnek</em> fülön írd le, amit a sales-nek tudnia kell az átadás előtt
           (kontextus, igény, sürgősség, eddigi beszélgetés lényege). A jegyzet:</p>
         <ul className="ml-5 list-disc space-y-0.5">
           <li>külön <Code>[MKT:SALES_NOTE]…[/MKT:SALES_NOTE]</Code> régióban tárolódik a
@@ -156,7 +162,13 @@ function MarketingHelpPage() {
           <li>Opcionális projekt-típus mező.</li>
           <li>Kapcsolattartó választó.</li>
         </ol>
-        <p>A <em>Megerősítés</em> gomb két dolgot csinál egyszerre:</p>
+          <ol start={4} className="ml-5 list-decimal space-y-0.5">
+          <li><strong>Felelős értékesítő</strong> (kötelező) és <strong>Honnan érkezett a lead?</strong> (kötelező).</li>
+        </ol>
+        <p>Ha a cégnek már van <strong>nyitott leadje</strong>, piros figyelmeztetés jelenik meg a listával; csak
+          akkor adhatod át, ha bepipálod, hogy ez <em>külön projektlehetőség</em>. Ha nincs aktív értékesítő,
+          a dialog ezt kiírja és az átadás nem lehetséges — szólj a tulajdonosnak.</p>
+        <p>A <em>Lead létrehozása és átadás</em> gomb két dolgot csinál egymás után:</p>
         <ul className="ml-5 list-disc space-y-0.5">
           <li>új <Code>leads</Code> rekordot szúr be:
             <Code>source=marketing_handoff</Code>, <Code>status=new</Code>,
@@ -181,8 +193,8 @@ function MarketingHelpPage() {
             <CardTitle className="text-sm">Következő fejlesztési szakasz — sales modul</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
-            <p>A marketing modul fejlesztése ezzel a súgóval lezárt. A következő szakaszban
-              a sales modul kapja a fókuszt:</p>
+            <p>Részletes, kattintásról kattintásra leírás: <em>VIBA CRM – Marketinges munkatársi kézikönyv</em>
+              (docs/manuals). A következő szakaszban a sales modul kapja a fókuszt:</p>
             <ul className="ml-5 list-disc space-y-0.5">
               <li>az átadott lead a sales pipeline-ba kerül,</li>
               <li>a sales pipeline-ban a lead konkrét <strong>értékesítőhöz</strong> lesz
