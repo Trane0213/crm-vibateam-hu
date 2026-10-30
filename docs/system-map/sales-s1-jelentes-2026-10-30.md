@@ -84,3 +84,23 @@
 ## 5. Következő lépés
 
 Ramon jelszavának biztonságos megadása után (Lovable Secret, pl. `SALES_E2E_TEST_PASSWORD`): élő sales belépés → TESZT-lead láthatóság, dosszié, aktivitás-rögzítés, következő lépés, Pipeline-elkülönülés, tiltott műveletek, mobil nézet. A jelszó teszt után törlendő és a törlés jelentendő.
+
+## 6. Kiegészítés – élő Sales-szerepkörös teszt (2026-10-30 12:40–12:50 UTC)
+
+### 6.A Sales szerepkör általános teszt (viktor.csotai@gmail.com, szerep ellenőrizve: `sales`, aktív)
+- Jelszó: a felhasználó chatben adta meg; ideiglenes `SALES_E2E_TEST_PASSWORD` titokként tárolva, csak belépésre használva, **a teszt után törölve, a titoklistából eltűnése ellenőrizve**. Fájlba/kódba/naplóba nem került. Javasolt jelszócsere.
+- Bejelentkezés → `/today` ✅. Menü: Ma, Sales munkafelület, Pipeline, Ajánlatok, Projektek ✅.
+- `/sales` áttekintés, `/sales/leads` Pipeline (0 aktív ügy), `/sales/todo`, `/leads` munkafelület megnyílik ✅; `/dashboard`, `/settings/gmail` → „Nincs jogosultságod" ✅. Konzolhiba nem volt.
+- TESZT-lead (`43b05791…`, felelős Ramon, `new`) a munkafelületen **látható**, dosszié (cég, kontakt, marketing jegyzet) helyes ✅ — a közös `new`-pool RLS miatt (§3).
+- Aktivitás (hívás) rögzítése: ✅ sikeres — `followups` 7ab7beb4… „TESZT S1 hívás – sales E2E, nem valós", a DB `assigned_to`-ja Ramon maradt; a lista frissült, „≥1 aktivitás ✓".
+- Következő lépés mentése: **IGAZOLT HIBA** — a felület „Következő lépés mentve" üzenetet adott, de a DB-ben a lead nem változott (`next_step_*` üres). Ok: a `leads_update_sales` RLS csak saját/üres felelősű leadet enged módosítani; a 0 soros frissítést a panel sikerként jelzi. A panel újratöltve „Még nincs következő lépés"-t mutat. Javítás külön jóváhagyással (S2), most nem módosítottam.
+- Pipeline-ba léptetés: nem próbálható (következő lépés hiányzik, gomb tiltott) — ⛔.
+
+### 6.B Ideiglenes átrendelés – BLOKKOLÓ, nem történt meg
+- Sales szerepkörből a más felelősű lead nem rendelhető át (RLS `leads_update_sales`); az átrendelés csak tulajdonosi fiókkal szabályos, ahhoz nincs belépésünk. SQL-es megkerülést nem alkalmaztam. A lead mezői változatlanok (DB-ből olvasva: felelős Ramon, `new`, next_step üres, pipeline nincs).
+
+### 6.C Ramon saját belépéses tesztje
+- **NEM FUTOTT** — Ramon jelszava nem ismert, nem módosítottam, nem kértem.
+
+### 6.D Itt maradt TESZT adat
+- `followups` 7ab7beb4-866a-452c-9263-d978dcc0b8a4 (TESZT hívás a TESZT-leaden). Éles adat nem változott, levél nem ment ki, nem publikáltam.
