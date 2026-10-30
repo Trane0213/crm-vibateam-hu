@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getAuthedUserId } from "@/lib/gmail/auth.server";
+import { getUserClient } from "@/integrations/supabase/server";
+import { assertSenderIdentity } from "@/lib/gmail/mailbox-model";
 import { getValidAccessToken } from "@/lib/gmail/oauth.server";
-import { buildRawMimeMessage, sendMessage, parseAddressList } from "@/lib/gmail/gmail-api.server";
+import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "@/lib/gmail/gmail-api.server";
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
 import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
@@ -17,13 +19,46 @@ export const Route = createFileRoute("/api/gmail/send")({
             html?: string; body?: string;
             cc?: string; bcc?: string;
             threadId?: string; inReplyTo?: string; references?: string;
+            expectedMailbox?: string;
             project_id?: string; company_id?: string; contact_id?: string; lead_id?: string;
             attachments?: { key: string; filename: string; mime_type: string; size_bytes: number }[];
           };
           if (!body?.to || !body?.subject) {
             return Response.json({ error: "to es subject kotelezo" }, { status: 400 });
           }
+          const admin = getAdminClient();
+          const { data: senderProfile, error: senderError } = await admin.from("users_profile")
+            .select("gmail_email,active,gmail_auth_error").eq("auth_user_id", userId).maybeSingle();
+          if (senderError) throw new Error(senderError.message);
+          if (!senderProfile?.active || !senderProfile.gmail_email || senderProfile.gmail_auth_error) {
+            return Response.json({ error: "Nincs aktív, használható saját Gmail-fiók." }, { status: 403 });
+          }
+          if (body.expectedMailbox && body.expectedMailbox.toLowerCase() !== senderProfile.gmail_email.toLowerCase()) {
+            return Response.json({ error: "Más munkatárs postafiókjából nem küldhetsz." }, { status: 403 });
+          }
+          if (body.threadId) {
+            const { data: replyThread, error: replyError } = await admin.from("email_threads").select("id")
+              .eq("gmail_thread_id", body.threadId).maybeSingle();
+            if (replyError) throw new Error(replyError.message);
+            if (!replyThread) return Response.json({ error: "A válasz szála nem található." }, { status: 403 });
+            const { data: access, error: accessError } = await admin.from("email_thread_access").select("mailbox_email")
+              .eq("thread_id", replyThread.id).eq("user_id", userId).maybeSingle();
+            if (accessError) throw new Error(accessError.message);
+            if (access?.mailbox_email?.toLowerCase() !== senderProfile.gmail_email.toLowerCase()) {
+              return Response.json({ error: "Ehhez a szálhoz nincs saját postafiók-hozzárendelésed." }, { status: 403 });
+            }
+          }
+          const bearer = (request.headers.get("authorization") ?? "").slice(7);
+          const caller = getUserClient(bearer);
+          for (const [table, id] of [["companies", body.company_id], ["contacts", body.contact_id], ["leads", body.lead_id], ["projects", body.project_id]] as const) {
+            if (!id) continue;
+            const { data: linked, error: linkedError } = await caller.from(table).select("id").eq("id", id).maybeSingle();
+            if (linkedError || !linked) return Response.json({ error: "A kapcsolódó CRM-adathoz nincs jogosultságod." }, { status: 403 });
+          }
           const { accessToken, email } = await getValidAccessToken(userId);
+          const actual = await getProfile(accessToken);
+          try { assertSenderIdentity(body.expectedMailbox, email, actual.emailAddress); }
+          catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Hibás küldőazonosság" }, { status: 403 }); }
 
           // Csatolmányok letöltése R2-ből presigned GET-tel és base64 buffer-ré alakítása.
           const attBuffers: { filename: string; mimeType: string; content: Buffer }[] = [];
@@ -52,7 +87,6 @@ export const Route = createFileRoute("/api/gmail/send")({
             inReplyTo: body.inReplyTo, references: body.references,
           });
           const sent = await sendMessage(accessToken, raw, body.threadId);
-          const admin = getAdminClient();
           const toList = parseAddressList(body.to);
           const ccList = parseAddressList(body.cc ?? "");
           const bccList = parseAddressList(body.bcc ?? "");

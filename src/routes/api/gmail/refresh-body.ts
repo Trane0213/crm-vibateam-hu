@@ -36,7 +36,8 @@ export const Route = createFileRoute("/api/gmail/refresh-body")({
 
           try {
             const { getValidAccessToken } = await import("@/lib/gmail/oauth.server");
-            const { accessToken } = await getValidAccessToken(row.owner_user_id ?? userId);
+            // A szál olvasási joga nem jogosít más munkatárs Gmail-tokenjének használatára.
+            const { accessToken } = await getValidAccessToken(userId);
             const { getMessage, extractBestBodyAsync } = await import("@/lib/gmail/gmail-api.server");
             const m = await getMessage(accessToken, row.gmail_message_id, "full");
             const { body: fresh, isHtml } = await extractBestBodyAsync(m, accessToken);
