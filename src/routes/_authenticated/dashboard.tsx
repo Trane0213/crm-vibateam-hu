@@ -291,28 +291,6 @@ function Dashboard() {
   );
 }
 
-function HeroStat({ to, tone, icon: Icon, label, value, sub }: {
-  to: string; tone: "danger" | "warning" | "info"; icon: any; label: string; value: number | string; sub: string;
-}) {
-  const toneClass = {
-    danger: "border-destructive/40 bg-destructive/5 hover:bg-destructive/10 text-destructive",
-    warning: "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/5 hover:bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]",
-    info: "border-[color:var(--status-info)]/40 bg-[color:var(--status-info)]/5 hover:bg-[color:var(--status-info)]/10 text-[color:var(--status-info)]",
-  }[tone];
-  return (
-    <Link to={to} className={`flex items-center gap-4 rounded-lg border p-5 transition ${toneClass}`}>
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-background/60">
-        <Icon className="h-6 w-6" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{label}</div>
-        <div className="mt-1 text-4xl font-bold tabular-nums leading-none">{value}</div>
-        <div className="mt-1 text-xs opacity-70">{sub}</div>
-      </div>
-    </Link>
-  );
-}
-
 function SectionLabel({ title, tone = "muted" }: { title: string; tone?: "muted" | "danger" | "primary" }) {
   const dot = {
     muted: "bg-muted-foreground/40",
