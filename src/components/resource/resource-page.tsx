@@ -40,7 +40,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader, EmptyState } from "@/components/page-header";
-import { useList, useUpsert, useDelete, useRefOptions, useRefOptionsRich } from "@/lib/db-hooks";
+import { useList, useUpsert, useDelete, useRefOptions } from "@/lib/db-hooks";
+import { RecordCombobox } from "./record-combobox";
+import type { RecordSource } from "@/lib/record-search-model";
 
 export type FieldType =
   | "text"
@@ -501,33 +503,10 @@ function RefSelect({
   value: any;
   onChange: (v: any) => void;
 }) {
-  const ref = field.ref!;
-  const rich = useRefOptionsRich(
-    ref.table,
-    Array.from(new Set([ref.labelColumn, ...(ref.extraColumns ?? [])])),
-    ref.formatLabel ?? ((r: any) => String(r[ref.labelColumn] ?? "—")),
-    ref.orderColumn,
-  );
-  const plain = useRefOptions(ref.table, ref.labelColumn);
-  const useRich = !!(ref.formatLabel || (ref.extraColumns && ref.extraColumns.length));
-  const data = useRich ? rich.data : plain.data;
-  const isLoading = useRich ? rich.isLoading : plain.isLoading;
-  return (
-    <Select value={value ?? ""} onValueChange={(v) => onChange(v)}>
-      <SelectTrigger id={field.name}>
-        <SelectValue
-          placeholder={isLoading ? "Betöltés…" : "Válassz…"}
-        />
-      </SelectTrigger>
-      <SelectContent>
-        {(data ?? []).map((o) => (
-          <SelectItem key={o.value} value={o.value}>
-            {o.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
+  const ref = field.ref;
+  if (!ref) return null;
+  return <RecordCombobox source={ref.table as RecordSource} id={field.name} label={field.label}
+    value={value} onChange={onChange} allowClear={!field.required} formatLabel={ref.formatLabel} />;
 }
 
 /** Reusable cell helpers */
