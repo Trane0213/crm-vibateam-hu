@@ -36,3 +36,10 @@ describe("céges szál-szűrő", () => {
     expect(companyThreadOrFilter("c1", [])).toBe("company_id.eq.c1");
   });
 });
+
+describe("levél-szintű céghozzárendelés", () => {
+  it("a levélhez rendelt szál is bekerül (pl. DANIEL-GENERAL, saját cég szálán)", () => {
+    const id = "e78330d1-ba27-48b9-831b-124de53dd523";
+    expect(companyThreadOrFilter("c1", [], [id, "nem-uuid"])).toBe(`company_id.eq.c1,id.in.(${id})`);
+  });
+});

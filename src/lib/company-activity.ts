@@ -21,14 +21,36 @@ export function companyEmailQueryKey(companyId: string, contactEmails: string[],
 }
 
 /** PostgREST `or()` szűrő: céghez kötött szál VAGY kapcsolattartó résztvevő. */
-export function companyThreadOrFilter(companyId: string, contactEmails: string[]): string {
+export function companyThreadOrFilter(companyId: string, contactEmails: string[], emailLinkedThreadIds: string[] = []): string {
   const parts = [`company_id.eq.${companyId}`];
+  const ids = emailLinkedThreadIds.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  if (ids.length) parts.push(`id.in.(${ids.join(",")})`);
   const safe = contactEmails.filter((e) => /^[^\s",{}()]+$/.test(e));
   if (safe.length) parts.push(`participants.ov.{${safe.map((e) => `"${e}"`).join(",")}}`);
   return parts.join(",");
 }
 
 export const COMPANY_THREAD_PAGE_SIZE = 25;
+/** Levél-szintű céghozzárendelésből legfeljebb ennyi szál-azonosító kerül a szűrőbe (URL-méret). */
+export const MAX_EMAIL_LINKED_THREADS = 150;
+
+/**
+ * Szálak, amelyeknek valamely levele MÁR a céghez van rendelve (emails.company_id).
+ * Meglévő, explicit hozzárendelés — nem automatikus átkötés. A hívó RLS-jogaival fut.
+ * `overflow`: túl sok szál (pl. a saját cég) — ekkor ez a forrás kimarad, és jelezzük.
+ */
+export async function fetchEmailLinkedThreadIds(companyId: string) {
+  const ids = new Set<string>();
+  for (let from = 0; ; from += 1000) {
+    const r = await supabase.from("emails").select("thread_id").eq("company_id", companyId)
+      .not("thread_id", "is", null).order("id").range(from, from + 999);
+    if (r.error) throw r.error;
+    for (const row of (r.data ?? []) as any[]) if (row.thread_id) ids.add(row.thread_id);
+    if (ids.size > MAX_EMAIL_LINKED_THREADS) return { ids: [] as string[], overflow: true };
+    if ((r.data ?? []).length < 1000) break;
+  }
+  return { ids: Array.from(ids).sort(), overflow: false };
+}
 
 /**
  * Céges levélszálak szerveroldali lapozással. A számláló (`total`) és a
@@ -37,8 +59,9 @@ export const COMPANY_THREAD_PAGE_SIZE = 25;
  */
 export async function fetchCompanyThreadsPage(companyId: string, contactEmails: string[], page = 0, pageSize = COMPANY_THREAD_PAGE_SIZE) {
   const from = page * pageSize;
+  const linked = await fetchEmailLinkedThreadIds(companyId);
   const r = await supabase.from("email_threads").select(THREAD_SELECT, { count: "exact" })
-    .or(companyThreadOrFilter(companyId, contactEmails))
+    .or(companyThreadOrFilter(companyId, contactEmails, linked.ids))
     .order("last_message_at", { ascending: false, nullsFirst: false })
     .order("id", { ascending: true })
     .range(from, from + pageSize - 1);
@@ -53,7 +76,7 @@ export async function fetchCompanyThreadsPage(companyId: string, contactEmails: 
     count: counts[i].error ? 0 : (counts[i].count ?? 0),
     participants: (t.participants ?? []) as string[],
   }));
-  return { rows, total: r.count ?? rows.length, page, pageSize };
+  return { rows, total: r.count ?? rows.length, page, pageSize, emailLinkOverflow: linked.overflow };
 }
 
 export type CompanyThread = {
