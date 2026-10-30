@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
+
+const OWNER_ONLY_DELETE = new Set(["companies", "contacts", "phone_calls", "meetings", "tasks"]);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,6 +126,9 @@ export function ResourcePage({
   const { data, isLoading, error } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
   const del = useDelete(table);
+  const { role } = usePermissions();
+  // Az adatbázis-szabállyal azonos: ezekből a táblákból csak tulajdonos törölhet (1/B).
+  const canDelete = !OWNER_ONLY_DELETE.has(table) || role === "owner";
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
 
@@ -216,7 +222,7 @@ export function ResourcePage({
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <DeleteButton onConfirm={() => del.mutate(row.id)} />
+                      {canDelete && <DeleteButton onConfirm={() => del.mutate(row.id)} />}
                     </TableCell>
                   </TableRow>
                 ))}
