@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { LeadListColumn } from "./lead-list-column";
 import { LeadDossierColumn } from "./lead-dossier-column";
 import { SalesPrepPanel } from "./sales-prep-panel";
@@ -16,12 +18,28 @@ import { LeadActionPanel } from "./lead-action-panel";
  * MARKETING mód: változatlan — a marketinges munkafelület.
  */
 export function LeadWorkspace({
-  mode, className,
+  mode, className, initialLeadId = null,
 }: {
   mode: "marketing" | "sales";
   className?: string;
+  /** Mélylink (/leads?lead=<id>): a megcélzott lead kiválasztása. */
+  initialLeadId?: string | null;
 }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(initialLeadId);
+
+  // Mélylink: ha a lead nem látható (RLS) vagy nem létezik, jelezzük, és nem
+  // mutatunk helyette másik leadet csendben.
+  useEffect(() => {
+    if (!initialLeadId) return;
+    setSelectedId(initialLeadId);
+    let cancelled = false;
+    supabase.from("leads").select("id").eq("id", initialLeadId).maybeSingle().then(({ data }) => {
+      if (cancelled || data) return;
+      toast.error("A megnyitni kívánt lead nem található, vagy nincs hozzá jogosultságod.");
+      setSelectedId(null);
+    });
+    return () => { cancelled = true; };
+  }, [initialLeadId]);
 
   const shell =
     className ??

@@ -52,11 +52,12 @@ export function PipelineCard({
             <User className="h-3 w-3" /> {lead.assignee_name}
           </span>
         )}
-        {typeof lead.quote_total === "number" && (
-          <span className="inline-flex items-center gap-1">
-            <Coins className="h-3 w-3" /> {formatHuf(lead.quote_total)}
-          </span>
-        )}
+        <span className="inline-flex items-center gap-1">
+          <Coins className="h-3 w-3" />
+          {typeof lead.quote_total === "number"
+            ? `Nettó ajánlat: ${formatHuf(lead.quote_total)}${lead.quote_status === "draft" || !lead.quote_status ? " (piszkozat)" : ""}`
+            : "Nincs ajánlat"}
+        </span>
       </div>
 
       <div className="mt-2 border-t pt-2">

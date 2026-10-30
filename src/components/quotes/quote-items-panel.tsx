@@ -60,7 +60,7 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
     <>
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          {rows.length} tétel · összeg: <span className="font-medium tabular-nums text-foreground">{formatHuf(sum)}</span>
+          {rows.length} tétel · nettó részösszeg (kedvezmény előtt): <span className="font-medium tabular-nums text-foreground">{formatHuf(sum)}</span>
         </div>
         <Button size="sm" onClick={() => setEditing({ quote_id: quoteId, quantity: 1 })}>
           <Plus className="mr-1 h-4 w-4" /> Új tétel

@@ -15,6 +15,7 @@ export type PipelineLead = {
   company_name?: string | null;
   assignee_name?: string | null;
   quote_total?: number | null;
+  quote_status?: string | null;
   won_at?: string | null;
   lost_at?: string | null;
   lost_reason?: string | null;

@@ -161,7 +161,7 @@ function QuoteDetail() {
           {quote.lead_id && (
             <span>
               Lead:{" "}
-              <Link to="/leads" className="text-primary hover:underline">
+              <Link to="/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">
                 <Radar className="mr-1 inline h-3.5 w-3.5" />
                 {lead.data?.summary?.slice(0, 60) ?? `#${quote.lead_id.slice(0, 8)}`}
               </Link>

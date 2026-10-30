@@ -52,6 +52,7 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 function LeadsPage() {
+  const { lead: initialLeadId } = Route.useSearch();
   const { role } = usePermissions();
   const mode: "marketing" | "sales" = role === "sales" ? "sales" : "marketing";
   // Sales szerepkörből a Lista nézet ki van zárva: a sales workflow
@@ -84,7 +85,7 @@ function LeadsPage() {
           </div>
         )}
       </div>
-      {activeView === "workspace" ? <LeadWorkspace mode={mode} /> : <LeadsListView />}
+      {activeView === "workspace" ? <LeadWorkspace mode={mode} initialLeadId={initialLeadId ?? null} /> : <LeadsListView />}
     </div>
   );
 }
@@ -178,5 +179,7 @@ function LeadsListView() {
 }
 
 export const Route = createFileRoute("/_authenticated/leads/")({
+  validateSearch: (s: Record<string, unknown>): { lead?: string } =>
+    typeof s.lead === "string" && /^[0-9a-f-]{36}$/i.test(s.lead) ? { lead: s.lead } : {},
   component: LeadsPage,
 });

@@ -7,5 +7,6 @@ export const Route = createFileRoute("/_authenticated/leads/$id")({
 });
 
 function RedirectToWorkspace() {
-  return <Navigate to="/leads" replace />;
+  const { id } = Route.useParams();
+  return <Navigate to="/leads" search={{ lead: id }} replace />;
 }
