@@ -105,6 +105,7 @@ export const MORE_GROUPS: NavGroup[] = [
       { title: "Dokumentumok", url: "/documents", icon: FolderOpen },
       { title: "Adatminőség", url: "/data-quality", icon: ShieldCheck },
       { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen, hideForRoles: ["sales"] },
+      { title: "Sales súgó", url: "/help/sales", icon: BookOpen, hideForRoles: ["marketing"] },
       { title: "Beállítások", url: "/settings", icon: Settings },
     ],
   },

@@ -99,7 +99,8 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
   const l = lead.data;
   const meta = readMarketingMeta(company.data?.notes ?? null);
   const primaryContactName = l.contact_id ? contactLookup(l.contact_id) : null;
-  const companyName = company.data?.name ?? "Cég nélkül";
+  // Betöltés közben ne írjuk ki tévesen, hogy a leadhez nincs cég.
+  const companyName = company.data?.name ?? (companyId && company.isLoading ? "Betöltés…" : "Cég nélkül");
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
