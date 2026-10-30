@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RecordCombobox } from "@/components/resource/record-combobox";
+import { useRecordSearch } from "@/lib/use-record-search";
 import { Plus, Save } from "lucide-react";
 import {
-  listWorkers,
   createProject,
   createEntriesBatch,
 } from "@/lib/attendance/attendance.functions";
@@ -41,11 +41,9 @@ function AttendanceNew() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const workersFn = useServerFn(listWorkers);
   const createProjectFn = useServerFn(createProject);
   const batchFn = useServerFn(createEntriesBatch);
 
-  const workersQ = useQuery({ queryKey: ["att", "workers"], queryFn: () => workersFn() });
 
   const [workDate, setWorkDate] = useState(todayISO());
   const [projectId, setProjectId] = useState<string>("");
@@ -54,14 +52,8 @@ function AttendanceNew() {
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<Record<string, RowState>>({});
 
-  const workers = workersQ.data?.rows ?? [];
-
-  const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    const list = (workers as any[]).filter((w) => w.is_active !== false);
-    if (!s) return list;
-    return list.filter((w) => (w.full_name as string).toLowerCase().includes(s));
-  }, [workers, search]);
+  const workerSearch = useRecordSearch({ source: "attendance_workers", filters: { is_active: true } }, search, true);
+  const filtered = workerSearch.rows.map((row) => ({ id: row.value, full_name: row.label, daily_rate: row.fields.daily_rate }));
 
   function rowFor(w: any): RowState {
     return (
@@ -252,6 +244,9 @@ function AttendanceNew() {
         </table>
       </div>
 
+      {workerSearch.results.hasNextPage && <Button type="button" variant="outline" disabled={workerSearch.results.isFetchingNextPage} onClick={() => workerSearch.results.fetchNextPage()}>További dolgozók</Button>}
+      {workerSearch.searching && <p role="status" className="text-sm text-muted-foreground">Keresés…</p>}
+      {workerSearch.results.isError && <p role="alert" className="text-sm text-destructive">Nem sikerült betölteni a dolgozókat.</p>}
       <div className="flex items-center gap-3">
         <div className="text-sm text-muted-foreground">
           Kijelölve: <span className="font-medium text-foreground">{selectedCount}</span> dolgozó
