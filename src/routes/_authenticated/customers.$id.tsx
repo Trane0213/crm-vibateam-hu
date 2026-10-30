@@ -25,6 +25,10 @@ import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 import { usePermissions } from "@/hooks/use-permissions";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
 import { MarketingWorkspace } from "@/components/marketing/marketing-workspace";
+import {
+  companyCounters, companyEmailQueryKey, emailVisibilityHint, fetchCompanyEmails,
+  fetchEmailFullAccess, groupEmailThreads, mergeById, normalizeContactEmails,
+} from "@/lib/company-activity";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
   component: CustomerDetail,
@@ -174,8 +178,11 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   const activeProjectList = (projects.data ?? []).filter((p) => ACTIVE_PROJECT_STATUSES.includes(p.status));
   const totalProjects   = kpi.data?.total_projects    ?? projects.data?.length ?? 0;
   const activeProjects  = kpi.data?.active_projects   ?? activeProjectList.length;
-  const openQuotesCount = kpi.data?.open_quotes       ?? (quotes.data ?? []).filter((q) => ["draft","sent","negotiation"].includes(q.status ?? "")).length;
-  const overdueCount    = kpi.data?.overdue_followups ?? overdueFollowups.length;
+  // Ajánlat/utánkövetés számláló a lead- és projektkötésű rekordokból együtt (a nézet csak projektet néz).
+  const counters = companyCounters(quotes.data ?? [], followups.data ?? []);
+  const openQuotesCount = counters.openQuotes;
+  const overdueCount    = counters.overdueFollowups;
+  const emailHint = emailVisibilityHint(emailFullAccess.data, threads.data.length);
   const lastActivityAtView = kpi.data?.last_activity_at ?? null;
   const wonRevenue      = Number(kpi.data?.won_revenue ?? 0);
   const totalQuoteValue = wonRevenue || (quotes.data ?? []).reduce((a, r) => a + (Number(r.total_amount) || 0), 0);
@@ -236,7 +243,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
             {!isMarketing && <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>}
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="leads"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Leadek ({leads.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threads.data?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threads.data.length}{emailHint ? "*" : ""})</TabsTrigger>
             {!isMarketing && <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>}
             {!isMarketing && <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>}
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({(companyDocs.data?.length ?? 0) + (isMarketing ? 0 : (docs.data?.length ?? 0))})</TabsTrigger>
@@ -341,6 +348,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
           <TabsContent value="quotes" className="mt-4">
             <SimpleList rows={quotes.data} link={(r) => ({ to: "/quotes/$id", params: { id: r.id } })} cols={[
               { label: "Verzió", get: (r) => r.version != null ? `v${r.version}` : `#${String(r.id).slice(0,8)}` },
+              { label: "Kötés", get: (r) => r.project_id ? "Projekt" : r.lead_id ? "Lead (még nincs projekt)" : "—" },
               { label: "Státusz", get: (r) => r.status ?? "—" },
               { label: "Összeg", get: (r) => formatHuf(Number(r.total_amount ?? 0)) },
               { label: "Létrejött", get: (r) => fmtDate(r.created_at) },
@@ -370,12 +378,14 @@ function LegacyCustomerDetail({ id }: { id: string }) {
               { label: "Létrejött", get: (r) => fmtDate(r.created_at) },
             ]} empty="Nincs lead." emptyIcon={Sparkles} />
           </TabsContent>
-          <TabsContent value="emails" className="mt-4">
+          <TabsContent value="emails" className="mt-4 space-y-2">
+            {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
             <SimpleList rows={threads.data} link={(r) => ({ to: "/emails/$threadId", params: { threadId: r.id } })} cols={[
               { label: "Tárgy", get: (r) => r.subject ?? "(nincs tárgy)" },
               { label: "Résztvevők", get: (r) => (r.participants ?? []).join(", ") || "—" },
               { label: "Utolsó", get: (r) => fmtDateTime(r.last_message_at) },
-            ]} empty="Nincs email." emptyIcon={Mail} />
+              { label: "Üzenet", get: (r) => String(r.count ?? "—") },
+            ]} empty={emailHint ? "Nincs számodra látható levél." : "Nincs email."} emptyIcon={Mail} />
           </TabsContent>
           <TabsContent value="calls" className="mt-4">
             <SimpleList rows={calls.data} cols={[
