@@ -16,6 +16,11 @@ import {
 } from "@/lib/attendance/attendance.functions";
 
 export const Route = createFileRoute("/_authenticated/attendance/")({
+  head: () => ({ meta: [
+    { title: "Jelenléti nyilvántartás | VIBA CRM" }, { name: "description", content: "Jelenléti napok és dolgozók szűrése a VIBA CRM-ben." },
+    { property: "og:title", content: "Jelenléti nyilvántartás | VIBA CRM" }, { property: "og:description", content: "Jelenléti napok és dolgozók szűrése a VIBA CRM-ben." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: AttendanceIndex,
 });
 

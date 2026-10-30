@@ -15,6 +15,11 @@ import {
 } from "@/lib/attendance/attendance.functions";
 
 export const Route = createFileRoute("/_authenticated/attendance/quick")({
+  head: () => ({ meta: [
+    { title: "Gyors jelenléti rögzítés | VIBA CRM" }, { name: "description", content: "Dolgozók napi jelenlétének gyors rögzítése a VIBA CRM-ben." },
+    { property: "og:title", content: "Gyors jelenléti rögzítés | VIBA CRM" }, { property: "og:description", content: "Dolgozók napi jelenlétének gyors rögzítése a VIBA CRM-ben." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: AttendanceQuick,
 });
 
