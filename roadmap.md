@@ -1,9 +1,11 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Elsőbbségi postafiók-javítás
-- [ ] Fiókazonosító és szinkron-hozzárendelés vizsgálata; Laci történeti levelei és jogosultsága.
-- [ ] Szerveroldali postafiók-szűrés, számlálók, keresés és lapozás.
-- [ ] Fiókjelölések, biztonságos küldőazonosság és regressziós tesztek.
-- [ ] Konkrét postafiókonkénti eredmények; belső felületi ellenőrzés vagy akadály jelzése.
+- [x] Fiókazonosító és szinkron-hozzárendelés vizsgálata; Laci történeti levelei és jogosultsága.
+- [x] Szerveroldali postafiók-szűrés, számlálók, keresés és lapozás.
+- [x] Fiókjelölések, biztonságos küldőazonosság és regressziós tesztek.
+- [x] Konkrét postafiókonkénti eredmények és ellenőrzési jelentés.
+- [ ] Belső felületi végigteszt: külső Supabase mellett nincs biztonságos böngészős session; felhasználói ellenőrzés szükséges.
+- [ ] Megosztott szálak hiányzó fiókspecifikus Gmail-címkéinek igazolása: a meglévő adatmodell csak egy üzenettulajdonost tárol; külön Gmail-adatellenőrzés nélkül nem bizonyítható.
 
 ## UI megújítás (külön jóváhagyással folytatható)
 - [x] 1. Designrendszer (színek, betűk, kártya, gomb)
