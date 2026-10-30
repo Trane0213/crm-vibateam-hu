@@ -1,4 +1,11 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Elsőbbségi postafiók-javítás
+- [ ] Fiókazonosító és szinkron-hozzárendelés vizsgálata; Laci történeti levelei és jogosultsága.
+- [ ] Szerveroldali postafiók-szűrés, számlálók, keresés és lapozás.
+- [ ] Fiókjelölések, biztonságos küldőazonosság és regressziós tesztek.
+- [ ] Konkrét postafiókonkénti eredmények; belső felületi ellenőrzés vagy akadály jelzése.
+
+## UI megújítás (külön jóváhagyással folytatható)
 - [x] 1. Designrendszer (színek, betűk, kártya, gomb)
 - [x] 2. Keret: oldalsáv, felső sáv, mobil alsó navigáció (belső oldalak vizuális ellenőrzése a felhasználónál)
 - [x] 3. Állandó AI-panel (felületi ellenőrzés a felhasználónál)
