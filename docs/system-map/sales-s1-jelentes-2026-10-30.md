@@ -113,3 +113,10 @@ Ramon jelszavának biztonságos megadása után (Lovable Secret, pl. `SALES_E2E_
 - Élő böngészős teszt (tiltott Ramon-lead, saját TESZT – Sales S1 mentés lead): NEM FUTOTT — a chatben szerepelt jelszó nem használható újra, biztonságos titok nincs megadva. TESZT – Sales S1 mentés lead nem jött létre.
 - Visszaállítás: a 4 fájl verziótörténetből, `lead-update.ts(+test)` törlése. Publikálás szükséges, nem történt.
 - Maradó TESZT adat: followups 7ab7beb4-… (korábbi TESZT hívás).
+
+## S1 jogosult mentés ellenőrzése – tulajdonosi átrendezés után (2026-10-30 12:55 UTC)
+- DB-visszaolvasás (csak olvasás): lead 43b05791-… felelős = viktor.csotai@gmail.com (feaad8d8-…), status=new, pipeline_entered_at=NULL, next_step_* = üres, 1 TESZT followup (hívás).
+- RLS szerint Viktor (sales, saját felelős) módosíthatja a leadet → a `updateLeadOrThrow` 1 sort kap vissza → valódi siker. (Kódszintű megállapítás.)
+- Pipeline-gomb feltétele (`sales-prep-panel.tsx`): nincs Pipeline-ban, nem lost, ≥1 aktivitás, kitöltött következő lépés. Jelenleg: aktivitás ✅ (1), következő lépés ❌ → gomb tiltott. Következő lépés mentése után teljesülne; tényleges léptetés S2.
+- Élő böngészős mentés / újratöltés / törlés teszt: **BLOKKOLT** — nincs biztonságos tesztjelszó-titok, a projekt külső Supabase-t használ (a munkamenet nem injektálható). Nem állítom sikeresnek.
+- Adatot nem módosítottam; a lead Viktornál marad.
