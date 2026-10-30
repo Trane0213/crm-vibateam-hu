@@ -28,3 +28,13 @@ describe("canAccessRoute – munkakörök", () => {
     expect(canAccessRoute("project_manager", "/attendance")).toBe(true);
   });
 });
+
+import { canAccessRoute as canAccess1B } from "./permissions";
+describe("D7 – Vezetői irányítópult (1/B)", () => {
+  it("csak tulajdonos érheti el, közvetlen URL-lel is", () => {
+    expect(canAccess1B("owner", "/dashboard")).toBe(true);
+    expect(canAccess1B("sales", "/dashboard")).toBe(false);
+    expect(canAccess1B("project_manager", "/dashboard")).toBe(false);
+    expect(canAccess1B("marketing", "/dashboard")).toBe(false);
+  });
+});
