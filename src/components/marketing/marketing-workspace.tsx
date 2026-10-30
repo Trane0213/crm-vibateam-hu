@@ -425,7 +425,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         {/* Kompakt KPI csík — informatív, nem akciógomb */}
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
           <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} />
-          <Mini label="Email aktivitás" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail}
+          <Mini label="Levélszálak" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail}
                 hint={lastEmail ? `levélszál · utolsó: ${fmtDate(lastEmail)}` : emailHint ? "nincs látható levél (jogosultság)" : "nincs üzenet"} />
           <Mini label="Meglévő lead" value={String(leadRows.length)} icon={Sparkles}
                 hint={leadRows[0] ? `legutóbbi: ${leadRows[0].status ?? "—"}` : undefined} />
@@ -440,7 +440,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Email aktivitás ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Levélszálak ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
             <TabsTrigger value="sales-note">
               <StickyNote className="mr-1.5 h-3.5 w-3.5" />

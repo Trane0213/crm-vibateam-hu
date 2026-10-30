@@ -28,3 +28,11 @@ describe("company-activity", () => {
     expect(emailVisibilityHint(true, 0)).toBeNull();
   });
 });
+
+import { companyThreadOrFilter } from "./company-activity";
+describe("céges szál-szűrő", () => {
+  it("céghez kötött vagy kapcsolattartó résztvevős szál; veszélyes karakteres cím kimarad", () => {
+    expect(companyThreadOrFilter("c1", ["a@x.hu", "b@y.hu", 'rossz",cím'])).toBe('company_id.eq.c1,participants.ov.{"a@x.hu","b@y.hu"}');
+    expect(companyThreadOrFilter("c1", [])).toBe("company_id.eq.c1");
+  });
+});
