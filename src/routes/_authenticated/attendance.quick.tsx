@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RecordCombobox } from "@/components/resource/record-combobox";
 import { Plus, Zap } from "lucide-react";
 import {
-  listWorkers, createProject, createEntriesBatch,
+  createProject, createEntriesBatch,
 } from "@/lib/attendance/attendance.functions";
 
 export const Route = createFileRoute("/_authenticated/attendance/quick")({
@@ -30,11 +30,9 @@ function todayISO() {
  */
 function AttendanceQuick() {
   const qc = useQueryClient();
-  const workersFn = useServerFn(listWorkers);
   const createProjectFn = useServerFn(createProject);
   const batchFn = useServerFn(createEntriesBatch);
 
-  const workersQ = useQuery({ queryKey: ["att", "workers"], queryFn: () => workersFn() });
 
   const [workDate, setWorkDate] = useState(todayISO());
   const [projectId, setProjectId] = useState<string>("");
@@ -46,20 +44,7 @@ function AttendanceQuick() {
   const [endTime, setEndTime] = useState("");
   const [note, setNote] = useState("");
   const [recorded, setRecorded] = useState<string[]>([]);
-  const workerTriggerRef = useRef<HTMLButtonElement>(null);
-
-  const workers = workersQ.data?.rows ?? [];
-
-  const activeWorkers = useMemo(
-    () => (workers as any[]).filter((w) => w.is_active !== false),
-    [workers],
-  );
-
-  function pickWorker(id: string) {
-    setWorkerId(id);
-    const w = (workers as any[]).find((x) => x.id === id);
-    if (w) setDailyRate(Number(w.daily_rate ?? 0));
-  }
+  const [workerNames, setWorkerNames] = useState<Record<string, string>>({});
 
   const createProj = useMutation({
     mutationFn: (name: string) => createProjectFn({ data: { name } }),
@@ -94,7 +79,7 @@ function AttendanceQuick() {
     onSuccess: (res: any) => {
       const savedId = workerId;
       if (res.inserted + res.updated > 0) {
-        const name = (workers as any[]).find((w) => w.id === savedId)?.full_name ?? "Dolgozó";
+        const name = workerNames[savedId] ?? "Dolgozó";
         toast.success(`${name} rögzítve`);
         setRecorded((prev) => (prev.includes(savedId) ? prev : [...prev, savedId]));
       } else if (res.skipped?.length) {
@@ -108,7 +93,7 @@ function AttendanceQuick() {
       setDailyRate(0);
       qc.invalidateQueries({ queryKey: ["att", "entries"] });
       // Fókusz vissza a dolgozó választóra a gyors sorozat kedvéért.
-      setTimeout(() => workerTriggerRef.current?.focus(), 50);
+      setTimeout(() => document.getElementById("quick-worker")?.focus(), 50);
     },
     onError: (e: any) => toast.error(e.message ?? "Sikertelen mentés"),
   });
@@ -161,21 +146,10 @@ function AttendanceQuick() {
           </label>
         </div>
 
-        <Select value={workerId} onValueChange={pickWorker}>
-          <SelectTrigger ref={workerTriggerRef}>
-            <SelectValue placeholder="Válassz dolgozót" />
-          </SelectTrigger>
-          <SelectContent>
-            {activeWorkers.map((w: any) => {
-              const done = recorded.includes(w.id);
-              return (
-                <SelectItem key={w.id} value={w.id}>
-                  {w.full_name}{done ? "  ✓ rögzítve" : ""}
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
-        </Select>
+        <RecordCombobox source="attendance_workers" value={workerId} onChange={setWorkerId} id="quick-worker"
+          label="Dolgozó" filters={{ is_active: true }}
+          formatLabel={(row) => `${row.full_name}${recorded.includes(row.id) ? " ✓ rögzítve" : ""}`}
+          onOption={(row) => { setDailyRate(Number(row.fields.daily_rate ?? 0)); setWorkerNames((prev) => ({ ...prev, [row.value]: row.label })); }} />
 
         <div className="grid gap-3 md:grid-cols-3">
           <div>
@@ -230,7 +204,7 @@ function AttendanceQuick() {
       {recorded.length > 0 && (
         <div className="text-xs text-muted-foreground">
           Mai session: {recorded
-            .map((id) => (workers as any[]).find((w) => w.id === id)?.full_name)
+            .map((id) => workerNames[id])
             .filter(Boolean)
             .join(", ")}
         </div>

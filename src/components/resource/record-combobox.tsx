@@ -12,8 +12,9 @@ export type RecordComboboxProps = {
   label?: string; placeholder?: string; id?: string; disabled?: boolean; className?: string;
   filters?: RecordSearchInput["filters"]; allowClear?: boolean; clearLabel?: string;
   formatLabel?: (row: any) => string;
+  onOption?: (row: RecordOption) => void;
 };
-export function RecordCombobox({ source, value, onChange, label = "Rekord", placeholder = "Válassz…", id, disabled, className, filters, allowClear = false, clearLabel = "Nincs kiválasztva", formatLabel }: RecordComboboxProps) {
+export function RecordCombobox({ source, value, onChange, label = "Rekord", placeholder = "Válassz…", id, disabled, className, filters, allowClear = false, clearLabel = "Nincs kiválasztva", formatLabel, onOption }: RecordComboboxProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,7 +42,7 @@ export function RecordCombobox({ source, value, onChange, label = "Rekord", plac
             {searching ? <div role="status" className="flex items-center justify-center gap-2 p-5 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />Keresés…</div> : results.isError ?
               <div role="alert" className="p-4 text-sm text-destructive">Nem sikerült betölteni a találatokat.<Button type="button" variant="ghost" onClick={() => results.refetch()}>Újra</Button></div> : rows.length === 0 ?
               <div role="status" className="p-5 text-center text-sm text-muted-foreground">Nincs találat.</div> :
-              <CommandGroup>{rows.map((row) => <CommandItem key={row.value} value={row.value} onSelect={() => pick(row.value)} className="min-h-12 items-start py-2.5">
+              <CommandGroup>{rows.map((row) => <CommandItem key={row.value} value={row.value} onSelect={() => { onOption?.(row); pick(row.value); }} className="min-h-12 items-start py-2.5">
                 <Check className={cn("mt-0.5 size-4 shrink-0", value !== row.value && "invisible")} />
                 <span className="min-w-0 flex-1"><span className="block break-words">{text(row)}</span>{row.detail && <span className="block break-words text-xs text-muted-foreground">{row.detail}</span>}<span className="text-[10px] text-muted-foreground">#{row.value.slice(0, 8)}</span></span>
               </CommandItem>)}</CommandGroup>}
