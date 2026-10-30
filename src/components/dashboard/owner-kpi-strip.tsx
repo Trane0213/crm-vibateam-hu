@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { AlertOctagon, AlertTriangle, BellRing, FileText, Sparkles, Columns3, Trophy, XCircle, Briefcase, UserX } from "lucide-react";
 import { HeroStat } from "@/components/today/today-shell";
 import { useCount } from "@/lib/db-hooks";
@@ -46,7 +47,6 @@ export function OwnerKpiStrip() {
   );
 }
 
-import { Link } from "@tanstack/react-router";
 function MiniStat({ to, icon: Icon, label, value, sub, warn }: {
   to: string; icon: React.ComponentType<{ className?: string }>; label: string; value: number | string; sub?: string; warn?: boolean;
 }) {
