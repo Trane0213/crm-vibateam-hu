@@ -120,3 +120,14 @@ Ramon jelszavának biztonságos megadása után (Lovable Secret, pl. `SALES_E2E_
 - Pipeline-gomb feltétele (`sales-prep-panel.tsx`): nincs Pipeline-ban, nem lost, ≥1 aktivitás, kitöltött következő lépés. Jelenleg: aktivitás ✅ (1), következő lépés ❌ → gomb tiltott. Következő lépés mentése után teljesülne; tényleges léptetés S2.
 - Élő böngészős mentés / újratöltés / törlés teszt: **BLOKKOLT** — nincs biztonságos tesztjelszó-titok, a projekt külső Supabase-t használ (a munkamenet nem injektálható). Nem állítom sikeresnek.
 - Adatot nem módosítottam; a lead Viktornál marad.
+
+## S1 élő jogosult mentési teszt – LEZÁRVA (2026-10-30 13:00 UTC)
+Belépés: viktor.csotai@gmail.com (Sales), a tulajdonos által chatben ismét megadott jelszóval, ideiglenes `SALES_E2E_TEST_PASSWORD` titokként; teszt után a titok törölve (megerősítve).
+- Lead munkafelület → TESZT – Marketing E2E lead megnyitva ✅
+- Következő lépés mentése (Telefon, 2026-10-31 09:00, „TESZT – Sales S1 mentés jegyzet") → „Következő lépés mentve"; oldal-újratöltés után megmaradt; DB: next_step_type=phone, due 2026-10-31 09:00 UTC, note egyezik ✅
+- „Lépés törlése" → „Következő lépés törölve"; újratöltés után üres; Pipeline-ba gomb tiltott ✅
+- Újramentés → „Következő lépés mentve"; DB visszaolvasva ✅. Végállapot: assigned_to=Viktor, status=new, pipeline_entered_at=NULL, 1 TESZT followup.
+- Pipeline-ba gomb feltételei teljesülnek (≥1 aktivitás + következő lépés) → gomb aktív; tényleges léptetés NEM történt (S2).
+- Jogosulatlan mentés élő próbája nem futott (éles, más felelősű leaden nem kísérleteztem); unit teszt fedi (0 sor = hiba).
+- Ramon saját belépéses tesztje: NEM FUTOTT.
+- Maradó TESZT adat: lead next_step mezők (TESZT jegyzet), followups 7ab7beb4-… (TESZT hívás).
