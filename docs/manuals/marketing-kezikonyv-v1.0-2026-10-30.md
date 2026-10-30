@@ -189,7 +189,8 @@ A B) után **Saleshez átadás** → az ablak kiírja: „Nincs aktív értékes
 ---
 
 ## 7. Nem tesztelt / korlátozott részek (őszintén)
-- 🔎 **Sales-átadás végrehajtása**: aktív értékesítő már van (Ramon Dencsi, Sales). A választó auth-azonosítót ad (adatbázisból ellenőrizve); az élő böngészős átadás és Ramon oldali átvétel még NEM futott, mert nincs biztonságos tesztbelépés. A meglévő-lead figyelmeztetés csak egységteszttel ellenőrzött, és ez **nem adatbázis-szintű duplikációtiltás**.
+- ✅ **Sales-átadás végrehajtása** (élő, marketinges fiókkal, TESZT cégen, 2026-10-30): a „Felelős értékesítő” választóban Ramon Dencsi az egyetlen aktív értékesítő, alapból kiválasztva; az „Átadva a Sales-előkészítésbe” üzenet megjelent; az adatbázisban 1 lead jött létre (status = new, nincs Pipeline-belépés), felelős = Ramon bejelentkezési azonosítója, helyes cég és kapcsolattartó, a cég státusza „Átadva”. Ezután a „Saleshez átadás” gomb tiltott.
+- ⛔ **Ramon oldali átvétel** (Sales-előkészítő munkafelület, Pipeline-léptetés): élőben NEM próbáltuk, nincs Sales tesztbelépés. A meglévő-lead figyelmeztetés csak egységteszttel ellenőrzött, és ez **nem adatbázis-szintű duplikációtiltás**.
 - 🔎 **Részleges hiba**: ha a lead létrejön, de a cég státusza nem mentődik, „Átadás részben sikerült” üzenet jelenik meg; az újbóli Átadás (ugyanabban a megnyitásban) nem hoz létre második leadet, csak a státuszt pótolja. Az oldal újratöltése után ez a védelem nem él — ilyenkor a meglévő-lead figyelmeztetés jelez.
 - Az átadott ügy **Sales-előkészítésbe** kerül (status = new), nem a Pipeline-ba; Pipeline-ba az értékesítő lépteti (aktivitás + következő lépés szükséges).
 - 🔎 Valódi levélküldés (kampánylista / cégadatlap Email): biztonsági okból nem próbáltam.

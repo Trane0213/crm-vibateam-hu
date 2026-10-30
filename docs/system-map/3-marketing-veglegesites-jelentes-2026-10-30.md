@@ -62,3 +62,11 @@ Szükséges; nem publikáltam.
 - Duplikáció: csak UI-figyelmeztetés + pipa, nincs DB-szintű tiltás.
 - NEM futott (nincs biztonságos belépés): élő marketinges átadás, Ramon oldali átvétel, Pipeline-léptetés próbája. A korábbi tesztjelszó titkot a projektből törölték (titoklista ellenőrizve); a futó sandbox környezetben még látszik a régi változó, NEM használtam.
 - Tesztek: Vitest 44/44. Rollback: `docs/rollback/3-2026-10-30/` + e módosítások visszavonhatók a verziótörténetből.
+
+## Élő átadási teszt (2026-10-30 12:15, marketinges fiók, a felhasználó chatben adott engedélyével)
+- ✅ Ramon az egyetlen választható aktív értékesítő; átadás sikeres („Átadva a Sales-előkészítésbe”).
+- ✅ DB: TESZT cég f0761f0b-… → 1 lead (43b05791-…), status=new, pipeline_entered_at üres, assigned_to = Ramon auth id (401cc133-…), contact = TESZT Kontakt E2E, cégstátusz handoff. Utána a gomb tiltott.
+- ✅ Emailek oldal marketingesnél: „Nincs saját postafiókod”.
+- ⛔ Ramon oldali átvétel, Pipeline-léptetés: nincs Sales belépés, nem futott.
+- Jelszó: csak egy ideiglenes /tmp fájlból olvasva a belépéshez, utána törölve; kódba/dokumentumba nem került.
+- Marketing súgó (/help/marketing) mostantól a teljes kézikönyvet jeleníti meg (egy forrás: docs/manuals/marketing-kezikonyv-v1.0-2026-10-30.md).
