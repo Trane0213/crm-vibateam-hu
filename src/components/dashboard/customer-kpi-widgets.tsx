@@ -28,11 +28,19 @@ export function CustomerKpiWidgets() {
   const kpi = useQuery({
     queryKey: ["dashboard", "customer_kpi_v"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("customer_kpi_v")
-        .select("customer_id,total_projects,active_projects,open_quotes,overdue_followups,last_activity_at");
-      if (error) throw error;
-      return (data ?? []) as KpiRow[];
+      // Lapozott teljes lekérdezés: az alapértelmezett 1000-es laplimit ne vágja le a sorokat.
+      const out: KpiRow[] = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await supabase
+          .from("customer_kpi_v")
+          .select("customer_id,total_projects,active_projects,open_quotes,overdue_followups,last_activity_at")
+          .order("customer_id")
+          .range(from, from + 999);
+        if (error) throw error;
+        out.push(...((data ?? []) as KpiRow[]));
+        if (!data || data.length < 1000) break;
+      }
+      return out;
     },
   });
 
@@ -49,17 +57,26 @@ export function CustomerKpiWidgets() {
     },
   });
 
+  // Csak a ténylegesen megjelenített ügyfelek nevét kérjük le (id szerint, 200-as
+  // csomagokban), így nagy cégállománynál sem vész el név a laplimit miatt.
+  const shownIds = Array.from(new Set([
+    ...(kpi.data ?? []).filter((r) => r.active_projects > 0 || r.open_quotes > 0 || r.overdue_followups > 0).map((r) => r.customer_id),
+    ...(activity.data ?? []).map((a) => a.customer_id),
+  ])).sort();
   const namesQ = useQuery({
-    queryKey: ["dashboard", "customer_names"],
+    queryKey: ["dashboard", "customer_names", shownIds],
+    enabled: shownIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase.from("companies").select("id,name");
-      if (error) throw error;
       const m = new Map<string, string>();
-      for (const r of data ?? []) m.set((r as any).id, (r as any).name ?? "—");
+      for (let i = 0; i < shownIds.length; i += 200) {
+        const { data, error } = await supabase.from("companies").select("id,name").in("id", shownIds.slice(i, i + 200));
+        if (error) throw error;
+        for (const r of data ?? []) m.set((r as any).id, (r as any).name ?? "—");
+      }
       return m;
     },
   });
-  const nameOf = (id: string) => namesQ.data?.get(id) ?? "—";
+  const nameOf = (id: string) => namesQ.data?.get(id) ?? (namesQ.isLoading ? "…" : "—");
 
   const rows = (kpi.data ?? []).map((r) => ({ ...r, customer_name: nameOf(r.customer_id) }));
   const topActive = [...rows]

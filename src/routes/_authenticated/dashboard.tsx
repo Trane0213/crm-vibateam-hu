@@ -14,7 +14,9 @@ import {
   CalendarClock,
 } from "lucide-react";
 import { formatHuf } from "@/lib/format";
-import { useCount, useAggregateSum, useList } from "@/lib/db-hooks";
+import { useCount, useList } from "@/lib/db-hooks";
+import { budapestDayBounds, kpiDisplay, useOpenQuotesSummary, useSalesProjectSnapshot } from "@/lib/owner-kpis";
+import { OwnerKpiStrip } from "@/components/dashboard/owner-kpi-strip";
 import { summarizeFollowups, BUCKET_LABEL, BUCKET_TONE, type FollowupBucket } from "@/lib/followup-alerts";
 import { fmtDateTime } from "@/components/resource/resource-page";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
@@ -30,31 +32,20 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-function isoNow() { return new Date().toISOString(); }
-function isoStartOfDay() { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); }
-function isoEndOfDay() { const d = new Date(); d.setHours(23,59,59,999); return d.toISOString(); }
 function isoWeekAgo() { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); }
 
 function Dashboard() {
-  const now = isoNow();
-  const todayStart = isoStartOfDay();
-  const todayEnd = isoEndOfDay();
+  const now = new Date().toISOString();
+  const { start: todayStart, end: todayEnd } = budapestDayBounds();
   const weekAgo = isoWeekAgo();
-  const tomorrowStart = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(0,0,0,0); return d.toISOString(); })();
-  const tomorrowEnd = (() => { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(23,59,59,999); return d.toISOString(); })();
 
-  const openQuotesCount = useCount("quotes", (q) => q.not("status", "in", "(won,lost)"), "open");
-  const openQuotesSum = useAggregateSum("quotes", "total_amount", (q) => q.not("status", "in", "(won,lost)"), "open");
-  const overdueFollowups = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue");
-  const todayFollowups   = useCount("followups", (q) => q.eq("completed", false).gte("due_date", todayStart).lte("due_date", todayEnd), "today-fu");
-  const tomorrowFollowups= useCount("followups", (q) => q.eq("completed", false).gte("due_date", tomorrowStart).lte("due_date", tomorrowEnd), "tomorrow-fu");
-  const overdueTasks     = useCount("tasks", (q) => q.neq("status", "done").lt("due_date", now), "overdue-tasks");
-  const todayTasks = useCount("tasks", (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd), "today");
+  const quotesSummary = useOpenQuotesSummary();
+  const snap = useSalesProjectSnapshot();
+  const overdueFollowups = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "owner-overdue");
+  const overdueTasks     = useCount("tasks", (q) => q.neq("status", "done").lt("due_date", now), "owner-overdue-tasks");
+  const todayTasks = useCount("tasks", (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd), `today-${todayStart}`);
   const weeklyLeads = useCount("leads", (q) => q.gte("created_at", weekAgo), "week");
   const monthlyLeads = useCount("leads", (q) => q.gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()), "month");
-  const activeProjects = useCount("projects", (q) => q.not("status", "in", "(completed,lost)"), "active");
-  const wonQuotes = useCount("quotes", (q) => q.eq("status", "won"), "won");
-  const lostQuotes = useCount("quotes", (q) => q.eq("status", "lost"), "lost");
 
   const upcomingFollowups = useList<any>("followups", { order: "due_date", ascending: true });
   const upcomingTasks = useList<any>("tasks", { order: "due_date", ascending: true });
@@ -82,8 +73,10 @@ function Dashboard() {
   const activeProjectsTotal = ACTIVE_PROJECT_STATUSES.reduce((a, s) => a + (projectStatusCounts[s] ?? 0), 0);
 
   const fuBuckets = summarizeFollowups((upcomingFollowups.data ?? []) as any[]);
-  const wonTotal = (wonQuotes.data ?? 0) + (lostQuotes.data ?? 0);
-  const conversionPct = wonTotal > 0 ? Math.round(((wonQuotes.data ?? 0) / wonTotal) * 100) : null;
+  // Konverzió a lezárt LEADEKBŐL (won / (won+lost)) — az ajánlatok won/lost státusza nincs használatban.
+  const sp = snap.data;
+  const closedLeads = sp ? sp.won + sp.lost : 0;
+  const conversionPct = sp && closedLeads > 0 ? Math.round((sp.won / closedLeads) * 100) : null;
 
   // Veszélyes projektek = ahol van lejárt feladat vagy lejárt utókövetés.
   const riskyProjectIds = new Set<string>();
@@ -97,47 +90,12 @@ function Dashboard() {
 
   return (
     <div className="flex flex-col">
-      <WelcomeHeader subtitle="Itt vannak a mai legfontosabb teendőid és nyitott ügyek." />
+      <WelcomeHeader subtitle="Részletes vezetői irányítópult — a „Ma” oldal KPI-jai bontva." />
 
-      {/* HERO — FOLLOW-UP FÓKUSZ */}
+      {/* KPI SÁV — ugyanaz, mint a „Ma" oldalon */}
       <div className="px-6 pt-4">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">Mai teendők · amit ma muszáj megcsinálni</div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <HeroStat
-            to="/followups"
-            tone="danger"
-            icon={AlertOctagon}
-            label="Lejárt utókövetés"
-            value={overdueFollowups.data ?? 0}
-            sub="haladéktalanul intézendő"
-          />
-          <HeroStat
-            to="/followups"
-            tone="warning"
-            icon={BellRing}
-            label="Ma esedékes"
-            value={todayFollowups.data ?? 0}
-            sub="utókövetés — ma kell"
-          />
-          <HeroStat
-            to="/tasks"
-            tone="danger"
-            icon={AlertTriangle}
-            label="Lejárt feladat"
-            value={overdueTasks.data ?? 0}
-            sub="határidőn túl"
-          />
-          <HeroStat
-            to="/tasks"
-            tone="info"
-            icon={ListChecks}
-            label="Ma esedékes feladat"
-            value={todayTasks.data ?? 0}
-            sub="mai határidős"
-          />
-        </div>
+        <div className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">Mai teendők · ugyanaz a KPI-sáv, mint a „Ma" oldalon</div>
+        <OwnerKpiStrip />
       </div>
 
       {/* AI BRIEFING */}
@@ -154,7 +112,7 @@ function Dashboard() {
             loadContext={async () => (await loadCrmSnapshotText()).text}
             prompt={[
               "Készíts napi vezetői összefoglalót az alábbi szerkezetben:",
-              "1) AJÁNLATOK: nyitott ajánlatok száma, összérték, kiemelt (legnagyobb 2-3) ajánlat státusza.",
+              "1) AJÁNLATOK: nyitott ajánlatok száma és státusza. Összeget csak akkor írj, ha az adatban szerepel; ne becsülj, ne nevezd bevételnek.",
               "2) FOLLOW-UPOK: hány lejárt, hány ma esedékes, sorold fel a legsürgősebb 3-at.",
               "3) PROJEKTEK: hány aktív, és mely projekteken kell ma haladni.",
               "4) FELADATOK: ma esedékes és lejárt feladatok rövid listája.",
@@ -166,34 +124,34 @@ function Dashboard() {
       {/* KRITIKUS */}
       <SectionLabel tone="danger" title="Kritikus · azonnal kezelendő" />
       <div className="grid gap-3 px-6 lg:grid-cols-3">
-        <Kpi icon={AlertOctagon} tone="danger" label="Lejárt utókövetés" value={overdueFollowups.data ?? "—"} sub="haladéktalanul" />
-        <Kpi icon={AlertTriangle} tone="danger" label="Lejárt feladat" value={overdueTasks.data ?? "—"} sub="határidőn túl" />
+        <Kpi icon={AlertOctagon} tone="danger" label="Lejárt utókövetés" value={kpiDisplay(overdueFollowups)} sub="haladéktalanul" />
+        <Kpi icon={AlertTriangle} tone="danger" label="Lejárt feladat" value={kpiDisplay(overdueTasks)} sub="határidőn túl" />
         <Kpi icon={Briefcase} tone="danger" label="Veszélyes projektek" value={riskyCount} sub="lejárt teendővel" />
       </div>
 
-      {/* BEVÉTEL */}
-      <SectionLabel tone="primary" title="Bevétel · pipeline" />
+      {/* AJÁNLATOK · PIPELINE — nem számlázott bevétel */}
+      <SectionLabel tone="primary" title="Ajánlatok · pipeline (nem számlázott bevétel)" />
       <div className="grid gap-3 px-6 lg:grid-cols-3">
         <Kpi
           icon={FileText}
-          label="Nyitott ajánlatok"
-          value={openQuotesCount.data ?? "—"}
-          sub={openQuotesSum.data != null ? formatHuf(openQuotesSum.data) : "összérték"}
+          label="Nyitott ajánlatok (nettó, tételekből)"
+          value={kpiDisplay({ isLoading: quotesSummary.isLoading, isError: quotesSummary.isError, data: quotesSummary.data?.count })}
+          sub={quotesSummary.data ? (quotesSummary.data.net != null ? `${formatHuf(quotesSummary.data.net)}${quotesSummary.data.testNet ? ` · ebből TESZT ${formatHuf(quotesSummary.data.testNet)}` : ""}` : "érték nincs rögzítve") : undefined}
         />
         <Kpi
           icon={TrendingUp}
-          label="Ajánlat-konverzió"
-          value={conversionPct != null ? `${conversionPct}%` : "—"}
-          sub={wonTotal > 0 ? `${wonQuotes.data}/${wonTotal} megnyert` : "nincs lezárt ajánlat"}
+          label="Lead-konverzió (megnyert / lezárt)"
+          value={snap.isLoading ? "…" : snap.isError ? "hiba" : conversionPct != null ? `${conversionPct}%` : "—"}
+          sub={sp ? (closedLeads > 0 ? `${sp.won}/${closedLeads} megnyert${sp.wonTest + sp.lostTest ? ` · TESZT: ${sp.wonTest + sp.lostTest}` : ""}` : "nincs lezárt lead") : undefined}
         />
-        <Kpi icon={Sparkles} tone="info" label="Új érdeklődőek (7 nap)" value={weeklyLeads.data ?? "—"} sub={`30 napban: ${monthlyLeads.data ?? "—"}`} />
+        <Kpi icon={Sparkles} tone="info" label="Új érdeklődők (7 nap)" value={kpiDisplay(weeklyLeads)} sub={`30 napban: ${kpiDisplay(monthlyLeads)}`} />
       </div>
 
       {/* PROJEKT */}
       <SectionLabel tone="primary" title="Projekt · kivitelezés" />
       <div className="grid gap-3 px-6 lg:grid-cols-3">
         <Kpi icon={Briefcase} label="Aktív projektek" value={activeProjectsTotal} sub={`${PROJECT_STATUS_LABEL["kivitelezes"]}: ${projectStatusCounts["kivitelezes"] ?? 0}`} />
-        <Kpi icon={ListChecks} tone="warning" label="Ma esedékes feladat" value={todayTasks.data ?? "—"} sub="mai határidős" />
+        <Kpi icon={ListChecks} tone="warning" label="Ma esedékes feladat" value={kpiDisplay(todayTasks)} sub="budapesti nap szerint" />
         <Kpi icon={BellRing} tone="warning" label="Közelgő utókövetés (7 nap)" value={fuBuckets["due-3d"] + fuBuckets["due-7d"]} sub="ezen a héten" />
       </div>
 
@@ -287,10 +245,10 @@ function Dashboard() {
             ) : (
               <div className="space-y-1.5">
                 {Object.entries(leadStatusCounts).map(([s, n]) => (
-                  <div key={s} className="flex items-center justify-between text-sm">
+                  <Link key={s} to={s === "lost" ? "/leads/lost" : s === "new" || s === "contacted" ? "/leads" : "/sales/leads"} className="flex items-center justify-between rounded px-1 text-sm hover:bg-muted/50">
                     <Badge variant="outline" className="font-normal">{tStatus("lead", s)}</Badge>
                     <span className="tabular-nums font-medium">{n}</span>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -313,7 +271,11 @@ function Dashboard() {
                   const overdue = new Date(f.due_date) < new Date();
                   return (
                     <li key={f.id} className="flex items-center justify-between gap-3">
-                      <span className="truncate text-muted-foreground">{f.followup_type ?? "—"}</span>
+                      {f.lead_id ? (
+                        <Link to="/leads" search={{ lead: f.lead_id } as any} className="truncate text-primary hover:underline">{f.followup_type ?? "—"}</Link>
+                      ) : (
+                        <span className="truncate text-muted-foreground">{f.followup_type ?? "—"}</span>
+                      )}
                       <span className={`tabular-nums ${overdue ? "text-destructive font-semibold" : ""}`}>
                         {fmtDateTime(f.due_date)}
                       </span>
@@ -326,28 +288,6 @@ function Dashboard() {
         </Card>
       </div>
     </div>
-  );
-}
-
-function HeroStat({ to, tone, icon: Icon, label, value, sub }: {
-  to: string; tone: "danger" | "warning" | "info"; icon: any; label: string; value: number | string; sub: string;
-}) {
-  const toneClass = {
-    danger: "border-destructive/40 bg-destructive/5 hover:bg-destructive/10 text-destructive",
-    warning: "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/5 hover:bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]",
-    info: "border-[color:var(--status-info)]/40 bg-[color:var(--status-info)]/5 hover:bg-[color:var(--status-info)]/10 text-[color:var(--status-info)]",
-  }[tone];
-  return (
-    <Link to={to} className={`flex items-center gap-4 rounded-lg border p-5 transition ${toneClass}`}>
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-background/60">
-        <Icon className="h-6 w-6" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{label}</div>
-        <div className="mt-1 text-4xl font-bold tabular-nums leading-none">{value}</div>
-        <div className="mt-1 text-xs opacity-70">{sub}</div>
-      </div>
-    </Link>
   );
 }
 

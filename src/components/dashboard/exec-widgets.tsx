@@ -102,11 +102,11 @@ export function ExecutiveWidgets() {
           <CardTitle className="text-base flex items-center gap-2">
             <Layers className="h-4 w-4 text-primary" /> Projekt pipeline
           </CardTitle>
-          <CardDescription>Projektek darabszáma státuszonként + kapcsolódó utolsó ajánlat összérték</CardDescription>
+          <CardDescription>Projektek darabszáma státuszonként. Projekt szerződéses érték a rendszerben nincs rögzítve.</CardDescription>
         </CardHeader>
         <CardContent className="h-[260px]">
           {pipelineData.length === 0 ? (
-            <EmptyState icon={Layers} title="Nincs projekt adat" />
+            <EmptyState icon={Layers} title={pipeline.isLoading ? "Betöltés…" : pipeline.isError ? "Lekérdezési hiba" : "Nincs projekt adat"} />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={pipelineData} margin={{ top: 10, right: 12, left: 0, bottom: 30 }}>
@@ -114,9 +114,7 @@ export function ExecutiveWidgets() {
                 <XAxis dataKey="label" angle={-25} textAnchor="end" interval={0} tick={{ fontSize: 11 }} height={60} />
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip
-                  formatter={(v: any, name: string) =>
-                    name === "value" ? formatHuf(Number(v)) : [v, name === "count" ? "Projektek" : name]
-                  }
+                  formatter={(v: any) => [v, "Projektek"]}
                   contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: 12 }}
                 />
                 <Bar dataKey="count" name="Projektek" fill="var(--primary)" radius={[4, 4, 0, 0]} />
@@ -129,18 +127,18 @@ export function ExecutiveWidgets() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" /> Megnyert bevétel (12 hónap)
+            <TrendingUp className="h-4 w-4 text-primary" /> Megnyert ajánlatok értéke (12 hónap)
           </CardTitle>
           <CardDescription>
-            A <code className="text-[10px]">dashboard_status_config</code> „quote_won" listájából.
+            Megnyertnek jelölt ajánlatok rögzített végösszege havonta. Nem számlázott és nem befolyt bevétel.
           </CardDescription>
         </CardHeader>
         <CardContent className="h-[240px]">
           {(revenue.data ?? []).length === 0 ? (
             <EmptyState
               icon={TrendingUp}
-              title="Nincs adat"
-              description="Töltsd ki a Settings → Dashboard státusz oldalon, mely quote státuszok számítanak megnyertnek."
+              title={revenue.isLoading ? "Betöltés…" : revenue.isError ? "Lekérdezési hiba" : "Nincs adat"}
+              description="Jelenleg nincs megnyertnek számító ajánlati státusz beállítva (Beállítások → Dashboard státusz), ezért ez az érték nem mérhető."
             />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -152,7 +150,7 @@ export function ExecutiveWidgets() {
                   formatter={(v: any) => formatHuf(Number(v))}
                   contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: 12 }}
                 />
-                <Line type="monotone" dataKey="total_amount" name="Bevétel" stroke="var(--primary)" strokeWidth={2} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="total_amount" name="Megnyert ajánlat érték" stroke="var(--primary)" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           )}
