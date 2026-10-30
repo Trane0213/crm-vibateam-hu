@@ -75,3 +75,34 @@ Nincs új függvény; a „csak a számodra látható levelezés” tájékoztat
 ### Fájlok (2. kör)
 `src/lib/company-activity.ts`, `src/lib/company-activity.test.ts`, `src/lib/marketing-timeline.ts`, `src/routes/_authenticated/customers.$id.tsx`, `src/components/marketing/marketing-workspace.tsx`, `database/rollback_customer_kpi_v_2026-10-30.sql`, élő DB: `customer_kpi_v`.
 Publikálás szükséges (a nézet már él, a képernyők a publikálás után).
+
+---
+## Adatkapcsolati ellenőrzés – 41 eltérő cég–szál kapcsolat (2026-10-30, 3. kör, csak olvasás)
+
+41 olyan (levél-cég, szál) pár, ahol `emails.company_id` ≠ `email_threads.company_id`; ebből 37-et a résztvevő-alapú keresés nem talált.
+
+| Csoport | Db | Minősítés |
+|---|---|---|
+| Levél a **saját cégre (Viba-Team.kft)** rendelve, partnerszálon (SHS 5, Alfa General, Begavill, Beton Partner, Garda-Ház, iconic team, LÁNG BAU, vilati, viv) vagy céghez nem kötött szálon (12) | 25 | **Korábbi téves hozzárendelés** (saját cég nem ügyfél). Nem kötöttem át → tulajdonosi ellenőrzés. |
+| DANIEL-GENERAL – 6 szál (Waterside, WGR szerződés, teljesítésigazolás…), szál a Viba-Team.kft-re kötve; résztvevő `@daniel-general.hu`, de a cég kontaktjai csak gmail-esek | 6 | **Releváns, kimaradt** – most megjelenik. A szál cégkötése (Viba-Team) téves, ellenőrzésre marad. |
+| GRABARICS – 1 szál (szál Viba-Team.kft-n), `@grabarics.hu`; a cégnek nincs kontaktja | 1 | **Releváns, kimaradt** – most megjelenik. Szál-kötés ellenőrzésre. |
+| big george – 1 szál (céghez nem kötött), `@biggeorge.hu`; nincs kontakt | 1 | **Releváns, kimaradt** – most megjelenik. |
+| Property Market, wing zrt, vilati – 1-1, domain egyezik a cégnévvel; nincs kontakt | 3 | **Releváns, kimaradt** – most megjelenik. |
+| ZÁÉV Építőipari Zrt. – 1, a domain nem egyezik a cégnévvel | 1 | **Bizonytalan** – megjelenik (meglévő hozzárendelés), tulajdonosi ellenőrzés. |
+
+### Javítás
+- `fetchCompanyThreadsPage` szűrője kiegészült: a céghez kötött szál VAGY kapcsolattartó résztvevő VAGY **olyan szál, amelynek levele már a céghez van rendelve** (`emails.company_id`). Ez a régi (2. szakasz előtti) logika része volt, a lapozásra átállásnál kimaradt.
+- Szerveroldali lapozás + pontos darabszám megmaradt; minden lekérdezés a hívó RLS-jogaival fut. Adat nem változott, nincs átkötés.
+- Korlát: ha egy céghez >150 szál van levél-szinten rendelve (csak a Viba-Team.kft, 4283), ez a forrás kimarad és a képernyő ezt kiírja (a 25 téves saját-cég kapcsolat így nem kerül a lista elejére).
+- Ellenőrzés (SQL-ekvivalens, élő DB): a 12 releváns/bizonytalan kapcsolat mind megtalálva (0 kimaradt); a 25 saját-cég kapcsolat szándékosan nem.
+
+### Tesztek
+Vitest 41/41 (+1), typecheck a módosított fájlokra hibamentes. Élő szerepkörös képernyős próba: NEM futott.
+
+### Marketing idővonal korlátja (Marketing szakaszra)
+A marketinges idővonal csak az éppen betöltött levélszál-oldal (25 szál) eseményeit mutatja, szálanként egyet; korábbi oldalak szálai a lapozás nélkül nem jelennek meg. A hívások/találkozók itt nem szerepelnek. Teljes egységesítés: Marketing véglegesítési szakasz.
+
+### Összegzés
+- **Javult:** 12 kimaradt céges szál (DANIEL-GENERAL 6, GRABARICS, big george, Property Market, wing, vilati, ZÁÉV) újra látszik a cégadatlapokon.
+- **Bizonytalan (tulajdonosi döntés):** 25 saját cégre rendelt levél; DANIEL-GENERAL 6 és GRABARICS 1 szál téves (Viba-Team) szálkötése; ZÁÉV 1; a korábbi 39 vitatott szál / 14 bizonytalan cég.
+- **Marketing szakaszra:** idővonal teljessége; DANIEL-GENERAL kontaktjainak céges e-mail-címe.
