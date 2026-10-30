@@ -8,12 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 import { Plus, Zap } from "lucide-react";
 import {
-  listWorkers, listProjects, createProject, createEntriesBatch,
+  listWorkers, createProject, createEntriesBatch,
 } from "@/lib/attendance/attendance.functions";
 
 export const Route = createFileRoute("/_authenticated/attendance/quick")({
@@ -33,12 +31,10 @@ function todayISO() {
 function AttendanceQuick() {
   const qc = useQueryClient();
   const workersFn = useServerFn(listWorkers);
-  const projectsFn = useServerFn(listProjects);
   const createProjectFn = useServerFn(createProject);
   const batchFn = useServerFn(createEntriesBatch);
 
   const workersQ = useQuery({ queryKey: ["att", "workers"], queryFn: () => workersFn() });
-  const projectsQ = useQuery({ queryKey: ["att", "projects"], queryFn: () => projectsFn() });
 
   const [workDate, setWorkDate] = useState(todayISO());
   const [projectId, setProjectId] = useState<string>("");
@@ -53,7 +49,6 @@ function AttendanceQuick() {
   const workerTriggerRef = useRef<HTMLButtonElement>(null);
 
   const workers = workersQ.data?.rows ?? [];
-  const projects = projectsQ.data?.rows ?? [];
 
   const activeWorkers = useMemo(
     () => (workers as any[]).filter((w) => w.is_active !== false),
@@ -134,16 +129,7 @@ function AttendanceQuick() {
         </div>
         <div>
           <Label>Projekt</Label>
-          <Select value={projectId} onValueChange={setProjectId}>
-            <SelectTrigger><SelectValue placeholder="Válassz projektet" /></SelectTrigger>
-            <SelectContent>
-              {(projects as any[])
-                .filter((p) => p.is_active !== false)
-                .map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
+          <RecordCombobox source="attendance_projects" value={projectId} onChange={setProjectId} label="Projekt" filters={{ is_active: true }} />
         </div>
       </div>
 

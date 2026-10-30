@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -739,6 +740,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         open={handoffOpen}
         onOpenChange={setHandoffOpen}
         companyName={c.name}
+        companyId={companyId}
         contacts={contacts.data ?? []}
         defaultSummary={meta.salesNote || `${c.name} – marketing által átadva`}
         defaultLeadSource={meta.leadSource}
@@ -1006,11 +1008,12 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, contacts, defaultSummary, defaultLeadSource, salesUsers, submitting, onSubmit,
+  open, onOpenChange, companyName, companyId, contacts, defaultSummary, defaultLeadSource, salesUsers, submitting, onSubmit,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   companyName: string;
+  companyId: string;
   contacts: any[];
   defaultSummary: string;
   defaultLeadSource: LeadSource | null;
@@ -1073,28 +1076,16 @@ function HandoffDialog({
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground">Kapcsolattartó</label>
-              <Select value={contactId} onValueChange={setContactId}>
-                <SelectTrigger className="mt-1"><SelectValue placeholder="Válassz kontaktot" /></SelectTrigger>
-                <SelectContent>
-                  {contacts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name ?? c.email ?? c.id.slice(0, 8)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <RecordCombobox source="contacts" value={contactId} onChange={setContactId} label="Kapcsolattartó"
+                filters={{ company_id: companyId }} allowClear className="mt-1" />
             </div>
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">
               Felelős értékesítő <span className="text-destructive">*</span>
             </label>
-            <Select value={assignee} onValueChange={setAssignee}>
-              <SelectTrigger className="mt-1" aria-label="Felelős értékesítő"><SelectValue placeholder="Válassz értékesítőt" /></SelectTrigger>
-              <SelectContent>
-                {salesUsers.map((u) => (
-                  <SelectItem key={u.auth_user_id} value={u.auth_user_id}>{u.full_name ?? u.email}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <RecordCombobox source="auth_users" value={assignee} onChange={setAssignee} label="Felelős értékesítő"
+              filters={{ active: true, role_id: Array.from(new Set(salesUsers.map((u) => u.role_id as string))) }} className="mt-1" />
             {salesUsers.length === 0 && (
               <div className="mt-1 text-[11px] text-destructive">Nincs aktív értékesítő — szólj a tulajdonosnak.</div>
             )}

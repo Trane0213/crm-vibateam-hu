@@ -45,18 +45,6 @@ function useProjectContacts(projectId: string) {
   });
 }
 
-function useContactsList() {
-  return useQuery({
-    queryKey: ["contacts", "all-for-picker"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contacts").select("id,name,email,company_id").order("name");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-}
-
 export function ProjectContactsPanel({ projectId, companyId }: { projectId: string; companyId: string | null | undefined }) {
   const qc = useQueryClient();
   const list = useProjectContacts(projectId);

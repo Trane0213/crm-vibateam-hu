@@ -1,13 +1,13 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { EmptyState } from "@/components/page-header";
-import { Mail, Link2, Unlink, Search } from "lucide-react";
+import { Mail, Link2, Unlink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { fmtDateTime } from "@/components/resource/resource-page";
@@ -22,22 +22,6 @@ function useProjectThreads(projectId: string) {
         .select("id,subject,participants,last_message_at,project_id")
         .eq("project_id", projectId)
         .order("last_message_at", { ascending: false, nullsFirst: false });
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-}
-
-function useUnassignedThreads() {
-  return useQuery({
-    queryKey: ["email_threads", "unassigned"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("email_threads")
-        .select("id,subject,participants,last_message_at,project_id")
-        .is("project_id", null)
-        .order("last_message_at", { ascending: false, nullsFirst: false })
-        .limit(200);
       if (error) throw error;
       return data ?? [];
     },
@@ -115,18 +99,6 @@ export function ProjectEmailAttach({ projectId }: { projectId: string }) {
 function AttachDialog({ projectId }: { projectId: string }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
-  const list = useUnassignedThreads();
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    if (!needle) return list.data ?? [];
-    return (list.data ?? []).filter((t: any) =>
-      (t.subject ?? "").toLowerCase().includes(needle) ||
-      (t.participants ?? []).some((p: string) => p.toLowerCase().includes(needle))
-    );
-  }, [q, list.data]);
-
   const attach = useMutation({
     mutationFn: async (threadId: string) => {
       const { error } = await supabase.from("email_threads").update({ project_id: projectId }).eq("id", threadId);
@@ -149,34 +121,8 @@ function AttachDialog({ projectId }: { projectId: string }) {
           <DialogTitle>Email szál csatolása projekthez</DialogTitle>
           <DialogDescription>Csak a még nem csatolt szálak láthatók. Kattints a sorra a hozzárendeléshez.</DialogDescription>
         </DialogHeader>
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input className="pl-8" placeholder="Keresés tárgy vagy résztvevő alapján…" value={q} onChange={(e) => setQ(e.target.value)} />
-        </div>
-        <div className="max-h-[50vh] overflow-y-auto rounded-md border">
-          {list.isLoading ? (
-            <div className="p-4 text-sm text-muted-foreground">Betöltés…</div>
-          ) : filtered.length === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground">Nincs csatolható email-szál.</div>
-          ) : (
-            <ul className="divide-y">
-              {filtered.slice(0, 100).map((t: any) => (
-                <li key={t.id}>
-                  <button
-                    type="button"
-                    disabled={attach.isPending}
-                    onClick={() => attach.mutate(t.id, { onSuccess: () => setOpen(false) })}
-                    className="w-full text-left p-3 hover:bg-muted/40 transition disabled:opacity-50"
-                  >
-                    <div className="text-sm font-medium truncate">{t.subject || "(nincs tárgy)"}</div>
-                    <div className="text-xs text-muted-foreground truncate">{(t.participants ?? []).join(", ") || "—"}</div>
-                    <div className="text-xs text-muted-foreground tabular-nums">{fmtDateTime(t.last_message_at)}</div>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <RecordCombobox source="email_threads" label="Email-szál" filters={{ project_id: null }} disabled={attach.isPending}
+          onChange={(id) => attach.mutate(id, { onSuccess: () => setOpen(false) })} />
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Bezárás</Button>
         </DialogFooter>

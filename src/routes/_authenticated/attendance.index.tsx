@@ -6,15 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecordCombobox } from "@/components/resource/record-combobox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState } from "@/components/page-header";
 import { ClipboardList, Trash2, Plus } from "lucide-react";
 import {
   listEntries,
   deleteEntry,
-  listWorkers,
-  listProjects,
 } from "@/lib/attendance/attendance.functions";
 
 export const Route = createFileRoute("/_authenticated/attendance/")({
@@ -39,12 +37,8 @@ function AttendanceIndex() {
   const [projectId, setProjectId] = useState<string>("");
 
   const listFn = useServerFn(listEntries);
-  const workersFn = useServerFn(listWorkers);
-  const projectsFn = useServerFn(listProjects);
   const delFn = useServerFn(deleteEntry);
 
-  const workersQ = useQuery({ queryKey: ["att", "workers"], queryFn: () => workersFn() });
-  const projectsQ = useQuery({ queryKey: ["att", "projects"], queryFn: () => projectsFn() });
   const entriesQ = useQuery({
     queryKey: ["att", "entries", from, to, workerId, projectId],
     queryFn: () =>
@@ -87,27 +81,11 @@ function AttendanceIndex() {
         </div>
         <div>
           <Label className="text-xs">Dolgozó</Label>
-          <Select value={workerId || "all"} onValueChange={(v) => setWorkerId(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-56"><SelectValue placeholder="Mindegyik" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Mindegyik</SelectItem>
-              {(workersQ.data?.rows ?? []).map((w: any) => (
-                <SelectItem key={w.id} value={w.id}>{w.full_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <RecordCombobox source="attendance_workers" value={workerId} onChange={setWorkerId} label="Dolgozó" placeholder="Mindegyik" allowClear clearLabel="Mindegyik" className="w-56 max-w-full" />
         </div>
         <div>
           <Label className="text-xs">Projekt</Label>
-          <Select value={projectId || "all"} onValueChange={(v) => setProjectId(v === "all" ? "" : v)}>
-            <SelectTrigger className="w-56"><SelectValue placeholder="Mindegyik" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Mindegyik</SelectItem>
-              {(projectsQ.data?.rows ?? []).map((p: any) => (
-                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <RecordCombobox source="attendance_projects" value={projectId} onChange={setProjectId} label="Projekt" placeholder="Mindegyik" allowClear clearLabel="Mindegyik" className="w-56 max-w-full" />
         </div>
         <div className="ml-auto">
           <Button onClick={() => navigate({ to: "/attendance/new" })}>
