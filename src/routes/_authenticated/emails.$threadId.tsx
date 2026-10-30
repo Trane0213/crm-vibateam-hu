@@ -17,8 +17,15 @@ import { toast } from "sonner";
 import { EmailComposer } from "@/components/emails/email-composer";
 import { EmailThreadProjectPicker } from "@/components/emails/email-thread-project-picker";
 import { AttachmentGrid } from "@/components/emails/attachment-grid";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
+  validateSearch: (search: Record<string, unknown>): { mailbox?: string } => ({ mailbox: typeof search.mailbox === "string" ? search.mailbox : undefined }),
+  head: () => ({ meta: [
+    { title: "Levélszál | VIBA CRM" }, { name: "description", content: "Ügyféllevelezések és CRM-kapcsolatok a VIBA CRM-ben." },
+    { property: "og:title", content: "Levélszál | VIBA CRM" }, { property: "og:description", content: "VIBA ügyféllevelezés és kapcsolódó adatok." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: EmailThread,
 });
 
@@ -85,27 +92,16 @@ function avatarHue(seed: string): number {
 
 function EmailThread() {
   const { threadId } = Route.useParams();
+  const { mailbox } = Route.useSearch();
+  const { profile } = usePermissions();
+  const ownMailbox = (profile?.gmail_email as string | undefined)?.toLowerCase();
+  const replyMailbox = mailbox ?? ownMailbox;
   const [replyOpen, setReplyOpen] = useState(false);
   const emails = useListWhere<any>("emails", "thread_id", threadId, {
     order: "created_at",
     ascending: true,
   });
-  // Megnyitas utan a szal osszes email-jet jelöljük olvasottnak (UNREAD label
-  // levetele a DB-ben). Ezzel a lista, a workspace es a thread nezet ugyanazt
-  // mutatja. Gmail-szinkron kulonalo lepes.
-  useEffect(() => {
-    const rows = emails.data ?? [];
-    const unread = rows.filter((e: any) =>
-      Array.isArray(e.gmail_label_ids) && e.gmail_label_ids.includes("UNREAD"),
-    );
-    if (unread.length === 0) return;
-    void (async () => {
-      for (const e of unread) {
-        const next = (e.gmail_label_ids ?? []).filter((l: string) => l !== "UNREAD");
-        await supabase.from("emails").update({ gmail_label_ids: next }).eq("id", e.id);
-      }
-    })();
-  }, [emails.data]);
+  // A megnyitás nem írja át más postafiók Gmail-címkéit.
   const thread = useQuery({
     queryKey: ["email_threads", threadId],
     enabled: !!threadId,
@@ -266,7 +262,7 @@ function EmailThread() {
             <EmailThreadProjectPicker threadId={threadId} variant="chip" />
           </div>
           {visibleEmails.length > 0 && (
-            <Button size="sm" onClick={() => setReplyOpen(true)} className="shrink-0">
+            <Button size="sm" onClick={() => setReplyOpen(true)} disabled={!ownMailbox || replyMailbox !== ownMailbox} title={`Küldő: ${ownMailbox ?? "nincs saját Gmail-fiók"}`} className="shrink-0">
               <Reply className="mr-1.5 h-4 w-4" /> Válasz
             </Button>
           )}
@@ -349,6 +345,7 @@ function EmailThread() {
           onOpenChange={setReplyOpen}
           defaultTo={defaultReplyTo}
           defaultSubject={replySubject}
+          expectedMailbox={replyMailbox}
           gmailThreadId={thread.data?.gmail_thread_id ?? undefined}
           companyId={thread.data?.company_id ?? undefined}
           contactId={thread.data?.contact_id ?? undefined}

@@ -4299,6 +4299,16 @@ export type Database = {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
       }
+      crm_mailbox_page: {
+        Args: {
+          p_folder?: string
+          p_mailbox?: string
+          p_page?: number
+          p_search?: string
+        }
+        Returns: Json
+      }
+      crm_mailboxes: { Args: never; Returns: Json }
       crm_role_of: { Args: { _auth_user: string }; Returns: string }
       current_profile_id: { Args: never; Returns: string }
       has_role: {

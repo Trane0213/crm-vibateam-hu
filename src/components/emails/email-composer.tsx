@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Paperclip, Send, X, Bold, Italic, Link as LinkIcon, List, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/use-permissions";
 
 type Attachment = { key: string; filename: string; mime_type: string; size_bytes: number };
 
@@ -33,6 +34,7 @@ export function EmailComposer({
   contactId,
   leadId,
   onSent,
+  expectedMailbox,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -46,7 +48,11 @@ export function EmailComposer({
   contactId?: string;
   leadId?: string;
   onSent?: () => void;
+  expectedMailbox?: string;
 }) {
+  const { profile } = usePermissions();
+  const sender = (profile?.gmail_email as string | undefined)?.toLowerCase();
+  const senderMismatch = !!expectedMailbox && sender !== expectedMailbox.toLowerCase();
   const [to, setTo] = useState(defaultTo ?? "");
   const [cc, setCc] = useState("");
   const [bcc, setBcc] = useState("");
@@ -125,6 +131,7 @@ export function EmailComposer({
   const removeAttachment = (key: string) => setAttachments((a) => a.filter((x) => x.key !== key));
 
   const handleSend = async () => {
+    if (!sender || senderMismatch) { toast.error("Csak a saját Gmail-fiókodból küldhetsz."); return; }
     const html = editorRef.current?.innerHTML ?? "";
     if (!to.trim()) { toast.error("Címzett kötelező"); return; }
     if (!subject.trim()) { toast.error("Tárgy kötelező"); return; }
@@ -145,6 +152,7 @@ export function EmailComposer({
           company_id: companyId,
           contact_id: contactId,
           lead_id: leadId,
+          expectedMailbox: expectedMailbox ?? sender,
         }),
       });
       const j = await r.json();
@@ -169,6 +177,8 @@ export function EmailComposer({
           <DialogTitle>{gmailThreadId ? "Válasz" : "Új email"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Küldő: <span className="font-medium text-foreground">{sender ?? "Nincs csatlakoztatott saját Gmail-fiók"}</span></p>
+          {senderMismatch && <p className="text-sm text-destructive">Ez a levélszál másik postafiókból lett megnyitva; innen nem küldhetsz választ.</p>}
           <div className="grid gap-2">
             <Label htmlFor="to" className="text-xs uppercase tracking-wider text-muted-foreground">Címzett</Label>
             <Input id="to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="nev@cég.hu, masik@cég.hu" />
@@ -248,7 +258,7 @@ export function EmailComposer({
               {uploading ? "Feltöltés…" : "Csatolmány"}
             </Button>
           </div>
-          <Button type="button" onClick={handleSend} disabled={busy || uploading}>
+          <Button type="button" onClick={handleSend} disabled={busy || uploading || !sender || senderMismatch}>
             <Send className="mr-1.5 h-4 w-4" />
             {busy ? "Küldés…" : "Küldés"}
           </Button>
