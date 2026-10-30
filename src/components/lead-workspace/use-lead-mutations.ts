@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { logActivity } from "@/lib/activity-log";
+import { updateLeadOrThrow } from "@/lib/sales/lead-update";
 
 /**
  * Inline lead update (státusz, felelős, következő lépés, jegyzet).
@@ -26,8 +27,7 @@ export function useUpdateLead(leadId: string | null) {
       const { lost_at: _l, won_at: _w, assigned_at: _a, ...clean } = patch;
       const { data: before } = await supabase
         .from("leads").select("status").eq("id", leadId).maybeSingle();
-      const { error } = await supabase.from("leads").update(clean as any).eq("id", leadId);
-      if (error) throw error;
+      await updateLeadOrThrow(leadId, clean);
       if (clean.status && before?.status !== clean.status) {
         await logActivity("leads", "status_change", leadId, { from: before?.status ?? null, to: clean.status });
       } else {
