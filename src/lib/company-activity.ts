@@ -91,7 +91,7 @@ export function groupEmailThreads(rows: any[]): CompanyThread[] {
   for (const e of rows) {
     const key = e.thread_id ?? e.id;
     const at = e.internal_date ?? e.created_at ?? null;
-    const cur = byThread.get(key) ?? { id: key, subject: e.subject ?? null, last_message_at: at, count: 0, participants: [] };
+    const cur: CompanyThread = byThread.get(key) ?? { id: key, subject: e.subject ?? null, last_message_at: at, count: 0, participants: [] as string[] };
     cur.count++;
     if (!cur.subject && e.subject) cur.subject = e.subject;
     if (!cur.last_message_at || (at && at > cur.last_message_at)) cur.last_message_at = at;
