@@ -90,7 +90,7 @@ function Dashboard() {
 
   return (
     <div className="flex flex-col">
-      <WelcomeHeader subtitle="Részletes vezetői irányítópult — a „Ma" oldal KPI-jai bontva." />
+      <WelcomeHeader subtitle="Részletes vezetői irányítópult — a „Ma” oldal KPI-jai bontva." />
 
       {/* KPI SÁV — ugyanaz, mint a „Ma" oldalon */}
       <div className="px-6 pt-4">
