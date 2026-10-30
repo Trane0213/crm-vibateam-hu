@@ -4299,6 +4299,7 @@ export type Database = {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
       }
+      crm_lookup_normalize: { Args: { p_text: string }; Returns: string }
       crm_mailbox_page: {
         Args: {
           p_folder?: string
@@ -4309,6 +4310,16 @@ export type Database = {
         Returns: Json
       }
       crm_mailboxes: { Args: never; Returns: Json }
+      crm_record_search: {
+        Args: {
+          p_filters?: Json
+          p_id?: string
+          p_page?: number
+          p_search?: string
+          p_source: string
+        }
+        Returns: Json
+      }
       crm_role_of: { Args: { _auth_user: string }; Returns: string }
       current_profile_id: { Args: never; Returns: string }
       has_role: {
