@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { quoteNet } from "@/lib/sales/quote-net";
 import type { PipelineLead } from "./pipeline-types";
 import { PIPELINE_COLUMNS } from "./pipeline-types";
 import type { LeadStatus } from "@/lib/sales/constants";
@@ -52,21 +53,33 @@ async function enrich(leads: PipelineLead[]): Promise<PipelineLead[]> {
       : Promise.resolve({ data: [] as any[], error: null } as any),
     supabase
       .from("quotes")
-      .select("lead_id,total_amount,is_current")
+      .select("id,lead_id,status,discount_percent,is_current")
       .in("lead_id", leadIds)
       .eq("is_current", true),
   ]);
 
   const cmap = new Map<string, string>((companies.data ?? []).map((c: any) => [c.id, c.name]));
   const umap = new Map<string, string>((users.data ?? []).map((u: any) => [u.auth_user_id, u.full_name || u.email]));
-  const qmap = new Map<string, number>(
-    (quotes.data ?? []).map((q: any) => [q.lead_id as string, Number(q.total_amount ?? 0)]),
+  // Nettó érték a tételekből (quotes.total_amount nincs karbantartva).
+  const qrows = (quotes.data ?? []) as any[];
+  const itemsByQuote = new Map<string, any[]>();
+  if (qrows.length) {
+    const { data: items } = await supabase
+      .from("quote_items").select("quote_id,quantity,unit_price").in("quote_id", qrows.map((q) => q.id));
+    for (const it of items ?? []) {
+      const arr = itemsByQuote.get((it as any).quote_id) ?? [];
+      arr.push(it); itemsByQuote.set((it as any).quote_id, arr);
+    }
+  }
+  const qmap = new Map<string, { net: number; status: string | null }>(
+    qrows.map((q) => [q.lead_id as string, { net: quoteNet(itemsByQuote.get(q.id) ?? [], q.discount_percent), status: q.status ?? null }]),
   );
 
   return leads.map((l) => ({
     ...l,
     company_name: l.company_id ? cmap.get(l.company_id) ?? null : null,
     assignee_name: l.assigned_to ? umap.get(l.assigned_to) ?? null : null,
-    quote_total: qmap.get(l.id) ?? null,
+    quote_total: qmap.get(l.id)?.net ?? null,
+    quote_status: qmap.get(l.id)?.status ?? null,
   }));
 }
