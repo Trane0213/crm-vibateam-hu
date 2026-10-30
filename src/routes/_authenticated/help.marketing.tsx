@@ -196,9 +196,9 @@ function MarketingHelpPage() {
             <p>Részletes, kattintásról kattintásra leírás: <em>VIBA CRM – Marketinges munkatársi kézikönyv</em>
               (docs/manuals). A következő szakaszban a sales modul kapja a fókuszt:</p>
             <ul className="ml-5 list-disc space-y-0.5">
-              <li>az átadott lead a sales pipeline-ba kerül,</li>
-              <li>a sales pipeline-ban a lead konkrét <strong>értékesítőhöz</strong> lesz
-                rendelhető,</li>
+              <li>az átadott lead a kiválasztott értékesítő <strong>Sales-előkészítésébe</strong> kerül
+                (nem automatikusan a Pipeline-ba),</li>
+              <li>a Pipeline-ba az értékesítő lépteti, aktivitás és következő lépés megadásával,</li>
               <li>a teljes értékesítői munkafolyamatot (minősítés, ajánlat, zárás) a sales
                 modul fogja kezelni.</li>
             </ul>
