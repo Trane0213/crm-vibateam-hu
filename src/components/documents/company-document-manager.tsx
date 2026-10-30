@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/page-header";
 import { formatDateTime } from "@/lib/format";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useServerFn } from "@tanstack/react-start";
 import { r2DeleteObject, r2GetStatus, r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
@@ -71,6 +72,7 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
   const [uploadCategory, setUploadCategory] = useState<CompanyDocCategory>("marketing");
   const [filter, setFilter] = useState<"all" | CompanyDocCategory>("all");
   const [deleting, setDeleting] = useState<any | null>(null);
+  const { role, profile } = usePermissions();
   const [uploading, setUploading] = useState(false);
 
   const presignDownload = useServerFn(r2PresignDownload);
@@ -169,12 +171,15 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
 
   const remove = useMutation({
     mutationFn: async (row: any) => {
+      // 1/B: előbb az adatbázis-sor törlése (jogosultság-ellenőrzéssel), csak utána a fizikai fájlé,
+      // így elutasított törlésnél a fájl nem vész el.
+      const { data: gone, error } = await supabase.from("company_documents" as any).delete().eq("id", row.id).select("id");
+      if (error) throw error;
+      if (!gone?.length) throw new Error("Nincs jogosultságod ennek a dokumentumnak a törléséhez.");
       const key = getKey(row);
       if (key) {
         try { await deleteR2({ data: { key } }); } catch (e) { console.warn("R2 delete failed:", e); }
       }
-      const { error } = await supabase.from("company_documents" as any).delete().eq("id", row.id);
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Törölve");
@@ -257,9 +262,11 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
                     <Button size="sm" variant="ghost" onClick={() => download.mutate(r)} title="Letöltés">
                       <Download className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setDeleting(r)} title="Törlés">
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {(role === "owner" || (!!profile?.id && r.uploaded_by === profile.id)) && (
+                      <Button size="sm" variant="ghost" onClick={() => setDeleting(r)} title="Törlés">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
