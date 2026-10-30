@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getAuthedUserId } from "@/lib/gmail/auth.server";
 import { getUserClient } from "@/integrations/supabase/server";
+import { isOwnOutboundKey } from "@/lib/r2-policy";
 import { assertSenderIdentity } from "@/lib/gmail/mailbox-model";
 import { getValidAccessToken } from "@/lib/gmail/oauth.server";
 import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "@/lib/gmail/gmail-api.server";
@@ -62,6 +63,12 @@ export const Route = createFileRoute("/api/gmail/send")({
 
           // Csatolmányok letöltése R2-ből presigned GET-tel és base64 buffer-ré alakítása.
           const attBuffers: { filename: string; mimeType: string; content: Buffer }[] = [];
+          // 1/C: csak a küldő saját, szerver által kiosztott kimenő mellékletkulcsa csatolható.
+          for (const a of body.attachments ?? []) {
+            if (!isOwnOutboundKey(a?.key, userId)) {
+              return Response.json({ error: "A csatolmány nem a saját feltöltésed." }, { status: 403 });
+            }
+          }
           for (const a of body.attachments ?? []) {
             const url = presignR2Url({ method: "GET", key: a.key, expiresIn: 300 });
             const r = await fetch(url);

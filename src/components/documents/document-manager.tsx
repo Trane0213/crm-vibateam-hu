@@ -15,7 +15,7 @@ import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useServerFn } from "@tanstack/react-start";
-import { r2DeleteObject, r2GetStatus, r2PresignDownload, r2PresignUpload } from "@/lib/r2.functions";
+import { r2DeleteDocument, r2GetStatus, r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
 
 export type DocCategory = "quote" | "contract" | "plan" | "technical" | "photo" | "other";
@@ -54,9 +54,8 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
   const { role, profile } = usePermissions();
   const [uploading, setUploading] = useState(false);
 
-  const presignUpload = useServerFn(r2PresignUpload);
   const presignDownload = useServerFn(r2PresignDownload);
-  const deleteR2 = useServerFn(r2DeleteObject);
+  const deleteR2 = useServerFn(r2DeleteDocument);
   const getR2Status = useServerFn(r2GetStatus);
 
   const r2 = useQuery({ queryKey: ["r2-status"], queryFn: () => getR2Status({}), staleTime: 60_000 });
@@ -104,6 +103,7 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
         }
         throw new Error(`R2 feltöltés sikertelen (HTTP ${putRes.status}): ${detail || "ismeretlen hiba"}`);
       }
+      const { key } = (await putRes.json()) as { key: string };
       // DB rekord — valós séma. uploaded_by FK → users_profile.id, ezért
       // auth.uid-ról át kell mapelni users_profile.id-ra.
       const { data: userRes } = await supabase.auth.getUser();
@@ -151,15 +151,8 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
 
   const remove = useMutation({
     mutationFn: async (row: any) => {
-      // 1/B: előbb az adatbázis-sor törlése (jogosultság-ellenőrzéssel), csak utána a fizikai fájlé,
-      // így elutasított törlésnél a fájl nem vész el.
-      const { data: gone, error } = await supabase.from("project_documents").delete().eq("id", row.id).select("id");
-      if (error) throw error;
-      if (!gone?.length) throw new Error("Nincs jogosultságod ennek a dokumentumnak a törléséhez.");
-      const key = getKey(row);
-      if (key) {
-        try { await deleteR2({ data: { key } }); } catch (e) { console.warn("R2 delete failed:", e); }
-      }
+      // 1/C: a szerver törli előbb a rekordot (jogosultsággal), utána a fájlt.
+      await deleteR2({ data: { table: "project_documents", id: row.id } });
     },
     onSuccess: () => {
       toast.success("Törölve");
