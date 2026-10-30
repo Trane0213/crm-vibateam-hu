@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RecordCombobox } from "@/components/resource/record-combobox";
+import { companyEmailQueryKey, emailVisibilityHint, fetchCompanyEmails, fetchEmailFullAccess, groupEmailThreads, normalizeContactEmails } from "@/lib/company-activity";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -83,113 +84,21 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     },
   });
 
+  // 2. szakasz: közös levél-forrás a tulajdonosi/sales nézettel (company-activity).
+  const contactEmails = normalizeContactEmails((contacts.data ?? []) as any[]);
   const emails = useQuery({
-    // A cég email aktivitása thread-szintű: ha egy szál bármely résztvevője
-    // ismert céges kapcsolattartó, akkor a teljes thread összes üzenete látszik.
-    queryKey: [
-      "emails",
-      "by_company_aggregate",
-      companyId,
-      (contacts.data ?? []).map((c: any) => (c.email ?? "").toLowerCase()).sort().join(","),
-    ],
+    queryKey: companyEmailQueryKey(companyId, contactEmails),
     enabled: !contacts.isLoading,
+    queryFn: () => fetchCompanyEmails(companyId, contactEmails),
+  });
+  const emailFullAccess = useQuery({ queryKey: ["email-full-access"], queryFn: fetchEmailFullAccess, staleTime: 300_000 });
+  // Meglévő leadek — csak megjelenítés, az átadási szabály változatlan.
+  const companyLeads = useQuery({
+    queryKey: ["leads", "by_company", companyId],
     queryFn: async () => {
-      const emailSelect = "id,thread_id,subject,from_email,to_email,to_emails,cc_emails,bcc_emails,internal_date,created_at,is_outbound,company_id";
-      const threadSelect = "id,subject,last_message_at,participants,company_id";
-      const contactEmails = Array.from(
-        new Set(
-          ((contacts.data ?? []) as any[])
-            .map((c) => (c.email ?? "").trim().toLowerCase())
-            .filter(Boolean),
-        ),
-      );
-      const threadIds = new Set<string>();
-      const threadMeta = new Map<string, any>();
-      const rowsById = new Map<string, any>();
-      const addThreads = (rows: any[] | null) => {
-        for (const t of rows ?? []) {
-          if (!t?.id) continue;
-          threadIds.add(t.id);
-          threadMeta.set(t.id, t);
-        }
-      };
-      const addEmails = (rows: any[] | null) => {
-        for (const e of rows ?? []) {
-          if (!e?.id) continue;
-          rowsById.set(e.id, e);
-          if (e.thread_id) threadIds.add(e.thread_id);
-        }
-      };
-
-      // 1) Cégre kötött thread-ek.
-      const byCompanyThreads = await supabase
-        .from("email_threads")
-        .select(threadSelect)
-        .eq("company_id", companyId)
-        .order("last_message_at", { ascending: false, nullsFirst: false })
-        .limit(500);
-      if (byCompanyThreads.error) throw byCompanyThreads.error;
-      addThreads(byCompanyThreads.data as any[]);
-
-      // 2) Kapcsolattartó résztvevős thread-ek.
-      if (contactEmails.length > 0) {
-        const byParticipantThreads = await supabase
-          .from("email_threads")
-          .select(threadSelect)
-          .overlaps("participants", contactEmails)
-          .order("last_message_at", { ascending: false, nullsFirst: false })
-          .limit(500);
-        if (byParticipantThreads.error) throw byParticipantThreads.error;
-        addThreads(byParticipantThreads.data as any[]);
-      }
-
-      // 3) Közvetlen email találatok fallback-ként, ha a thread meta még hiányos.
-      const byCompanyEmails = await supabase
-        .from("emails")
-        .select(emailSelect)
-        .eq("company_id", companyId)
-        .order("internal_date", { ascending: false, nullsFirst: false })
-        .limit(500);
-      if (byCompanyEmails.error) throw byCompanyEmails.error;
-      addEmails(byCompanyEmails.data as any[]);
-
-      if (contactEmails.length > 0) {
-        const participantEmailQueries = await Promise.all([
-          supabase.from("emails").select(emailSelect).in("from_email", contactEmails).limit(500),
-          supabase.from("emails").select(emailSelect).in("to_email", contactEmails).limit(500),
-          supabase.from("emails").select(emailSelect).overlaps("to_emails", contactEmails).limit(500),
-          supabase.from("emails").select(emailSelect).overlaps("cc_emails", contactEmails).limit(500),
-          supabase.from("emails").select(emailSelect).overlaps("bcc_emails", contactEmails).limit(500),
-        ]);
-        for (const r of participantEmailQueries) {
-          if (r.error) throw r.error;
-          addEmails(r.data as any[]);
-        }
-      }
-
-      // 4) A megtalált thread-ek teljes üzenetanyaga — ez a lényegi javítás.
-      const ids = Array.from(threadIds);
-      for (let i = 0; i < ids.length; i += 100) {
-        const chunk = ids.slice(i, i + 100);
-        const r = await supabase
-          .from("emails")
-          .select(emailSelect)
-          .in("thread_id", chunk)
-          .order("internal_date", { ascending: false, nullsFirst: false })
-          .limit(1000);
-        if (r.error) throw r.error;
-        addEmails(r.data as any[]);
-      }
-
-      return Array.from(rowsById.values()).map((row) => ({
-        ...row,
-        subject: row.subject ?? (row.thread_id ? threadMeta.get(row.thread_id)?.subject : null),
-        participants: row.thread_id ? threadMeta.get(row.thread_id)?.participants : undefined,
-      })).sort((a, b) => {
-        const ad = a.internal_date ?? a.created_at ?? "";
-        const bd = b.internal_date ?? b.created_at ?? "";
-        return (bd ?? "").localeCompare(ad ?? "");
-      });
+      const { data, error } = await supabase.from("leads").select("id,status,summary,created_at").eq("company_id", companyId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as any[];
     },
   });
 
@@ -344,32 +253,10 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const emailRows = emails.data ?? [];
   const emailCount = emailRows.length;
   const lastEmail = emailRows[0]?.internal_date ?? emailRows[0]?.created_at ?? null;
-  const derivedThreads = useMemo(() => {
-    const byThread = new Map<string, {
-      id: string; subject: string | null;
-      last_message_at: string | null; count: number;
-      participants: string[];
-    }>();
-    for (const e of emailRows as any[]) {
-      const key = e.thread_id ?? e.id;
-      const at = e.internal_date ?? e.created_at;
-      const cur = byThread.get(key) ?? {
-        id: key, subject: e.subject ?? null, last_message_at: at,
-        count: 0, participants: [] as string[],
-      };
-      cur.count++;
-      if (!cur.subject && e.subject) cur.subject = e.subject;
-      if (!cur.last_message_at || (at && at > cur.last_message_at)) cur.last_message_at = at;
-      for (const a of [e.from_email, e.to_email, ...(e.to_emails ?? []), ...(e.participants ?? [])].filter(Boolean) as string[]) {
-        if (!cur.participants.includes(a)) cur.participants.push(a);
-      }
-      byThread.set(key, cur);
-    }
-    return Array.from(byThread.values()).sort((a, b) =>
-      (b.last_message_at ?? "").localeCompare(a.last_message_at ?? ""),
-    );
-  }, [emailRows]);
+  const derivedThreads = useMemo(() => groupEmailThreads(emailRows as any[]), [emailRows]);
   const threadCount = derivedThreads.length;
+  const emailHint = emailVisibilityHint(emailFullAccess.data, emailCount);
+  const leadRows = companyLeads.data ?? [];
 
   if (cust.isLoading) return <div className="p-6 text-sm text-muted-foreground">Cég betöltése…</div>;
   if (cust.error || !cust.data) {
@@ -533,10 +420,12 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         </div>
 
         {/* Kompakt KPI csík — informatív, nem akciógomb */}
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
           <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} />
-          <Mini label="Email aktivitás" value={String(emailCount)} icon={Mail}
-                hint={lastEmail ? `utolsó: ${fmtDate(lastEmail)} · ${threadCount} szál` : "nincs üzenet"} />
+          <Mini label="Email aktivitás" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail}
+                hint={lastEmail ? `utolsó: ${fmtDate(lastEmail)} · ${threadCount} szál` : emailHint ? "nincs látható levél (jogosultság)" : "nincs üzenet"} />
+          <Mini label="Meglévő lead" value={String(leadRows.length)} icon={Sparkles}
+                hint={leadRows[0] ? `legutóbbi: ${leadRows[0].status ?? "—"}` : undefined} />
           <Mini label="Dokumentumok" value={String(docsCount.data ?? 0)} icon={FolderOpen} />
           <Mini label="Felvéve" value={fmtDate(c.created_at)} icon={Calendar} />
         </div>
@@ -548,7 +437,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Email aktivitás ({emailCount})</TabsTrigger>
+            <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Email aktivitás ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
             <TabsTrigger value="sales-note">
               <StickyNote className="mr-1.5 h-3.5 w-3.5" />
@@ -649,9 +538,10 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 </Button>
               )}
             </div>
+            {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
             {emailCount === 0 ? (
-              <EmptyState icon={Mail} title="Nincs email aktivitás"
-                description="Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül." />
+              <EmptyState icon={Mail} title={emailHint ? "Nincs számodra látható levél" : "Nincs email aktivitás"}
+                description={emailHint ? "A levelezés a hozzád rendelt postafiókok szerint szűrt." : "Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül."} />
             ) : (
               <div className="rounded-md border bg-card overflow-hidden">
                 <table className="w-full text-sm">
@@ -716,7 +606,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         companyId={companyId}
         contactId={composer?.contactId}
         onSent={() => {
-          qc.invalidateQueries({ queryKey: ["emails", "by_company", companyId] });
+          qc.invalidateQueries({ queryKey: ["emails", "by_company_aggregate", companyId] });
           qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
           qc.invalidateQueries({ queryKey: ["mkt-home", "marketing-companies"] });
           qc.invalidateQueries({ queryKey: ["campaign-list", "marketing-universe"] });
