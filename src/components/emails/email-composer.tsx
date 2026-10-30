@@ -100,12 +100,9 @@ export function EmailComposer({
           toast.error(`Túl nagy: ${f.name}`, { description: "Max 20 MB / fájl" });
           continue;
         }
-        const safe = f.name.replace(/[^\w.\-]+/g, "_");
-        const key = `outbound-attachments/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safe}`;
         const fd = new FormData();
         fd.append("file", f, f.name);
-        fd.append("key", key);
-        fd.append("contentType", f.type || "application/octet-stream");
+        fd.append("purpose", "outbound");
         const { data: sess } = await supabase.auth.getSession();
         const token = sess.session?.access_token;
         const put = await fetch("/api/r2-upload", {
@@ -117,6 +114,7 @@ export function EmailComposer({
           const j = await put.json().catch(() => ({}));
           throw new Error(`R2 feltöltés (${put.status}) ${j?.error ?? ""}`.trim());
         }
+        const { key } = (await put.json()) as { key: string };
         next.push({ key, filename: f.name, mime_type: f.type || "application/octet-stream", size_bytes: f.size });
       }
       setAttachments((a) => [...a, ...next]);
