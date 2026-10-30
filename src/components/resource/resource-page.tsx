@@ -533,16 +533,26 @@ export function fmtDateTime(v: any): string {
 /** Generic resolver of foreign-key id → label, used by columns. */
 export function useLookup(table: string, labelColumn: string) {
   const requested = useRef(new Set<string>());
+  const scheduled = useRef(false);
   const [ids, setIds] = useState<string[]>([]);
-  useEffect(() => {
+  const sync = () => {
     const next = [...requested.current].sort();
-    if (next.join(",") !== ids.join(",")) setIds(next);
-  });
+    setIds((prev) => (next.join(",") === prev.join(",") ? prev : next));
+  };
+  useEffect(() => { sync(); });
   const { data } = useRefOptions(table, labelColumn, ids);
   const map = new Map((data ?? []).map((o) => [o.value, o.label]));
   return (id: string | null | undefined) => {
     if (!id) return "—";
-    requested.current.add(id);
+    if (!requested.current.has(id)) {
+      requested.current.add(id);
+      // A címkét gyakran egy gyermek (táblázat) rendereli, amikor a szülő nem
+      // renderel újra — ezért a lekérést itt is ütemezzük, nem csak a szülő effectjében.
+      if (!scheduled.current) {
+        scheduled.current = true;
+        queueMicrotask(() => { scheduled.current = false; sync(); });
+      }
+    }
     return map.get(id) ?? "—";
   };
 }
