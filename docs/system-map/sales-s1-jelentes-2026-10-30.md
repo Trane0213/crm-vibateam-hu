@@ -104,3 +104,12 @@ Ramon jelszavának biztonságos megadása után (Lovable Secret, pl. `SALES_E2E_
 
 ### 6.D Itt maradt TESZT adat
 - `followups` 7ab7beb4-866a-452c-9263-d978dcc0b8a4 (TESZT hívás a TESZT-leaden). Éles adat nem változott, levél nem ment ki, nem publikáltam.
+
+## S1 célzott blokkoló javítás – hamis „Következő lépés mentve" (2026-10-30)
+- Ok (IGAZOLT): RLS által kiszűrt `leads` update hiba nélkül 0 sort ad; a kód ezt sikernek vette (toast + activity log).
+- Javítás: új `src/lib/sales/lead-update.ts` (`updateLeadOrThrow`: `.update().eq().select("id")`, pontosan 1 sor = siker, különben érthető hiba; log/toast nem fut). Átkötve: `use-lead-mutations.ts` (useUpdateLead), `pipeline-detail-sheet.tsx` (státusz, lost, next step), `sales-prep-panel.tsx` (Pipeline-ba léptetés). Hiba esetén az űrlap értékei megmaradnak (onError nem töröl).
+- RLS, séma, Sales-szabály: nem változott. Nincs migráció.
+- Teszt: `src/lib/sales/lead-update.test.ts` 3/3 (1 sor siker, 0 sor / null hiba, több sor hiba); teljes Vitest 44/44; build OK.
+- Élő böngészős teszt (tiltott Ramon-lead, saját TESZT – Sales S1 mentés lead): NEM FUTOTT — a chatben szerepelt jelszó nem használható újra, biztonságos titok nincs megadva. TESZT – Sales S1 mentés lead nem jött létre.
+- Visszaállítás: a 4 fájl verziótörténetből, `lead-update.ts(+test)` törlése. Publikálás szükséges, nem történt.
+- Maradó TESZT adat: followups 7ab7beb4-… (korábbi TESZT hívás).
