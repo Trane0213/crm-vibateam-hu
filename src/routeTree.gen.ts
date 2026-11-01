@@ -83,6 +83,7 @@ import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refr
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
 import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
+import { Route as ApiPublicWebsiteLeadSyncRouteImport } from './routes/api/public/website-lead-sync'
 import { Route as AuthenticatedQuotesIdPrintRouteImport } from './routes/_authenticated/quotes.$id_.print'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
 import { Route as ApiGmailOauthStartRouteImport } from './routes/api/gmail/oauth.start'
@@ -503,6 +504,12 @@ const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
   path: '/api/gmail/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebsiteLeadSyncRoute =
+  ApiPublicWebsiteLeadSyncRouteImport.update({
+    id: '/api/public/website-lead-sync',
+    path: '/api/public/website-lead-sync',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedQuotesIdPrintRoute =
   AuthenticatedQuotesIdPrintRouteImport.update({
     id: '/quotes/$id_/print',
@@ -611,6 +618,7 @@ export interface FileRoutesByFullPath {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/api/public/website-lead-sync': typeof ApiPublicWebsiteLeadSyncRoute
   '/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/contacts/': typeof AuthenticatedContactsIndexRoute
@@ -692,6 +700,7 @@ export interface FileRoutesByTo {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/api/public/website-lead-sync': typeof ApiPublicWebsiteLeadSyncRoute
   '/attendance': typeof AuthenticatedAttendanceIndexRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
   '/contacts': typeof AuthenticatedContactsIndexRoute
@@ -777,6 +786,7 @@ export interface FileRoutesById {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/api/public/website-lead-sync': typeof ApiPublicWebsiteLeadSyncRoute
   '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
   '/_authenticated/contacts/': typeof AuthenticatedContactsIndexRoute
@@ -862,6 +872,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/api/public/website-lead-sync'
     | '/attendance/'
     | '/companies/'
     | '/contacts/'
@@ -943,6 +954,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/api/public/website-lead-sync'
     | '/attendance'
     | '/companies'
     | '/contacts'
@@ -1027,6 +1039,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/api/public/website-lead-sync'
     | '/_authenticated/attendance/'
     | '/_authenticated/companies/'
     | '/_authenticated/contacts/'
@@ -1060,6 +1073,7 @@ export interface RootRouteChildren {
   ApiGmailSendRoute: typeof ApiGmailSendRoute
   ApiGmailStatusRoute: typeof ApiGmailStatusRoute
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
+  ApiPublicWebsiteLeadSyncRoute: typeof ApiPublicWebsiteLeadSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
   ApiGoogleAdsOauthCallbackRoute: typeof ApiGoogleAdsOauthCallbackRoute
@@ -1589,6 +1603,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGmailSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/website-lead-sync': {
+      id: '/api/public/website-lead-sync'
+      path: '/api/public/website-lead-sync'
+      fullPath: '/api/public/website-lead-sync'
+      preLoaderRoute: typeof ApiPublicWebsiteLeadSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/quotes/$id_/print': {
       id: '/_authenticated/quotes/$id_/print'
       path: '/quotes/$id/print'
@@ -1826,6 +1847,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSendRoute: ApiGmailSendRoute,
   ApiGmailStatusRoute: ApiGmailStatusRoute,
   ApiGmailSyncRoute: ApiGmailSyncRoute,
+  ApiPublicWebsiteLeadSyncRoute: ApiPublicWebsiteLeadSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,
   ApiGoogleAdsOauthCallbackRoute: ApiGoogleAdsOauthCallbackRoute,

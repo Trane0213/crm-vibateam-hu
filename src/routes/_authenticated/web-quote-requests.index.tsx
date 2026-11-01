@@ -26,6 +26,9 @@ const SOURCE_LABEL: Record<string, { label: string; tone: string }> = {
   lakossagi: { label: "Lakossági", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
   tarsashazi: { label: "Társasházi", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
   general: { label: "Generál", tone: "bg-amber-50 text-amber-700 border-amber-200" },
+  kapcsolat: { label: "Kapcsolat", tone: "bg-muted text-foreground border-border" },
+  visszahivas: { label: "Visszahívás", tone: "bg-muted text-foreground border-border" },
+  letoltes: { label: "Letöltés", tone: "bg-muted text-foreground border-border" },
 };
 
 function SourceBadge({ value }: { value: string | null }) {
@@ -131,13 +134,13 @@ function WebQuoteRequestsPage() {
                       <TableCell className="font-mono text-xs">{r.phone || "—"}</TableCell>
                       <TableCell className="text-xs">{r.email || "—"}</TableCell>
                       <TableCell>
-                        <SourceBadge value={r.form_type} />
+                        <SourceBadge value={r.source_type ?? r.form_type} />
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {r.project_type || "—"}
                       </TableCell>
                       <TableCell>
-                        {r.attachment_url ? (
+                        {r.attachment_url || r.attachment_path ? (
                           <Paperclip className="h-4 w-4 text-muted-foreground" />
                         ) : null}
                       </TableCell>

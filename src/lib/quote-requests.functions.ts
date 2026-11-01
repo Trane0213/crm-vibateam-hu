@@ -17,7 +17,26 @@ export type QuoteRequest = {
   company_name: string | null;
   apartment_count: string | null;
   consent: boolean | null;
+  source_lead_id?: string | null;
+  source_type?: string | null;
+  source_page?: string | null;
+  origin_page?: string | null;
+  entry_page?: string | null;
+  utm?: Record<string, string> | null;
+  attachment_path?: string | null;
+  source_created_at?: string | null;
+  synced_at?: string | null;
 };
+
+/** Ugyanaz a szerepkör-lista, mint a /web-quote-requests route-jogosultság (permissions.ts). */
+export const QUOTE_REQUEST_VIEWER_ROLES = ["owner", "admin", "project_manager", "marketing", "sales"];
+
+async function assertViewer(supabase: { rpc: (fn: string, args: object) => PromiseLike<{ data: unknown; error: unknown }> }, userId: string) {
+  const { data, error } = await supabase.rpc("crm_role_of", { _auth_user: userId });
+  if (error || typeof data !== "string" || !QUOTE_REQUEST_VIEWER_ROLES.includes(data)) {
+    throw new Error("Nincs jogosultságod a weboldali ajánlatkérésekhez.");
+  }
+}
 
 /**
  * Read-only listing of website inbound quote requests
@@ -29,13 +48,14 @@ export type QuoteRequest = {
  */
 export const listQuoteRequests = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async (): Promise<QuoteRequest[]> => {
+  .handler(async ({ context }): Promise<QuoteRequest[]> => {
+    await assertViewer(context.supabase as never, context.userId);
     const { getAdminClient } = await import("@/integrations/supabase/server");
     const admin = getAdminClient();
     const { data, error } = await admin
       .from("quote_requests")
       .select(
-        "id,name,phone,email,project_type,message,attachment_url,created_at,form_type,property_type,budget,company_name,apartment_count,consent",
+        "id,name,phone,email,project_type,message,attachment_url,created_at,form_type,property_type,budget,company_name,apartment_count,consent,source_lead_id,source_type,source_page,origin_page,entry_page,attachment_path,source_created_at,synced_at",
       )
       .order("created_at", { ascending: false })
       .limit(500);
@@ -46,7 +66,8 @@ export const listQuoteRequests = createServerFn({ method: "GET" })
 export const getQuoteRequest = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
-  .handler(async ({ data }): Promise<QuoteRequest | null> => {
+  .handler(async ({ data, context }): Promise<QuoteRequest | null> => {
+    await assertViewer(context.supabase as never, context.userId);
     const { getAdminClient } = await import("@/integrations/supabase/server");
     const admin = getAdminClient();
     const { data: row, error } = await admin
