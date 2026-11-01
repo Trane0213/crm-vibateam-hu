@@ -52,15 +52,24 @@ export const listQuoteRequests = createServerFn({ method: "GET" })
     await assertViewer(context.supabase as never, context.userId);
     const { getAdminClient } = await import("@/integrations/supabase/server");
     const admin = getAdminClient();
-    const { data, error } = await admin
-      .from("quote_requests")
-      .select(
-        "id,name,phone,email,project_type,message,attachment_url,created_at,form_type,property_type,budget,company_name,apartment_count,consent,source_lead_id,source_type,source_page,origin_page,entry_page,attachment_path,source_created_at,synced_at",
-      )
-      .order("created_at", { ascending: false })
-      .limit(500);
-    if (error) throw new Error(error.message);
-    return (data ?? []) as QuoteRequest[];
+    // Lapozott beolvasás (1000-es oldalak, max 10 000 sor) — nincs csendes 500-as levágás.
+    const PAGE = 1000;
+    const all: QuoteRequest[] = [];
+    for (let from = 0; from < 10_000; from += PAGE) {
+      const { data, error } = await admin
+        .from("quote_requests")
+        .select(
+          "id,name,phone,email,project_type,message,attachment_url,created_at,form_type,property_type,budget,company_name,apartment_count,consent,source_lead_id,source_type,source_page,origin_page,entry_page,attachment_path,source_created_at,synced_at",
+        )
+        .order("source_created_at", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) throw new Error(error.message);
+      all.push(...((data ?? []) as QuoteRequest[]));
+      if (!data || data.length < PAGE) break;
+    }
+    return all;
   });
 
 export const getQuoteRequest = createServerFn({ method: "GET" })
