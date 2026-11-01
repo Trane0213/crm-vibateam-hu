@@ -94,7 +94,16 @@ function WebQuoteRequestDetail() {
                   )}
                 </div>
 
-                <Field label="Forrás (form_type)" value={data.form_type} />
+                <Field label="Forrás" value={data.source_type ?? data.form_type} />
+                <Field label="Forrás oldal" value={data.source_page} />
+                <Field label="Eredeti oldal" value={data.origin_page} />
+                <Field label="Belépő oldal" value={data.entry_page} />
+                <Field
+                  label="UTM"
+                  value={data.utm ? Object.entries(data.utm).map(([k, v]) => `${k}=${v}`).join(", ") : null}
+                />
+                <Field label="Weboldali lead ID" value={data.source_lead_id ? <span className="font-mono text-xs">{data.source_lead_id}</span> : null} />
+                <Field label="Szinkronizálva" value={data.synced_at ? formatDateTime(data.synced_at) : null} />
                 <Field label="Projekt típus" value={data.project_type} />
                 <Field label="Ingatlan típus" value={data.property_type} />
                 <Field label="Lakásszám" value={data.apartment_count} />
@@ -149,6 +158,10 @@ function WebQuoteRequestDetail() {
                       {data.attachment_url}
                     </a>
                   </div>
+                ) : data.attachment_path ? (
+                  <p className="text-sm text-muted-foreground">
+                    Csatolmány a weboldal tárhelyén: <span className="font-mono text-xs">{data.attachment_path}</span>
+                  </p>
                 ) : (
                   <p className="text-sm text-muted-foreground">Nincs csatolmány.</p>
                 )}
