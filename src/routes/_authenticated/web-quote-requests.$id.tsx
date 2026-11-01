@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { formatDateTime } from "@/lib/format";
 import { getQuoteRequest } from "@/lib/quote-requests.functions";
+import { receivedAt, isTestRequest, payloadEntries } from "@/lib/quote-request-display";
 
 export const Route = createFileRoute("/_authenticated/web-quote-requests/$id")({
   component: WebQuoteRequestDetail,
@@ -67,15 +68,20 @@ function WebQuoteRequestDetail() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-base">
                   <span>{data.name || "(név nélkül)"}</span>
-                  {data.form_type && (
-                    <Badge variant="outline">{data.form_type}</Badge>
-                  )}
+                  <span className="flex gap-2">
+                    {isTestRequest(data) && (
+                      <Badge variant="outline" className="border-destructive/40 text-destructive">TESZT</Badge>
+                    )}
+                    {data.form_type && (
+                      <Badge variant="outline">{data.form_type}</Badge>
+                    )}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
                 <div className="mb-3 flex flex-wrap gap-3 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" /> {formatDateTime(data.created_at)}
+                    <Calendar className="h-3.5 w-3.5" /> Weboldalon beérkezett: {formatDateTime(receivedAt(data))}
                   </span>
                   {data.email && (
                     <a href={`mailto:${data.email}`} className="inline-flex items-center gap-1 hover:text-foreground">
@@ -128,6 +134,26 @@ function WebQuoteRequestDetail() {
                 ) : (
                   <p className="text-sm text-muted-foreground">Nincs üzenet.</p>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <details>
+                  <summary className="cursor-pointer text-sm font-medium">Eredeti űrlapadatok</summary>
+                  {(() => {
+                    const entries = payloadEntries(data.payload);
+                    return entries.length === 0 ? (
+                      <p className="mt-2 text-sm text-muted-foreground">Nincs további űrlapadat.</p>
+                    ) : (
+                      <div className="mt-2">
+                        {entries.map(([k, v]) => (
+                          <Field key={k} label={k} value={<span className="whitespace-pre-wrap">{v}</span>} />
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </details>
               </CardContent>
             </Card>
 

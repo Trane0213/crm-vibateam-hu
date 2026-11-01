@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { formatDateTime } from "@/lib/format";
 import { listQuoteRequests } from "@/lib/quote-requests.functions";
+import { receivedAt, isTestRequest } from "@/lib/quote-request-display";
 
 export const Route = createFileRoute("/_authenticated/web-quote-requests/")({
   component: WebQuoteRequestsPage,
@@ -117,7 +118,10 @@ function WebQuoteRequestsPage() {
                           params={{ id: r.id }}
                           className="block"
                         >
-                          {formatDateTime(r.created_at)}
+                          {formatDateTime(receivedAt(r))}
+                          {r.synced_at && (
+                            <div className="text-[10px]">CRM: {formatDateTime(r.synced_at)}</div>
+                          )}
                         </Link>
                       </TableCell>
                       <TableCell>
@@ -127,6 +131,9 @@ function WebQuoteRequestsPage() {
                           className="font-medium text-foreground hover:underline"
                         >
                           {r.name || "—"}
+                          {isTestRequest(r) && (
+                            <Badge variant="outline" className="ml-2 border-destructive/40 text-destructive">TESZT</Badge>
+                          )}
                         </Link>
                         {r.company_name && (
                           <div className="text-xs text-muted-foreground">{r.company_name}</div>
