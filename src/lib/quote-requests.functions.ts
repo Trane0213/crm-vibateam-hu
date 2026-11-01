@@ -26,6 +26,7 @@ export type QuoteRequest = {
   attachment_path?: string | null;
   source_created_at?: string | null;
   synced_at?: string | null;
+  payload?: unknown;
 };
 
 /** Ugyanaz a szerepkör-lista, mint a /web-quote-requests route-jogosultság (permissions.ts). */
