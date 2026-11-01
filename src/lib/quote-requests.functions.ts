@@ -23,7 +23,6 @@ export type QuoteRequest = {
   origin_page?: string | null;
   entry_page?: string | null;
   utm?: Record<string, string> | null;
-  payload?: Record<string, unknown> | null;
   attachment_path?: string | null;
   source_created_at?: string | null;
   synced_at?: string | null;
