@@ -29,6 +29,7 @@ const SOURCE_LABEL: Record<string, { label: string; tone: string }> = {
   kapcsolat: { label: "Kapcsolat", tone: "bg-muted text-foreground border-border" },
   visszahivas: { label: "Visszahívás", tone: "bg-muted text-foreground border-border" },
   letoltes: { label: "Letöltés", tone: "bg-muted text-foreground border-border" },
+  chat: { label: "Chat", tone: "bg-muted text-foreground border-border" },
 };
 
 function SourceBadge({ value }: { value: string | null }) {

@@ -51,8 +51,25 @@ describe("payload", () => {
       expect(r.ok, t).toBe(true);
     }
   });
-  it("rejects unknown source_type", () => {
-    expect(parseWebsiteLead(body({ source_type: "spam" })).ok).toBe(false);
+  it("accepts chat and safe custom labels (e.g. cikk)", () => {
+    expect(parseWebsiteLead(body({ source_type: "chat" })).ok).toBe(true);
+    const r = parseWebsiteLead(body({ source_type: "cikk" }));
+    expect(r.ok && r.data.source_type).toBe("cikk");
+  });
+  it("rejects unsafe source_type labels", () => {
+    for (const t of ["", "Spam Label", "a/b", "<script>", "x".repeat(41), "-lead"]) {
+      expect(parseWebsiteLead(body({ source_type: t })).ok).toBe(false);
+    }
+  });
+  it("keeps website meta but strips secrets, tokens and signed URLs from payload", () => {
+    const r = parseWebsiteLead(body({ payload: {
+      request_intent: "ajanlat", location: "Budapest", attachment_name: "terv.pdf", has_attachment: true,
+      attachment_token: "abc", secret: "s", nested: { api_key: "k", ok: "1" },
+      download_url: "https://x.supabase.co/storage/v1/object/sign/a.pdf?token=eyJabc",
+    } }));
+    expect(r.ok && r.data.payload).toEqual({
+      request_intent: "ajanlat", location: "Budapest", attachment_name: "terv.pdf", has_attachment: true, nested: { ok: "1" },
+    });
   });
   it("rejects missing lead_id", () => {
     const { lead_id: _x, ...rest } = base;

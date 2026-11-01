@@ -18,7 +18,44 @@ export const SOURCE_TYPES = [
   "kapcsolat",
   "visszahivas",
   "letoltes",
+  "chat",
 ] as const;
+
+/**
+ * Egyedi forráscímke (pl. MiniContactCTA: "cikk"): kisbetű, szám, _ és -, max 40 karakter.
+ * A 7 alap típus mellett a hitelesített webhook ezeket is elfogadja.
+ */
+export const SOURCE_TYPE_RE = /^[a-z0-9][a-z0-9_-]{0,39}$/;
+export function isKnownSourceType(t: string): boolean {
+  return (SOURCE_TYPES as readonly string[]).includes(t);
+}
+
+// --- Payload szűrés (secret / token / aláírt URL soha nem tárolódik) ------
+const FORBIDDEN_KEY_RE = /secret|token|signature|password|passwd|api[_-]?key|authorization|cookie|signed|credential/i;
+const FORBIDDEN_VALUE_RE = /(token=|signature=|x-amz-|sig=|expires=|^bearer\s|sk_live|sk_test|^eyJ[A-Za-z0-9_-]+\.)/i;
+const MAX_PAYLOAD_DEPTH = 4;
+
+export function sanitizePayload(value: unknown, depth = 0): unknown {
+  if (value === null || typeof value === "boolean" || typeof value === "number") return value;
+  if (typeof value === "string") {
+    const v = value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").slice(0, 2000);
+    return FORBIDDEN_VALUE_RE.test(v) ? undefined : v;
+  }
+  if (depth >= MAX_PAYLOAD_DEPTH) return undefined;
+  if (Array.isArray(value)) {
+    return value.slice(0, 50).map((x) => sanitizePayload(x, depth + 1)).filter((x) => x !== undefined);
+  }
+  if (typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>).slice(0, 100)) {
+      if (k.length > 60 || FORBIDDEN_KEY_RE.test(k)) continue;
+      const c = sanitizePayload(v, depth + 1);
+      if (c !== undefined) out[k] = c;
+    }
+    return out;
+  }
+  return undefined;
+}
 
 export type SyncErrorCode =
   | "missing_auth"
@@ -106,7 +143,7 @@ export const websiteLeadSchema = z
   .object({
     lead_id: z.string().uuid(),
     created_at: z.string().datetime({ offset: true }),
-    source_type: z.enum(SOURCE_TYPES),
+    source_type: z.string().trim().toLowerCase().regex(SOURCE_TYPE_RE),
     name: clean(200),
     email: z.string().trim().max(254).email().nullable().optional(),
     phone: clean(50),
@@ -167,7 +204,8 @@ export function parseWebsiteLead(rawBody: string): ParseResult {
   if (d.payload && JSON.stringify(d.payload).length > 32 * 1024) {
     return { ok: false, code: "payload_too_large" };
   }
-  return { ok: true, data: d };
+  const payload = d.payload ? (sanitizePayload(d.payload) as Record<string, unknown>) : d.payload;
+  return { ok: true, data: { ...d, payload } };
 }
 
 /** quote_requests sorrá alakítás. A form_type a source_type-ot tükrözi (meglévő lista ezt mutatja). */
