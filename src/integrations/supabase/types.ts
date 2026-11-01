@@ -2783,51 +2783,84 @@ export type Database = {
       quote_requests: {
         Row: {
           apartment_count: string | null
+          attachment_path: string | null
           attachment_url: string | null
           budget: string | null
           company_name: string | null
           consent: boolean | null
           created_at: string | null
           email: string | null
+          entry_page: string | null
           form_type: string | null
           id: string
           message: string | null
           name: string
+          origin_page: string | null
+          payload: Json | null
           phone: string | null
           project_type: string | null
           property_type: string | null
+          source_created_at: string | null
+          source_lead_id: string | null
+          source_page: string | null
+          source_system: string | null
+          source_type: string | null
+          synced_at: string | null
+          utm: Json | null
         }
         Insert: {
           apartment_count?: string | null
+          attachment_path?: string | null
           attachment_url?: string | null
           budget?: string | null
           company_name?: string | null
           consent?: boolean | null
           created_at?: string | null
           email?: string | null
+          entry_page?: string | null
           form_type?: string | null
           id?: string
           message?: string | null
           name: string
+          origin_page?: string | null
+          payload?: Json | null
           phone?: string | null
           project_type?: string | null
           property_type?: string | null
+          source_created_at?: string | null
+          source_lead_id?: string | null
+          source_page?: string | null
+          source_system?: string | null
+          source_type?: string | null
+          synced_at?: string | null
+          utm?: Json | null
         }
         Update: {
           apartment_count?: string | null
+          attachment_path?: string | null
           attachment_url?: string | null
           budget?: string | null
           company_name?: string | null
           consent?: boolean | null
           created_at?: string | null
           email?: string | null
+          entry_page?: string | null
           form_type?: string | null
           id?: string
           message?: string | null
           name?: string
+          origin_page?: string | null
+          payload?: Json | null
           phone?: string | null
           project_type?: string | null
           property_type?: string | null
+          source_created_at?: string | null
+          source_lead_id?: string | null
+          source_page?: string | null
+          source_system?: string | null
+          source_type?: string | null
+          synced_at?: string | null
+          utm?: Json | null
         }
         Relationships: []
       }
