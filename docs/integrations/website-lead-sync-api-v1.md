@@ -44,7 +44,7 @@ const res = await fetch(CRM_URL, { method: "POST", body: raw,
 |---|---|---|---|
 | lead_id | uuid | igen | a weboldali `public.leads.id` – idempotencia kulcs |
 | created_at | ISO-8601 időzónával | igen | eredeti beküldési idő |
-| source_type | `lakossagi`\|`tarsashazi`\|`general`\|`kapcsolat`\|`visszahivas`\|`letoltes` | igen | |
+| source_type | alap: `lakossagi`\|`tarsashazi`\|`general`\|`kapcsolat`\|`visszahivas`\|`letoltes`\|`chat`; egyedi címke is: `^[a-z0-9][a-z0-9_-]{0,39}$` (pl. `cikk`) | igen | kisbetűsítve tárolódik |
 | name, email, phone | string/null | legalább egy | `visszahivas`: phone kötelező, email elhagyható |
 | source_page, origin_page, entry_page | string ≤500 | nem | relatív útvonal vagy URL |
 | utm | objektum `{utm_source: "...", ...}` | nem | csak string értékek |
@@ -81,3 +81,7 @@ Egyszeri szerveroldali script/edge function a weboldali projektben: a saját `pu
 
 ## Mit lát a CRM
 „Weboldali ajánlatkérések” lista és részletoldal: forrás, név, elérhetőség, forrás-/belépő oldal, UTM, üzenet, csatolmány útvonala, weboldali lead ID, teljes eredeti adat. Megtekintés: owner, admin, projektvezető, marketing, sales.
+
+
+## v1.1 (2026-11-01) – payload szűrés
+A `payload` (pl. `request_intent`, `location`, `attachment_name`, `has_attachment`) JSONB-ben tárolódik, de a CRM eldobja: a secret/token/signature/password/api_key/authorization/cookie/signed/credential nevű kulcsokat, valamint az aláírt URL-nek vagy tokennek látszó szövegeket (`token=`, `signature=`, `X-Amz-`, JWT). Max. mélység 4, 100 kulcs, 50 tömbelem, 2000 karakter/szöveg.
