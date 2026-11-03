@@ -30,7 +30,8 @@ describe('P4 authenticated metadata boundaries',()=>{
   await expect(loadSalesWatch(c.sb,'own')).rejects.toThrow('nincs jogosultság');
   expect(mocks.daily).not.toHaveBeenCalled();expect(c.from).not.toHaveBeenCalled();
  });
- it.each(['sales','owner'])('keeps %s own-only and uses exact own message owner',async()=>{
+ it.each(['sales','owner'])('keeps %s own-only and uses exact own message owner',async(role)=>{
+  mocks.role.mockResolvedValue(role);
   const c=client();const res=await loadSalesWatch(c.sb,'own',new Date('2026-11-03T12:00:00Z'));
   expect(mocks.daily).toHaveBeenCalledWith(c.sb,'own',false,new Date('2026-11-03T12:00:00Z'));
   expect(res.signals[0]?.sourceId).toBe('TESZT-reply');
