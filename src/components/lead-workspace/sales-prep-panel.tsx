@@ -15,7 +15,8 @@ import { Phone, Mail, Users, ListChecks, Activity, ArrowRight, XCircle, ChevronR
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { useServerFn } from "@tanstack/react-start";
+import { recordPrepActivity } from "@/lib/sales/prep-activity.functions";
 import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -44,23 +45,17 @@ const ACTIVITY_ICON: Record<ActivityType, React.ComponentType<{ className?: stri
   meeting: Users,
 };
 
-function toLocalInput(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
   const qc = useQueryClient();
+  const recordActivity = useServerFn(recordPrepActivity);
   const updateLead = useUpdateLead(leadId);
 
   const lead = useQuery({
     queryKey: ["leads", "detail", leadId],
     enabled: !!leadId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("leads").select("*").eq("id", leadId!).maybeSingle();
+      if (!leadId) throw new Error("Nincs kiválasztott lead.");
+      const { data, error } = await supabase.from("leads").select("*").eq("id", leadId).maybeSingle();
       if (error) throw error;
       return data as any;
     },
@@ -72,10 +67,12 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
     queryKey: ["leads", "prep", "activities", leadId],
     enabled: !!leadId,
     queryFn: async () => {
+      if (!leadId) throw new Error("Nincs kiválasztott lead.");
       const { data, error } = await supabase
         .from("followups")
         .select("id,followup_type,result,due_date,created_at,completed")
-        .eq("lead_id", leadId!)
+        .eq("lead_id", leadId)
+        .eq("completed", true)
         .in("followup_type", ["call", "email", "meeting"])
         .order("created_at", { ascending: false })
         .limit(10);
@@ -89,18 +86,9 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
   const [pipelineOpen, setPipelineOpen] = useState(false);
 
   const createActivity = useMutation({
-    mutationFn: async (input: { type: ActivityType; result: string; when: string }) => {
+    mutationFn: async (input: { type: "call" | "email"; result: string }) => {
       if (!leadId) throw new Error("Nincs kiválasztott lead.");
-      const payload: Record<string, any> = {
-        lead_id: leadId,
-        company_id: lead.data?.company_id ?? null,
-        followup_type: input.type,
-        result: input.result || null,
-        due_date: input.when ? new Date(input.when).toISOString() : new Date().toISOString(),
-        completed: true,
-      };
-      const { error } = await supabase.from("followups").insert(payload);
-      if (error) throw error;
+      return recordActivity({ data: { leadId, ...input } });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["leads", "prep", "activities", leadId] });
@@ -122,6 +110,11 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         .eq("id", leadId)
         .maybeSingle();
       if (freshErr) throw freshErr;
+      const { count, error: activityError } = await supabase.from("followups")
+        .select("id", { count: "exact", head: true }).eq("lead_id", leadId)
+        .eq("completed", true).in("followup_type", ["call", "email", "meeting"]);
+      if (activityError) throw activityError;
+      if (!count) throw new Error("A Pipeline-hoz legalább egy rögzített aktivitás szükséges.");
       if (!fresh?.next_step_type || !fresh?.next_step_due_at) {
         qc.invalidateQueries({ queryKey: ["leads"] });
         throw new Error("A Pipeline-hoz mentett következő lépés típus, dátum és időpont szükséges.");
@@ -160,7 +153,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
   if (!lead.data) return <div className="p-4 text-xs text-muted-foreground">Nem található.</div>;
 
   const l = lead.data;
-  const activityCount = (activities.data ?? []).length;
+  const activityCount = activities.isError || activities.isPending ? 0 : (activities.data ?? []).length;
   const hasNextStepType = Boolean(l.next_step_type);
   const hasNextStepDue = Boolean(l.next_step_due_at);
   const hasNextStep = hasNextStepType && hasNextStepDue;
@@ -197,8 +190,8 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
 
         {/* A. Aktivitás rögzítése */}
         <Block icon={Activity} title="Aktivitás rögzítése">
-          <div className="grid grid-cols-3 gap-1.5">
-            {(["call", "email", "meeting"] as ActivityType[]).map((t) => {
+          <div className="grid grid-cols-2 gap-1.5">
+            {(["call", "email"] as const).map((t) => {
               const Icon = ACTIVITY_ICON[t];
               return (
                 <Button
@@ -299,7 +292,8 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
 
       {/* Aktivitás rögzítő dialóg */}
       <ActivityDialog
-        type={openType}
+        key={openType ?? "closed"}
+        type={openType === "meeting" ? null : openType}
         onClose={() => setOpenType(null)}
         busy={createActivity.isPending}
         onSubmit={(payload) => createActivity.mutate(payload)}
@@ -367,13 +361,12 @@ function Banner({ tone, children }: { tone: "success" | "destructive"; children:
 function ActivityDialog({
   type, onClose, onSubmit, busy,
 }: {
-  type: ActivityType | null;
+  type: "call" | "email" | null;
   onClose: () => void;
-  onSubmit: (p: { type: ActivityType; result: string; when: string }) => void;
+  onSubmit: (p: { type: "call" | "email"; result: string }) => void;
   busy?: boolean;
 }) {
   const [result, setResult] = useState("");
-  const [when, setWhen] = useState<string>(toLocalInput(new Date().toISOString()));
   // Reset on type change
   const open = type !== null;
   return (
@@ -381,19 +374,15 @@ function ActivityDialog({
       open={open}
       onOpenChange={(v) => {
         if (busy) return;
-        if (!v) { onClose(); setResult(""); setWhen(toLocalInput(new Date().toISOString())); }
+        if (!v) { onClose(); setResult(""); }
       }}
     >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{type ? `${ACTIVITY_LABEL[type]} rögzítése` : "Aktivitás"}</DialogTitle>
-          <DialogDescription>Rövid eredmény és időpont — naplózás, nem vált státuszt.</DialogDescription>
+          <DialogDescription>Megtörtént aktivitás rögzítése.</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Időpont</Label>
-            <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
-          </div>
           <div className="space-y-1.5">
             <Label>Eredmény / jegyzet</Label>
             <Textarea rows={3} value={result} onChange={(e) => setResult(e.target.value)} placeholder="Mi történt? Mit beszéltetek?" />
@@ -401,7 +390,7 @@ function ActivityDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={busy}>Mégse</Button>
-          <Button onClick={() => type && onSubmit({ type, result, when })} disabled={busy || !type}>
+          <Button onClick={() => type && onSubmit({ type, result })} disabled={busy || !type}>
             {busy ? "Mentés…" : "Rögzítés"}
           </Button>
         </DialogFooter>
