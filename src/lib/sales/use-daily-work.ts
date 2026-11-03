@@ -18,7 +18,7 @@ async function allRows<T>(query: (from: number, to: number) => PromiseLike<{ dat
 
 export function useDailyWork() {
   const { user } = useAuth();
-  const { role, isLoading } = usePermissions();
+  const { role, profile, isLoading } = usePermissions();
   const team = role === "owner";
   const now = new Date();
   return useQuery({
@@ -27,6 +27,7 @@ export function useDailyWork() {
     refetchInterval: 60_000,
     queryFn: async () => {
       if (!user) throw new Error("Bejelentkezés szükséges.");
+      if (!profile?.roles?.name) throw new Error("A felhasználói profil és szerepkör betöltése sikertelen.");
       const leads = await allRows<DailyLead>((from, to) => {
         let q = supabase.from("leads").select("id,assigned_to,status,summary,source,company_id,contact_id,created_at,next_step_type,next_step_due_at,pipeline_entered_at")
           .not("status", "in", "(won,lost)").order("id");
