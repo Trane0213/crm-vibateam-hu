@@ -10,6 +10,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 import type { ChatMessage } from "./types";
 import { z } from "zod";
 import { decisionSchema, statusSchema } from "./approval";
+import { progressLabel } from './progress';
 
 type RunInput = {
   agentId: string;
@@ -49,6 +50,15 @@ export const runAiAgent = createServerFn({ method: "POST" })
       history: data.history,
       memorySubjects: data.memorySubjects,
     });
+  });
+export const getOwnRunProgress=createServerFn({method:'POST'})
+  .middleware([requireSupabaseAuth])
+  .inputValidator((v:unknown)=>z.object({threadId:z.string().uuid(),since:z.string().datetime()}).strict().parse(v))
+  .handler(async({data,context})=>{
+    const run=await context.supabase.from('agent_runs').select('id,status').eq('user_id',context.userId).eq('thread_id',data.threadId).gte('started_at',data.since).order('started_at',{ascending:false}).limit(1).maybeSingle();
+    if(run.error || !run.data)return null;
+    const step=await context.supabase.from('agent_run_steps').select('tool_name').eq('run_id',run.data.id).eq('kind','tool').order('step_no',{ascending:false}).limit(1).maybeSingle();
+    return {label:progressLabel(step.error?null:step.data?.tool_name??null,run.data.status)};
   });
 export const decideAiAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

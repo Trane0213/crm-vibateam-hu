@@ -17,6 +17,7 @@ import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { SalesWatch } from '@/components/ai/sales-watch';
+import { useRunProgress } from '@/components/ai/use-run-progress';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 
@@ -79,6 +80,9 @@ function AiAssistantPage() {
 
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progressSince,setProgressSince]=useState<string|null>(null);
+  const [progressThread,setProgressThread]=useState<string|null>(null);
+  const progress=useRunProgress(busy?progressThread:null,busy?progressSince:null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -136,13 +140,15 @@ function AiAssistantPage() {
     } : t));
     setInput("");
     setBusy(true);
+    const executionThread=/^[0-9a-f-]{36}$/i.test(thread.id)?thread.id:crypto.randomUUID();
+    setProgressThread(executionThread);setProgressSince(new Date().toISOString());
     try {
       const aiAgentId = uiAgentToAiOs(usedAgent);
       const history = [...(thread.messages ?? []), userMsg]
         .filter((m) => m.role === "user" || m.role === "assistant")
         .slice(-20)
         .map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
-      const result = await run({ data: { agentId: aiAgentId, history } });
+      const result = await run({ data: { agentId: aiAgentId,threadId:executionThread, history } });
       const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
         ? result.pendingApprovals.map((p) => ({
             tool_call_id: p.tool_call_id,

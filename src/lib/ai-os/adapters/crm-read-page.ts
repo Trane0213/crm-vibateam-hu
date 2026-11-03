@@ -67,7 +67,7 @@ export function crmReadPage(rows: unknown[], count: number | null, window: { lim
 
 export const LEAD_CONTEXT_SELECT = "id,company_id,contact_id,status,source,summary,assigned_to,assigned_at,created_at,pipeline_entered_at,next_step_type,next_step_due_at,next_step_note,won_at,lost_at,lost_reason,lost_note";
 
-export type HistoryEvent = { at: string; kind: string; source: { table: string; id: unknown }; record: Record<string, unknown> };
+export type HistoryEvent = { at: string; budapest_at: string | null; kind: string; source: { table: string; id: unknown }; record: Record<string, unknown> };
 export function leadTimeline(history: Record<string, unknown>[], followups: Record<string, unknown>[], activities: Record<string, unknown>[] = []): HistoryEvent[] {
   const events: HistoryEvent[] = [];
   for (const [table, rows, field, kind] of [
@@ -77,7 +77,7 @@ export function leadTimeline(history: Record<string, unknown>[], followups: Reco
   ] as const) {
     for (const row of rows) {
       const at = row[field];
-      if (typeof at === "string" && Number.isFinite(Date.parse(at))) events.push({ at, kind, source: { table, id: row.id }, record: row });
+      if (typeof at === "string" && Number.isFinite(Date.parse(at))) events.push({ at, budapest_at:budapestTimestamp(at), kind, source: { table, id: row.id }, record: row });
     }
   }
   return events.sort((a, b) => Date.parse(a.at) - Date.parse(b.at) || String(a.source.id).localeCompare(String(b.source.id)));
