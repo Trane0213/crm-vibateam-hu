@@ -5,6 +5,10 @@ import { dailySalesFocus,dailySalesCounts,dailySalesFingerprint,dailySalesPrompt
 const base:DailyLead={id:'new',assigned_to:'sales',status:'new',summary:'TESZT',source:'email_inbound',company_id:null,contact_id:null,created_at:'2026-11-03T10:00Z',next_step_type:null,next_step_due_at:null,pipeline_entered_at:null};
 const now=new Date('2026-11-03T12:00Z');
 describe('Timothy daily priorities',()=>{
+ it('zero focus does not assert absence of all open cases',()=>{
+  const out=JSON.parse(dailySalesPrompt(dailyWork([],[],'sales',false,now)));
+  expect(out.all_open_cases_checked).toBe(false);expect(out.focus).toEqual([]);
+ });
  it('uses exact existing priority and caps at five distinct own cases',()=>{
   const rows=[base,{...base,id:'overdue',next_step_due_at:'2026-11-02T10:00Z'}, {...base,id:'today',next_step_due_at:'2026-11-03T15:00Z'},
    {...base,id:'waiting',status:'quote_sent'},{...base,id:'missing',created_at:'2026-10-01T10:00Z'},{...base,id:'sixth',created_at:'2026-10-01T10:00Z'}, {...base,id:'other',assigned_to:'other'}];

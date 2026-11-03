@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { registerCrmTools } from "./crm-tools.server";
 import { getTool, toolsForAgent } from "../tool-registry";
-import { crmReadPage, leadTimeline, readWindow } from "./crm-read-page";
+import { crmReadPage, crmRecordFacts, leadTimeline, readWindow } from "./crm-read-page";
 import { modelToolPayload } from "../tool-payload";
 import type { ToolContext } from "../types";
 import { userReference, readTimestamp } from './crm-read-input';
@@ -163,6 +163,27 @@ describe("Timothy P1/A CRM reads", () => {
 });
 
 describe("Explicit completeness and chronology", () => {
+  it('renders saved UTC 09:00 as Budapest 10:00 in November', () => {
+    expect(crmRecordFacts({next_step_due_at:'2026-11-03T09:00:00Z'}, 'leads').budapest_times).toEqual({next_step_due_at:'2026. 11. 03. 10:00 (Europe/Budapest)'});
+  });
+  it('completed=true is never actionable even with a past deadline', () => {
+    expect(crmRecordFacts({completed:true,due_date:'2026-11-01T09:00:00Z'}, 'followups',new Date('2026-11-03T12:00:00Z'))).toMatchObject({work_state:'completed',action_required:false});
+  });
+  it('distinguishes overdue and future open work', () => {
+    const now=new Date('2026-11-03T12:00:00Z');
+    expect(crmRecordFacts({completed:false,due_date:'2026-11-03T11:59:00Z'},'followups',now).work_state).toBe('overdue');
+    expect(crmRecordFacts({completed:false,due_date:'2026-11-03T12:01:00Z'},'followups',now).work_state).toBe('open');
+  });
+  it('absence of invalid flag never proves email validity', () => {
+    expect(crmRecordFacts({email:'teszt@example.invalid',email_invalid:false},'contacts').email_verification).toBe('not_verified');
+  });
+  it('assigned Sales cannot reassign a lead; owner cannot reassign won lead', async () => {
+    const f=fixture({leads:[{id:'own',status:'won',assigned_to:'00000000-0000-4000-8000-000000000001'}]});
+    for(const role of ['sales','owner']) {
+      const out=await execute('crm_get_lead',{id:'own'},{...f.ctx,userRole:role});
+      expect(out.data.operation_context.lead_reassignment).toBe('not_permitted');
+    }
+  });
   it('does not expose a raw zero as a known amount when there are no items',()=>{
     const out=quoteContext({id:'TESZT',total_amount:0,quote_items:[{count:0}],manual_net_amount:null});
     expect(out.net).toBeNull(); expect(out.amount_display).toBe('Nincs megadva'); expect(out).not.toHaveProperty('total_amount');

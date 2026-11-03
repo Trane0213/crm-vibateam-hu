@@ -126,6 +126,7 @@ export async function runAgent(
     })),
   };
   let systemPrompt = agent.buildSystemPrompt(promptCtx);
+  if (agent.id === 'timothy') systemPrompt += `\nELLENŐRZÖTT MŰVELETI KERET: ${JSON.stringify({ role: input.userRole, allowed_actions: allowedTools.filter(t => t.needs_approval || (t.approval && t.approval !== 'safe')).map(t => t.name), lead_reassignment_available: allowedTools.some(t => t.name === 'sales_reassign_lead'), assignment_scope: 'owner_only_open_lead_P0; won/lost_terminal; assigned_sales_not_owner' })}. Csak a felsorolt műveleteket ajánld a felhasználónak; az elérhetőség nem egyedi rekordengedély.\n`;
   if (agent.augmentSystemPrompt) {
     try {
       const extra = await agent.augmentSystemPrompt(promptCtx, userClient);
@@ -300,6 +301,7 @@ export async function runAgent(
           try {
             output = await tool.execute(args, {
               userId: input.userId, agentId: agent.id,
+              userRole: input.userRole,
               threadId: input.threadId, runId,
               supabaseUser: userClient,
               supabaseAdmin: adminClient,
@@ -322,6 +324,7 @@ export async function runAgent(
           break;
         }
         if (failureResult(output)) { outcome.record(tool.name, true, readOnly); errMsg = "A művelet sikertelen."; }
+        else outcome.observe(output);
         // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
         const llmPayload: unknown = isToolErrorEnvelope(output)
           ? { ok: false, error: sanitizeErrorForLlm(output.error) }

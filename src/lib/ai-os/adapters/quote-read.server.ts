@@ -2,6 +2,8 @@ import type { ToolContext } from "../types";
 import { crmReadPage, readWindow } from "./crm-read-page";
 import { QUOTE_SELECT, quoteContext, quotePageSummary } from "./quote-context";
 import { isActiveQuote } from '@/lib/quotes/quote-list';
+import { CLOSED_QUOTE_STATUSES } from '@/lib/quotes/quote-status';
+import { LEGACY_CLOSED } from '@/lib/quotes/quote-list';
 
 export async function readQuoteList(args: Record<string, unknown>, ctx: ToolContext, defaultLimit = 25, budget = 10000) {
   for (const field of ['lead_id', 'company_id', 'project_id', 'group_id']) {
@@ -11,13 +13,12 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
   const sb = ctx.supabaseUser;
   const selection = String(args.selection ?? 'all');
   if (!['all', 'open'].includes(selection)) throw new Error('Érvénytelen ajánlati kiválasztás.');
-  const filterOpen = (query: typeof q) => selection === 'open'
-    ? query.or('is_current.is.null,is_current.eq.true').or('status.is.null,status.not.in.(accepted,rejected,withdrawn,won,lost)') : query;
+  const openStatusFilter = `status.is.null,status.not.in.(${[...CLOSED_QUOTE_STATUSES, ...LEGACY_CLOSED].join(',')})`;
   let q = sb.from("quotes").select(QUOTE_SELECT, { count: "exact" });
   if (args.lead_id) q = q.eq("lead_id", String(args.lead_id));
   if (args.project_id) q = q.eq("project_id", String(args.project_id));
   if (args.group_id) q = q.eq("group_id", String(args.group_id));
-  q = filterOpen(q);
+  if (selection === 'open') q = q.or('is_current.is.null,is_current.eq.true').or(openStatusFilter);
   let rows: Record<string, unknown>[] = [];
   let count: number | null = null;
   if (args.company_id) {
@@ -27,7 +28,7 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
     if (args.lead_id) leadQuery = leadQuery.eq("lead_id", String(args.lead_id));
     if (args.project_id) leadQuery = leadQuery.eq("project_id", String(args.project_id));
     if (args.group_id) leadQuery = leadQuery.eq("group_id", String(args.group_id));
-    leadQuery = filterOpen(leadQuery);
+    if (selection === 'open') leadQuery = leadQuery.or('is_current.is.null,is_current.eq.true').or(openStatusFilter);
     const leads = await leadQuery.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(window.offset, window.offset + window.limit - 1);
     if (leads.error) throw leads.error;
     if (leads.count == null) throw new Error("Hiányzó látható ajánlati darabszám.");
@@ -36,7 +37,7 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
     if (args.lead_id) projectQuery = projectQuery.eq("lead_id", String(args.lead_id));
     if (args.project_id) projectQuery = projectQuery.eq("project_id", String(args.project_id));
     if (args.group_id) projectQuery = projectQuery.eq("group_id", String(args.group_id));
-    projectQuery = filterOpen(projectQuery);
+    if (selection === 'open') projectQuery = projectQuery.or('is_current.is.null,is_current.eq.true').or(openStatusFilter);
     const offset = Math.max(0, window.offset - leads.count);
     const remaining = window.limit - rows.length;
     const projects = await projectQuery.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(offset, offset + Math.max(1, remaining) - 1);

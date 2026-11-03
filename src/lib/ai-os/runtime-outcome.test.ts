@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { RuntimeOutcome } from './runtime-outcome';
 describe('Runtime read versus mutation failure', () => {
+  it('uses the observed quote path unchanged instead of an invented website host', () => {
+    const o=new RuntimeOutcome();o.observe({data:{from:{source_link:'/quotes/TESZT-v1'},to:{source_link:'/quotes/TESZT-v2'}}});
+    expect(o.text('[v1](https://vibateam.hu/quotes/TESZT-v1) [v2](https://vibateam.hu/quotes/TESZT-v2)')).toBe('[v1](/quotes/TESZT-v1) [v2](/quotes/TESZT-v2)');
+  });
+  it('does not present an unobserved invented quote as a verified link', () => {
+    expect(new RuntimeOutcome().text('/quotes/invented')).not.toContain('/quotes/invented');
+  });
   it('retains a later read answer with an explicit failure caveat', () => {
     const outcome = new RuntimeOutcome();
     outcome.record('crm_list_followups', true, true);
