@@ -11,18 +11,15 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from 'zod';
 
 type Mode = "sales" | "pm";
 type Row = Record<string, unknown>;
 
-type Input = { mode: Mode; name?: string | null };
+type Input = { mode: Mode; name?: string | null; intent: 'automatic'|'manual'|'read' };
 
 function validate(input: unknown): Input {
-  const i = input as Input;
-  if (!i || (i.mode !== "sales" && i.mode !== "pm")) {
-    throw new Error("mode='sales' vagy 'pm' kötelező");
-  }
-  return { mode: i.mode, name: i.name ?? null };
+  return z.object({mode:z.enum(['sales','pm']),name:z.string().max(120).nullable().optional(),intent:z.enum(['automatic','manual','read']).default('automatic')}).strict().parse(input);
 }
 
 function pick(row: Row, keys: string[]): Row {
@@ -95,6 +92,10 @@ export const runDailyBriefing = createServerFn({ method: "POST" })
     ensureBootstrapped();
 
     const admin = getAdminClient();
+    if (data.mode === 'sales') {
+      const { dailySalesBriefing } = await import('./daily-sales.server');
+      return dailySalesBriefing(context.supabase,admin,context.userId,data.intent);
+    }
     const snapshot = await loadSnapshot(context.supabase, data.mode);
     const who = (data.name ?? "").trim() || "a kollégának";
     const agentId = data.mode === "sales" ? "sales_briefing" : "pm_briefing";
@@ -115,5 +116,5 @@ export const runDailyBriefing = createServerFn({ method: "POST" })
       history: [{ role: "user", content: userPrompt }],
     });
 
-    return { text: result.finalText, runId: result.runId };
+    return { text: result.finalText, runId: result.runId, status:'ready',stale:false,generatedAt:new Date().toISOString(),fingerprint:'' };
   });

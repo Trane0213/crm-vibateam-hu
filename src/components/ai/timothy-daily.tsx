@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Link } from '@tanstack/react-router';
 import { Sparkles, RefreshCw, ArrowRight } from 'lucide-react';
@@ -14,18 +14,20 @@ export function TimothyDaily() {
   const daily = useDailyWork();
   const {user} = useAuth();
   const call = useServerFn(runDailyBriefing);
+  const client = useQueryClient();
+  const queryKey = ['ai-daily-sales',user?.id,budapestDayBounds(new Date()).start];
   const [fingerprint,setFingerprint] = useState<string|null>(null);
   const [manual,setManual] = useState(false);
   const [manualError,setManualError] = useState<string|null>(null);
   useEffect(()=>{ let active=true; if(daily.data) void dailySalesFingerprint(daily.data).then(h=>{if(active)setFingerprint(h);}); return()=>{active=false;}; },[daily.data]);
-  const query=useQuery({queryKey:['ai-daily-sales',user?.id,budapestDayBounds(new Date()).start],
+  const query=useQuery({queryKey,
     enabled:!!user && !!daily.data && !daily.isError,
     queryFn:()=>call({data:{mode:'sales',intent:'automatic'}}),retry:false,staleTime:Infinity,
     refetchOnWindowFocus:false});
   async function refresh() {
     setManual(true);setManualError(null);
-    try { const res=await call({data:{mode:'sales',intent:'manual'}}); query.client; /* result loaded through read, never another generation */
-      await query.refetch({cancelRefetch:false});
+    try { const res=await call({data:{mode:'sales',intent:'manual'}});
+      client.setQueryData(queryKey,res);
       if(res.status !== 'ready') setManualError('A napi javaslat nem készült el; a futás eredménye nem igazolt.');
     } catch(e) {setManualError(e instanceof Error?e.message:'A frissítés sikertelen.');} finally {setManual(false);}
   }
