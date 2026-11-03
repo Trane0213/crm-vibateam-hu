@@ -20,6 +20,8 @@ import {contactActionSchema} from '@/lib/ai-os/contact-action';
 import {assignmentActionSchema} from '@/lib/ai-os/assignment-action';
 import {pipelineStatusSchema} from '@/lib/ai-os/pipeline-status-action';
 import {LEAD_STATUS_LABEL} from '@/lib/sales/constants';
+import {emailSendAction} from '@/lib/ai-os/email-send-action';
+import {EmailSendApproval} from './email-send-approval';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
@@ -285,6 +287,7 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
   const contact=(()=>{try{return approval.tool_name==='sales_set_lead_contact'?contactActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   const assignment=(()=>{try{return approval.tool_name==='sales_reassign_lead'?assignmentActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   const pipelineStatus=(()=>{try{return approval.tool_name==='sales_change_pipeline_status'?pipelineStatusSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
+  const emailSend=(()=>{try{return approval.tool_name==='sales_send_email'?emailSendAction.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
   const level: ApprovalLevel = approval.approval ?? "confirm";
   const [dangerText, setDangerText] = useState("");
@@ -314,12 +317,12 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
       {level === "dangerous" && approval.status === "pending" && (
         <div className="mb-2 rounded border border-destructive/40 bg-destructive/10 p-2">
           <p className="mb-1 flex items-center gap-1 font-medium text-destructive">
-            <AlertTriangle className="h-3 w-3" /> Nagy kockázatú művelet (törlés / konverzió / bid strategy).
+            <AlertTriangle className="h-3 w-3" /> {emailSend?.success?'Levélküldés – nem vonható vissza.':'Nagy kockázatú művelet (törlés / konverzió / bid strategy).'}
           </p>
           <p className="text-muted-foreground">A végrehajtáshoz gépeld be: <code className="rounded bg-background px-1">MEGERŐSÍTEM</code></p>
         </div>
       )}
-      {prep?.success?<div className="space-y-2 rounded border bg-background/60 p-2">
+      {emailSend?.success?<EmailSendApproval action={emailSend.data}/>:prep?.success?<div className="space-y-2 rounded border bg-background/60 p-2">
         <p><strong>Ügy:</strong> {prep.data.context.lead_name}</p>
         <p><strong>Cég:</strong> {prep.data.context.company_name||'Nincs megadva'} · <strong>Kapcsolattartó:</strong> {prep.data.context.contact_name||'Nincs megadva'}</p>
         <p><strong>Felelős:</strong> {prep.data.context.assigned_to||'Tulajdonosi ügy'}</p>
