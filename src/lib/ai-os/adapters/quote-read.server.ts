@@ -5,10 +5,7 @@ import { QUOTE_SELECT, quoteContext, quotePageSummary } from "./quote-context";
 export async function readQuoteList(args: Record<string, unknown>, ctx: ToolContext, defaultLimit = 25, budget = 10000) {
   const window = readWindow(args, defaultLimit);
   const sb = ctx.supabaseUser;
-  const base = sb.from("quotes").select(QUOTE_SELECT, { count: "exact" });
-  const order = (q: typeof base) => q.order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true });
-  const select = args.company_id ? `${QUOTE_SELECT},leads(company_id),projects(company_id)` : QUOTE_SELECT;
-  let q = sb.from("quotes").select(select, { count: "exact" });
+  let q = sb.from("quotes").select(QUOTE_SELECT, { count: "exact" });
   if (args.lead_id) q = q.eq("lead_id", String(args.lead_id));
   if (args.project_id) q = q.eq("project_id", String(args.project_id));
   if (args.group_id) q = q.eq("group_id", String(args.group_id));
@@ -21,7 +18,7 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
     if (args.lead_id) leadQuery = leadQuery.eq("lead_id", String(args.lead_id));
     if (args.project_id) leadQuery = leadQuery.eq("project_id", String(args.project_id));
     if (args.group_id) leadQuery = leadQuery.eq("group_id", String(args.group_id));
-    const leads = await order(leadQuery).range(window.offset, window.offset + window.limit - 1);
+    const leads = await leadQuery.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(window.offset, window.offset + window.limit - 1);
     if (leads.error) throw leads.error;
     if (leads.count == null) throw new Error("Hiányzó látható ajánlati darabszám.");
     rows = leads.data ?? [];
@@ -31,13 +28,13 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
     if (args.group_id) projectQuery = projectQuery.eq("group_id", String(args.group_id));
     const offset = Math.max(0, window.offset - leads.count);
     const remaining = window.limit - rows.length;
-    const projects = await order(projectQuery).range(offset, offset + Math.max(1, remaining) - 1);
+    const projects = await projectQuery.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(offset, offset + Math.max(1, remaining) - 1);
     if (projects.error) throw projects.error;
     if (projects.count == null) throw new Error("Hiányzó látható projektajánlati darabszám.");
     rows.push(...(projects.data ?? []).slice(0, remaining));
     count = leads.count + projects.count;
   } else {
-    const result = await order(q).range(window.offset, window.offset + window.limit - 1);
+    const result = await q.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(window.offset, window.offset + window.limit - 1);
     if (result.error) throw result.error;
     rows = result.data ?? [];
     count = result.count;

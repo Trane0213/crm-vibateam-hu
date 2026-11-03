@@ -115,6 +115,15 @@ describe("Timothy P1/C user-scoped tool flow", () => {
     expect((await run("crm_quote_context", { quote_id: "a", section: "followups" }, f.ctx)).ok).toBe(false);
     const bad = fixture({}, [], ["quotes"]); expect((await run("crm_list_quotes", { company_id: "c" }, bad.ctx)).ok).toBe(false);
   });
+  it("continues long technical text with explicit source and protects secrets across all offsets", async () => {
+    const f = fixture({ quotes: [quote("a", { technical_scope: "x".repeat(6100) + "Vége" }), quote("b", { notes: "x".repeat(6100) + " password=TESZTSECRET" })] });
+    const first = await run("crm_quote_context", { quote_id: "a", section: "content" }, f.ctx);
+    expect(first.data.content.next_offset).toBe(6000);
+    const next = await run("crm_quote_context", { quote_id: "a", section: "content", text_offset: 6000 }, f.ctx);
+    expect(next.data.content.text).toBe("x".repeat(100) + "Vége"); expect(next.data.source).toEqual({ table: "quotes", id: "a" });
+    const hidden = await run("crm_quote_context", { quote_id: "b", section: "content", field: "notes", text_offset: 6000 }, f.ctx);
+    expect(hidden.data.content.status).toBe("sensitive_withheld"); expect(JSON.stringify(hidden)).not.toContain("TESZTSECRET");
+  });
   it("new context and compare tools remain Timothy owner/sales-only and read-only", () => {
     for (const name of ["crm_quote_context", "crm_compare_quotes"]) {
       expect(getTool(name)?.allowed_agents).toEqual(["timothy"]); expect(getTool(name)?.needs_approval).toBeUndefined();

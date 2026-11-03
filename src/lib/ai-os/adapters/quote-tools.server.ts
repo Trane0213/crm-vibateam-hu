@@ -66,9 +66,10 @@ export function registerQuoteTools() {
         const window = readWindow(args, 10);
         const table = section === "sends" ? "quote_sends" : section === "followups" ? "followups" : null;
         if (!table) throw new Error("Ismeretlen ajánlati szekció.");
-        const select = table === "quote_sends" ? "id,quote_id,mode,status,sent_at,created_at,gmail_message_id,email_id,thread_id" : "id,quote_id,lead_id,project_id,company_id,followup_type,completed,result,due_date,assigned_to,created_at";
-        const result = await ctx.supabaseUser.from(table).select(select, { count: "exact" }).eq("quote_id", String(raw.id))
-          .order("created_at", { ascending: false }).order("id").range(window.offset, window.offset + window.limit - 1);
+        const query = table === "quote_sends"
+          ? ctx.supabaseUser.from("quote_sends").select("id,quote_id,mode,status,sent_at,created_at,gmail_message_id,email_id,thread_id", { count: "exact" })
+          : ctx.supabaseUser.from("followups").select("id,quote_id,lead_id,project_id,company_id,followup_type,completed,result,due_date,assigned_to,created_at", { count: "exact" });
+        const result = await query.eq("quote_id", String(raw.id)).order("created_at", { ascending: false }).order("id").range(window.offset, window.offset + window.limit - 1);
         if (result.error) throw result.error;
         const rows = (result.data ?? []).map(safeRow);
         page = crmReadPage(table === "quote_sends" ? rows.map(quoteSendEvidence) : rows, result.count, window, table, 6500);
