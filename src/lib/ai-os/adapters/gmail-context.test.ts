@@ -48,6 +48,10 @@ describe("Timothy per-account email context", () => {
     const f = fixture(); const out = await run(f.ctx, { mailbox: "other@example.com" });
     expect(out.ok).toBe(false); expect(f.calls).toEqual([]);
   });
+  it("rejects an ambiguous mailbox linked to two syncing identities", async () => {
+    const f = fixture({ accounts: [{ userId: "own", email: "own@example.com" }, { userId: "other", email: "own@example.com" }] });
+    expect((await run(f.ctx)).ok).toBe(false); expect(f.calls).toEqual([]);
+  });
   it("checks the lead before reading email content", async () => {
     const f = fixture({ foreignLead: true }); const out = await run(f.ctx, { lead_id: lead });
     expect(out.ok).toBe(false); expect(f.calls.map((c) => c.table)).toEqual(["leads"]);
@@ -64,15 +68,16 @@ describe("Timothy per-account email context", () => {
     expect((await run(fixture({ error: "emails" }).ctx)).ok).toBe(false);
   });
   it("supports message pagination and body continuation without silent truncation", async () => {
-    const messages = Array.from({ length: 35 }, (_, i) => ({ id: `m${i}`, thread_id: thread, owner_user_id: "own", body: "x".repeat(7000) }));
+    const messageId = "00000000-0000-4000-8000-000000000004";
+    const messages = Array.from({ length: 35 }, (_, i) => ({ id: i === 0 ? messageId : `m${i}`, thread_id: thread, owner_user_id: "own", body: "x".repeat(7000) }));
     const f = fixture({ messages });
     const out = await run(f.ctx, { limit: 1 });
     expect(out.data.pagination.total_visible_account_messages).toBe(35);
     expect(out.data.pagination.next_offset).toBe(1);
     expect(out.data.items[0].content.next_offset).toBe(6000);
-    const end = await run(f.ctx, { email_id: "00000000-0000-4000-8000-000000000004", body_offset: 6000 });
-    expect(end.data.items).toEqual([]);
-    expect(safeMailText(messages[0].body, 6000).text?.length).toBe(1000);
+    const end = await run(f.ctx, { email_id: messageId, body_offset: 6000 });
+    expect(end.data.items[0].content.text.length).toBe(1000);
+    expect(end.data.items[0].content.next_offset).toBeNull();
   });
   it("cached body missing is explicit, not a subject-derived invented reply", async () => {
     const out = await run(fixture({ messages: [{ id: "m", thread_id: thread, owner_user_id: "own", body: null }] }).ctx);

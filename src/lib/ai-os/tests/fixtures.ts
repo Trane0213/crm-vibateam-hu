@@ -182,6 +182,13 @@ export const FIXTURES: AgentAcceptance[] = [
         expected_behavior: "Jogosult rekordok, külön lapozott előzmények; részleges oldalt és hiányzó Gmail-adatot nem állít teljes történetnek.",
       },
       {
+        id: "timothy.email.context",
+        title: "Fiókhoz kötött tárolt levelezés értelmezése",
+        user_prompt: "Mit kért az ügyfél a legutóbbi levelében?",
+        expected_tools: ["crm_email_mailboxes", "crm_list_company_email_threads", "crm_read_email_thread"],
+        expected_behavior: "Pontos ügy- és fiókazonosítás, forráshivatkozás, hiányzó/részleges tartalom és szinkron jelzése; nincs levélküldés.",
+      },
+      {
         id: "timothy.won",
         title: "Ajánlat megnyerésének regisztrálása",
         user_prompt: "A(z) ACME ajánlat megnyerve, hozz létre projektet.",
