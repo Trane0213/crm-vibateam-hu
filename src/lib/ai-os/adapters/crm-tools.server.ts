@@ -187,7 +187,8 @@ export function registerCrmTools() {
         .from("leads").select(LEAD_CONTEXT_SELECT).eq("id", String(args.id)).maybeSingle();
       if (error) return fail(error.message);
       if (!data) return fail("Nem található lead.");
-      return ok({ ...crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"), operation_context: { user_role: ctx.userRole ?? 'unknown', lead_reassignment: ctx.userRole === 'owner' && !['won', 'lost'].includes(data.status) ? 'owner_only_open_lead_requires_P0' : 'not_permitted', assigned_sales_is_not_owner: true } });
+      const company=data.company_id ? await ctx.supabaseUser.from('companies').select('id,name').eq('id',data.company_id).maybeSingle() : null;
+      return ok({ ...crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"), saved_relations:{company_id:data.company_id,contact_id:data.contact_id,company:company?.error?null:company?.data??null,company_checked:!company?.error,company_lookup_error:!!company?.error}, operation_context: { user_role: ctx.userRole ?? 'unknown', lead_reassignment: ctx.userRole === 'owner' && !['won', 'lost'].includes(data.status) ? 'owner_only_open_lead_requires_P0' : 'not_permitted', assigned_sales_is_not_owner: true } });
     },
   );
 

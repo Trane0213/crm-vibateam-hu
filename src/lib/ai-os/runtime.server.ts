@@ -26,7 +26,7 @@ import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
 import { RuntimeOutcome } from './runtime-outcome';
-import { validateReadIds, localModelDates, readCaveats, roleAdvice } from './read-quality';
+import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer } from './read-quality';
 
 const MAX_STEPS = 50;
 
@@ -197,7 +197,7 @@ export async function runAgent(
         return {
           runId,
           agentId: agent.id,
-          finalText: outcome.text(agent.id==='timothy' ? `${result.text}\n\n${[...caveats].join('\n')}` : result.text, pendingApprovals.length > 0),
+          finalText: outcome.text(agent.id==='timothy' ? groundedReadAnswer(result.text,[...caveats],input.userRole) : result.text, pendingApprovals.length > 0),
           pendingApprovals,
           steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },

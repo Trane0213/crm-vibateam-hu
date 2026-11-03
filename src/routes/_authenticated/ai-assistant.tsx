@@ -293,7 +293,7 @@ function AiAssistantPage() {
               {busy && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Az AI az aktuális CRM adatok alapján dolgozik…
+                  <span role="status">{progress}</span>
                 </div>
               )}
             </div>
