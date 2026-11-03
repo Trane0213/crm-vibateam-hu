@@ -24,6 +24,7 @@ import { createApproval, frozenArgs } from "./approval.server";
 import { failureResult, type ApprovalSnapshot } from "./approval";
 import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
+import { documentToolAudit } from "./document-audit";
 
 const MAX_STEPS = 50;
 
@@ -333,7 +334,7 @@ export async function runAgent(
           input: { ...args, __approval: approvalLevel, __mode: effectiveMode },
           // A teljes (technical_reason-nel együtt) output kerül auditba,
           // a `retry_attempts` mező jelzi ha volt retry.
-          output: { ...(tool.name === "crm_read_email_thread" ? emailToolAudit(output) as Record<string, unknown> : typeof output === "object" && output ? output : { value: output }), __attempts: attempts },
+          output: { ...(tool.name === "crm_read_email_thread" ? emailToolAudit(output) as Record<string, unknown> : tool.name === "crm_read_document" ? documentToolAudit(output) : typeof output === "object" && output ? output : { value: output }), __attempts: attempts },
           error: errMsg,
           durationMs: Date.now() - tStart,
         });
