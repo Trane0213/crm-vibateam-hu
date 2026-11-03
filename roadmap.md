@@ -1,6 +1,7 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy éles működési audit — 2026-11-03
-- [ ] Eredeti hibás futások és Viktor bejelentkezett két-chat próbája; célzott paraméter-, gyorskérdés- és hibakezelés-javítás, összevont regresszió és rövid jelentés. Éles üzleti írás/küldés/publikálás nélkül.
+- [x] Eredeti hibás futások és Viktor bejelentkezett két-chat próbája; me-feloldás, lapozás, gyorskérdés és olvasási hibaválasz célzott javítása; 417 teszt/21 AI scenario/build OK. Jelentés: docs/system-map/timothy-eles-chat-audit-2026-11-03.md. Nincs üzleti írás/küldés/publikálás.
+- [ ] Modellminőségi lezárás: ajánlati hibás weboldallink, korábbi verzió nyitottként felsorolása, hiányos forrásmegnevezés; élő próbában még fennáll, nem PASS.
 - [ ] Owner/Ramon hitelesített próba és valós Gmail-küldés nélküli teljes dokumentum/P0 végigpróba: csak hozzáférhető szerepkörrel és elkülönített TESZT-adatokkal.
 ## Timothy V3.1 — értékesítési intelligencia
 - [x] Három képesség alapja: közös case-review + existing Gmail/history értelmezés, dokumentált lead/quote eredmény, user-RLS történeti nettó egységárkeresés. 18 célzott/406 teljes teszt, AI 21 forgatókönyv/build PASS; nincs UI/írás/publikálás. Rövid jelentés: docs/system-map/timothy-v31-rovid-jelentes.md.
