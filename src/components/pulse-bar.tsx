@@ -39,8 +39,8 @@ function SalesPulseBar() {
   const d = q.data;
   const chips = [
     { label: "nyitott ajánlat", value: d?.quotes.length, to: "/sales/quotes", search: {}, icon: FileText, tone: "primary" as const },
-    { label: "lejárt teendő", value: d?.buckets.overdue.length, to: "/sales/todo", search: { bucket: "overdue" }, icon: BellRing, tone: "danger" as const },
-    { label: "ma esedékes", value: d?.buckets.today.length, to: "/sales/todo", search: { bucket: "today" }, icon: ListChecks, tone: "warning" as const },
+    { label: "lejárt teendő", value: d?.buckets.overdue.length, to: "/sales/todo", search: { bucket: "overdue" as const }, icon: BellRing, tone: "danger" as const },
+    { label: "ma esedékes", value: d?.buckets.today.length, to: "/sales/todo", search: { bucket: "today" as const }, icon: ListChecks, tone: "warning" as const },
     { label: "új érdeklődő (7 nap)", value: d?.newLeads.length, to: "/today", search: {}, icon: Sparkles, tone: "info" as const },
   ];
   return <div className="flex items-center gap-2 overflow-x-auto border-b bg-muted/30 px-4 py-2">
