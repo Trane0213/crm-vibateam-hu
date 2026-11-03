@@ -1,7 +1,8 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy célzott stabilizálás — 2026-11-03
+- [x] Viktor újonnan engedélyezett bejelentkezésével 15 valódi chatpróba: 8 PASS / 7 FAIL, elírások 3 PASS / 1 FAIL; eszköz/adat/válasz összevetve, 0 böngészőhiba/approval, üzleti írás/küldés/publikálás nélkül. Rövid táblázat a célzott jelentés végén; kritikus modellhibák továbbra is nyitva.
 - [x] Aktuális ajánlatlista és forráshű linkek; állapot/időzóna, szerepkör és hiányos CRM/Gmail-adatok célzott javítása, séma/RLS/UI változtatás nélkül. 62 célzott teszt/21 AI acceptance/build OK, rövid jelentés: docs/system-map/timothy-celzott-stabilizalas-2026-11-03.md.
-- [ ] Kilenc korábbi FAIL hitelesített visszatesztje: 0 igazolt PASS, 9 NEM TESZTELT; external_unmanaged, böngésző /auth, nincs használható tesztmunkamenet. Az előző összesítés 9 FAIL, táblázatban 8 FAIL sor — a kilencedik futás nem egyértelmű. Üzleti írás/küldés/publikálás nincs, STOP.
+- [ ] Korábbi FAIL lezárása: 8 pontosan dokumentált forgatókönyv hitelesítve, 2 teljes PASS / 6 FAIL; külön nyitott ajánlatlista PASS. Az eredeti kilencedik FAIL nem azonosított. Cég/kontakt UUID, completed/időzóna, Gmail-hiány, Owner magyarázat és kitalált ok továbbra is hibás; új javítás nem indult, STOP.
 ## Timothy végső gyors ellenőrzés
 - [x] Viktor ismételt hitelesített végigpróbája: 20 valós chatkérdés/eszköznapló/adateredmény, 11 PASS / 9 FAIL, pageerror=0; új fejlesztés, regresszióismétlés, üzleti írás/küldés nélkül. Rövid eredménytábla az éles chat-audit végén.
 - [x] 18 ellenőrzési eset összevont értékelése a közvetlenül előző hitelesített chatpróbák és izolált tesztek alapján; nincs ismételt teljes tesztcsomag, fejlesztés vagy publikálás. Kritikus modellértelmezési hibák miatt teljes éles lezárás nem PASS; az alábbi nyitott auditfeladatok maradnak.
