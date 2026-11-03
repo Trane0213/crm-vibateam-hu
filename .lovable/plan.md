@@ -1,0 +1,7 @@
+# Timothy V3 lezárás — közös végrehajtás
+- P3: kész műveletek megőrzése; a projektátadás meglévő tranzakcióját használjuk. A vesztes lezárás előkészítése a meglévő kézi munkafelületre irányít, új terminális állapotgép nélkül.
+- P4: saját, jogosult nyitott ügyek szabályalapú jelzései: pontos ügyfélfeladóhoz kötött tárolt válasz, bizonyított ajánlati szál visszajelzése, lejárt nyitott utánkövetés, hiányos/elakadt ügy és ajánlati érvényesség. Meglévő Timothy-kártya, AI-panel és ügyadatlap; nincs automatikus írás, levél vagy AI-futtatás.
+- P5: célzott új szabály- és hozzáférési tesztek, végén egyszer teljes regresszió és AI acceptance. Csak mesterséges TESZT; hitelesített Gmail/R2/többszerepkörös próba hiányát külön jelezzük.
+
+## Műszaki és biztonsági keret
+Meglévő user-RLS kliens, saját crm_mailboxes-hozzárendelés, pontos thread/lead/company és mentett contact-feladó; nincs admin olvasás, új tábla, migráció vagy Gmail-szinkron. Korlátozott metaadatolvasás, hiányosságjelzés és stabil forrásazonosítós deduplikáció. A levelek tartalmi besorolását csak a meglévő chat kezdeményezett olvasása végezheti, nem háttér-AI. Realtime a közös csatornán, meglévő 60 másodperces frissítés mint tartalék. Visszaállítás: figyelési bekötések és új olvasó eltávolítása; üzleti adat és P0 megmarad. Nem publikálunk.
