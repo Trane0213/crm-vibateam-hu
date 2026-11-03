@@ -25,4 +25,18 @@ describe("navigáció", () => {
     expect(r.has("/sales/leads")).toBe(false);
     expect(r.has("/attendance")).toBe(false);
   });
+  it("sales menüjéből rejtett: Feladatok, Találkozók, weboldali igények, ajánlatriport", () => {
+    const r = reachable("sales");
+    for (const u of ["/tasks", "/meetings", "/web-quote-requests", "/sales/quotes"]) expect(r.has(u)).toBe(false);
+    for (const u of ["/today", "/leads", "/sales/leads", "/quotes", "/sales/todo"]) expect(r.has(u)).toBe(true);
+    for (const u of ["/tasks", "/meetings", "/sales/todo"]) expect(canAccessRoute("sales", u)).toBe(true);
+  });
+  it("projektvezető megtartja a Feladatokat és Találkozókat", () => {
+    const r = reachable("project_manager");
+    expect(r.has("/tasks")).toBe(true);
+    expect(r.has("/meetings")).toBe(true);
+  });
+  it("marketing továbbra is látja a weboldali igényeket", () => {
+    expect(reachable("marketing").has("/web-quote-requests")).toBe(true);
+  });
 });
