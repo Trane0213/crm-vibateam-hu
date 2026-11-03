@@ -18,6 +18,7 @@ function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], error
     const q = {
       select() { return q; },
       eq(key: string, value: unknown) { filters.push([key, value]); return q; },
+      is(key: string, value: unknown) { filters.push([key, value]); return q; },
       order() { return q; },
       range(a: number, b: number) { from = a; to = b; return q; },
       maybeSingle() { single = true; return q; },
@@ -25,6 +26,7 @@ function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], error
         const filtered = rows.filter((r) => filters.every(([key, value]) => {
           if (key.startsWith("details->>")) return (r.details as Row)?.[key.slice(10)] === value;
           if (key === "leads.company_id") return (tables.leads ?? []).some((l) => l.id === r.lead_id && l.company_id === value && (!visibleLeadIds || visibleLeadIds.includes(String(l.id))));
+          if (key === "projects.company_id") return (tables.projects ?? []).some((p) => p.id === r.project_id && p.company_id === value);
           return r[key] === value;
         }));
         return Promise.resolve(resolve({ data: errors.includes(table) ? null : single ? filtered[0] ?? null : filtered.slice(from, to + 1), count: filtered.length, error: errors.includes(table) ? { message: "TESZT query failure" } : null }));
@@ -117,7 +119,7 @@ describe("Timothy P1/A CRM reads", () => {
     const { ctx, calls } = fixture({ leads, quotes: [{ id: "q", lead_id: "1204" }] });
     const out = await execute("crm_list_quotes", { company_id: "c" }, ctx);
     expect(out.data.items.map((r: Row) => r.id)).toEqual(["q"]);
-    expect(calls).toEqual(["quotes"]);
+    expect(calls).toEqual(["quotes", "quotes", "quotes"]);
   });
   it("new history tool remains Timothy-only and owner/sales-only", () => {
     const tool = getTool("crm_lead_history");
