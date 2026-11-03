@@ -15,7 +15,7 @@ export function quoteContext(row: Record<string, unknown>): Record<string, unkno
   const safe: Record<string, unknown> = {};
   const contentStatus: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {
-    if (key === "quote_items") continue;
+    if (key === "quote_items" || key === "total_amount") continue;
     if (typeof value === "string") {
       const bounded = safeMailText(value, 0, 1500);
       safe[key] = bounded.text;
@@ -27,6 +27,8 @@ export function quoteContext(row: Record<string, unknown>): Record<string, unkno
     } else safe[key] = value;
   }
   return { ...safe, item_count: itemCount ?? null, amounts, net: amounts?.net ?? null,
+    amount_display: amounts?.net == null ? 'Nincs megadva' : `${amounts.net} HUF nettó`,
+    source_link: `/quotes/${row.id}`,
     workflow: quoteWorkflow(row.quote_kind), status_label: quoteStatusLabel(row.status as string | null),
     active: isActiveQuote(row as { status: string | null; is_current: boolean | null }),
     content_status: contentStatus, link: `/quotes/${row.id}` };

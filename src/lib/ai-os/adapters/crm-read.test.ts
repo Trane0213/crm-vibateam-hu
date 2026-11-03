@@ -5,6 +5,7 @@ import { crmReadPage, leadTimeline, readWindow } from "./crm-read-page";
 import { modelToolPayload } from "../tool-payload";
 import type { ToolContext } from "../types";
 import { userReference, readTimestamp } from './crm-read-input';
+import { quoteContext } from './quote-context';
 
 type Row = Record<string, unknown>;
 function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], errors: string[] = []) {
@@ -162,6 +163,10 @@ describe("Timothy P1/A CRM reads", () => {
 });
 
 describe("Explicit completeness and chronology", () => {
+  it('does not expose a raw zero as a known amount when there are no items',()=>{
+    const out=quoteContext({id:'TESZT',total_amount:0,quote_items:[{count:0}],manual_net_amount:null});
+    expect(out.net).toBeNull(); expect(out.amount_display).toBe('Nincs megadva'); expect(out).not.toHaveProperty('total_amount');
+  });
   it("sorts by actual timestamps and never marks pending followups as completed contact", () => {
     const timeline = leadTimeline([{ id: "s", changed_at: "2026-11-03T10:00:00Z" }], [
       { id: "done", completed: true, due_date: "2026-11-03T12:00:00+03:00" },
