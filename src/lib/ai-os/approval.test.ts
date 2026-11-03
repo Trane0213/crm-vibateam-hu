@@ -2,6 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { decisionSchema, verifyExecution, hasSensitive, safeAudit, contractHash } from "./approval";
 import { registerTool, getTool, toSpec } from "./tool-registry";
 import { decideAction, createApproval, type ActionRow } from "./approval.server";
+import { callLlm } from "./providers.server";
+vi.mock("./providers.server", () => ({ callLlm: vi.fn(() => { throw new Error("Approval must not generate"); }) }));
 
 const userId = "00000000-0000-4000-8000-000000000001";
 const actionId = "00000000-0000-4000-8000-000000000002";
@@ -42,6 +44,7 @@ describe("AI OS P0 approval", () => {
   const f = await fixture(); const before = JSON.stringify(f.row.input_json.args);
   expect((await decideAction(f.user, f.admin, userId, { actionId, decision: "approve" })).status).toBe("succeeded");
   expect(f.execute).toHaveBeenCalledTimes(1); expect(JSON.stringify(f.execute.mock.calls[0]?.[0])).toBe(before);
+  expect(callLlm).toHaveBeenCalledTimes(0);
  });
  it("rejection never executes", async () => { const f = await fixture(); await decideAction(f.user,f.admin,userId,{actionId,decision:"reject"}); await decideAction(f.user,f.admin,userId,{actionId,decision:"approve"}); expect(f.execute).toHaveBeenCalledTimes(0); });
  it("duplicate and concurrent approval execute once", async () => { const f=await fixture(); await Promise.all([1,2,3].map(()=>decideAction(f.user,f.admin,userId,{actionId,decision:"approve"}))); expect(f.execute).toHaveBeenCalledTimes(1); });

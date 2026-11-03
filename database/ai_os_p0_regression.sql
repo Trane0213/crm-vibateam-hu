@@ -34,6 +34,9 @@ BEGIN
   RAISE EXCEPTION 'dangerous FAIL';
  EXCEPTION WHEN OTHERS THEN IF SQLERRM='dangerous FAIL' THEN RAISE; END IF; END;
  IF NOT (public.ai_os_approval_decide(a,'00000000-0000-4000-8000-000000000001','approve','MEGERŐSÍTEM')->>'claimed')::boolean THEN RAISE EXCEPTION 'dangerous confirm FAIL'; END IF;
+ INSERT INTO public.agent_run_steps(run_id,step_no,kind,agent_id,tool_name,input_json,approval_status,approval_expires_at,approval_origin_call_id)
+ VALUES('10000000-0000-4000-8000-000000000001',4,'approval','timothy','TESZT','{"args":{},"approval":"confirm"}','pending',clock_timestamp()-interval '1 second','expired') RETURNING id INTO a;
+ IF public.ai_os_approval_decide(a,'00000000-0000-4000-8000-000000000001','approve',NULL)->'action'->>'approval_status'<>'expired' THEN RAISE EXCEPTION 'expired FAIL'; END IF;
  IF has_function_privilege('authenticated','public.ai_os_approval_decide(uuid,uuid,text,text)','EXECUTE') OR has_function_privilege('anon','public.ai_os_approval_decide(uuid,uuid,text,text)','EXECUTE') THEN RAISE EXCEPTION 'grants FAIL'; END IF;
  RAISE NOTICE 'PASS: create replay, expiry 30m, wrong owner, immutable params, claim, duplicate, succeeded replay, reject, dangerous, service-only grants';
 END $$;
