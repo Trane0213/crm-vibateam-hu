@@ -34,6 +34,16 @@ export async function freezeEmailSend(user: SupabaseClient, args: Record<string,
     if (thread.error || !thread.data?.gmail_thread_id || thread.data.company_id !== l.data.company_id || thread.data.lead_id !== l.data.id || thread.data.contact_id !== l.data.contact_id || (thread.data.project_id && thread.data.project_id !== quote?.data?.project_id)) throw new Error('A válaszszál nem pontosan ehhez az ügyhöz tartozik.');
     const access = await user.from('email_thread_access').select('thread_id').eq('thread_id',thread.data.id).eq('user_id',userId).eq('mailbox_email',message.mailbox).maybeSingle();
     if (access.error || !access.data) throw new Error('A válaszszál nem a saját postafióké.');
+    const parent = await user.from('emails').select('gmail_message_id').eq('thread_id',thread.data.id).eq('owner_user_id',userId).order('internal_date',{ascending:false}).limit(1).maybeSingle();
+    if(parent.error || !parent.data?.gmail_message_id)throw new Error('A válasz alaplevele nem ellenőrizhető.');
+    const {getValidAccessToken}=await import('@/lib/gmail/oauth.server');
+    const {getMessage,getProfile,headerOf}=await import('@/lib/gmail/gmail-api.server');
+    const {accessToken}=await getValidAccessToken(userId);
+    const sender=await getProfile(accessToken);
+    const live=await getMessage(accessToken,parent.data.gmail_message_id,'metadata');
+    const messageId=headerOf(live,'Message-ID'),references=headerOf(live,'References');
+    if(sender.emailAddress.toLowerCase()!==message.mailbox || live.threadId!==thread.data.gmail_thread_id || !/^<[^\s<>]+>$/.test(messageId) || /[\r\n]/.test(references) || references.length>3000 || message.subject.replace(/^re:\s*/i,'')!==headerOf(live,'Subject').replace(/^re:\s*/i,''))throw new Error('A válasz fejléce vagy tárgya nem egyezik a pontos alaplevéllel.');
+    Object.assign(thread.data,{reply_message_id:messageId,reply_references:`${references} ${messageId}`.trim(),parent_gmail_message_id:parent.data.gmail_message_id});
   }
   const ctx: ToolContext = { userId,agentId:'timothy',runId:'',threadId:null,supabaseUser:user,supabaseAdmin:user };
   const attachments = [], buffers = new Map<string,{filename:string;mimeType:string;content:Buffer}>();
@@ -69,7 +79,7 @@ export async function executeEmailSend(args: Record<string,unknown>, ctx: ToolCo
   const html = m.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
   const request = new Request('https://internal.invalid/api/gmail/send',{method:'POST',headers:{authorization:`Bearer ${ctx.accessToken}`,'content-type':'application/json'},body:JSON.stringify({to:m.to.join(','),cc:m.cc.join(','),bcc:m.bcc.join(','),subject:m.subject,body:m.body,html,
     expectedMailbox:m.mailbox,lead_id:m.leadId,company_id:approved.context.company.id,contact_id:approved.context.contact?.id,project_id:projectId,
-    threadId:approved.context.thread?.gmail_thread_id,quote_id:m.quoteId,idempotency_key:ctx.approvalActionId,
+    threadId:approved.context.thread?.gmail_thread_id,inReplyTo:approved.context.thread?.reply_message_id,references:approved.context.thread?.reply_references,quote_id:m.quoteId,idempotency_key:ctx.approvalActionId,
     quote_document_ids:approved.attachments.filter(a=>a.source==='quote_documents').map(a=>a.document_id),
     attachments:approved.attachments.filter(a=>a.source!=='quote_documents').map(a=>({key:a.key,filename:a.name,mime_type:a.mime,size_bytes:a.size}))})});
   let verified = false, dispatched = false;
