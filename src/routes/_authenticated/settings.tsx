@@ -1,4 +1,6 @@
-import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, Outlet, useRouterState } from "@tanstack/react-router";
+import { usePermissions } from "@/hooks/use-permissions";
+import { canAccessRoute } from "@/lib/permissions";
 import { Settings, Mail, FolderOpen, Users, Shield, ShieldCheck, KeyRound, UserCog, Activity, Bot, BarChart3, Network, Globe, ClipboardList } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -24,6 +26,9 @@ const items = [
 
 function SettingsLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { role } = usePermissions();
+  const visible = items.filter((i) => !role || canAccessRoute(role as any, i.to));
+  if (role && role !== "owner" && (path === "/settings" || path === "/settings/")) return <Navigate to="/settings/gmail" />;
   return (
     <div className="flex flex-col">
       <div className="border-b px-6 py-4">
@@ -32,7 +37,7 @@ function SettingsLayout() {
       </div>
       <div className="grid flex-1 grid-cols-1 md:grid-cols-[220px_1fr]">
         <nav className="border-r p-3 space-y-0.5">
-          {items.map((i) => {
+          {visible.map((i) => {
             const active = i.exact ? path === i.to : path === i.to || path.startsWith(i.to + "/");
             return (
               <Link key={i.to} to={i.to} className={`flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ${active ? "bg-secondary text-secondary-foreground font-medium" : "text-muted-foreground hover:bg-muted/50"}`}>
