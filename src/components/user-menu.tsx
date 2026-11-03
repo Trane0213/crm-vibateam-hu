@@ -1,4 +1,4 @@
-import { LogOut, Settings as SettingsIcon, UserCog } from "lucide-react";
+import { LogOut, Mail, Settings as SettingsIcon, UserCog } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +52,9 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate({ to: "/settings/profile" })}>
           <UserCog className="mr-2 h-4 w-4" /> Saját profil
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/settings/gmail" })}>
+          <Mail className="mr-2 h-4 w-4" /> Saját Gmail-fiók
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
           <SettingsIcon className="mr-2 h-4 w-4" /> Beállítások
