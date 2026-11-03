@@ -27,6 +27,7 @@ export function DailyLeadRows({ leads, compact = false }: { leads: DailyLead[]; 
             <span className="min-w-0 truncate font-medium group-hover:text-primary">{(compact && l.company_name) || l.summary || l.source || `Ügy #${l.id.slice(0, 8)}`}</span>
             {isTestLabel(l.summary) && <Badge variant="outline" className="shrink-0 text-[10px]">TESZT</Badge>}
           </div>
+          {compact && l.company_name && l.summary && <div className="mt-0.5 truncate text-xs text-muted-foreground">{l.summary}</div>}
           <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
             {l.next_step_type && <span>Következő: {compact ? NEXT_STEP_LABEL[l.next_step_type as NextStepType] ?? l.next_step_type : l.next_step_type}</span>}
             {l.next_step_due_at && <span className="tabular-nums">Határidő: {fmtDue(l.next_step_due_at)}</span>}

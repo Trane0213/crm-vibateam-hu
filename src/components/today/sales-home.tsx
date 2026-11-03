@@ -18,7 +18,7 @@ export function SalesHome() {
       <div className="space-y-6 px-4 py-4 sm:px-6">
         <section aria-label="Értékesítési áttekintés" className="space-y-3">
         <h2 className="text-base font-semibold">Értékesítési áttekintés</h2>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4 [&>a]:gap-2 [&>a]:p-3 [&>a]:sm:gap-4 [&>a]:sm:p-5 [&>a>div:first-child]:hidden [&>a>div:first-child]:sm:flex">
           <HeroStat to="/leads" tone="info" icon={Sparkles} label="Sales-előkészítés" value={v(d?.overview?.prep)} sub={sub ?? "Pipeline előtt"} />
           <HeroStat to="/sales/leads" tone="primary" icon={TrendingUp} label="Aktív Pipeline" value={v(d?.overview?.pipeline)} sub={sub ?? "folyamatban lévő ügyek"} />
           <HeroStat to="/quotes" tone="warning" icon={FileText} label="Nyitott ajánlatok" value={v(d?.overview?.openQuotes)} sub={sub ?? "kiküldött, aktuális"} />
@@ -27,7 +27,7 @@ export function SalesHome() {
         </section>
         <section aria-label="Napi fókusz" className="space-y-3">
         <h2 className="text-base font-semibold">Napi fókusz</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <FocusStat to="/sales/todo" search={{ bucket: "overdue" }} tone="danger" icon={AlertOctagon} label="Lejárt teendők" value={v(d?.buckets.overdue.length)} />
           <FocusStat to="/sales/todo" search={{ bucket: "today" }} tone="warning" icon={BellRing} label="Ma esedékes" value={v(d?.buckets.today.length)} />
           <FocusStat to="/sales/todo" search={{ bucket: "tomorrow" }} tone="info" icon={CalendarClock} label="Holnap és később" value={v(d ? d.buckets.tomorrow.length + d.buckets.later.length : undefined)} />
