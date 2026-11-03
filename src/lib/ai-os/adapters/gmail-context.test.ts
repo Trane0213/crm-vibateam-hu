@@ -10,7 +10,7 @@ type Row = Record<string, any>;
 function fixture(options: { messages?: Row[]; accounts?: Row[]; foreignLead?: boolean; foreignThread?: boolean; error?: string } = {}) {
   const tables: Record<string, Row[]> = { companies: [{ id: company }], leads: options.foreignLead ? [] : [{ id: lead, company_id: company }],
     email_threads: [{ id: thread, company_id: options.foreignThread ? "foreign" : company, lead_id: lead }], email_thread_access: [],
-    contacts: [{ id: "c", email: "customer@example.com" }], gmail_sync_runs: [],
+    contacts: [{ id: "c", company_id: company, email: "customer@example.com" }], gmail_sync_runs: [],
     emails: options.messages ?? [{ id: "m", thread_id: thread, owner_user_id: "own", company_id: company, lead_id: lead, body: "Kérem az ajánlatot.", from_email: "customer@example.com", gmail_label_ids: ["INBOX"] }] };
   const calls: { table: string; select: string }[] = [];
   const client = { rpc: async () => ({ data: options.accounts ?? [{ userId: "own", email: "own@example.com", active: true, authError: false, lastSync: null }], error: null }),
