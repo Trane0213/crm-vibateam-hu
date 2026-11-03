@@ -89,9 +89,11 @@ export function useOpenQuotesSummary() {
     queryKey: ["quotes", "owner-open-summary"],
     staleTime: 30_000,
     queryFn: async (): Promise<OpenQuotesSummary> => {
-      const quotes = await fetchAllPages<QuoteRow & { company_id: string | null }>((f, t) =>
-        supabase.from("quotes").select("id,title,status,discount_percent,is_current,company_id")
-          .not("status", "in", "(won,lost)").or("is_current.is.null,is_current.eq.true").order("id").range(f, t));
+      // A quotes táblán nincs company_id: a cég a leadből vagy projektből jön.
+      const raw = await fetchAllPages<QuoteRow & { leads: { company_id: string | null } | null; projects: { company_id: string | null } | null }>((f, t) =>
+        supabase.from("quotes").select("id,title,status,discount_percent,is_current,leads(company_id),projects(company_id)")
+          .not("status", "in", "(won,lost)").or("is_current.is.null,is_current.eq.true").order("id").range(f, t) as any);
+      const quotes = raw.map((q) => ({ ...q, company_id: q.leads?.company_id ?? q.projects?.company_id ?? null }));
       const ids = quotes.map((q) => q.id);
       const items: ItemRow[] = [];
       for (let i = 0; i < ids.length; i += 200) {
