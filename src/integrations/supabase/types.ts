@@ -4678,6 +4678,10 @@ export type Database = {
         }
         Returns: string
       }
+      sales_change_approved_pipeline_status: {
+        Args: { p_action_id: string }
+        Returns: Json
+      }
       sales_create_approved_followup: {
         Args: { p_action_id: string }
         Returns: Json
