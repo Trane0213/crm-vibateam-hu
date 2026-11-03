@@ -3,7 +3,9 @@
 - [x] Feltöltött specifikáció feldolgozása; meglévő kapcsolódások olvasásos ellenőrzése és szakaszos terv előkészítése.
 - [x] P1/A célzott CRM-adatértelmezés: cégszűrés, lapozás, forrásos leadelőzmény, hibajelzés; 170/170 regresszió, AI 13 forgatókönyv, build PASS; jelentés és STOP.
 - [ ] P1/A hitelesített Timothy/több-szerepkörös végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet.
-- [ ] Jóváhagyott P1/B Gmail-tartalom: fiókhoz kötött, jogosult olvasás, szinkronhiány és források jelzése; tesztek/jelentés/STOP. P1/C–P5 nem indul párhuzamosan.
+- [x] P1/B tárolt Gmail-tartalom: fiókhoz kötött olvasás, szinkronhiány, források és tartalomvédelem; 185/185 regresszió, AI 14 forgatókönyv, build PASS; jelentés/STOP.
+- [ ] P1/B hitelesített két-chat levélértelmezés és modellminőségi/adversarial próba: external_unmanaged Supabase, nincs átadható munkamenet.
+- [ ] P1/C ajánlatértelmezés: külön tulajdonosi jóváhagyásra vár; P1/D–P5 nem indul párhuzamosan.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
