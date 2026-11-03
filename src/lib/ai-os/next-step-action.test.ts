@@ -1,0 +1,27 @@
+import {describe,it,expect} from 'vitest';
+import {nextStepActionInput,nextStepActionSchema,verifyNextStepAction,nextStepBudapestTime} from './next-step-action';
+import {verifyExecution} from './approval';
+const id='00000000-0000-4000-8000-000000000001';
+const input={leadId:id,type:'phone',dueAt:'2026-11-05T10:00:00+01:00',note:'TESZT visszahívás'};
+const before={next_step_type:null,next_step_due_at:null,next_step_note:null};
+const args={...input,context:{lead_name:'TESZT ügy',company_id:null,company_name:null,contact_id:null,contact_name:null,assigned_to:id,status:'new',pipeline_entered_at:null,before}};
+const saved={lead:{id,next_step_type:'phone',next_step_due_at:'2026-11-05T09:00:00Z',next_step_note:input.note},before,audit_id:id,approval_id:id};
+describe('P3/B1 next step exact approval',()=>{
+ it.each(['phone','email','meeting','site_visit','doc_request','quote_send','follow_up','other'])('keeps existing type %s',type=>expect(nextStepActionInput.safeParse({...input,type}).success).toBe(true));
+ it('requires type',()=>expect(nextStepActionInput.safeParse({...input,type:''}).success).toBe(false));
+ it('requires date and time',()=>expect(nextStepActionInput.safeParse({...input,dueAt:'2026-11-05'}).success).toBe(false));
+ it('requires explicit timezone',()=>expect(nextStepActionInput.safeParse({...input,dueAt:'2026-11-05T10:00:00'}).success).toBe(false));
+ it('rejects invalid date',()=>expect(nextStepActionInput.safeParse({...input,dueAt:'2026-02-30T10:00:00Z'}).success).toBe(false));
+ it('does not add future-only rule',()=>expect(nextStepActionInput.safeParse({...input,dueAt:'2020-01-01T10:00:00Z'}).success).toBe(true));
+ it('rejects status writes',()=>expect(nextStepActionInput.safeParse({...input,status:'won'}).success).toBe(false));
+ it('rejects clear',()=>expect(nextStepActionInput.safeParse({...input,type:null,dueAt:null}).success).toBe(false));
+ it('requires server context',()=>expect(nextStepActionSchema.safeParse(input).success).toBe(false));
+ it('verified exact values accept same instant',()=>expect(verifyNextStepAction(saved,args)).toBe(true));
+ it.each(['id','next_step_type','next_step_due_at','next_step_note'])('rejects wrong saved %s',field=>expect(verifyNextStepAction({...saved,lead:{...saved.lead,[field]:'wrong'}},args)).toBe(false));
+ it('requires audit bound to action',()=>expect(verifyNextStepAction({...saved,audit_id:'00000000-0000-4000-8000-000000000009'},args)).toBe(false));
+ it('requires exact before',()=>expect(verifyNextStepAction({...saved,before:{...before,next_step_note:'changed'}},args)).toBe(false));
+ it('generic ok not enough',()=>expect(verifyExecution('sales_update_next_step',{ok:true,data:{id}},args).status).toBe('unknown'));
+ it('verified response succeeds',()=>expect(verifyExecution('sales_update_next_step',{ok:true,data:saved},args).status).toBe('succeeded'));
+ it('Budapest winter time',()=>expect(nextStepBudapestTime('2026-11-05T09:00:00Z')).toContain('10:00'));
+ it('Budapest summer time',()=>expect(nextStepBudapestTime('2026-07-05T09:00:00Z')).toContain('11:00'));
+});
