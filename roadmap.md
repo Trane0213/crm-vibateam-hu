@@ -17,7 +17,8 @@
 - [x] P3/B1 következő lépés: terv jóváhagyva, három existing mező transactional mentése, stale context/before tiltás, action audit; 261 teszt, AI 18 scenario, build és izolált SQL/kártya PASS; jelentés/STOP, nem publikált.
 - [x] P3 folytatás: jóváhagyott lead-utánkövetés existing táblába, nyitott ismétlésvédelemmel; egy összevont kör 273 teszt/AI/build/izolált SQL/kártya PASS, rövid közös jegyzet; nem publikált.
 - [x] P3 kapcsolattartó: existing azonos céges személy nyitott leaden, régi/új P0 kontextus; 287 teszt/AI/build/izolált SQL/kártya PASS, más rekordadat/ajánlati kontakt változatlan; nem publikált.
-- [ ] P3/A és P3/B1 hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. P3/B többi művelete, C–D és P4–P5 nem indult; külön jóváhagyásra vár.
+- [ ] P3 felelős-átadás: owner-only P0, aktív Sales cél, nyitott lead, kontextus/audit/readback, összevont izolált teszt; nem publikálható automatikusan.
+- [ ] P3 hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. Státusz/küldés és P4–P5 külön jóváhagyásra vár.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
