@@ -3035,9 +3035,13 @@ export type Database = {
           scope_note: string | null
           scope_type: string | null
           sent_at: string | null
+          site_address: string | null
           status: string | null
           tax_percent: number | null
           technical_scope: string | null
+          template_key: string | null
+          template_terms: Json
+          template_version: number | null
           title: string | null
           total_amount: number | null
           valid_until: string | null
@@ -3066,9 +3070,13 @@ export type Database = {
           scope_note?: string | null
           scope_type?: string | null
           sent_at?: string | null
+          site_address?: string | null
           status?: string | null
           tax_percent?: number | null
           technical_scope?: string | null
+          template_key?: string | null
+          template_terms?: Json
+          template_version?: number | null
           title?: string | null
           total_amount?: number | null
           valid_until?: string | null
@@ -3097,9 +3105,13 @@ export type Database = {
           scope_note?: string | null
           scope_type?: string | null
           sent_at?: string | null
+          site_address?: string | null
           status?: string | null
           tax_percent?: number | null
           technical_scope?: string | null
+          template_key?: string | null
+          template_terms?: Json
+          template_version?: number | null
           title?: string | null
           total_amount?: number | null
           valid_until?: string | null
