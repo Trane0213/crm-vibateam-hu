@@ -12,6 +12,7 @@ import michaelPortrait from "@/assets/agent-michael.jpg";
 import scarletPortrait from "@/assets/agent-scarlet.jpg";
 import { AgentResponse } from "@/components/ai/agent-response";
 import { ACTION_LABELS, type ActionStatus } from "@/lib/ai-os/approval";
+import { prepActionSchema } from '@/lib/ai-os/prep-action';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
@@ -271,6 +272,7 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
   onReject?: () => void;
 }) {
   let argsPretty = approval.arguments_json;
+  const prep = (()=>{try{return approval.tool_name==='sales_record_prep_activity'?prepActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
   const level: ApprovalLevel = approval.approval ?? "confirm";
   const [dangerText, setDangerText] = useState("");
@@ -305,7 +307,14 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
           <p className="text-muted-foreground">A végrehajtáshoz gépeld be: <code className="rounded bg-background px-1">MEGERŐSÍTEM</code></p>
         </div>
       )}
-      <pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>
+      {prep?.success?<div className="space-y-2 rounded border bg-background/60 p-2">
+        <p><strong>Ügy:</strong> {prep.data.context.lead_name}</p>
+        <p><strong>Cég:</strong> {prep.data.context.company_name||'Nincs megadva'} · <strong>Kapcsolattartó:</strong> {prep.data.context.contact_name||'Nincs megadva'}</p>
+        <p><strong>Felelős:</strong> {prep.data.context.assigned_to||'Tulajdonosi ügy'}</p>
+        <p><strong>Esemény:</strong> {prep.data.type==='call'?'Hívás':'E-mail'} · <strong>Rögzítés időpontja:</strong> jóváhagyáskor</p>
+        <p className="whitespace-pre-wrap break-words"><strong>Eredmény:</strong> {prep.data.result||'Nincs eredményszöveg'}</p>
+        <p className="text-muted-foreground">Csak aktivitás rögzül; a következő lépés és státusz nem változik.</p>
+      </div>:<pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>}
       {approval.transportError && <p className="mt-2 text-destructive">{approval.transportError}</p>}
       {approval.action_id && (!approval.verified || approval.status === "unknown" || approval.status === "executing") && <Button size="sm" variant="outline" className="mt-2" disabled={approval.submitting} onClick={onCheck}>Állapot ellenőrzése</Button>}
       {approval.error && <p className="mt-2 text-destructive">{approval.error}</p>}

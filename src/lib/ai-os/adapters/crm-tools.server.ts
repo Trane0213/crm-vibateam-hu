@@ -16,6 +16,7 @@ import { OWNER_ROLES } from "../roles";
 import { safeMailText } from "./gmail-context";
 import { registerQuoteTools } from "./quote-tools.server";
 import { readQuoteList } from "./quote-read.server";
+import { prepActionSchema,verifyPrepAction } from '../prep-action';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -400,6 +401,19 @@ export function registerCrmTools() {
   );
 
   // ---------------- WRITE: SALES WORKFLOW ----------------
+  registerTool({name:'sales_record_prep_activity',domain:'sales.prep_activity',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
+    description:'Megtörtént Hívás/E-mail eredmény rögzítése csak előkészítésben lévő ügyön, P0 jóváhagyással és szerveridővel. NEM ment következő lépést, státuszt vagy felelőst.',
+    parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},type:{type:'string',enum:['call','email']},result:{type:'string',maxLength:10000}},required:['leadId','type','result']}},
+    async(args,ctx)=>{
+      const input=prepActionSchema.parse(args);
+      if(!ctx.approvalActionId)throw new Error('Tartós jóváhagyás szükséges.');
+      const lead=await ctx.supabaseUser.from('leads').select('id,company_id,contact_id,assigned_to').eq('id',input.leadId).maybeSingle();
+      if(lead.error||!lead.data||lead.data.company_id!==input.context.company_id||lead.data.contact_id!==input.context.contact_id||lead.data.assigned_to!==input.context.assigned_to)throw new Error('Az ügy kapcsolatai változtak; új jóváhagyás szükséges.');
+      const saved=await ctx.supabaseUser.rpc('sales_record_approved_prep_activity',{p_action_id:ctx.approvalActionId});
+      if(saved.error) return fail(saved.error);
+      if(!verifyPrepAction(saved.data,args)) throw new Error('Az aktivitás mentése nem igazolt.');
+      return ok(saved.data);
+    });
   registerTool(
     {
       name: "sales_mark_won_with_project",

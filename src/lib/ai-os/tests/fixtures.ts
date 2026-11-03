@@ -176,8 +176,9 @@ export const FIXTURES: AgentAcceptance[] = [
       "pause_campaign",
       "update_campaign_budget",
     ],
-    required_prompt_phrases: ["Sales", "sales_mark_won_with_project"],
+    required_prompt_phrases: ["Sales", "sales_mark_won_with_project", "sales_record_prep_activity"],
     business_scenarios: [
+      {id:'timothy.prep.activity',title:'Jóváhagyott előkészítő aktivitás',user_prompt:'Beszéltem a TESZT céggel, visszahívást kérnek.',expected_tools:['sales_record_prep_activity'],expected_behavior:'P0 jóváhagyás, saját előkészítő lead, Hívás/E-mail szerveridővel; következő lépés nem változik, igazolt eredmény nélkül nincs siker.'},
       {
         id: "timothy.company.history",
         title: "Forráshű céges és leadelőzmény",

@@ -29,6 +29,10 @@ export async function authorizeAgent(sb: SupabaseClient, userId: string, agentId
 }
 export async function frozenArgs(sb: SupabaseClient, toolDomain: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
  if (hasSensitive(args)) throw new Error("A művelet nem tartalmazhat hozzáférési titkot.");
+ if (toolDomain === 'sales.prep_activity') {
+  const { freezePrepAction } = await import('./adapters/prep-action.server');
+  return freezePrepAction(sb,args);
+ }
  if (toolDomain !== "ads.google") return args;
  const { loadConnection, resolveCustomerId } = await import("@/lib/google-ads/client.server");
  const customer_id = resolveCustomerId(await loadConnection(sb), typeof args.customer_id === "string" ? args.customer_id : undefined);
@@ -63,7 +67,7 @@ export async function decideAction(user: SupabaseClient, admin: SupabaseClient, 
  let no_op: boolean | undefined;
  let error: string | undefined;
  try {
-  result = await tool.execute(action.input_json.args, { userId, agentId: agent.id, runId: action.run_id, threadId: null, supabaseUser: user, supabaseAdmin: admin });
+  result = await tool.execute(action.input_json.args, { userId, agentId: agent.id, runId: action.run_id, threadId: null, supabaseUser: user, supabaseAdmin: admin, approvalActionId:action.id });
   ({ status, no_op } = verifyExecution(tool.name, result, action.input_json.args));
   // External failures may follow an applied mutation: never permit replay.
   if (tool.domain === "ads.google" && status === "failed") status = "unknown";
