@@ -1,4 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Timothy V3.1 — értékesítési intelligencia
+- [ ] Három meglévő eszközökre épülő, kérésre futó olvasási képesség: Gmail–CRM eltérésellenőrzés, eredmény/vesztési ok értelmezése, történeti nettó ajánlati egységárkeresés; egy közös terv, célzott teszt és egy regresszió, nincs új felület/írás/publikálás.
 ## Timothy Sales AI V3.0 (2026-11-03)
 - [x] V3 lezáró kör: P3 kód/specifikáció ellenőrzés; P4 saját ügyek szabályalapú metaadatjelzései meglévő Ma/dosszié/két-chat felületen; P5 388/388 regresszió, AI 21 forgatókönyv, izolált nézet PASS, build OK. Üzleti adat, Gmail és publikálás érintetlen.
 - [ ] V3 bevezetési kapu: hitelesített két-chat→P0→CRM/Gmail/R2, több szerepkör és modellminőség TESZT-végigpróba; external_unmanaged, nincs átadható biztonságos munkamenet. Felhasználó saját TESZT-próbája szükséges.
