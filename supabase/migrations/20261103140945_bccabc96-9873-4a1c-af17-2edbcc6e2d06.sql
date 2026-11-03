@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.quotes_status_guard() FROM PUBLIC, anon, authenticated;
