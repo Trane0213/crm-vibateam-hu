@@ -1,0 +1,16 @@
+import {describe,it,expect,vi,beforeEach} from 'vitest';
+import {handleGmailSend} from './send.server';
+const m=vi.hoisted(()=>({auth:vi.fn(),send:vi.fn(),profile:vi.fn(),valid:vi.fn(),admin:vi.fn(),user:vi.fn()}));
+vi.mock('./auth.server',()=>({getAuthedUserId:m.auth}));
+vi.mock('./oauth.server',()=>({getValidAccessToken:m.valid}));
+vi.mock('./admin.server',()=>({getAdminClient:m.admin}));
+vi.mock('@/integrations/supabase/server',()=>({getUserClient:m.user}));
+vi.mock('./gmail-api.server',()=>({sendMessage:m.send,getProfile:m.profile,buildRawMimeMessage:()=> 'synthetic-mime',parseAddressList:(s:string)=>s?s.split(','):[]}));
+const request=()=>new Request('https://test.invalid',{method:'POST',headers:{authorization:'Bearer synthetic'},body:JSON.stringify({to:'customer@example.com',subject:'TESZT',body:'TESZT',expectedMailbox:'test@example.com'})});
+beforeEach(()=>{vi.clearAllMocks();m.auth.mockResolvedValue('test-user');m.valid.mockResolvedValue({accessToken:'synthetic',email:'test@example.com'});m.profile.mockResolvedValue({emailAddress:'test@example.com'});m.send.mockResolvedValue({id:'gmail-test',threadId:'thread-test'});m.admin.mockReturnValue({from:()=>{const q:any={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:{active:true,gmail_email:'test@example.com',gmail_auth_error:null},error:null})};return q;}});m.user.mockReturnValue({});});
+describe('existing shared Gmail transport guards',()=>{
+ it('checks actual own sender before any Gmail send',async()=>{m.profile.mockResolvedValue({emailAddress:'foreign@example.com'});expect((await handleGmailSend(request())).status).toBe(403);expect(m.send).not.toHaveBeenCalled();});
+ it('cannot send before durable dispatch hook succeeds',async()=>{await handleGmailSend(request(),{beforeSend:async()=>{throw new Error('claim denied');},verifySent:async()=>{}});expect(m.send).not.toHaveBeenCalled();});
+ it('keeps Gmail identifiers when verification after send fails',async()=>{const response=await handleGmailSend(request(),{beforeSend:async()=>{},verifySent:async()=>{throw new Error('unverified');}});expect(await response.json()).toMatchObject({ok:true,id:'gmail-test',threadId:'thread-test',warning:expect.any(String)});expect(m.send).toHaveBeenCalledTimes(1);});
+ it('does not retry ambiguous Gmail errors',async()=>{m.send.mockRejectedValue(new Error('network interrupted'));const response=await handleGmailSend(request(),{beforeSend:async()=>{},verifySent:async()=>{}});expect(response.status).toBe(500);expect(m.send).toHaveBeenCalledTimes(1);});
+});
