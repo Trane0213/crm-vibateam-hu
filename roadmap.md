@@ -15,6 +15,7 @@
 - [x] P3 előkészítés: CRM/Gmail meglévő útjainak ellenőrzése; P3/A terv és hatás/rollback jóváhagyva.
 - [x] P3/A jóváhagyott Hívás/E-mail aktivitás: existing followups, P0 action UUID idempotencia, audittranzakció, szerveridő; 234 teszt és AI 17 forgatókönyv PASS, izolált SQL/kártya PASS; STOP.
 - [x] P3/B1 következő lépés: terv jóváhagyva, három existing mező transactional mentése, stale context/before tiltás, action audit; 261 teszt, AI 18 scenario, build és izolált SQL/kártya PASS; jelentés/STOP, nem publikált.
+- [ ] P3 folytatás: jóváhagyott lead-utánkövetés a meglévő táblába, nyitott ismétlésvédelemmel; összevont ellenőrzés és rövid jegyzet, külön terv/jelentéssorozat nélkül.
 - [ ] P3/A és P3/B1 hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. P3/B többi művelete, C–D és P4–P5 nem indult; külön jóváhagyásra vár.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)

@@ -1,0 +1,5 @@
+# Timothy P3 — rövid közös munkajegyzet
+## Utánkövetés
+Csak explicit jóváhagyott, leadhez kötött tervezett utánkövetés a meglévő followups táblában (call/email/meeting/other). Sales saját ügy, owner meglévő hozzáférés. Nyitott lead-utánkövetés mellett nem készül új (az ajánlatkapcsolt sor is számít); az ajánlat saját ütemezése érintetlen. Lead next-step/státusz/kontakt/felelős nem változik. Nincs e-mailküldés.
+
+Hatás/rollback: egy invoker RPC, existing P0 executing action, saját user-RLS, lead/action lock, fagyasztott kapcsolatok és státusz, action UUID deduplikáció, followup+audit egy tranzakció. Nincs schema/table/RLS/trigger átírás. Új RPC anon/PUBLIC tiltva, authenticated execute. Visszaállítás: `DROP FUNCTION IF EXISTS public.sales_create_approved_followup(uuid);` és tool bekötés eltávolítása, adatok/audit megmaradnak. A migration nem ír át üzleti adatot; TESZT próba csak scratch DB-ben.
