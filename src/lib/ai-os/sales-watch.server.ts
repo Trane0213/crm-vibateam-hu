@@ -2,7 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Mailbox } from '@/lib/gmail/mailbox-model';
 import { loadDailyWork, allDailyRows } from '@/lib/sales/load-daily-work';
 import { authorizeAgent } from './approval.server';
-import { mailDirection, messageAssociation, syncCompleteness } from './adapters/gmail-context';
+import { mailDirection, syncCompleteness } from './adapters/gmail-context';
 import { salesWatchSignals, type WatchFollowup, type WatchQuote, type WatchSend } from './sales-watch';
 
 /** User-RLS only; no tokens, Gmail API, bodies, model call or writes. */
@@ -16,7 +16,7 @@ export async function loadSalesWatch(user: SupabaseClient, userId: string, now =
     quotes.push(...await allDailyRows<WatchQuote>((f, t) => user.from('quotes').select('id,lead_id,title,status,is_current,valid_until').in('lead_id', ids).eq('is_current', true).in('status', ['sent', 'negotiation']).order('id').range(f, t)));
     followups.push(...await allDailyRows<WatchFollowup>((f, t) => user.from('followups').select('id,lead_id,completed,due_date').in('lead_id', ids).eq('completed', false).order('id').range(f, t)));
   }
-  for (let i = 0; i < quotes.length; i += 100) sends.push(...await allDailyRows<WatchSend>((f, t) => user.from('quote_sends').select('id,quote_id,gmail_message_id').in('quote_id', quotes.slice(i, i + 100).map(q => q.id)).order('id').range(f, t)));
+  for (let i = 0; i < quotes.length; i += 100) sends.push(...await allDailyRows<WatchSend>((f, t) => user.from('quote_sends').select('id,quote_id,gmail_message_id,thread_id,status,sent_at').in('quote_id', quotes.slice(i, i + 100).map(q => q.id)).order('id').range(f, t)));
   const accounts = await user.rpc('crm_mailboxes');
   if (accounts.error || !Array.isArray(accounts.data)) throw new Error('A postafiók-hozzáférés nem ellenőrizhető.');
   const own = (accounts.data as Mailbox[]).filter(m => m.userId === userId && m.active);
@@ -45,7 +45,7 @@ export async function loadSalesWatch(user: SupabaseClient, userId: string, now =
       if (!complete) partial = true;
       const customerEmails = complete ? (contacts.data ?? []).map(c => (c.email ?? '').trim().toLowerCase()).filter(Boolean) : [];
       const raw = messages.data ?? [];
-      const consistent = raw.every(m => messageAssociation(m, t.company_id, t.lead_id));
+      const consistent = raw.every(m => m.company_id === t.company_id && m.lead_id === t.lead_id && m.internal_date && Number.isFinite(Date.parse(m.internal_date)) && Date.parse(m.internal_date) <= now.getTime());
       if (!consistent) partial = true;
       threads.push({ ...t, complete: complete && consistent, messages: raw.map(m => ({ id: m.id, thread_id: m.thread_id, gmail_message_id: m.gmail_message_id, internal_date: m.internal_date, direction: mailDirection(m, account.email, customerEmails) })) });
     }
