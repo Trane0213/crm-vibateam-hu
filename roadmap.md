@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy célzott stabilizálás — 2026-11-03
+- [ ] Viktor újonnan engedélyezett bejelentkezésével célzott visszateszt + elírásos chatkérdések; tényleges válasz/eszköz/adat összevetés, kizárólag olvasás.
 - [x] Aktuális ajánlatlista és forráshű linkek; állapot/időzóna, szerepkör és hiányos CRM/Gmail-adatok célzott javítása, séma/RLS/UI változtatás nélkül. 62 célzott teszt/21 AI acceptance/build OK, rövid jelentés: docs/system-map/timothy-celzott-stabilizalas-2026-11-03.md.
 - [ ] Kilenc korábbi FAIL hitelesített visszatesztje: 0 igazolt PASS, 9 NEM TESZTELT; external_unmanaged, böngésző /auth, nincs használható tesztmunkamenet. Az előző összesítés 9 FAIL, táblázatban 8 FAIL sor — a kilencedik futás nem egyértelmű. Üzleti írás/küldés/publikálás nincs, STOP.
 ## Timothy végső gyors ellenőrzés
