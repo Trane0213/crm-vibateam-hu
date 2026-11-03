@@ -6,6 +6,13 @@ import { MarketingHome } from "@/components/today/marketing-home";
 import { PmHome } from "@/components/today/pm-home";
 
 export const Route = createFileRoute("/_authenticated/today")({
+  head: () => ({ meta: [
+    { title: "Ma – napi áttekintés | VIBA CRM" },
+    { name: "description", content: "Saját napi teendők és vezetői csapatáttekintés a VIBA CRM-ben." },
+    { property: "og:title", content: "Ma – napi áttekintés | VIBA CRM" },
+    { property: "og:description", content: "Aktuális ügyek és határidők budapesti nap szerint." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: TodayPage,
 });
 
