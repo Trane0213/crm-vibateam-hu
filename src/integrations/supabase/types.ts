@@ -4688,6 +4688,10 @@ export type Database = {
         }
         Returns: string
       }
+      sales_record_approved_prep_activity: {
+        Args: { p_action_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       ai_action_type:
