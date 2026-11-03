@@ -4579,6 +4579,15 @@ export type Database = {
       }
       quote_new_version: { Args: { p_quote_id: string }; Returns: string }
       quote_recalc_total: { Args: { _quote_id: string }; Returns: undefined }
+      quote_schedule_followup: {
+        Args: {
+          p_due: string
+          p_note?: string
+          p_quote_id: string
+          p_type: string
+        }
+        Returns: string
+      }
       sales_mark_won_with_project: {
         Args: {
           p_lead_id: string
