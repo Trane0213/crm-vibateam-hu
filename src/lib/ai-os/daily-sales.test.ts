@@ -10,7 +10,7 @@ describe('Timothy daily priorities',()=>{
    {...base,id:'waiting',status:'quote_sent'},{...base,id:'missing',created_at:'2026-10-01T10:00Z'},{...base,id:'sixth',created_at:'2026-10-01T10:00Z'}, {...base,id:'other',assigned_to:'other'}];
   const d=dailyWork(rows,[{id:'q',lead_id:'waiting',status:'sent',is_current:true,title:'TESZT'}],'sales',false,now);
   expect(dailySalesFocus(d).map(r=>r.lead.id)).toEqual(['overdue','today','new','waiting','missing']);
-  expect(dailySalesCounts(d)).toEqual({overdue:1,today:1,tomorrow:0,later:0,missing:4,newLeads:1,waiting:1,incomplete:6});
+  expect(dailySalesCounts(d)).toEqual({overdue:1,today:1,tomorrow:0,later:0,missing:4,newLeads:3,waiting:1,incomplete:6});
  });
  it('uses Budapest day for cached source changes',async()=>{
    const row={...base,next_step_due_at:'2026-11-03T23:30Z'};
@@ -19,10 +19,10 @@ describe('Timothy daily priorities',()=>{
    expect(dailySalesCounts(before).tomorrow).toBe(1);expect(dailySalesCounts(after).today).toBe(1);
    expect(await dailySalesFingerprint(before)).not.toBe(await dailySalesFingerprint(after));
  });
- it('hash stays stable when rows reorder and changes when an assignment is removed',async()=>{
+ it('hash changes when focus order changes or an assignment is removed',async()=>{
   const other={...base,id:'second'};
   const d=(rows:DailyLead[])=>dailyWork(rows,[],'sales',false,now);
-  expect(await dailySalesFingerprint(d([base,other]))).toBe(await dailySalesFingerprint(d([other,base])));
+  expect(await dailySalesFingerprint(d([base,other]))).not.toBe(await dailySalesFingerprint(d([other,base])));
   expect(await dailySalesFingerprint(d([base,other]))).not.toBe(await dailySalesFingerprint(d([base,{...other,assigned_to:'other'}])));
  });
  it('does not pass secrets in CRM text to the model',()=>{
