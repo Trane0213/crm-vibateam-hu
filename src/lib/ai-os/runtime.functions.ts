@@ -58,7 +58,7 @@ export const decideAiAction = createServerFn({ method: "POST" })
     const { decideAction } = await import("./approval.server");
     const { getAdminClient } = await import("@/integrations/supabase/server");
     ensureBootstrapped();
-    return decideAction(context.supabase, getAdminClient(), context.userId, data);
+    return decideAction(context.supabase, getAdminClient(), context.userId, data, context.accessToken);
   });
 
 export const getAiActions = createServerFn({ method: "POST" })

@@ -13,6 +13,7 @@ import { registerKgTools } from "./adapters/kg-tools.server";
 import { registerWebsiteTools } from "./adapters/website-tools.server";
 import { registerGmailContextTools } from "./adapters/gmail-tools.server";
 import { registerDocumentTools } from "./adapters/document-tools.server";
+import { registerEmailSendTool } from './adapters/email-send-action.server';
 
 let booted = false;
 
@@ -22,6 +23,7 @@ export function ensureBootstrapped() {
   registerCrmTools();
   registerGmailContextTools();
   registerDocumentTools();
+  registerEmailSendTool();
   registerGoogleAdsTools();
   registerKgTools();
   registerWebsiteTools();

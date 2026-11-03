@@ -29,6 +29,10 @@ export async function authorizeAgent(sb: SupabaseClient, userId: string, agentId
 }
 export async function frozenArgs(sb: SupabaseClient, toolDomain: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
  if (hasSensitive(args)) throw new Error("A művelet nem tartalmazhat hozzáférési titkot.");
+ if (toolDomain === 'sales.email_send') {
+  const {freezeEmailSend}=await import('./adapters/email-send-action.server');
+  return (await freezeEmailSend(sb,args)).frozen;
+ }
  if(toolDomain==='sales.pipeline_status') {
   const {freezePipelineStatus}=await import('./adapters/pipeline-status-action.server');
   return freezePipelineStatus(sb,args);
@@ -67,7 +71,7 @@ export async function createApproval(admin: SupabaseClient, input: { runId: stri
  return snapshot(data as ActionRow);
 }
 
-export async function decideAction(user: SupabaseClient, admin: SupabaseClient, userId: string, input: { actionId: string; decision: "approve" | "reject" | "check"; confirmation?: string }): Promise<ApprovalSnapshot> {
+export async function decideAction(user: SupabaseClient, admin: SupabaseClient, userId: string, input: { actionId: string; decision: "approve" | "reject" | "check"; confirmation?: string }, accessToken?: string): Promise<ApprovalSnapshot> {
  // RLS owner-read before privileged claim; never trust owner/agent/args from caller.
  const read = await user.from("agent_run_steps").select("*").eq("id", input.actionId).not("approval_status", "is", null).maybeSingle();
  if (read.error || !read.data) throw new Error("A művelet nem elérhető.");
@@ -87,10 +91,11 @@ export async function decideAction(user: SupabaseClient, admin: SupabaseClient, 
  let no_op: boolean | undefined;
  let error: string | undefined;
  try {
-  result = await tool.execute(action.input_json.args, { userId, agentId: agent.id, runId: action.run_id, threadId: null, supabaseUser: user, supabaseAdmin: admin, approvalActionId:action.id });
+  result = await tool.execute(action.input_json.args, { userId, agentId: agent.id, runId: action.run_id, threadId: null, supabaseUser: user, supabaseAdmin: admin, approvalActionId:action.id, accessToken });
   ({ status, no_op } = verifyExecution(tool.name, result, action.input_json.args));
   // External failures may follow an applied mutation: never permit replay.
   if (tool.domain === "ads.google" && status === "failed") status = "unknown";
+  if (tool.domain === 'sales.email_send' && status !== 'succeeded') status = 'unknown';
   if (status !== "succeeded") error = status === "unknown" ? "A végrehajtás eredménye még nem igazolt." : "A művelet végrehajtása sikertelen.";
  } catch { error = "A végrehajtás eredménye még nem igazolt."; }
  try {

@@ -31,3 +31,4 @@
 - Timothy followups use existing rows and atomic user-RLS P0 audit; open-followup checks and lead locks prevent duplicates without changing next-step/quote scheduling.
 - Timothy contact/assignment edits use immutable P0 and invoker audit/readback; same-company contacts or owner-only active Sales auth IDs, locked identity checks, no downstream edits.
 - Timothy open Pipeline changes reuse STATUS_TRANSITIONS via P0 invoker audit/readback; frozen next-step/context, no entry/terminal/quote edits.
+- Timothy sending uses the existing Gmail send service with immutable P0 message/scope/file hashes and a service-only action dispatch claim; own live Gmail SENT plus user-visible CRM readback prove success, uncertain delivery never retries — no parallel transport or mailbox access changes.

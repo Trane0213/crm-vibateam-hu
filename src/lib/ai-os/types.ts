@@ -90,6 +90,8 @@ export type ToolExecutor = (
 ) => Promise<unknown>;
 
 export type ToolContext = {
+  /** Authenticated server context only; never model input or audit output. */
+  accessToken?: string;
   /** Set only by the server after a durable P0 claim, never model input. */
   approvalActionId?: string;
   userId: string;
