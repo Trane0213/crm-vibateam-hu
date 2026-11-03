@@ -125,7 +125,7 @@ export async function callLlm(args: CallLlmArgs): Promise<LlmResult> {
     if (args.reasoning_effort) body.reasoning = { effort: args.reasoning_effort };
     if (args.max_tokens != null) body.max_output_tokens = args.max_tokens;
     if (args.tools?.length) {
-      body.tools = args.tools.map((t) => ({ type: "function", name: t.name, description: t.description, parameters: t.parameters }));
+      body.tools = args.tools.map((t) => ({ type: "function", name: t.name, description: t.description, parameters: t.parameters, strict: false }));
       body.tool_choice = "auto";
     }
     const res = await fetchWithTimeout(`${cfg.baseUrl}/responses`, {
