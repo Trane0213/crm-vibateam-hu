@@ -5,6 +5,7 @@ import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatHuf } from "@/lib/format";
+import { hasDraftTerms, isTemplateKey, QUOTE_TEMPLATES } from "@/lib/quotes/templates";
 
 /**
  * Ajánlat nyomtatható HTML nézet — böngésző natív "Print / Save as PDF"
@@ -274,6 +275,34 @@ function QuotePrint() {
               </div>
             </div>
           </div>
+
+          {/* S6: VIBA-sablon szakaszai */}
+          {(() => {
+            const tk = isTemplateKey(quote.template_key) ? quote.template_key : null;
+            const terms = (quote.template_terms ?? {}) as Record<string, string>;
+            const blocks: { label: string; text: string }[] = [
+              { label: tk === "b2b" ? "Projekt / helyszín" : "Helyszín", text: quote.site_address ?? "" },
+              { label: "Vállalt műszaki tartalom", text: quote.technical_scope ?? "" },
+              { label: tk === "b2b" ? "Munkahatárok és kizárások" : "Kizárások", text: quote.exclusions ?? "" },
+              ...(tk ? QUOTE_TEMPLATES[tk].sections.map((s) => ({ label: s.label, text: terms[s.key] ?? "" })) : []),
+            ].filter((b) => b.text.trim());
+            if (!blocks.length) return null;
+            return (
+              <div className="mt-8 space-y-4 border-t pt-4">
+                {tk && hasDraftTerms(terms) && (
+                  <div className="no-print rounded border border-red-300 bg-red-50 p-2 text-xs text-red-700">
+                    Az ajánlat jóváhagyatlan [TERVEZET] feltételszöveget tartalmaz — kiküldés előtt véglegesítsd.
+                  </div>
+                )}
+                {blocks.map((b) => (
+                  <div key={b.label}>
+                    <div className="mb-1 text-[11px] uppercase tracking-wider text-neutral-500">{b.label}</div>
+                    <div className="whitespace-pre-wrap text-sm text-neutral-700">{b.text}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Megjegyzés */}
           {quote.notes && (

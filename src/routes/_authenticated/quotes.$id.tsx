@@ -15,6 +15,7 @@ import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
 import { QuoteSendPanel } from "@/components/quotes/quote-send-panel";
+import { QuoteTemplatePanel } from "@/components/quotes/quote-template-panel";
 import { QuoteStatusPanel } from "@/components/quotes/quote-status-panel";
 import { quoteStatusLabel } from "@/lib/quotes/quote-status";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -314,6 +315,9 @@ function QuoteDetail() {
             {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
             {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
           </div>
+        </div>
+        <div className="mt-6 rounded-md border bg-card p-5">
+          <QuoteTemplatePanel quote={quote as any} />
         </div>
         <div className="mt-6 rounded-md border bg-card p-5">
           <QuoteDocumentManager quoteId={quote.id} />
