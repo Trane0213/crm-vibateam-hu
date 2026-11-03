@@ -8,6 +8,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 import type { ChatMessage } from "./types";
+import { z } from "zod";
+import { decisionSchema, statusSchema } from "./approval";
 
 type RunInput = {
   agentId: string;
@@ -18,10 +20,11 @@ type RunInput = {
 };
 
 function validate(input: unknown): RunInput {
-  const i = input as RunInput;
-  if (!i || typeof i.agentId !== "string") throw new Error("agentId kötelező");
-  if (!Array.isArray(i.history)) throw new Error("history kötelező");
-  return i;
+  return z.object({
+    agentId: z.string().min(1).max(80), threadId: z.string().uuid().nullable().optional(),
+    history: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(24000) }).strict()).max(20),
+    memorySubjects: z.array(z.object({ subject_type: z.string().max(80), subject_id: z.string().uuid() }).strict()).max(20).optional(),
+  }).strict().parse(input);
 }
 
 export const runAiAgent = createServerFn({ method: "POST" })
@@ -35,18 +38,8 @@ export const runAiAgent = createServerFn({ method: "POST" })
 
     const admin = getAdminClient();
 
-    // User role lekérés (best effort). A CRM séma: users_profile.role_id → roles.name.
-    // Régebbi kód a nem létező `user_roles` táblát olvasta, ezért mindig null-t adott.
-    let userRole: string | null = null;
-    try {
-      const { data: prof } = await context.supabase
-        .from("users_profile")
-        .select("role_id, roles:role_id ( name )")
-        .eq("auth_user_id", context.userId)
-        .maybeSingle();
-      const raw = (prof as any)?.roles?.name as string | undefined;
-      userRole = raw ? raw.toLowerCase() : null;
-    } catch { /* noop */ }
+    const { authorizeAgent } = await import("./approval.server");
+    const userRole = await authorizeAgent(context.supabase, context.userId, data.agentId);
 
     return await runAgent(context.supabase, admin, {
       agentId: data.agentId,
@@ -55,6 +48,27 @@ export const runAiAgent = createServerFn({ method: "POST" })
       threadId: data.threadId ?? null,
       history: data.history,
       memorySubjects: data.memorySubjects,
-      approvedToolCallIds: data.approvedToolCallIds,
     });
+  });
+export const decideAiAction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => decisionSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { ensureBootstrapped } = await import("./bootstrap.server");
+    const { decideAction } = await import("./approval.server");
+    const { getAdminClient } = await import("@/integrations/supabase/server");
+    ensureBootstrapped();
+    return decideAction(context.supabase, getAdminClient(), context.userId, data);
+  });
+
+export const getAiActions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => statusSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { ensureBootstrapped } = await import("./bootstrap.server");
+    const { decideAction } = await import("./approval.server");
+    const { getAdminClient } = await import("@/integrations/supabase/server");
+    ensureBootstrapped();
+    const admin = getAdminClient();
+    return Promise.all(data.actionIds.map(actionId => decideAction(context.supabase, admin, context.userId, { actionId, decision: "check" })));
   });
