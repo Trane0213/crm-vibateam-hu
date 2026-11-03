@@ -1,6 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
-- [ ] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
+- [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
 - [ ] Jóváhagyott terv alapján a közös AI OS és a két meglévő chatfelület célzott javítása; üzleti modulok változatlanok.
 - [ ] Izolált kötelező hibaforgatókönyvek, regresszió, AI acceptance és PASS/FAIL jelentés; publikálás nélkül.
 

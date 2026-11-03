@@ -14,7 +14,7 @@ A meglévő AI OS, asszisztensregiszter, szerepkörök és RLS-es üzleti adatho
 ## Végrehajtási sorrend
 ### P0/A – Tartós jóváhagyás és egyszeri végrehajtás
 1. A jóváhagyási kérés a meglévő `agent_run_steps` egy `approval` sorában rögzül. A sor UUID-ja lesz a szerveroldali műveletazonosító; tulajdonosa az `agent_runs.user_id`.
-2. A szerver tárolja az eredeti eszközt, pontos végrehajtási paramétereket, agentet, jóváhagyási szintet és lejáratot. Érvénytelen JSON vagy nem rögzíthető bemenet esetén nincs jóváhagyási kártya és nincs írás.
+2. A szerver tárolja az eredeti eszközt, pontos végrehajtási paramétereket, agentet, jóváhagyási szintet, az eszközszerződés lenyomatát és lejáratot. Érvénytelen JSON vagy nem rögzíthető bemenet esetén nincs jóváhagyási kártya és nincs írás. Megváltozott eszközszerződéshez új jóváhagyás kell.
 3. Jóváhagyás, elutasítás és állapotlekérdezés hitelesített szerverfüggvényen történik. A döntési kérés csak műveletazonosítót, döntést és veszélyes műveletnél a meglévő gépelt megerősítést fogadja; eszköz, paraméter, felhasználó és beszélgetés-előzmény nem küldhető végrehajtási utasításként.
 4. A szerver minden döntésnél újraellenőrzi a munkamenetet, tulajdonost, aktuális szerepkört, agentelérést és registry-jogosultságot. Az üzleti művelet továbbra is a felhasználó RLS-es kliensével fut.
 5. Atomikus adatbázis-állapotváltás foglalja le a műveletet. Egyidejű vagy ismételt jóváhagyás nem indít új végrehajtást; elutasítás és jóváhagyás versenyét is ez rendezi.
@@ -23,6 +23,7 @@ A meglévő AI OS, asszisztensregiszter, szerepkörök és RLS-es üzleti adatho
 ### P0/B – Megbízható eredmény és két meglévő chatfelület
 - Állapotok: **Jóváhagyásra vár → Végrehajtás folyamatban → Sikeresen végrehajtva / Sikertelen**, illetve **Elutasítva / Lejárt**.
 - A szerver ellenőrzi az eszköz eredményét. `{ok:false}`, hibaburok, régi `{error:...}` vagy hiányos végrehajtási bizonyíték nem siker. A Timothy- és Michael-eszközök jelenlegi eredményszerződése alapján célzottan ellenőrizhető visszaigazolást használunk, nem az AI szövegét.
+- Michaelnél a meglévő Google-válasz és célazonosító ellenőrzése szükség esetén az érintett adapterben szigorodik; puszta HTTP-siker vagy hiányos válasz nem bizonyíték. Bizonyított „már a kívánt állapotban van” eredmény külön jelölést kap, nem állít új módosítást.
 - A két felület közös állapot- és eredménykezelést kap. Jóváhagyás alatt a gombok letiltva; a frissítés a kezdeményező beszélgetést érinti akkor is, ha közben másik beszélgetés nyílik meg.
 - Hálózati megszakadáskor: **„A végrehajtás eredménye még nem igazolt.”** Állapotellenőrzés ugyanarra az azonosítóra, új végrehajtás vagy modellhívás nélkül.
 - A helyi beszélgetés csak megjelenítési gyorsítótár. Újranyitáskor a kártyák szerverállapotot kérdeznek le. Régi, tartós azonosító nélküli kártya nem végrehajtható; a helyi „approved” érték nem bizonyíték.
@@ -53,6 +54,8 @@ Teljes meglévő tesztsor, `bun run ai:acceptance`, fordítási visszajelzés. F
 - állapot, szerveridős lejárat, döntés időpontja és döntéshozó;
 - végrehajtás kezdete/vége, egyszeri foglalási UUID;
 - paraméterlenyomat és ellenőrzött eredmény/hibakód.
+
+A forrásmodell-hívás azonosítója külön mezőben rögzül; a `(run_id, forrásmodell-hívás-azonosító)` pár jóváhagyási sorokra érvényes egyedi indexe megakadályozza ugyanazon javaslat kétszeri rögzítését. A két általános naplótábla státusz- és kind-korlátait nem bővítjük; a jóváhagyási életciklus külön mezőkre kerül.
 
 Javasolt lejárat: létrehozástól **30 perc**, adatbázis-idővel ellenőrizve. A régi sorok mezői NULL maradnak, régi jóváhagyások nem válnak végrehajthatóvá.
 
