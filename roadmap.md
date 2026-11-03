@@ -19,6 +19,8 @@
 - [x] P3 kapcsolattartó: existing azonos céges személy nyitott leaden, régi/új P0 kontextus; 287 teszt/AI/build/izolált SQL/kártya PASS, más rekordadat/ajánlati kontakt változatlan; nem publikált.
 - [x] P3 felelős-átadás: owner-only P0, meglévő lapozott átvevőkereső, aktív Sales cél, nyitott lead, kontextus/audit/readback; 309 teszt/AI/build/izolált SQL/kártya PASS, migráció sikeres, éles action=0; nem publikált.
 - [x] P3 nyitott Pipeline-státusz: existing átmenetek/P0, frozen next-step/lead, atomi audit/readback; 344 teszt/AI/build/izolált SQL/kártya PASS, migráció sikeres, nincs éles írás/publikálás.
+- [x] P3 küldés vizsgálata: meglévő Gmail-út és P0 ellenőrizve; sima levélnél nincs tartós küldési ismétlésvédelem. Aktuális read-only DB: 0 approval sor, 0 küldőtool-sor, 2 quote_sends sor.
+- [ ] P3 jóváhagyott levélküldés: összevont biztonsági terv jóváhagyásra vár; meglévő küldés újrahasználata, actionhoz kötött egyszeri dispatch, pontos címzett/tartalom/ügy/melléklet, igazolt eredmény. Éles küldés és publikálás nélkül.
 - [ ] P3 hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. Küldés és P4–P5 külön jóváhagyásra vár.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
