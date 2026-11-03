@@ -81,6 +81,25 @@ describe("Timothy P1/A CRM reads", () => {
     const out = await execute("crm_lead_history", { lead_id: "own", section: "activities" }, ctx);
     expect(out.data.items.map((r: Row) => r.id)).toEqual(["right"]);
   });
+  it("pages more than 30 status changes with concrete source IDs", async () => {
+    const history = Array.from({ length: 39 }, (_, i) => ({ id: `s${i}`, lead_id: "own", changed_at: new Date(Date.UTC(2026, 10, 3, 0, i)).toISOString() }));
+    const { ctx } = fixture({ leads: [{ id: "own" }], lead_status_history: history });
+    const first = await execute("crm_lead_history", { lead_id: "own", limit: 25 }, ctx);
+    expect(first.data.pagination.total_visible).toBe(39);
+    expect(first.data.pagination.has_more).toBe(true);
+    const second = await execute("crm_lead_history", { lead_id: "own", limit: 25, offset: first.data.pagination.next_offset }, ctx);
+    expect(new Set([...first.data.items, ...second.data.items].map((r: Row) => r.id)).size).toBe(39);
+    expect(second.data.pagination.has_more).toBe(false);
+    expect(second.data.sources[0].table).toBe("lead_status_history");
+  });
+  it("visible company summary reports actual totals rather than the first five rows", async () => {
+    const { ctx } = fixture({ companies: [{ id: "c" }], contacts: Array.from({ length: 35 }, (_, i) => ({ id: `c${i}`, company_id: "c" })) });
+    const out = await execute("crm_company_overview", { company_id: "c" }, ctx);
+    expect(out.data.sections.contacts.pagination.total_visible).toBe(35);
+    expect(out.data.sections.contacts.items.length).toBe(5);
+    expect(out.data.sections.contacts.pagination.next_offset).toBe(5);
+    expect(out.data.sections.contacts.completeness.full_company_history).toBe(false);
+  });
   it("returns query failures, not fake empty successes or zero counts", async () => {
     const { ctx } = fixture({ leads: [] }, undefined, ["leads"]);
     expect((await execute("crm_list_leads", {}, ctx)).ok).toBe(false);
