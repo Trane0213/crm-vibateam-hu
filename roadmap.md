@@ -1,4 +1,9 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Ajánlatkezelő V2.1/C (2026-11-03)
+- [ ] Tulajdonosi sablonalapok a meglévő settings tárolóban, szerveroldali jogosultság és validálás; meglévő ajánlatok változatlanok.
+- [ ] Közös nyomtatási dokumentum és élő A4-előnézet, ajánlatspecifikus feltételek megtartásával.
+- [ ] Célzott/regressziós ellenőrzések, kézikönyv és PASS/FAIL jelentés; STOP, publikálás nélkül.
+
 ## Ajánlatkezelő V2.1/B (2026-11-03)
 - [x] Hat munkaterület a meglévő ajánlatpanelekből, állandó összefoglaló fejléc; rejtett panelek csatolva maradnak.
 - [x] Teljes regresszió 121/121, AI 12/12, build PASS; ellenőrzési jelentés; STOP, C és publikálás nélkül.
