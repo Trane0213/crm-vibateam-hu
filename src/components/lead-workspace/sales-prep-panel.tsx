@@ -114,7 +114,18 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
   const moveToPipeline = useMutation({
     mutationFn: async () => {
       if (!leadId) throw new Error("Nincs kiválasztott lead.");
-      const current = (lead.data?.status ?? "new") as string;
+      // Friss szerverérték a léptetés előtt — ne a gyorsítótárra hagyatkozzunk.
+      const { data: fresh, error: freshErr } = await supabase
+        .from("leads")
+        .select("status, next_step_type, next_step_due_at")
+        .eq("id", leadId)
+        .maybeSingle();
+      if (freshErr) throw freshErr;
+      if (!fresh?.next_step_type || !fresh?.next_step_due_at) {
+        qc.invalidateQueries({ queryKey: ["leads"] });
+        throw new Error("A Pipeline-hoz mentett következő lépés típus, dátum és időpont szükséges.");
+      }
+      const current = (fresh.status ?? "new") as string;
       const pipelineStatuses = new Set(["quote_prep", "quote_sent", "follow_up", "contract"]);
       const patch: Record<string, any> = { pipeline_entered_at: new Date().toISOString() };
       // A Pipeline board csak pipeline-fázisú leadeket mutat — ha a lead még
@@ -149,10 +160,18 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
 
   const l = lead.data;
   const activityCount = (activities.data ?? []).length;
-  const hasNextStep = Boolean(l.next_step_type);
+  const hasNextStepType = Boolean(l.next_step_type);
+  const hasNextStepDue = Boolean(l.next_step_due_at);
+  const hasNextStep = hasNextStepType && hasNextStepDue;
   const inPipeline = Boolean(l.pipeline_entered_at);
   const isLost = l.status === "lost";
-  const canMoveToPipeline = !inPipeline && !isLost && activityCount >= 1 && hasNextStep;
+  const canMoveToPipeline = canEnterPipeline({
+    activityCount,
+    nextStepType: l.next_step_type,
+    nextStepDueAt: l.next_step_due_at,
+    inPipeline,
+    isLost,
+  });
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-auto">
@@ -254,14 +273,14 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
               className="w-full"
               disabled={!canMoveToPipeline || moveToPipeline.isPending}
               onClick={() => setPipelineOpen(true)}
-              title={!canMoveToPipeline ? "Legalább 1 aktivitás és kitöltött következő lépés szükséges." : undefined}
+              title={!canMoveToPipeline ? "Legalább 1 aktivitás, következő lépés típusa és mentett határideje szükséges." : undefined}
             >
               <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
               Pipeline-ba
             </Button>
             {!inPipeline && !isLost && !canMoveToPipeline && (
               <div className="mt-1 text-[10px] text-muted-foreground">
-                Feltétel: ≥1 aktivitás{activityCount >= 1 ? " ✓" : ""} és kitöltött köv. lépés{hasNextStep ? " ✓" : ""}.
+                Feltétel: ≥1 aktivitás{activityCount >= 1 ? " ✓" : ""}, köv. lépés típusa{hasNextStepType ? " ✓" : ""}, mentett határidő (dátum + időpont){hasNextStepDue ? " ✓" : ""}.
               </div>
             )}
           </div>
