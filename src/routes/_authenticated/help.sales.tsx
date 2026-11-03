@@ -6,7 +6,13 @@ import { BookOpen } from "lucide-react";
 import manual from "../../../docs/manuals/sales-kezikonyv-v1.0-2026-10-30.md?raw";
 
 export const Route = createFileRoute("/_authenticated/help/sales")({
-  head: () => ({ meta: [{ title: "Sales súgó – VIBA CRM" }] }),
+  head: () => ({ meta: [
+    { title: "Sales súgó – VIBA CRM" },
+    { name: "description", content: "Sales munkatársi kézikönyv: napi feladatok, aktivitások és a meglévő értékesítési folyamat." },
+    { property: "og:title", content: "Sales súgó – VIBA CRM" },
+    { property: "og:description", content: "A VIBA CRM Sales-folyamatának teljes munkatársi kézikönyve." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: SalesHelpPage,
 });
 

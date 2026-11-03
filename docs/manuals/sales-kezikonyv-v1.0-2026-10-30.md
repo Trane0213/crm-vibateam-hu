@@ -1,7 +1,7 @@
 # VIBA CRM – Sales munkatársi kézikönyv
 
-**Verzió:** v1.0 · 2026-10-30 · Szerepkör: Értékesítő (Sales)
-**Állapot:** élő böngészős végigteszt alapján (TESZT adatokkal), lásd `docs/system-map/sales-e2e-jelentes-2026-10-30.md`.
+**Verzió:** v1.1 · 2026-11-03 · Szerepkör: Értékesítő (Sales)
+**Állapot:** az eredeti folyamat élő TESZT-próbája 2026-10-30; a november 3-i Ma/aktivitás-javítások automatikusan ellenőrizve, bejelentkezett böngészős próbájuk még nem történt meg.
 
 > Ez a kézikönyv a CRM-ben már meglévő Sales-folyamatot írja le. Új státusz, új menü vagy új átadási út nincs.
 
@@ -21,7 +21,7 @@
 
 ## 2. Menü (Értékesítő szerepkör)
 
-- **Ma** – napi áttekintés, esedékes teendők.
+- **Ma** – saját ügyek: lejárt teendők → mai feladatok → új érdeklődők → válaszra váró ajánlatok → hiányos ügyek. Tulajdonosnál a teljes csapat látszik. A határidőket Budapest naptári napja szerint sorolja be; a felső sáv ugyanezekből az adatokból számol. Sikertelen betöltéskor hibaüzenet jelenik meg. A sorokra kattintva a konkrét ügy munkafelülete nyílik meg.
 - **Sales munkafelület** – a még nem Pipeline-ban lévő, neked/közös poolba átadott leadek, 3 oszlopban.
 - **Pipeline** – a Pipeline-ba léptetett ügyek fázisonként.
 - **Ajánlatok** – az összes általad látható ajánlat.
@@ -37,13 +37,14 @@ Tulajdonosi, beállítási és jelenléti oldalak Sales szerepkörben „Nincs j
 1. **Bal oszlop – Érdeklődők:** keresés, státusz- és forrásszűrő. Kattintással kiválasztod a leadet.
 2. **Középső oszlop – Lead dosszié:** cég, kapcsolattartó, marketing minősítés, marketing jegyzet, cég jegyzetek, Kapcsolatok és Emailek fül.
 3. **Jobb oszlop – Sales előkészítő:**
-   - **Aktivitás rögzítése:** Hívás / Email / Találkozó. A naplózás nem vált státuszt.
-   - **Következő lépés:** típus, esedékesség (budapesti idő), jegyzet → **Mentés**. „Lépés törlése” törli.
+   - **Aktivitás rögzítése:** kizárólag Hívás / E-mail, már megtörtént eseményhez. Eredmény/jegyzet megadható (például „Nem vette fel”). Dátummező nincs: az időpont a szerveroldali rögzítési idő. A naplózás nem vált státuszt.
+   - **Következő lépés:** jövőbeli feladat típusa (Találkozó is), külön dátum és időpont, jegyzet → **Mentés**. Mindkét időmező kötelező; gyors dátumgomb nincs. „Lépés törlése” törli.
    - **Döntés:** **Pipeline-ba** (megerősítő ablakkal) vagy **Elveszett**.
 
 **Fontos:**
 - Más értékesítőhöz rendelt leadet nem módosíthatsz. Ilyenkor a rendszer hibát jelez: „A lead nem módosult: nincs jogosultságod, vagy a lead nem létezik. A beírt adatok megmaradtak.” – siker üzenet ilyenkor nem jelenik meg.
 - A Pipeline-ba léptetés **egyirányú**: onnan nem lehet visszahozni az előkészítésbe.
+- A Pipeline-ba gombhoz legalább egy megtörtént aktivitás és mentett típus + határidő szükséges. A léptetés előtt a rendszer újból ellenőrzi a mentett adatokat.
 - Ha egy Pipeline-ban lévő leadet nyitsz meg itt, zöld sáv jelzi: „Ez a lead … óta a Pipeline-ban van.”
 
 ---
