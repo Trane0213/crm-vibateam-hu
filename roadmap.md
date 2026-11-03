@@ -1,4 +1,9 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Sales Ma végleges elrendezés (2026-11-03)
+- [ ] Négy saját értékesítési KPI és négy napi fókuszkártya, meglévő adatforrásokkal.
+- [ ] Kompakt, prioritás szerint egyszer megjelenő napi ügylista és gyorsbelépők; más szerepkörök változatlanok.
+- [ ] Célzott/regressziós tesztek és asztali/mobil ellenőrzés, publikálás nélkül.
+
 ## Jóváhagyott Sales S1–S2 véglegesítés (2026-11-03)
 - [x] Ma és felső sáv közös saját/csapat adatai, Budapest-nap, hibajelzés, ügyre mutató linkek.
 - [x] Sales-előkészítő: csak megtörtént Hívás/E-mail, szerveroldali időpont, következő lépés változatlan.
