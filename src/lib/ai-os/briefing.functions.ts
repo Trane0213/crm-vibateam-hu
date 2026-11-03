@@ -50,23 +50,7 @@ async function safeList(
   }
 }
 
-async function loadSnapshot(client: SupabaseClient, mode: Mode): Promise<string> {
-  if (mode === "sales") {
-    const [companies, contacts, leads, quotes, followups] = await Promise.all([
-      safeList(client, "companies", { order: "name", ascending: true, limit: 50 }),
-      safeList(client, "contacts", { order: "name", ascending: true, limit: 50 }),
-      safeList(client, "leads", { limit: 30 }),
-      safeList(client, "quotes", { limit: 30 }),
-      safeList(client, "followups", { order: "due_date", ascending: true, limit: 30 }),
-    ]);
-    return [
-      `## companies (${companies.length})\n${JSON.stringify(companies.map((r) => pick(r, ["id", "name", "industry"])))}`,
-      `## contacts (${contacts.length})\n${JSON.stringify(contacts.map((r) => pick(r, ["id", "name", "full_name", "email", "company_id"])))}`,
-      `## leads (${leads.length})\n${JSON.stringify(leads.map((r) => pick(r, ["id", "name", "company", "source", "status", "created_at"])))}`,
-      `## quotes (${quotes.length})\n${JSON.stringify(quotes.map((r) => pick(r, ["id", "title", "status", "total_amount", "currency", "project_id", "created_at", "valid_until"])))}`,
-      `## followups (${followups.length})\n${JSON.stringify(followups.map((r) => pick(r, ["id", "due_date", "completed", "followup_type", "project_id", "contact_id"])))}`,
-    ].join("\n\n");
-  }
+async function loadSnapshot(client: SupabaseClient): Promise<string> {
   // PM
   const [projects, tasks, followups, documents] = await Promise.all([
     safeList(client, "projects", { limit: 30 }),
@@ -96,10 +80,10 @@ export const runDailyBriefing = createServerFn({ method: "POST" })
       const { dailySalesBriefing } = await import('./daily-sales.server');
       return dailySalesBriefing(context.supabase,admin,context.userId,data.intent);
     }
-    const snapshot = await loadSnapshot(context.supabase, data.mode);
+    const snapshot = await loadSnapshot(context.supabase);
     const who = (data.name ?? "").trim() || "a kollégának";
-    const agentId = data.mode === "sales" ? "sales_briefing" : "pm_briefing";
-    const title = data.mode === "sales" ? "értékesítési" : "projektvezetői";
+    const agentId = 'pm_briefing';
+    const title = 'projektvezetői';
 
     const userPrompt = [
       `Készítsd el ${who} a mai napi ${title} riportot a kötelező sablon szerint. Tömör, belső céges hangnemben. Ne köszönj újra.`,
