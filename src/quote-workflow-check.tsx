@@ -18,7 +18,7 @@ const user={id:'TESZT-user'};
  if(table==='companies')data=[{id:'TESZT-company',name:'TESZT ügyfél'}];
  if(table==='users_profile')data=[{auth_user_id:'TESZT-user',full_name:'TESZT Sales',active:true,roles:{name:'sales'}}];
  if(table==='contacts')data=[];
- resolve({data:single&&Array.isArray(data)?data[0]??null:data,error:null});};
+ if(!single&&!Array.isArray(data))data=[data];resolve({data:single&&Array.isArray(data)?data[0]??null:data,error:null});};
  return (...args:any[])=>{if(prop==='maybeSingle'||prop==='single')single=true;if(prop==='update')payload=args[0];return chain;};}});return chain;};
 qc.setQueryData(['r2-status'],{configured:true});
 qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});
