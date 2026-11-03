@@ -3,9 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { decideAiAction, getAiActions } from "@/lib/ai-os/runtime.functions";
 import type { Thread, ToolApproval } from "./chat-shared";
+import { useQueryClient } from '@tanstack/react-query';
 
 type Commit = (update: (threads: Thread[]) => Thread[]) => void;
 export function useAiApprovals(threads: Thread[], activeId: string | null, commit: Commit) {
+ const qc=useQueryClient();
  const decide = useServerFn(decideAiAction);
  const read = useServerFn(getAiActions);
  const [checking, setChecking] = useState(false);
@@ -49,6 +51,9 @@ export function useAiApprovals(threads: Thread[], activeId: string | null, commi
    const result = await decide({ data: { actionId: id, decision, confirmation } });
    reconciled.current.add(id);
    update(thread.id, msgId, callId, { ...result, submitting: false, verified: true, transportError: undefined });
+   if(result.status==='succeeded'&&result.tool_name==='sales_record_prep_activity') {
+    for(const key of ['leads','pipeline','followups','activities','activity','company-activity'])void qc.invalidateQueries({queryKey:[key]});
+   }
    if (decision === "approve" && result.status === "succeeded") toast.success(result.no_op ? "Már a kívánt állapotban volt; nem történt új módosítás." : "A művelet sikeresen végrehajtva.");
    else if (result.status === "failed" || result.status === "unknown") toast.error(result.error ?? "A végrehajtás eredménye még nem igazolt.");
   } catch {
