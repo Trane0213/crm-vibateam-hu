@@ -25,6 +25,7 @@ import { failureResult, type ApprovalSnapshot } from "./approval";
 import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
+import { RuntimeOutcome } from './runtime-outcome';
 
 const MAX_STEPS = 50;
 
@@ -150,7 +151,7 @@ export async function runAgent(
     ...input.history,
   ];
 
-  let hadToolFailure = false;
+  const outcome = new RuntimeOutcome();
   let stepNo = 0;
   let totalPrompt = 0;
   let totalCompletion = 0;
@@ -185,7 +186,7 @@ export async function runAgent(
       if (!result.tool_calls.length) {
         await finishRun(adminClient, {
           runId,
-          status: hadToolFailure ? "error" : "ok",
+          status: outcome.failed ? "error" : "ok",
           promptTokens: totalPrompt,
           completionTokens: totalCompletion,
           totalSteps: stepNo,
@@ -193,7 +194,7 @@ export async function runAgent(
         return {
           runId,
           agentId: agent.id,
-          finalText: hadToolFailure ? "A művelet sikertelen; nem igazolt végrehajtás." : pendingApprovals.length ? "Jóváhagyást igénylő művelet vár rád." : result.text,
+          finalText: outcome.text(result.text, pendingApprovals.length > 0),
           pendingApprovals,
           steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
@@ -206,6 +207,7 @@ export async function runAgent(
       for (const call of result.tool_calls) {
         const tool = getTool(call.function.name);
         if (!tool) {
+          outcome.record(call.function.name, true, false);
           const msg = `Ismeretlen tool: ${call.function.name}`;
           await logStep(adminClient, { runId, stepNo: ++stepNo, kind: "error", toolName: call.function.name, error: msg });
           messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: msg }) });
@@ -224,6 +226,7 @@ export async function runAgent(
           userRole: input.userRole,
         });
         if (denyReason) {
+          outcome.record(tool.name, true, false);
           await logStep(adminClient, {
             runId, stepNo: ++stepNo, kind: "error",
             toolName: tool.name, agentId: agent.id, error: denyReason,
@@ -290,7 +293,8 @@ export async function runAgent(
         const MAX_ATTEMPTS = 2; // egy retry — csak retriable hibáknál, csak read-only toolnál
         // Retry csak olyan hívásoknál engedélyezett, amelyeknek nincs
         // állapotváltoztató hatása: safe read-only tool, vagy dry_run mód.
-        const canRetry = approvalLevel === "safe" || effectiveMode === "dry_run";
+        const readOnly = (approvalLevel === "safe" && !tool.needs_approval && (tool.domain.startsWith('crm.') || tool.domain === 'kg' || tool.domain === 'website.knowledge' || tool.name === 'memory_read')) || effectiveMode === "dry_run";
+        const canRetry = readOnly;
         while (attempts < MAX_ATTEMPTS) {
           attempts++;
           try {
@@ -317,7 +321,7 @@ export async function runAgent(
           }
           break;
         }
-        if (failureResult(output)) { hadToolFailure = true; errMsg = "A művelet sikertelen."; }
+        if (failureResult(output)) { outcome.record(tool.name, true, readOnly); errMsg = "A művelet sikertelen."; }
         // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
         const llmPayload: unknown = isToolErrorEnvelope(output)
           ? { ok: false, error: sanitizeErrorForLlm(output.error) }
@@ -350,11 +354,11 @@ export async function runAgent(
       );
       if (allPending && pendingApprovals.length) {
         await finishRun(adminClient, {
-          runId, status: hadToolFailure ? "error" : "ok",
+          runId, status: outcome.failed ? "error" : "ok",
           promptTokens: totalPrompt, completionTokens: totalCompletion, totalSteps: stepNo,
         });
         return {
-          runId, agentId: agent.id, finalText: hadToolFailure ? "A művelet sikertelen; nem igazolt végrehajtás." : pendingApprovals.length ? "Jóváhagyást igénylő művelet vár rád." : result.text,
+          runId, agentId: agent.id, finalText: outcome.text(result.text, pendingApprovals.length > 0),
           pendingApprovals, steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
         };
