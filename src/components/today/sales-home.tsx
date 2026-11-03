@@ -5,6 +5,7 @@ import { WelcomeHeader } from "@/components/welcome-header";
 import { HeroStat } from "@/components/today/today-shell";
 import { SalesWorklists } from "@/components/today/sales-worklists";
 import { useDailyWork } from "@/lib/sales/use-daily-work";
+import { TimothyDaily } from "@/components/ai/timothy-daily";
 
 /** Own sales overview and daily focus, using the existing shared query. */
 export function SalesHome() {
@@ -34,6 +35,7 @@ export function SalesHome() {
           <FocusStat to="/leads" tone="primary" icon={Sparkles} label="Új érdeklődők" value={v(d?.newLeads.length)} />
         </div>
         </section>
+        <TimothyDaily />
         <section className="space-y-3" aria-label="Napi munkalista">
           <h2 className="text-base font-semibold">Napi munkalista</h2>
           <SalesWorklists compact />

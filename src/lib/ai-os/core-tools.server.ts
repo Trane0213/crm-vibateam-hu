@@ -9,6 +9,7 @@
 
 import { registerTool } from "./tool-registry";
 import { listHandoffTargets } from "./agents";
+import { DAILY_CACHE_PATTERN } from './daily-sales';
 
 export function registerCoreTools() {
   const handoffTargets = listHandoffTargets();
@@ -79,6 +80,7 @@ export function registerCoreTools() {
       const { data, error } = await ctx.supabaseUser
         .from("ai_memory")
         .select("key,value,scope,source,updated_at")
+        .not('key','like',DAILY_CACHE_PATTERN)
         .eq("subject_type", String(args.subject_type))
         .eq("subject_id", String(args.subject_id))
         .order("updated_at", { ascending: false })

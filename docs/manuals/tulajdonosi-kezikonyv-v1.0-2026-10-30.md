@@ -36,6 +36,8 @@ Az ajánlat értéke mindig **nettó, a tételekből számolva** (ugyanúgy, min
 ### 1.4 AI napi briefing (George)
 Sales / PM nézet váltható, „Frissítés” újrakészíti. Az AI szöveg tájékoztató; pénzügyi összeget csak a CRM-ben ténylegesen rögzített adatból vehet. Ha összeget ír, ellenőrizd az Ajánlatok listában.
 
+**P2, 2026-11-03:** Sales módban a napi javaslat saját ügyekből készül, nem csapatriport. Ma és Irányítópult ugyanazt a napi eredményt használja: naponként egy automatikus futás, külön kézi Frissítés. Készítési idő és adatváltozás-jelzés látszik; változott adatok mellett a régi javaslat rejtve marad. A csapat KPI-k változatlanok. PM számítás változatlan; a bejelentkezett P2 végigpróba még NEM TESZTELT.
+
 ### 1.5 Linkek
 „Részletes irányítópult →”, „Irányítópult”, „AI Asszisztensek”.
 

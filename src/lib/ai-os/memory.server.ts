@@ -8,6 +8,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { DAILY_CACHE_PATTERN } from './daily-sales';
 
 export type MemoryRow = {
   id: string;
@@ -36,6 +37,7 @@ export async function getMemory(
   const { data, error } = await client
     .from("ai_memory")
     .select("*")
+    .not('key','like',DAILY_CACHE_PATTERN)
     .or(orParts.join(","))
     .order("updated_at", { ascending: false })
     .limit(opts.limit ?? 100);

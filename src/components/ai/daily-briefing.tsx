@@ -26,15 +26,20 @@ export function DailyBriefing() {
   const [busy, setBusy] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [generatedAt,setGeneratedAt] = useState<string|null>(null);
+  const [stale,setStale] = useState(false);
   const [ran, setRan] = useState<{ sales: boolean; pm: boolean }>({ sales: false, pm: false });
 
-  async function run(m: Mode) {
+  async function run(m: Mode, intent: 'automatic'|'manual'|'read' = 'automatic') {
     setBusy(true);
     setError(null);
     setText(null);
     try {
-      const res = await callBriefing({ data: { mode: m, name: name ?? null } });
-      setText(res.text || "(üres válasz)");
+      const res = await callBriefing({ data: { mode: m, name: name ?? null, intent } });
+      setGeneratedAt(res.generatedAt);setStale(res.stale);
+      setText(res.text || null);
+      if(res.status==='running') setError('A napi javaslat egy másik kérésben készül.');
+      if(res.status==='unknown'||res.status==='failed') setError('A napi javaslat eredménye nem igazolt; automatikusan nem ismételjük.');
       setRan((r) => ({ ...r, [m]: true }));
     } catch (e: any) {
       setError(e?.message ?? "AI hiba.");
@@ -50,8 +55,7 @@ export function DailyBriefing() {
     setMode(m);
     if (!ran[m]) run(m);
     else if (m !== mode) {
-      // re-run is cheap; keep cached behavior: just re-run for fresh data
-      run(m);
+      run(m,m==='sales'?'read':'automatic');
     }
   }
 
@@ -75,13 +79,15 @@ export function DailyBriefing() {
             <Button size="sm" variant={mode === "pm" ? "default" : "outline"} onClick={() => switchMode("pm")} disabled={busy}>
               <Hammer className="mr-1.5 h-3.5 w-3.5" /> PM
             </Button>
-            <Button size="icon" variant="ghost" onClick={() => run(mode)} disabled={busy} title="Frissítés">
+            <Button size="icon" variant="ghost" onClick={() => run(mode,'manual')} disabled={busy} title="Frissítés">
               <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} />
             </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
+        {stale&&<p className="text-xs text-muted-foreground">A napi adatok változtak; a korábbi AI-javaslat elavult.</p>}
+        {generatedAt&&<p className="text-xs text-muted-foreground">Készítve: {new Date(generatedAt).toLocaleString('hu-HU',{timeZone:'Europe/Budapest'})}</p>}
         {busy ? (
           <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> A {mode === "sales" ? "Sales" : "PM"} Agent dolgozik az aktuális CRM adatokon…

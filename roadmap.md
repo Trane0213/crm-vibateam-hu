@@ -10,7 +10,8 @@
 - [x] P1/D korlátozott dokumentumértelmezés: RLS-es fájlazonosítás, PDF/XLSX/DOCX/szöveg, forrás/verzió/hash és részlegesség; 224/224 regresszió, AI 16 forgatókönyv, build PASS; jelentés és STOP.
 - [ ] P1/D hitelesített R2/két-chat/Worker végrehajtás és modellminőség: external_unmanaged Supabase, nincs átadható munkamenet; nagy fájl háttérfeldolgozása nincs megvalósítva.
 - [x] P2 előkészítés: eredeti specifikáció, közös napi logika és ismétlődő briefing vizsgálata; élő ai_memory constraint/RLS ellenőrzés, előzetes terv.
-- [ ] P2 megvalósítás: kompakt Timothy-kártya, közös napi adatok, tartós napi futásvédelem, frissesség és regresszió; előzetes adatbázis-védelmi terv jóváhagyására vár.
+- [x] P2 megvalósítás: kompakt Timothy-kártya, közös napi adatok, tartós napi futásvédelem, frissesség; regresszió/AI acceptance/izolált SQL és böngésző; jelentés és STOP, publikálás nélkül.
+- [ ] P2 hitelesített Sales/owner napi kvóta, kézi frissítés és modellminőség végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet. Korábbi P1 és P0 végigpróbák továbbra is nyitva.
 - [ ] P3–P5 külön jóváhagyásra vár; nem indult.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
