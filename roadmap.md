@@ -1,10 +1,10 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy végső gyors ellenőrzés
-- [ ] Viktor ismételt hitelesített teljes végigpróbája: az előző ideiglenes munkamenet törölve; external_unmanaged miatt új munkamenet nem kérhető le automatikusan, korábban chatben megosztott jelszó nem használható újra.
+- [x] Viktor ismételt hitelesített végigpróbája: 20 valós chatkérdés/eszköznapló/adateredmény, 11 PASS / 9 FAIL, pageerror=0; új fejlesztés, regresszióismétlés, üzleti írás/küldés nélkül. Rövid eredménytábla az éles chat-audit végén.
 - [x] 18 ellenőrzési eset összevont értékelése a közvetlenül előző hitelesített chatpróbák és izolált tesztek alapján; nincs ismételt teljes tesztcsomag, fejlesztés vagy publikálás. Kritikus modellértelmezési hibák miatt teljes éles lezárás nem PASS; az alábbi nyitott auditfeladatok maradnak.
 ## Timothy éles működési audit — 2026-11-03
 - [x] Eredeti hibás futások és Viktor bejelentkezett két-chat próbája; me-feloldás, lapozás, gyorskérdés és olvasási hibaválasz célzott javítása; 417 teszt/21 AI scenario/build OK. Jelentés: docs/system-map/timothy-eles-chat-audit-2026-11-03.md. Nincs üzleti írás/küldés/publikálás.
-- [ ] Modellminőségi lezárás: ajánlati hibás weboldallink, korábbi verzió nyitottként felsorolása, hiányos forrásmegnevezés; élő próbában még fennáll, nem PASS.
+- [ ] Modellminőségi lezárás: hibás ajánlatlink/aktív verzió, completed utánkövetés tervezettként, téves Sales-felelősátadási tájékoztatás, időzóna és scope/kontakt-validitás; 20 valós próbában bizonyított FAIL, csak új jóváhagyásos célzott javítás után zárható.
 - [ ] Owner/Ramon hitelesített próba és valós Gmail-küldés nélküli teljes dokumentum/P0 végigpróba: csak hozzáférhető szerepkörrel és elkülönített TESZT-adatokkal.
 ## Timothy V3.1 — értékesítési intelligencia
 - [x] Három képesség alapja: közös case-review + existing Gmail/history értelmezés, dokumentált lead/quote eredmény, user-RLS történeti nettó egységárkeresés. 18 célzott/406 teljes teszt, AI 21 forgatókönyv/build PASS; nincs UI/írás/publikálás. Rövid jelentés: docs/system-map/timothy-v31-rovid-jelentes.md.
