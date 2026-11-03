@@ -26,7 +26,7 @@ import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
 import { RuntimeOutcome } from './runtime-outcome';
-import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer } from './read-quality';
+import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer, collectLeadCompanies, correctLeadAsCompany } from './read-quality';
 
 const MAX_STEPS = 50;
 
@@ -154,7 +154,7 @@ export async function runAgent(
   ];
 
   const outcome = new RuntimeOutcome();
-  const caveats=new Set<string>();
+  const caveats=new Set<string>(); const observedLeadCompanies=new Map<string,string>();
   let stepNo = 0;
   let totalPrompt = 0;
   let totalCompletion = 0;
