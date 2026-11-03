@@ -129,6 +129,10 @@ export type AgentDefinition = {
   model: string;
   temperature?: number;
   max_tokens?: number;
+  /** OpenAI API felület; alapértelmezés chat/completions. */
+  api?: "chat" | "responses";
+  /** Csak Responses API reasoning modelleknél. */
+  reasoning_effort?: "low" | "medium" | "high";
   /** A registry-ből mely domaineket lát (pl. ["crm.companies","crm.leads"]). */
   tool_domains: string[];
   /** Plusz explicit tool nevek. */

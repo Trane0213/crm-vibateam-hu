@@ -171,6 +171,8 @@ export async function runAgent(
         tools: toolSpecs.length ? toolSpecs : undefined,
         temperature: agent.temperature,
         max_tokens: agent.max_tokens,
+        api: agent.api,
+        reasoning_effort: agent.reasoning_effort,
       });
       totalPrompt += result.usage.prompt_tokens ?? 0;
       totalCompletion += result.usage.completion_tokens ?? 0;
