@@ -34,6 +34,10 @@ Tulajdonosi, beállítási és jelenléti oldalak Sales szerepkörben „Nincs j
 
 ## 3. Sales munkafelület (3 oszlop)
 
+### Timothy jóváhagyott levélküldés
+Konkrét saját ügyhöz kérj levéltervezetet, a saját Gmail-fiók és címzettek megadásával. A szöveget előbb a chatben javíthatod; módosítás után új jóváhagyás készül, a régi kártyát vesd el. Küldés előtt ellenőrizd a feladót, Címzett/Másolat/Titkos másolat mezőket, teljes tárgyat és szöveget, ügyet, valamint minden melléklet nevét és pontos verzióazonosítóját. A **MEGERŐSÍTEM** begépelése és **Jóváhagy és végrehajt** szükséges. Csak saját aktív fiókból, külön engedélyeddel küldhet; nem küld automatikusan.
+Melléklet meglévő ajánlati/céges/projekt-dokumentum lehet, legfeljebb 5 MB fájlonként és 20 MB összesen; új PDF-et nem készít. Ajánlati küldésnél a meglévő kiküldési napló és zárolás érvényes. Sima levél nem lépteti a Pipeline-t, nem módosít következő lépést vagy felelőst. **Nem igazolt** eredménynél ne kérj új küldést: ellenőrizd a Gmail Elküldött leveleit és a CRM szálat. Hitelesített két-chat/Gmail végigpróba **NEM TESZTELT**, csak elkülönített TESZT-próbák történtek; automatikus publikálás nincs.
+
 ### Timothy nyitott Pipeline-státusz
 Már Pipeline-ban lévő saját ügyön kérheted a meglévő, engedett nyitott státuszváltást. A kártyán ellenőrizd a régi/új státuszt és a mentett következő lépést; külön jóváhagyás szükséges. Közben megváltozott ügy vagy határidő nem íródik felül. Nem léptet be új ügyet, nem nyer/elveszít, nem módosít ajánlatot/felelőst/következő lépést és nem küld levelet. **Ajánlat kiadva** leadstátusz továbbra sem bizonyítja a tényleges kiküldést, piszkozat mellett is engedett. Hitelesített teljes végigpróba **NEM TESZTELT**; izolált TESZT-próba történt.
 
