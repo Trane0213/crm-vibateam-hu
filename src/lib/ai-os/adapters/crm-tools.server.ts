@@ -13,6 +13,7 @@ import { registerTool } from "../tool-registry";
 import { toolError } from "../tool-errors";
 import { CRM_PAGE_PROPERTIES, LEAD_CONTEXT_SELECT, crmReadPage, readWindow, leadTimeline } from "./crm-read-page";
 import { OWNER_ROLES } from "../roles";
+import { safeMailText } from "./gmail-context";
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -337,7 +338,8 @@ export function registerCrmTools() {
       if (args.lead_id) query = query.eq("lead_id", String(args.lead_id));
       const { data, error, count } = await query;
       if (error) return fail(error.message);
-      return ok(crmReadPage(data ?? [], count, window, "email_threads"));
+      const safeRows = (data ?? []).map((row) => ({ ...row, subject: safeMailText(row.subject).text, subject_status: safeMailText(row.subject).status }));
+      return ok(crmReadPage(safeRows, count, window, "email_threads"));
     },
   );
 
