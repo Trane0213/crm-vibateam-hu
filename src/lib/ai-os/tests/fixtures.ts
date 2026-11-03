@@ -179,6 +179,7 @@ export const FIXTURES: AgentAcceptance[] = [
     required_prompt_phrases: ["Sales", "sales_mark_won_with_project", "sales_record_prep_activity"],
     business_scenarios: [
       {id:'timothy.prep.activity',title:'Jóváhagyott előkészítő aktivitás',user_prompt:'Beszéltem a TESZT céggel, visszahívást kérnek.',expected_tools:['sales_record_prep_activity'],expected_behavior:'P0 jóváhagyás, saját előkészítő lead, Hívás/E-mail szerveridővel; következő lépés nem változik, igazolt eredmény nélkül nincs siker.'},
+      {id:'timothy.assignment',title:'Tulajdonosi lead-átadás',user_prompt:'Tulajdonosként add át a TESZT ügyet a megnevezett értékesítőnek.',expected_tools:['crm_sales_assignees','sales_reassign_lead'],expected_behavior:'Pontos aktív Sales auth UUID a meglévő lapozott keresőből, owner-only P0 régi/új felelőssel, lead assignment és meglévő láthatóság változik, más rekordfelelős nem; stale és igazolatlan siker tiltva.'},
       {id:'timothy.next.step',title:'Következő lépés pontos mentése',user_prompt:'A TESZT ügy következő lépése november 5-én 10 órakor telefon, jegyzet: visszahívás.',expected_tools:['sales_update_next_step'],expected_behavior:'Külön P0 jóváhagyás régi/új értékekkel, pontos időzóna, stale állapot tiltás és mentett bizonyíték; státusz/followup/levél nem változik.'},
       {
         id: "timothy.company.history",
