@@ -361,7 +361,12 @@ function QuoteDetail() {
           </div>
         </TabsContent>
         <TabsContent value="template" forceMount hidden={workspace !== "template"} className="py-5">
-          <QuoteTemplatePanel quote={quote as any} />
+          <QuoteTemplatePanel quote={quote as any} headerDraft={{
+            title: form.title, valid_until: form.valid_until || null, notes: form.notes,
+            technical_scope: form.technical_scope, exclusions: form.exclusions,
+            discount_percent: form.discount_percent || null, tax_percent: form.tax_percent || null,
+            manual_net_amount: form.manual_net_amount || null,
+          }} />
           <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer" className="mt-5 inline-block">
             <Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat előnézete / PDF</Button>
           </Link>

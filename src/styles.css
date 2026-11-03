@@ -46,6 +46,10 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
+  --color-document-paper: var(--document-paper);
+  --color-document-ink: var(--document-ink);
+  --color-document-muted: var(--document-muted);
+  --color-document-border: var(--document-border);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -65,6 +69,10 @@
 }
 
 :root {
+  --document-paper: oklch(1 0 0);
+  --document-ink: oklch(0.22 0 0);
+  --document-muted: oklch(0.48 0 0);
+  --document-border: oklch(0.9 0 0);
   --radius: 0.875rem;
   /* VIBA CRM — vibateam.hu arculat: navy + villamoskék + cián ragyogás */
   --background: oklch(0.982 0.005 250);
@@ -175,6 +183,39 @@
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 }
+
+.quote-print-surface, .quote-preview-surface {
+  color: var(--document-ink);
+  background: var(--muted);
+}
+.quote-a4-document {
+  box-sizing: border-box;
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 18mm 16mm;
+  background: var(--document-paper);
+  color: var(--document-ink);
+  border-color: var(--document-border);
+  overflow-wrap: anywhere;
+}
+.quote-a4-document * { border-color: var(--document-border); }
+.quote-a4-document td, .quote-a4-document th { overflow-wrap: anywhere; }
+.quote-a4-document table { table-layout: fixed; }
+.quote-a4-document tr { break-inside: avoid; }
+.quote-a4-document img { max-width: 100%; object-fit: contain; }
+.quote-a4-document h1, .quote-a4-document h2 { letter-spacing: 0; }
+.quote-preview-surface { container-type: inline-size; }
+@container (max-width: 790px) { .quote-preview-surface > .quote-a4-document { zoom: 0.8; } }
+@container (max-width: 635px) { .quote-preview-surface > .quote-a4-document { zoom: 0.65; } }
+@container (max-width: 515px) { .quote-preview-surface > .quote-a4-document { zoom: 0.5; } }
+@container (max-width: 395px) { .quote-preview-surface > .quote-a4-document { zoom: 0.4; } }
+@media print {
+  .no-print { display: none !important; }
+  body, .quote-print-surface { background: var(--document-paper) !important; }
+  .quote-a4-document { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; }
+}
+@page { size: A4; margin: 18mm 16mm; }
 
 @utility bg-gradient-primary {
   background-image: var(--gradient-primary);
