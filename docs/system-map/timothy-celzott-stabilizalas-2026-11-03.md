@@ -9,6 +9,7 @@
 
 ## Ellenőrzés és korlát
 Az érintett olvasások, összegek, lapozás, forráshivatkozások, határidő, completed és szerepkör adatoldali szabályai célzott automatizált teszttel ellenőrizhetők. Ezek nem bizonyítják az élő modell válaszainak teljes tartalmi helyességét.
+Eredmény: **62/62 célzott teszt**, 21 AI OS biztonsági/strukturális forgatókönyv, 0 hiba; preview build OK. A teljes több száz tesztes csomagot nem ismételtem.
 
 A korábbi kilenc FAIL hitelesített visszatesztje: **0 igazolt PASS, 9 NEM TESZTELT** ebben a körben. A böngésző a /ai-assistant oldalról /auth-ra jutott; external_unmanaged projekt, nincs injektált munkamenet vagy tesztfiók-hitelesítés. Korábbi chatből vagy ideiglenes fájlból titkot nem használtam újra. Izolált teszt nem helyettesíti Viktor valós chat → eszközhívás → CRM-adat → válasz próbáját.
 
