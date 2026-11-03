@@ -14,3 +14,4 @@
 - Sales Today overview supplements `useDailyWork` with an own won count and company names; presentation-only `salesOverview`/`salesFocusSections` provide strict sent-quote KPIs and priority deduplication, while default owner/todo rendering and daily buckets remain unchanged.
 - Completed preparation activities use authenticated `recordPrepActivity` with existing user RLS and a server-only timestamp; strict inputs prevent client dates and completed meetings on this path.
 - Sales lead visibility = assigned_to only (`src/lib/sales/lead-visibility.ts`, mirrored by RLS `leads_select_sales`); unassigned leads are owner-only — keeps UI lists, deep links and DB consistent.
+- Quote access = `can_access_quote` (owner; sales via assigned lead/project lead; PM via own project; unlinked = creator); totals are DB-trigger computed and new drafts/versions only via `quote_create_draft` RPC — one source of truth for permissions and amounts.
