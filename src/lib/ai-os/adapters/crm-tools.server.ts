@@ -13,6 +13,7 @@ import { registerTool } from "../tool-registry";
 import { toolError } from "../tool-errors";
 import { CRM_PAGE_PROPERTIES, LEAD_CONTEXT_SELECT, crmReadPage, readWindow, leadTimeline } from "./crm-read-page";
 import { OWNER_ROLES } from "../roles";
+import { safeMailText } from "./gmail-context";
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -314,23 +315,31 @@ export function registerCrmTools() {
   registerTool(
     {
       name: "crm_list_company_email_threads",
-      description: "Egy céghez kötött email szálak listája.",
+      description: "Pontos mentett company_id-hoz kötött, RLS-látható szálak lapozott metadata-listája. Nem postafiók-hozzáférési bizonyíték; levéltartalomhoz crm_read_email_thread külön fiókellenőrzéssel.",
       domain: "crm.emails",
       parameters: {
         type: "object",
-        properties: { company_id: { type: "string" }, limit: { type: "integer", default: 20 } },
+        properties: { company_id: { type: "string" }, lead_id: { type: "string" }, ...CRM_PAGE_PROPERTIES },
         required: ["company_id"],
       },
     },
     async (args, ctx) => {
-      const { data, error } = await ctx.supabaseUser
+      const window = readWindow(args, 20);
+      if (args.lead_id) {
+        const lead = await ctx.supabaseUser.from("leads").select("id,company_id").eq("id", String(args.lead_id)).maybeSingle();
+        if (lead.error || !lead.data || lead.data.company_id !== String(args.company_id)) return fail("A lead nem hozzáférhető vagy más céghez tartozik.");
+      }
+      let query = ctx.supabaseUser
         .from("email_threads")
-        .select("id,subject,last_message_at,participants,lead_id,project_id")
+        .select("id,subject,last_message_at,lead_id,project_id", { count: "exact" })
         .eq("company_id", String(args.company_id))
-        .order("last_message_at", { ascending: false })
-        .limit(Math.min(Number(args.limit ?? 20), 100));
+        .order("last_message_at", { ascending: false, nullsFirst: false }).order("id")
+        .range(window.offset, window.offset + window.limit - 1);
+      if (args.lead_id) query = query.eq("lead_id", String(args.lead_id));
+      const { data, error, count } = await query;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      const safeRows = (data ?? []).map((row) => ({ ...row, subject: safeMailText(row.subject).text, subject_status: safeMailText(row.subject).status }));
+      return ok(crmReadPage(safeRows, count, window, "email_threads"));
     },
   );
 

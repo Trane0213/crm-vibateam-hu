@@ -161,6 +161,8 @@ export const FIXTURES: AgentAcceptance[] = [
       "crm_list_quotes",
       "crm_list_followups",
       "crm_lead_history",
+      "crm_email_mailboxes",
+      "crm_read_email_thread",
       "sales_mark_won_with_project",
       "website_search_pages",
     ],
@@ -178,6 +180,13 @@ export const FIXTURES: AgentAcceptance[] = [
         user_prompt: "Mi történt eddig ezzel a céggel?",
         expected_tools: ["crm_company_overview", "crm_lead_history"],
         expected_behavior: "Jogosult rekordok, külön lapozott előzmények; részleges oldalt és hiányzó Gmail-adatot nem állít teljes történetnek.",
+      },
+      {
+        id: "timothy.email.context",
+        title: "Fiókhoz kötött tárolt levelezés értelmezése",
+        user_prompt: "Mit kért az ügyfél a legutóbbi levelében?",
+        expected_tools: ["crm_email_mailboxes", "crm_list_company_email_threads", "crm_read_email_thread"],
+        expected_behavior: "Pontos ügy- és fiókazonosítás, forráshivatkozás, hiányzó/részleges tartalom és szinkron jelzése; nincs levélküldés.",
       },
       {
         id: "timothy.won",
