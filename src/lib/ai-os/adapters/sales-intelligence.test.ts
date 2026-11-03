@@ -16,7 +16,7 @@ function fixture(tables:Record<string,Row[]>,fail?:string) {
   const q={select(columns:string){c.columns=columns;return q;},eq(k:string,v:unknown){c.filters.push([k,v]);return q;},ilike(k:string,v:string){c.filters.push([`like:${k}`,v]);return q;},order(){return q;},range(a:number,b:number){start=a;end=b;return q;},maybeSingle(){single=true;return q;},then(resolve:(v:unknown)=>unknown){
    const rows=(tables[table]??[]).filter(r=>c.filters.every(([k,v])=>k.startsWith('like:') || (k==='quotes.quote_kind'?(r.quotes as Row)?.quote_kind===v:r[k]===v)));
    return Promise.resolve(resolve({data:fail===table?null:single?rows[0]??null:rows.slice(start,end+1),count:rows.length,error:fail===table?new Error('TESZT error'):null}));
-  };return q;
+  }};return q;
  }};
  return {calls,ctx:{supabaseUser:sb,supabaseAdmin:new Proxy({}, {get(){throw new Error('Admin forbidden');}}),userId:'own',agentId:'timothy'} as unknown as ToolContext};
 }
