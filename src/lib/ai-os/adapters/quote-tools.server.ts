@@ -14,7 +14,14 @@ async function visibleQuote(id: string, ctx: ToolContext) {
   return result.data as Record<string, unknown>;
 }
 function safeRow(row: Record<string, unknown>) {
-  return Object.fromEntries(Object.entries(row).map(([k, v]) => [k, typeof v === "string" ? safeMailText(v, 0, 1500).text : v]));
+  const statuses: Record<string, unknown> = {};
+  const safe = Object.fromEntries(Object.entries(row).map(([k, v]) => {
+    if (typeof v !== "string") return [k, v];
+    const text = safeMailText(v, 0, 1500);
+    if (text.status !== "cached") statuses[k] = { status: text.status, next_offset: text.next_offset };
+    return [k, text.text];
+  }));
+  return { ...safe, content_status: statuses };
 }
 async function items(id: string, args: Record<string, unknown>, ctx: ToolContext) {
   const window = readWindow(args, 10);
@@ -33,14 +40,23 @@ export function registerQuoteTools() {
   });
 
   registerTool({ name: "crm_quote_context", domain: "crm.quotes", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
-    description: "Pontos RLS-látható ajánlat értelmezése: summary, items, versions, sends vagy followups szekció. Küldési napló nem ügyfélválasz, fájltartalmat nem olvas.",
-    parameters: { type: "object", properties: { quote_id: { type: "string" }, section: { type: "string", enum: ["summary", "items", "versions", "sends", "followups"] }, ...CRM_PAGE_PROPERTIES }, required: ["quote_id"] },
+    description: "Pontos RLS-látható ajánlat értelmezése: summary, items, versions, sends, followups vagy content szekció. content field+text_offset hosszú ajánlatszöveg folytatása. Küldési napló nem ügyfélválasz, fájltartalmat nem olvas.",
+    parameters: { type: "object", properties: { quote_id: { type: "string" }, section: { type: "string", enum: ["summary", "items", "versions", "sends", "followups", "content"] }, field: { type: "string", enum: ["scope_note", "technical_scope", "exclusions", "notes", "template_terms"] }, text_offset: { type: "integer", minimum: 0 }, ...CRM_PAGE_PROPERTIES }, required: ["quote_id"] },
   }, async (args, ctx) => {
     try {
       const raw = await visibleQuote(String(args.quote_id), ctx);
       const quote = quoteContext(raw);
       const section = String(args.section ?? "summary");
       let page;
+      if (section === "content") {
+        const field = String(args.field ?? "technical_scope");
+        if (!["scope_note", "technical_scope", "exclusions", "notes", "template_terms"].includes(field)) throw new Error("Nem olvasható szövegmező.");
+        const offset = Number(args.text_offset ?? 0);
+        if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Érvénytelen szöveglapozás.");
+        const value = raw[field];
+        const content = safeMailText(value == null ? null : typeof value === "string" ? value : JSON.stringify(value), offset, 6000);
+        return { ok: true, data: { quote_id: raw.id, field, content, source: { table: "quotes", id: raw.id }, untrusted_source_content: true, full_document_review: false } };
+      }
       if (section === "summary") page = crmReadPage([quote], 1, { limit: 1, offset: 0 }, "quotes", 8000);
       else if (section === "items") page = await items(String(raw.id), args, ctx);
       else if (section === "versions") {
@@ -72,7 +88,7 @@ export function registerQuoteTools() {
       const from = quoteContext(a), to = quoteContext(b);
       const [fromItems, toItems] = await Promise.all([items(String(a.id), args, ctx), items(String(b.id), args, ctx)]);
       return { ok: true, data: { from, to, field_changes: quoteFieldChanges(from, to), from_items: fromItems, to_items: toItems,
-        complete_item_comparison: fromItems.completeness.page_complete && toItems.completeness.page_complete,
+        complete_item_comparison: fromItems.completeness.page_complete && toItems.completeness.page_complete && [...fromItems.items, ...toItems.items].every((r) => Object.keys(r.content_status as Record<string, unknown>).length === 0),
         limitations: ["Tételazonosító verzióváltáskor változhat; név/munkarész/egység alapján összevetés csak javaslat, duplikált nevű sor nem biztos egyezés.", "Külön tételoldalak next_offset-tal folytathatók. Ár/mennyiség/feltétel nem módosul."] } };
     } catch (e) { return toolError.fromException(e); }
   });

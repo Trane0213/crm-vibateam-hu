@@ -7,7 +7,7 @@ import { safeMailText } from "./gmail-context";
 export const QUOTE_SELECT = "id,lead_id,project_id,group_id,alternative_key,alternative_label,version,is_current,title,status,quote_kind,contact_id,responsible_user_id,created_at,sent_at,locked_at,valid_until,request_due_date,offer_due_date,total_amount,manual_net_amount,tax_percent,discount_percent,scope_note,technical_scope,exclusions,notes,template_key,template_version,template_terms,site_address,quote_items(count)";
 
 /** Apply the existing quote workspace's amount and state rules, never a new KPI. */
-export function quoteContext(row: Record<string, unknown>) {
+export function quoteContext(row: Record<string, unknown>): Record<string, unknown> & { amounts: ReturnType<typeof quoteAmounts> | null; net: number | null; workflow: ReturnType<typeof quoteWorkflow>; active: boolean; content_status: Record<string, unknown> } {
   const counts = row.quote_items as { count: number }[] | undefined;
   const itemCount = counts?.[0]?.count;
   const amounts = itemCount == null ? null : quoteAmounts({ itemCount,
@@ -40,8 +40,8 @@ export function quotePageSummary(items: Record<string, unknown>[], pageComplete:
 }
 
 export function quoteSendEvidence(row: Record<string, unknown>) {
-  // Mirrors quotes_has_send_evidence: linked Gmail or successful CRM send only.
-  const verified = ["sent", "recorded"].includes(String(row.status)) && Boolean(row.sent_at && row.gmail_message_id);
+  // Mirrors quote_lock_sent's evidence predicate; never claims a live Gmail read.
+  const verified = ["sent", "recorded"].includes(String(row.status)) && Boolean(row.sent_at && String(row.gmail_message_id ?? "").trim());
   return { ...row, verified_send_record: verified, customer_response_proven: false };
 }
 
