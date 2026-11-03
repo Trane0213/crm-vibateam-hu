@@ -1,4 +1,4 @@
-import { LogOut, Settings as SettingsIcon, UserCog } from "lucide-react";
+import { LogOut, Mail, Settings as SettingsIcon, UserCog } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
