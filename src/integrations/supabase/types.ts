@@ -2811,6 +2811,7 @@ export type Database = {
           name: string
           quantity: number | null
           quote_id: string | null
+          section: string | null
           total_price: number | null
           unit: string | null
           unit_price: number | null
@@ -2821,6 +2822,7 @@ export type Database = {
           name: string
           quantity?: number | null
           quote_id?: string | null
+          section?: string | null
           total_price?: number | null
           unit?: string | null
           unit_price?: number | null
@@ -2831,6 +2833,7 @@ export type Database = {
           name?: string
           quantity?: number | null
           quote_id?: string | null
+          section?: string | null
           total_price?: number | null
           unit?: string | null
           unit_price?: number | null
@@ -2931,14 +2934,18 @@ export type Database = {
       }
       quotes: {
         Row: {
+          alternative_key: string
+          alternative_label: string | null
           contact_id: string | null
           created_at: string | null
           created_by: string | null
           discount_percent: number | null
           exclusions: string | null
+          group_id: string
           id: string
           is_current: boolean
           lead_id: string | null
+          locked_at: string | null
           manual_net_amount: number | null
           notes: string | null
           offer_due_date: string | null
@@ -2957,14 +2964,18 @@ export type Database = {
           version: number
         }
         Insert: {
+          alternative_key?: string
+          alternative_label?: string | null
           contact_id?: string | null
           created_at?: string | null
           created_by?: string | null
           discount_percent?: number | null
           exclusions?: string | null
+          group_id?: string
           id?: string
           is_current?: boolean
           lead_id?: string | null
+          locked_at?: string | null
           manual_net_amount?: number | null
           notes?: string | null
           offer_due_date?: string | null
@@ -2983,14 +2994,18 @@ export type Database = {
           version?: number
         }
         Update: {
+          alternative_key?: string
+          alternative_label?: string | null
           contact_id?: string | null
           created_at?: string | null
           created_by?: string | null
           discount_percent?: number | null
           exclusions?: string | null
+          group_id?: string
           id?: string
           is_current?: boolean
           lead_id?: string | null
+          locked_at?: string | null
           manual_net_amount?: number | null
           notes?: string | null
           offer_due_date?: string | null
@@ -4475,6 +4490,12 @@ export type Database = {
       is_email_admin: { Args: { _user_id: string }; Returns: boolean }
       is_owner_role: { Args: { _auth_user: string }; Returns: boolean }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
+      quote_lock_sent: { Args: { p_quote_id: string }; Returns: string }
+      quote_new_alternative: {
+        Args: { p_label: string; p_quote_id: string }
+        Returns: string
+      }
+      quote_new_version: { Args: { p_quote_id: string }; Returns: string }
       quote_recalc_total: { Args: { _quote_id: string }; Returns: undefined }
       sales_mark_won_with_project: {
         Args: {
