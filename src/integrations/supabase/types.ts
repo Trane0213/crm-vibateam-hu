@@ -4696,6 +4696,10 @@ export type Database = {
         Args: { p_action_id: string }
         Returns: Json
       }
+      sales_set_approved_contact: {
+        Args: { p_action_id: string }
+        Returns: Json
+      }
       sales_update_approved_next_step: {
         Args: { p_action_id: string }
         Returns: Json
