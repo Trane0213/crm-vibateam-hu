@@ -1,4 +1,7 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## S8 Gmail-küldési teszt folytatása (2026-11-03)
+- [ ] Viktor saját Gmail-fiókjából TESZT-ajánlat küldése az info@vibateam.hu címre, majd kiküldési napló és zárolás ellenőrzése: külső Supabase miatt nem érhető el átadható hitelesített böngészős munkamenet; felhasználói felületi próba szükséges. Korábbi chatjelszó nem használható.
+
 ## Sales Ma végleges elrendezés (2026-11-03)
 - [x] Négy saját értékesítési KPI és négy napi fókuszkártya, meglévő adatforrásokkal.
 - [x] Kompakt, prioritás szerint egyszer megjelenő napi ügylista és gyorsbelépők; más szerepkörök változatlanok.
