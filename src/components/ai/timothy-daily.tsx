@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { runDailyBriefing } from '@/lib/ai-os/briefing.functions';
 import { dailySalesFocus,dailySalesCounts,dailySalesFingerprint } from '@/lib/ai-os/daily-sales';
 import { budapestDayBounds,isTestLabel } from '@/lib/owner-kpis';
+import { SalesWatch } from './sales-watch';
 
 export function TimothyDaily() {
   const daily = useDailyWork();
@@ -47,6 +48,7 @@ export function TimothyDaily() {
       {focus[0]&&<p className="text-sm"><span className="font-medium">Első teendő: </span>{focus[0].reason} · {focus[0].lead.company_name||focus[0].lead.summary||'ügy megnyitása'}</p>}
     </>}
     {query.isFetching||manual?<p className="text-xs text-muted-foreground">Timothy javaslata készül…</p>:manualError||query.isError?<p role="alert" className="text-sm text-destructive">{manualError||'A napi javaslat nem érhető el.'}</p>:stale?<p className="text-xs text-muted-foreground">A napi adatok változtak; a korábbi AI-javaslat elavult.</p>:result?.status==='ready'&&result.text?<p className="whitespace-pre-wrap text-sm"><span className="font-medium">Javaslat: </span>{result.text}</p>:result?.status==='running'?<p className="text-xs text-muted-foreground">A napi javaslat egy másik kérésben készül.</p>:result?.status==='unknown'||result?.status==='failed'?<p role="alert" className="text-xs text-destructive">A napi AI-javaslat eredménye nem igazolt; automatikusan nem ismételjük.</p>:null}
+    <SalesWatch />
     {result?.generatedAt&&<p className="text-xs text-muted-foreground">Javaslat készítve: {new Date(result.generatedAt).toLocaleString('hu-HU',{timeZone:'Europe/Budapest'})}</p>}
   </section>;
 }

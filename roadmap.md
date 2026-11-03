@@ -1,5 +1,8 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy Sales AI V3.0 (2026-11-03)
+- [x] V3 lezáró kör: P3 kód/specifikáció ellenőrzés; P4 saját ügyek szabályalapú metaadatjelzései meglévő Ma/dosszié/két-chat felületen; P5 388/388 regresszió, AI 21 forgatókönyv, izolált nézet PASS, build OK. Üzleti adat, Gmail és publikálás érintetlen.
+- [ ] V3 bevezetési kapu: hitelesített két-chat→P0→CRM/Gmail/R2, több szerepkör és modellminőség TESZT-végigpróba; external_unmanaged, nincs átadható biztonságos munkamenet. Felhasználó saját TESZT-próbája szükséges.
+- [ ] V3 teljes specifikáció szerinti lezárás még nem állítható: nagy fájl feldolgozó folyamat nincs; P4 tartalmi sürgősség/hiánypótlás csak kezdeményezett chatolvasás, nem automatikus osztályozás; teljes történeti levélfigyelés és P5 hatékonysági mérőszámok nem igazoltak. Külön kapu a bevezetési TESZT eredménye és a nagyfájl-feldolgozási erőforrás/működési keret, nem indult párhuzamos feldolgozó.
 - [x] Feltöltött specifikáció feldolgozása; meglévő kapcsolódások olvasásos ellenőrzése és szakaszos terv előkészítése.
 - [x] P1/A célzott CRM-adatértelmezés: cégszűrés, lapozás, forrásos leadelőzmény, hibajelzés; 170/170 regresszió, AI 13 forgatókönyv, build PASS; jelentés és STOP.
 - [ ] P1/A hitelesített Timothy/több-szerepkörös végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet.
@@ -21,7 +24,7 @@
 - [x] P3 nyitott Pipeline-státusz: existing átmenetek/P0, frozen next-step/lead, atomi audit/readback; 344 teszt/AI/build/izolált SQL/kártya PASS, migráció sikeres, nincs éles írás/publikálás.
 - [x] P3 küldés vizsgálata: meglévő Gmail-út és P0 ellenőrizve; sima levélnél nincs tartós küldési ismétlésvédelem. Aktuális read-only DB: 0 approval sor, 0 küldőtool-sor, 2 quote_sends sor.
 - [x] P3 jóváhagyott levélküldés: meglévő Gmail-service, exact message/file P0, service-only dispatch, Gmail SENT + CRM readback; 373 teszt/AI 21 scenario/build/izolált SQL/actual dangerous kártya PASS, migráció sikeres, email action=0. Éles küldés/publikálás nélkül.
-- [ ] P3 hitelesített két-chat/valódi Gmail/R2/RLS és modellpróba: external_unmanaged munkamenetkorlát; bevezetési akadály. P4–P5 külön jóváhagyásra vár.
+- [ ] P3 hitelesített két-chat/valódi Gmail/R2/RLS és modellpróba: external_unmanaged munkamenetkorlát; bevezetési akadály. P4 alapfigyelés és P5 automatikus ellenőrzés a lezáró körben elkészült, teljes bevezetés nem igazolt.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.

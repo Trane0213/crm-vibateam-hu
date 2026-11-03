@@ -18,6 +18,12 @@ async function mailboxes(ctx: ToolContext): Promise<Mailbox[]> {
 }
 
 export function registerGmailContextTools() {
+  registerTool({ name: 'crm_sales_watch', domain: 'crm.emails', allowed_agents: ['timothy'], allowed_roles: ['owner', 'sales'],
+    description: 'Szabályalapú saját Sales-ügyjelzések: tárolt ügyfélválasz, ajánlati szál válasza, lejárt utánkövetés, hiányos ügy és érvényesség. Nincs írás vagy AI háttérfutás; partial/sync hiányosságokat közöld. Tartalmi kéréshez a meglévő pontos levélolvasó kell.',
+    parameters: { type: 'object', properties: {}, additionalProperties: false } }, async (_args, ctx) => {
+      const { loadSalesWatch } = await import('../sales-watch.server');
+      return { ok: true, data: await loadSalesWatch(ctx.supabaseUser, ctx.userId) };
+    });
   registerTool({ name: "crm_email_mailboxes", domain: "crm.emails", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
     description: "Jogosult postafiókok és tárolt szinkronfrissesség. Nem tokenadat, nem szinkronindítás; az aktív jelölés nem bizonyít teljes Gmail-lefedettséget.",
     parameters: { type: "object", properties: {} },

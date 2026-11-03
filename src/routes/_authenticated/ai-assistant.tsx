@@ -16,6 +16,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
+import { SalesWatch } from '@/components/ai/sales-watch';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 
@@ -266,6 +267,7 @@ function AiAssistantPage() {
           {/* Üzenetlista — kizárólag ez görgethető */}
           <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1100px] space-y-4 p-6">
+              {agent === 'sales' && <SalesWatch />}
               {(() => {
                 const visibleMessages = active?.messages.filter((m) => !isLegacyErrorMessage(m)) ?? [];
                 if (!active || visibleMessages.length === 0) {
