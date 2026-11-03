@@ -4332,6 +4332,10 @@ export type Database = {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
       }
+      can_access_quote: {
+        Args: { _created_by: string; _lead_id: string; _project_id: string }
+        Returns: boolean
+      }
       crm_lookup_normalize: { Args: { p_text: string }; Returns: string }
       crm_mailbox_page: {
         Args: {
@@ -4368,6 +4372,8 @@ export type Database = {
       }
       is_email_admin: { Args: { _user_id: string }; Returns: boolean }
       is_owner_role: { Args: { _auth_user: string }; Returns: boolean }
+      quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
+      quote_recalc_total: { Args: { _quote_id: string }; Returns: undefined }
       sales_mark_won_with_project: {
         Args: {
           p_lead_id: string
