@@ -106,6 +106,25 @@ describe("Timothy P1/D authorized source and provenance", () => {
     const f = fixture({ quotes: [{ id: quoteId }], quote_documents: [row] });
     await expect(readDocument({ ...args, expected_hash: "0".repeat(64) }, f.ctx, async () => strToU8("changed"))).rejects.toThrow("megváltozott");
   });
+  it("requires the returned hash for every continuation", async () => {
+    const f = fixture({ quotes: [{ id: quoteId }], quote_documents: [row] });
+    await expect(readDocument({ ...args, text_offset: 6000 }, f.ctx, async () => strToU8("x".repeat(6100)))).rejects.toThrow("hash");
+  });
+  it("lists more than 30 documents in bounded pages without returning keys", async () => {
+    const rows = Array.from({ length: 39 }, (_, i) => ({ ...row, id: `${id}-${i}` }));
+    const f = fixture({ quotes: [{ id: quoteId }], quote_documents: rows });
+    const tool = getTool("crm_list_documents"); if (!tool) throw new Error("Missing list tool");
+    const first = await tool.execute({ source: "quote_documents", quote_id: quoteId, limit: 10 }, f.ctx) as any;
+    expect(first.data.pagination.total_visible).toBe(39); expect(first.data.items.length).toBe(10);
+    const next = await tool.execute({ source: "quote_documents", quote_id: quoteId, limit: 10, offset: first.data.pagination.next_offset }, f.ctx) as any;
+    expect(next.data.items[0].id).toBe(`${id}-10`); expect(JSON.stringify(first)).not.toContain("quote-documents/");
+  });
+  it("reads an attachment only after its exact authorized email is confirmed", async () => {
+    registerTool({ name: "crm_read_email_thread", domain: "crm.emails", description: "TESZT own-account message", parameters: {} }, async (args) => ({ ok: true, data: { items: [{ id: args.email_id }] } }));
+    const f = fixture({ email_attachments: [{ id, email_id: quoteId, filename: "TESZT.txt", r2_key: "attachment/test.txt" }] });
+    const out = await readDocument({ source: "email_attachments", document_id: id, email_id: quoteId, company_id: id, thread_id: id, mailbox: "teszt@example.com" }, f.ctx, async () => strToU8("TESZT melléklet"));
+    expect(out.data.status).toBe("extracted"); expect(f.calls).toEqual(["email_attachments"]);
+  });
   it("requires exact mailbox message access before attachment lookup", async () => {
     registerTool({ name: "crm_read_email_thread", domain: "crm.emails", description: "TESZT denied message", parameters: {} }, async () => ({ ok: true, data: { items: [] } }));
     const f = fixture({ email_attachments: [{ id, email_id: quoteId, r2_key: "private" }] });
