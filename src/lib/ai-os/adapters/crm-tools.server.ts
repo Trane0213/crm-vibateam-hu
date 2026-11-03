@@ -21,6 +21,7 @@ import { nextStepActionSchema,verifyNextStepAction } from '../next-step-action';
 import { NEXT_STEP_TYPES } from '@/lib/sales/constants';
 import {followupActionSchema,verifyFollowupAction} from '../followup-action';
 import {contactActionSchema,verifyContactAction} from '../contact-action';
+import {assignmentActionSchema,verifyAssignmentAction} from '../assignment-action';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -405,6 +406,17 @@ export function registerCrmTools() {
   );
 
   // ---------------- WRITE: SALES WORKFLOW ----------------
+  registerTool({name:'sales_reassign_lead',domain:'sales.assignment',allowed_agents:['timothy'],allowed_roles:['owner'],needs_approval:true,
+    description:'Tulajdonos külön P0 jóváhagyásával egy nyitott lead átadása pontosan azonosított aktív Salesnek. Csak lead assigned_to változik; ajánlat/followup felelős, Gmail, státusz/projekt változatlan. A lead és kapcsolt ajánlat láthatósága átkerül.',
+    parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},assigneeId:{type:'string',format:'uuid',description:'users_profile.auth_user_id, nem profil id'}},required:['leadId','assigneeId']}},
+    async(args,ctx)=>{
+      assignmentActionSchema.parse(args);
+      if(!ctx.approvalActionId)throw new Error('Tartós jóváhagyás szükséges.');
+      const saved=await ctx.supabaseUser.rpc('sales_reassign_approved_lead',{p_action_id:ctx.approvalActionId});
+      if(saved.error)return fail(saved.error);
+      if(!verifyAssignmentAction(saved.data,args))throw new Error('A felelős átadása nem igazolt.');
+      return ok(saved.data);
+    });
   registerTool({name:'sales_set_lead_contact',domain:'sales.contact',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
     description:'Nyitott lead kapcsolattartójának kiválasztása meglévő, azonos céges kontaktra, P0 jóváhagyással. Nem szerkeszt személyadatot/ajánlatot, nem hoz létre vagy töröl kontaktot.',
     parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},contactId:{type:'string',format:'uuid'}},required:['leadId','contactId']}},
