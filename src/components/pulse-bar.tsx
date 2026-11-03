@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { FileText, BellRing, ListChecks, Sparkles } from "lucide-react";
 import { useCount } from "@/lib/db-hooks";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useDailyWork } from "@/lib/sales/use-daily-work";
 
 const toneClass = {
   primary: "bg-primary/10 text-primary border-primary/20 hover:bg-primary/15",
@@ -27,6 +29,28 @@ function weekAgo() {
 }
 
 export function PulseBar() {
+  const { role } = usePermissions();
+  return role === "sales" || role === "owner" ? <SalesPulseBar /> : <LegacyPulseBar />;
+}
+
+function SalesPulseBar() {
+  const q = useDailyWork();
+  if (q.isError) return <div role="alert" className="border-b px-4 py-2 text-xs text-destructive">Sales-adatok betöltése sikertelen: {q.error.message}</div>;
+  const d = q.data;
+  const chips = [
+    { label: "nyitott ajánlat", value: d?.quotes.length, to: "/sales/quotes", search: {}, icon: FileText, tone: "primary" as const },
+    { label: "lejárt teendő", value: d?.buckets.overdue.length, to: "/sales/todo", search: { bucket: "overdue" }, icon: BellRing, tone: "danger" as const },
+    { label: "ma esedékes", value: d?.buckets.today.length, to: "/sales/todo", search: { bucket: "today" }, icon: ListChecks, tone: "warning" as const },
+    { label: "új érdeklődő (7 nap)", value: d?.newLeads.length, to: "/today", search: {}, icon: Sparkles, tone: "info" as const },
+  ];
+  return <div className="flex items-center gap-2 overflow-x-auto border-b bg-muted/30 px-4 py-2">
+    {chips.map(c => <Link key={c.label} to={c.to} search={c.search} className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${toneClass[c.tone]}`}>
+      <c.icon className="h-3.5 w-3.5" /><span>{c.value ?? "—"}</span><span>{c.label}</span>
+    </Link>)}
+  </div>;
+}
+
+function LegacyPulseBar() {
   const nowIso = new Date().toISOString();
   const todayStart = startOfToday();
   const todayEnd = endOfToday();
