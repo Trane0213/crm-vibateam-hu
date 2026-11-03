@@ -6,6 +6,7 @@ import { CRM_PAGE_PROPERTIES, crmReadPage, readWindow } from "./crm-read-page";
 import { QUOTE_SELECT, quoteContext, quoteFieldChanges, quoteSendEvidence, sameQuoteScope } from "./quote-context";
 import { readQuoteList } from "./quote-read.server";
 import { safeMailText } from "./gmail-context";
+import { registerSalesIntelligenceTools } from './sales-intelligence.server';
 
 async function visibleQuote(id: string, ctx: ToolContext) {
   const result = await ctx.supabaseUser.from("quotes").select(QUOTE_SELECT).eq("id", id).maybeSingle();
@@ -32,6 +33,7 @@ async function items(id: string, args: Record<string, unknown>, ctx: ToolContext
 }
 
 export function registerQuoteTools() {
+  registerSalesIntelligenceTools();
   registerTool({ name: "crm_list_quotes", domain: "crm.quotes",
     description: "Ajánlatok, lead- és projekt-only cégkapcsolattal, nettóval és aktuális/verzió/alternatíva jelöléssel. Lapozott összesítés csak teljes oldalnál teljes kiválasztás, nem összeadott alternatívák.",
     parameters: { type: "object", properties: { company_id: { type: "string" }, lead_id: { type: "string" }, project_id: { type: "string" }, ...CRM_PAGE_PROPERTIES } },
