@@ -4,10 +4,10 @@ import { toResponsesInput, fromResponsesOutput } from "./providers.server";
 import { collectLeadCompanies, correctLeadAsCompany } from "./read-quality";
 
 describe("Timothy modellváltás", () => {
-  it("csak Timothy fut gpt-6-astra Responses API-n high effortral", () => {
-    const t = (AGENTS as any).timothy;
-    expect([t.model, t.api, t.reasoning_effort]).toEqual(["gpt-6-astra", "responses", "high"]);
-    for (const [id, a] of Object.entries(AGENTS as any)) if (id !== "timothy") expect((a as any).model).toBe("gpt-4o-mini");
+  it("mind a 9 agent gpt-6-astra Responses API-n high effortral fut", () => {
+    const all = Object.values(AGENTS as any) as any[];
+    expect(all.length).toBe(9);
+    for (const a of all) expect([a.model, a.api, a.reasoning_effort]).toEqual(["gpt-6-astra", "responses", "high"]);
   });
   it("eszközeredmény visszajut a modellhez call_id-val", () => {
     const r = toResponsesInput([{ role: "system", content: "S" }, { role: "user", content: "Q" },
