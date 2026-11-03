@@ -22,6 +22,7 @@ import {
 import { buildTimeline } from "@/lib/marketing-timeline";
 import { LOST_REASON_LABEL, type LostReason } from "@/lib/sales/constants";
 import { relativeTime } from "@/components/marketing-ui";
+import { SalesWatch } from '@/components/ai/sales-watch';
 
 export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
   const contactLookup = useLookup("contacts", "name");
@@ -136,6 +137,7 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
 
         <div className="min-h-0 flex-1 overflow-auto p-4">
           <TabsContent value="overview" className="mt-0 space-y-4">
+            <SalesWatch context={{kind:'lead',id:leadId,label:'Lead'}} />
             <Section title="Cég" icon={Building2}>
               {!company.data ? (
                 <Empty>{companyId && company.isLoading ? "Cégadatok betöltése…" : "Nincs cég hozzárendelve a leadhez."}</Empty>

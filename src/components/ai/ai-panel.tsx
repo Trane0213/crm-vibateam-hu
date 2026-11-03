@@ -15,6 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useAiApprovals } from "@/components/ai/use-ai-approvals";
+import { SalesWatch } from './sales-watch';
 import { contextPrefix, detectRecordContext, type RecordContext, CONTEXT_QUESTIONS, GENERAL_QUESTIONS } from "@/lib/ai-panel-context";
 import {
   AGENT_IDS, AGENT_META, Bubble, THREADS_EVENT, isLegacyErrorMessage, loadThreads, saveThreads,
@@ -236,6 +237,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
         </div>
       ) : (
         <div ref={scrollRef} className="flex-1 min-h-0 space-y-4 overflow-y-auto px-4 py-4">
+          {agent === 'sales' && <SalesWatch context={recordCtx} />}
           {visible.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <img src={meta.portrait} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-primary/30 ring-offset-2 ring-offset-background" />

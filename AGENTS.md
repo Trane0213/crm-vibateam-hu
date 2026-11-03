@@ -32,3 +32,4 @@
 - Timothy contact/assignment edits use immutable P0 and invoker audit/readback; same-company contacts or owner-only active Sales auth IDs, locked identity checks, no downstream edits.
 - Timothy open Pipeline changes reuse STATUS_TRANSITIONS via P0 invoker audit/readback; frozen next-step/context, no entry/terminal/quote edits.
 - Timothy sending uses the existing Gmail send service with immutable P0 message/scope/file hashes and a service-only action dispatch claim; own live Gmail SENT plus user-visible CRM readback prove success, uncertain delivery never retries — no parallel transport or mailbox access changes.
+- Timothy watch is a shared user-RLS metadata reader for own open leads and exact own-mailbox/contact/thread scope; deterministic source-ID signals appear in the existing daily card, dossier and chats with explicit bounded coverage, no background model or writes — keeps monitoring separate from unchanged daily priorities and P0 actions.
