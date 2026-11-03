@@ -193,8 +193,14 @@ export function LeadListColumn({
       <div className="flex-1 overflow-auto">
         {isLoading ? (
           <div className="p-4 text-sm text-muted-foreground">Betöltés…</div>
+        ) : mode === "sales" && own.isError ? (
+          <div role="alert" className="p-4 text-sm text-destructive">A saját leadek betöltése sikertelen.</div>
         ) : filtered.length === 0 ? (
-          <div className="p-4 text-sm text-muted-foreground">Nincs találat.</div>
+          <div className="p-4 text-sm text-muted-foreground">
+            {mode === "sales" && !search && !status && !source
+              ? "Nincs hozzád rendelt, előkészítésre váró lead."
+              : "Nincs találat."}
+          </div>
         ) : (
           <ul className="divide-y">
             {filtered.map((l: any) => {
