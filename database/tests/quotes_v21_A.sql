@@ -16,7 +16,7 @@ CREATE TABLE public.quote_items(quote_id uuid, name text, quantity numeric, unit
 CREATE TABLE public.quote_sends(quote_id uuid, status text, gmail_message_id text, sent_at timestamptz);
 GRANT SELECT,INSERT,UPDATE ON public.quotes,public.leads,public.quote_items TO authenticated;
 GRANT SELECT ON public.quote_sends TO authenticated;
-\ir ../../supabase/migrations/V21_MIGRATION_FILE
+\ir ../../supabase/migrations/20261103144647_fe6eca65-1c6b-4f95-be3c-f293cf922abf.sql
 DO $$
 DECLARE a uuid; b uuid; n uuid; alt uuid; g uuid:=gen_random_uuid(); due timestamptz:='2026-11-03 14:36:47.233+00'; r record;
 BEGIN
