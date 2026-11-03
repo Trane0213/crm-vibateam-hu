@@ -5,6 +5,7 @@ import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatHuf } from "@/lib/format";
+import printLogo from "@/assets/viba-team-logo-print.png.asset.json";
 import { hasDraftTerms, isTemplateKey, QUOTE_TEMPLATES } from "@/lib/quotes/templates";
 
 /**
@@ -169,10 +170,10 @@ function QuotePrint() {
           {/* Fejléc */}
           <div className="flex items-start justify-between border-b pb-6">
             <div>
-              <div className="text-lg font-semibold">VIBA-TEAM Kft.</div>
-              <div className="mt-1 text-xs leading-relaxed text-neutral-600">
-                Épületgépészeti és klímatechnikai szolgáltatások
-              </div>
+              <img src={printLogo.url} alt="VIBA-TEAM Kft – Villamos kivitelezés" className="h-16 w-auto" />
+              {isTemplateKey(quote.template_key) && (
+                <div className="mt-2 text-[11px] uppercase tracking-wider text-neutral-500">{QUOTE_TEMPLATES[quote.template_key].label}</div>
+              )}
             </div>
             <div className="text-right">
               <div className="text-[11px] uppercase tracking-wider text-neutral-500">Ajánlat</div>
