@@ -12,3 +12,4 @@
 - `quote_requests` has RLS with no client policies; read/write only server-side (CRM viewer-role check in `quote-requests.functions.ts`, HMAC receiver) — website leads must not be reachable via the Data API.
 - Sales daily lists, todo buckets and Sales/owner pulse counts share `useDailyWork` and `dailyWork`; scoped paginated lead reads and Budapest bounds prevent divergent counts without changing database views.
 - Completed preparation activities use authenticated `recordPrepActivity` with existing user RLS and a server-only timestamp; strict inputs prevent client dates and completed meetings on this path.
+- Sales lead visibility = assigned_to only (`src/lib/sales/lead-visibility.ts`, mirrored by RLS `leads_select_sales`); unassigned leads are owner-only — keeps UI lists, deep links and DB consistent.
