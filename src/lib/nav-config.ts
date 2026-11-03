@@ -107,6 +107,7 @@ export const MORE_GROUPS: NavGroup[] = [
       { title: "Marketing súgó", url: "/help/marketing", icon: BookOpen, hideForRoles: ["sales"] },
       { title: "Sales súgó", url: "/help/sales", icon: BookOpen, hideForRoles: ["marketing"] },
       { title: "Tulajdonosi súgó", url: "/help/owner", icon: BookOpen, hideForRoles: ["sales", "marketing", "project_manager"] },
+      { title: "Saját Gmail-fiók", url: "/settings/gmail", icon: Settings, hideForRoles: ["owner"] },
       { title: "Beállítások", url: "/settings", icon: Settings },
     ],
   },
