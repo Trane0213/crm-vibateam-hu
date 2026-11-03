@@ -82,6 +82,7 @@ describe("Timothy P1/D authorized source and provenance", () => {
   it("returns content hash, source and separate quote business version, never the storage key", async () => {
     const f = fixture({ quotes: [{ id: quoteId, version: 2 }], quote_documents: [row] });
     const out = await readDocument(args, f.ctx, async () => strToU8("TESZT szöveg"));
+    if (!("provenance" in out.data)) throw new Error("Expected extraction provenance");
     expect(out.data.provenance?.sha256).toHaveLength(64); expect(out.data.source).toMatchObject({ id, quote_id: quoteId });
     expect(out.data.provenance?.quote_version).toMatchObject({ version: 2 }); expect(JSON.stringify(out)).not.toContain("quote-documents/");
   });
@@ -106,7 +107,7 @@ describe("Timothy P1/D authorized source and provenance", () => {
     await expect(readDocument({ ...args, expected_hash: "0".repeat(64) }, f.ctx, async () => strToU8("changed"))).rejects.toThrow("megváltozott");
   });
   it("requires exact mailbox message access before attachment lookup", async () => {
-    registerTool({ name: "crm_read_email_thread", domain: "crm.emails", parameters: {} }, async () => ({ ok: true, data: { items: [] } }));
+    registerTool({ name: "crm_read_email_thread", domain: "crm.emails", description: "TESZT denied message", parameters: {} }, async () => ({ ok: true, data: { items: [] } }));
     const f = fixture({ email_attachments: [{ id, email_id: quoteId, r2_key: "private" }] });
     await expect(readDocument({ source: "email_attachments", document_id: id, email_id: quoteId, company_id: id, thread_id: id, mailbox: "teszt@example.com" }, f.ctx, async () => strToU8("private"))).rejects.toThrow();
     expect(f.calls).toEqual([]);
