@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { formatDateTime } from "@/lib/format";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { checkOutboundSize } from "@/lib/quotes/send-policy";
+import { checkOutboundSize, checkReferencedAttachment } from "@/lib/quotes/send-policy";
 import { quoteLinkSentEmail } from "@/lib/quotes/quote-send.functions";
 import { QUOTE_DOC_LABEL } from "@/components/quotes/quote-document-manager";
 
@@ -68,6 +68,7 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
   });
 
   const sizeErr = useMemo(() => checkOutboundSize((docs.data ?? []).filter((d) => picked.includes(d.id)).map((d) => d.size_bytes)), [docs.data, picked]);
+  const attachmentErr = checkReferencedAttachment(body, picked.length);
 
   const openSend = () => {
     setIdemKey(crypto.randomUUID()); setConfirm(false);
@@ -80,6 +81,7 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
 
   const send = useMutation({
     mutationFn: async () => {
+      if (attachmentErr) throw new Error(attachmentErr);
       const { data: sess } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
       const r = await fetch("/api/gmail/send", {
@@ -151,12 +153,13 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
                 </label>
               ))}
               {sizeErr && <p className="flex items-center gap-1 text-sm text-destructive"><AlertTriangle className="h-4 w-4" /> {sizeErr}</p>}
+              {attachmentErr && <p role="alert" className="flex items-center gap-1 text-sm text-destructive"><AlertTriangle className="h-4 w-4" /> {attachmentErr}</p>}
             </div>
             <label className="flex items-center gap-2 text-sm"><Checkbox checked={confirm} onCheckedChange={(c) => setConfirm(!!c)} /> Ellenőriztem a címzettet és a mellékleteket, jóváhagyom a kiküldést.</label>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(null)}>Mégse</Button>
-            <Button disabled={!confirm || !to.trim() || !subject.trim() || !!sizeErr || send.isPending} onClick={() => send.mutate()}>
+            <Button disabled={!confirm || !to.trim() || !subject.trim() || !!sizeErr || !!attachmentErr || send.isPending} onClick={() => send.mutate()}>
               <Send className="mr-1.5 h-4 w-4" /> {send.isPending ? "Küldés…" : "Küldés"}
             </Button>
           </DialogFooter>

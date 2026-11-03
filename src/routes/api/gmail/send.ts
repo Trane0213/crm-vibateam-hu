@@ -8,7 +8,7 @@ import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
 import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
-import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey } from "@/lib/quotes/send-policy";
+import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment } from "@/lib/quotes/send-policy";
 
 export const Route = createFileRoute("/api/gmail/send")({
   server: {
@@ -28,6 +28,10 @@ export const Route = createFileRoute("/api/gmail/send")({
           };
           if (!body?.to || !body?.subject) {
             return Response.json({ error: "to es subject kotelezo" }, { status: 400 });
+          }
+          if (body.quote_id) {
+            const attachmentError = checkReferencedAttachment(`${body.body ?? ""}\n${body.html ?? ""}`, (body.quote_document_ids ?? []).length + (body.attachments ?? []).length);
+            if (attachmentError) return Response.json({ error: attachmentError }, { status: 400 });
           }
           const admin = getAdminClient();
           const { data: senderProfile, error: senderError } = await admin.from("users_profile")
@@ -81,6 +85,8 @@ export const Route = createFileRoute("/api/gmail/send")({
             }
             const sizeErr = checkOutboundSize([...quoteDocs.map((d) => d.size_bytes), ...(body.attachments ?? []).map((a) => a.size_bytes)]);
             if (sizeErr) return Response.json({ error: sizeErr }, { status: 413 });
+            const attachmentError = checkReferencedAttachment(`${body.body ?? ""}\n${body.html ?? ""}`, quoteDocs.length + (body.attachments ?? []).length);
+            if (attachmentError) return Response.json({ error: attachmentError }, { status: 400 });
             const { data: qs, error: qsErr } = await (admin as any).from("quote_sends").insert({
               quote_id: body.quote_id, mode: "crm", status: "sending", idempotency_key: body.idempotency_key,
               to_emails: parseAddressList(body.to), cc_emails: parseAddressList(body.cc ?? ""), subject: body.subject,

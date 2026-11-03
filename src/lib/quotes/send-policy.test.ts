@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey } from "./send-policy";
+import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment, isVerifiedSentMessage } from "./send-policy";
 
 const MB = 1024 * 1024;
 describe("ajánlat-kiküldés szabályok", () => {
@@ -15,5 +15,18 @@ describe("ajánlat-kiküldés szabályok", () => {
   it("küldési azonosító kötelező formátumú", () => {
     expect(isIdempotencyKey("short")).toBe(false);
     expect(isIdempotencyKey(crypto.randomUUID())).toBe(true);
+  });
+  it("csatolt ajánlatra hivatkozó levél nem mehet melléklet nélkül", () => {
+    for (const text of ["Mellékelten küldjük ajánlatunkat.", "Csatolt ajánlat", "<p>Mellékletben az ajánlat.</p>", "Please see attached offer."]) {
+      expect(checkReferencedAttachment(text, 0)).not.toBeNull();
+      expect(checkReferencedAttachment(text, 1)).toBeNull();
+    }
+    expect(checkReferencedAttachment("Telefonos egyeztetésünket megerősítem.", 0)).toBeNull();
+  });
+  it("valódi elküldött Gmail-levél kell a rögzítéshez", () => {
+    expect(isVerifiedSentMessage({ id: "gmail1", labelIds: ["SENT"], internalDate: "1793716607100" }, "gmail1")).toBe(true);
+    expect(isVerifiedSentMessage({ id: "gmail1", labelIds: ["DRAFT"], internalDate: "1793716607100" }, "gmail1")).toBe(false);
+    expect(isVerifiedSentMessage({ id: "other", labelIds: ["SENT"], internalDate: "1793716607100" }, "gmail1")).toBe(false);
+    expect(isVerifiedSentMessage({ id: "gmail1", labelIds: ["SENT"] }, "gmail1")).toBe(false);
   });
 });
