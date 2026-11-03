@@ -1,4 +1,8 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Timothy kockázatalapú minőségbiztosítás és segítőkész működés
+- [ ] Egy közös terv: teljes működési lánc kockázatai, bizonyított hibák/kockázatok, közös megelőzés és kb. 300 változatos eset előre rögzített elvárással.
+- [ ] Jóváhagyott körben közös hibaforrások javítása, tényleges műveleti állapotjelzés és kontextus/kommunikáció; meglévő AI OS/P0/adatvédelem megőrzése.
+- [ ] Célzott automatizált + reprezentatív valódi modell/hitelesített TESZT értékelés; külön technikai/tény/adat/feladat mutatók és 95% cél, kritikus hibára nulla tolerancia; rövid jelentés, nincs publikálás.
 ## Timothy célzott stabilizálás — 2026-11-03
 - [x] Viktor újonnan engedélyezett bejelentkezésével 15 valódi chatpróba: 8 PASS / 7 FAIL, elírások 3 PASS / 1 FAIL; eszköz/adat/válasz összevetve, 0 böngészőhiba/approval, üzleti írás/küldés/publikálás nélkül. Rövid táblázat a célzott jelentés végén; kritikus modellhibák továbbra is nyitva.
 - [x] Aktuális ajánlatlista és forráshű linkek; állapot/időzóna, szerepkör és hiányos CRM/Gmail-adatok célzott javítása, séma/RLS/UI változtatás nélkül. 62 célzott teszt/21 AI acceptance/build OK, rövid jelentés: docs/system-map/timothy-celzott-stabilizalas-2026-11-03.md.
