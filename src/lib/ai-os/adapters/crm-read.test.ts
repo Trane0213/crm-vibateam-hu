@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { registerCrmTools } from "./crm-tools.server";
 import { getTool, toolsForAgent } from "../tool-registry";
 import { crmReadPage, crmRecordFacts, leadTimeline, readWindow } from "./crm-read-page";
@@ -10,23 +10,25 @@ import { quoteContext } from './quote-context';
 type Row = Record<string, unknown>;
 function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], errors: string[] = []) {
   const calls: string[] = [];
-  const client = { from(table: string) {
+  const client = { rpc: async () => ({data:[{userId:'00000000-0000-4000-8000-000000000001',email:'teszt@example.invalid'}],error:null}), from(table: string) {
     calls.push(table);
     let rows = [...(tables[table] ?? [])];
     if (table === "leads" && visibleLeadIds) rows = rows.filter((r) => visibleLeadIds.includes(String(r.id)));
     let from = 0, to = 999;
     let single = false;
     const filters: [string, unknown][] = [];
+    const beforeFilters: [string,string][] = [];
     const q = {
       select() { return q; },
       eq(key: string, value: unknown) { filters.push([key, value]); return q; },
       is(key: string, value: unknown) { filters.push([key, value]); return q; },
       or() { return q; },
+      lte(key:string,value:string) { beforeFilters.push([key,value]); return q; },
       order() { return q; },
       range(a: number, b: number) { from = a; to = b; return q; },
       maybeSingle() { single = true; return q; },
       then(resolve: (value: unknown) => unknown) {
-        const filtered = rows.filter((r) => filters.every(([key, value]) => {
+        const filtered = rows.filter(r=>beforeFilters.every(([key,value])=>typeof r[key]==='string' && Date.parse(String(r[key]))<=Date.parse(value))).filter((r) => filters.every(([key, value]) => {
           if (key.startsWith("details->>")) return (r.details as Row)?.[key.slice(10)] === value;
           if (key === "leads.company_id") return (tables.leads ?? []).some((l) => l.id === r.lead_id && l.company_id === value && (!visibleLeadIds || visibleLeadIds.includes(String(l.id))));
           if (key === "projects.company_id") return (tables.projects ?? []).some((p) => p.id === r.project_id && p.company_id === value);
@@ -47,6 +49,20 @@ async function execute(name: string, args: Row, ctx: ToolContext): Promise<any> 
 
 beforeEach(registerCrmTools);
 describe("Timothy P1/A CRM reads", () => {
+  it('overdue=true uses actual server now rather than Budapest midnight', async () => {
+    vi.useFakeTimers();vi.setSystemTime(new Date('2026-11-03T18:14:33Z'));
+    try {
+      const f=fixture({followups:[{id:'earlier-today',completed:false,due_date:'2026-11-03T17:00:00Z'},{id:'future',completed:false,due_date:'2026-11-03T19:00:00Z'},{id:'done',completed:true,due_date:'2026-11-03T17:00:00Z'}]});
+      const out=await execute('crm_list_followups',{overdue:true,due_before:'2026-11-03T00:00:00Z'},f.ctx);
+      expect(out.data.items.map((r:Row)=>r.id)).toEqual(['earlier-today']);
+      expect(out.data.filter_context.due_before).toBe('2026-11-03T18:14:33.000Z');
+    } finally {vi.useRealTimers();}
+  });
+  it('identifies own mailbox by access RPC without claiming thread membership or full Gmail',async()=>{
+    const f=fixture({email_threads:[]});
+    const out=await execute('crm_list_company_email_threads',{company_id:'TESZT-company'},f.ctx);
+    expect(out.data.mailbox_context).toMatchObject({access_checked:true,own_accessible_accounts:['teszt@example.invalid'],thread_mailbox_membership_checked:false,live_gmail_checked:false,missing_mail_reason:'not_determined'});
+  });
   it('resolves me to the authenticated assignee in leads and followups', async () => {
     for (const table of ['leads', 'followups']) {
       const f = fixture({ [table]: [{id:'own',assigned_to:'00000000-0000-4000-8000-000000000001',completed:false},{id:'other',assigned_to:'00000000-0000-4000-8000-000000000002',completed:false}] });
