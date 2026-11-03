@@ -14,16 +14,22 @@ function SalesQuotesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["sales", "quotes-by-lead"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quotes")
-        .select("id, lead_id, version, is_current, status, created_at")
-        .not("lead_id", "is", null)
-        .order("lead_id", { ascending: true })
-        .order("version", { ascending: false })
-        .limit(300);
-      if (error) throw error;
+      const data: any[] = [];
+      for (let from = 0; from < 10_000; from += 1000) {
+        const { data: page, error } = await supabase
+          .from("quotes")
+          .select("id, lead_id, version, is_current, status, created_at")
+          .not("lead_id", "is", null)
+          .order("lead_id", { ascending: true })
+          .order("version", { ascending: false })
+          .order("id")
+          .range(from, from + 999);
+        if (error) throw error;
+        data.push(...(page ?? []));
+        if (!page || page.length < 1000) break;
+      }
       const grouped: Record<string, any[]> = {};
-      for (const q of data ?? []) {
+      for (const q of data) {
         const key = (q as any).lead_id as string;
         (grouped[key] ||= []).push(q);
       }

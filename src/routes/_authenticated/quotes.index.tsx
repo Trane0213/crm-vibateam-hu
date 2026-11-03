@@ -25,13 +25,20 @@ function QuotesPage() {
   const list = useQuery({
     queryKey: ["quotes", "list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quotes")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return data ?? [];
+      // Lapozott teljes lekérés (1000-es adagok, max 10 000) — nincs csendes 200-as levágás.
+      const out: any[] = [];
+      for (let from = 0; from < 10_000; from += 1000) {
+        const { data, error } = await supabase
+          .from("quotes")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .order("id")
+          .range(from, from + 999);
+        if (error) throw error;
+        out.push(...(data ?? []));
+        if (!data || data.length < 1000) break;
+      }
+      return out;
     },
   });
 
