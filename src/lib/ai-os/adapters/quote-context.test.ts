@@ -16,7 +16,7 @@ function fixture(tables: Record<string, Row[]>, hidden: string[] = [], errors: s
       or(filter: string) { ors.push(filter); return q; },
       range(a: number, b: number) { start = a; end = b; return q; }, maybeSingle() { single = true; return q; },
       then(resolve: (value: unknown) => unknown) {
-        const rows = (tables[table] ?? []).filter((r) => !hidden.includes(String(r.id))).filter(r => ors.every(filter => filter.startsWith('is_current.') ? r.is_current !== false : !['accepted','rejected','withdrawn','won','lost'].includes(String(r.status)))).filter((r) => call.filters.every(([k, v]) => {
+        const rows = (tables[table] ?? []).filter((r) => !hidden.includes(String(r.id))).filter(r => ors.every(() => r.is_current !== false && !['accepted','rejected','withdrawn','won','lost'].includes(String(r.status)))).filter((r) => call.filters.every(([k, v]) => {
           if (k === "leads.company_id" || k === "projects.company_id") {
             const source = k.split(".")[0];
             return (tables[source] ?? []).some((s) => s.id === r[source === "leads" ? "lead_id" : "project_id"] && s.company_id === v && !hidden.includes(String(s.id)));

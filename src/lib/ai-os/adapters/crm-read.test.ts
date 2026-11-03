@@ -21,6 +21,7 @@ function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], error
       select() { return q; },
       eq(key: string, value: unknown) { filters.push([key, value]); return q; },
       is(key: string, value: unknown) { filters.push([key, value]); return q; },
+      or() { return q; },
       order() { return q; },
       range(a: number, b: number) { from = a; to = b; return q; },
       maybeSingle() { single = true; return q; },

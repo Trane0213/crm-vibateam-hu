@@ -18,7 +18,8 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
   if (args.lead_id) q = q.eq("lead_id", String(args.lead_id));
   if (args.project_id) q = q.eq("project_id", String(args.project_id));
   if (args.group_id) q = q.eq("group_id", String(args.group_id));
-  if (selection === 'open') q = q.or('is_current.is.null,is_current.eq.true').or(openStatusFilter);
+  const openFilter = `and(or(is_current.is.null,is_current.eq.true),or(${openStatusFilter}))`;
+  if (selection === 'open') q = q.or(openFilter);
   let rows: Record<string, unknown>[] = [];
   let count: number | null = null;
   if (args.company_id) {
@@ -28,7 +29,7 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
     if (args.lead_id) leadQuery = leadQuery.eq("lead_id", String(args.lead_id));
     if (args.project_id) leadQuery = leadQuery.eq("project_id", String(args.project_id));
     if (args.group_id) leadQuery = leadQuery.eq("group_id", String(args.group_id));
-    if (selection === 'open') leadQuery = leadQuery.or('is_current.is.null,is_current.eq.true').or(openStatusFilter);
+    if (selection === 'open') leadQuery = leadQuery.or(openFilter);
     const leads = await leadQuery.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(window.offset, window.offset + window.limit - 1);
     if (leads.error) throw leads.error;
     if (leads.count == null) throw new Error("Hiányzó látható ajánlati darabszám.");
@@ -37,7 +38,7 @@ export async function readQuoteList(args: Record<string, unknown>, ctx: ToolCont
     if (args.lead_id) projectQuery = projectQuery.eq("lead_id", String(args.lead_id));
     if (args.project_id) projectQuery = projectQuery.eq("project_id", String(args.project_id));
     if (args.group_id) projectQuery = projectQuery.eq("group_id", String(args.group_id));
-    if (selection === 'open') projectQuery = projectQuery.or('is_current.is.null,is_current.eq.true').or(openStatusFilter);
+    if (selection === 'open') projectQuery = projectQuery.or(openFilter);
     const offset = Math.max(0, window.offset - leads.count);
     const remaining = window.limit - rows.length;
     const projects = await projectQuery.order("created_at", { ascending: false, nullsFirst: false }).order("id").range(offset, offset + Math.max(1, remaining) - 1);
