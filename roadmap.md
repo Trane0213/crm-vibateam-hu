@@ -14,6 +14,7 @@
 - [ ] P2 hitelesített Sales/owner napi kvóta, kézi frissítés és modellminőség végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet. Korábbi P1 és P0 végigpróbák továbbra is nyitva.
 - [x] P3 előkészítés: CRM/Gmail meglévő útjainak ellenőrzése; P3/A terv és hatás/rollback jóváhagyva.
 - [x] P3/A jóváhagyott Hívás/E-mail aktivitás: existing followups, P0 action UUID idempotencia, audittranzakció, szerveridő; 234 teszt és AI 17 forgatókönyv PASS, izolált SQL/kártya PASS; STOP.
+- [ ] P3/B1 következő lépés: meglévő mentés olvasásos ellenőrzése kész; célzott tranzakciós terv külön jóváhagyásra, aztán megvalósítás és regresszió.
 - [ ] P3/A hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. P3/B–D és P4–P5 nem indult; külön jóváhagyásra vár.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
