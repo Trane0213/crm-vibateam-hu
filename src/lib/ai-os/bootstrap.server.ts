@@ -12,6 +12,7 @@ import { registerGoogleAdsTools } from "./adapters/google-ads-tools.server";
 import { registerKgTools } from "./adapters/kg-tools.server";
 import { registerWebsiteTools } from "./adapters/website-tools.server";
 import { registerGmailContextTools } from "./adapters/gmail-tools.server";
+import { registerDocumentTools } from "./adapters/document-tools.server";
 
 let booted = false;
 
@@ -20,6 +21,7 @@ export function ensureBootstrapped() {
   registerCoreTools();
   registerCrmTools();
   registerGmailContextTools();
+  registerDocumentTools();
   registerGoogleAdsTools();
   registerKgTools();
   registerWebsiteTools();
