@@ -1,4 +1,7 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Timothy célzott stabilizálás — 2026-11-03
+- [ ] Aktuális ajánlatlista és forráshű linkek; állapot/időzóna, szerepkör és hiányos CRM/Gmail-adatok célzott javítása, séma/RLS/UI változtatás nélkül.
+- [ ] Kilenc korábbi FAIL célzott visszatesztje és rövid alapregresszió; nem ellenőrizhető hitelesített eset NEM TESZTELT, nincs üzleti írás/küldés/publikálás; rövid eredmény és STOP.
 ## Timothy végső gyors ellenőrzés
 - [x] Viktor ismételt hitelesített végigpróbája: 20 valós chatkérdés/eszköznapló/adateredmény, 11 PASS / 9 FAIL, pageerror=0; új fejlesztés, regresszióismétlés, üzleti írás/küldés nélkül. Rövid eredménytábla az éles chat-audit végén.
 - [x] 18 ellenőrzési eset összevont értékelése a közvetlenül előző hitelesített chatpróbák és izolált tesztek alapján; nincs ismételt teljes tesztcsomag, fejlesztés vagy publikálás. Kritikus modellértelmezési hibák miatt teljes éles lezárás nem PASS; az alábbi nyitott auditfeladatok maradnak.
