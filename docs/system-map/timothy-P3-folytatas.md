@@ -1,4 +1,7 @@
 # Timothy P3 — rövid közös munkajegyzet
+Ellenőrzés 2026-11-03: 273/273 teszt PASS, AI acceptance PASS, build PASS. Izolált SQL: saját Sales/owner, idegen user/Marketing/PM/lezárt vagy megváltozott ügy tiltás, nyitott ismétlés tiltás, audit-hiba rollback, 12 párhuzamos végrehajtás egy followup/audit PASS. Közös kártya böngészős TESZT PASS, nincs pageerror. Bejelentkezett valódi két-chat→CRM-visszaolvasás NEM TESZTELT (external_unmanaged hozzáféréskorlát); nem publikált. Éles migráció sikeres; 16 korábbi biztonsági finding változatlan, nem új hiba.
+
+Használat: Timothynak konkrét ügy, Telefon/E-mail/Találkozó/Egyéb, teljes dátum/idő és jegyzet; ellenőrizd a tervezett időpontot a kártyán, majd külön jóváhagyás. Meglévő nyitott utánkövetés mellett nem hoz létre újat. Csak mentett bizonyíték alapján jelez sikert.
 ## Utánkövetés
 Csak explicit jóváhagyott, leadhez kötött tervezett utánkövetés a meglévő followups táblában (call/email/meeting/other). Sales saját ügy, owner meglévő hozzáférés. Nyitott lead-utánkövetés mellett nem készül új (az ajánlatkapcsolt sor is számít); az ajánlat saját ütemezése érintetlen. Lead next-step/státusz/kontakt/felelős nem változik. Nincs e-mailküldés.
 
