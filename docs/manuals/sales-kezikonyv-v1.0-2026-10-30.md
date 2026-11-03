@@ -35,6 +35,10 @@ Tulajdonosi, beállítási és jelenléti oldalak Sales szerepkörben „Nincs j
 ## 3. Sales munkafelület (3 oszlop)
 
 ### Timothy napi fókusz — P2 (2026-11-03)
+### Timothy aktivitásrögzítés — P3/A
+Timothynak megadhatod a konkrét előkészítő ügyhöz már megtörtént Hívás vagy E-mail eredményét. A jóváhagyási kártyán ellenőrizd az ügyet, céget, kapcsolattartót, felelőst és teljes eredményt. **Jóváhagy és végrehajt** után a rögzítés időpontja szerveridő, nem visszadátumozható. **Elvet** esetén nem rögzül. Következő lépés, felelős és státusz nem változik, levél nem megy ki. Ismeretlen eredménynél ne indíts új műveletet; ellenőrizd az állapotot. Hitelesített két-chat végigpróba még **NEM TESZTELT**.
+
+### Napi fókusz
 A **Ma** oldalon Timothy legfeljebb öt kiemelt ügyet mutat ugyanabban a sorrendben, mint a napi munkalista. A sorra kattintva az adott ügy munkafelülete nyílik meg. A számok aktuális CRM-adatok, az AI rövid **Javaslata** külön szöveg, nem rögzített teendő és nem végrehajtás.
 
 Budapesti naponként legfeljebb egy automatikus AI-javaslat készül; újranyitás nem generál ismét. A környíl külön kézi frissítés. Adatváltozásnál az elavult javaslat rejtve marad és figyelmeztetés jelenik meg; a napi ügylista ettől függetlenül frissül. Hiba/ismeretlen futási eredmény után nincs automatikus újrapróbálás. A készítési idő budapesti idő. Ez a funkció bejelentkezett élő végigpróbával még **NEM TESZTELT**.
