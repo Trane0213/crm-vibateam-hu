@@ -4617,6 +4617,10 @@ export type Database = {
         Returns: Json
       }
       ai_os_daily_sales_read: { Args: { p_user: string }; Returns: Json }
+      ai_os_email_dispatch_claim: {
+        Args: { p_action: string; p_args: Json; p_user: string }
+        Returns: boolean
+      }
       can_access_email_thread: {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
