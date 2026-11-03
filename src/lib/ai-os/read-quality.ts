@@ -45,3 +45,22 @@ export function readCaveats(output: unknown): string[] {
   }
   return caveats;
 }
+/** Az adott futásban user-RLS-sel visszaolvasott lead → mentett company_id párok gyűjtése. */
+export function collectLeadCompanies(toolName: string, output: unknown, into: Map<string, string>) {
+  if (!/lead/.test(toolName)) return;
+  const visit = (v: unknown, depth: number) => {
+    if (!v || typeof v !== "object" || depth > 4) return;
+    if (Array.isArray(v)) { for (const x of v) visit(x, depth + 1); return; }
+    const o = v as Record<string, unknown>;
+    if (typeof o.id === "string" && typeof o.company_id === "string" && ("assigned_to" in o || "status" in o) && !("quote_kind" in o)) into.set(o.id, o.company_id);
+    for (const k of ["data", "items", "lead"]) if (k in o) visit(o[k], depth + 1);
+  };
+  visit(output, 0);
+}
+
+/** Olvasó hívásban a company_id helyére tett, ugyanebben a futásban látott lead-ID-t a lead mentett cégére cseréli. */
+export function correctLeadAsCompany(args: Record<string, unknown>, leads: Map<string, string>): { args: Record<string, unknown>; corrected: boolean } {
+  const id = args.company_id;
+  if (typeof id !== "string" || !leads.has(id)) return { args, corrected: false };
+  return { args: { ...args, company_id: leads.get(id)! }, corrected: true };
+}
