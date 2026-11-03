@@ -34,6 +34,9 @@ Tulajdonosi, beállítási és jelenléti oldalak Sales szerepkörben „Nincs j
 
 ## 3. Sales munkafelület (3 oszlop)
 
+### Timothy felelős-átadás — csak tulajdonos
+Tulajdonos kérheti egy nyitott ügy átadását egy megnevezett, aktív értékesítőnek. A jóváhagyási kártya mutatja a régi/új felelőst; csak külön jóváhagyás után történik mentés. A lead és kapcsolt ajánlat láthatósága az új értékesítőhöz kerül, de az ajánlat és utánkövetés felelőse, Gmail-hozzáférés és projekt nem változik. Sales nem adhat át, lezárt ügy nem adható át; megváltozott ügy/átvevő új jóváhagyást igényel. Bejelentkezett teljes végigpróba **NEM TESZTELT**, csak elkülönített TESZT-próba történt.
+
 ### Timothy aktivitásrögzítés — P3/A
 Timothynak megadhatod a konkrét előkészítő ügyhöz már megtörtént Hívás vagy E-mail eredményét. A jóváhagyási kártyán ellenőrizd az ügyet, céget, kapcsolattartót, felelőst és teljes eredményt. **Jóváhagy és végrehajt** után a rögzítés időpontja szerveridő, nem visszadátumozható. **Elvet** esetén nem rögzül. Következő lépés, felelős és státusz nem változik, levél nem megy ki. Ismeretlen eredménynél ne indíts új műveletet; ellenőrizd az állapotot. Hitelesített két-chat végigpróba még **NEM TESZTELT**.
 

@@ -4692,6 +4692,10 @@ export type Database = {
         }
         Returns: string
       }
+      sales_reassign_approved_lead: {
+        Args: { p_action_id: string }
+        Returns: Json
+      }
       sales_record_approved_prep_activity: {
         Args: { p_action_id: string }
         Returns: Json
