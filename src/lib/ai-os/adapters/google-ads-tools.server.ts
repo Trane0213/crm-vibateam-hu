@@ -13,6 +13,7 @@
 
 import { registerTool } from "../tool-registry";
 import { toolError } from "../tool-errors";
+import { assertGoogleMutation } from "../approval";
 
 const fail = (err: unknown) => toolError.fromException(err);
 import {
@@ -891,6 +892,7 @@ export function registerGoogleAdsTools() {
         const resp = await adsMutate(conn, cid, "campaigns:mutate", {
           operations: [{ update: { resourceName, status: "PAUSED" }, updateMask: "status" }],
         });
+        assertGoogleMutation(resp, resourceName);
         await writeChangeLog(ctx.supabaseUser, {
           user_id: ctx.userId, customer_id: cid,
           entity: "campaign", entity_id: String(campaignId),
@@ -952,6 +954,7 @@ export function registerGoogleAdsTools() {
         const resp = await adsMutate(conn, cid, "campaigns:mutate", {
           operations: [{ update: { resourceName, status: "ENABLED" }, updateMask: "status" }],
         });
+        assertGoogleMutation(resp, resourceName);
         await writeChangeLog(ctx.supabaseUser, {
           user_id: ctx.userId, customer_id: cid, entity: "campaign", entity_id: String(campaignId),
           field: "status", old_value: c.status, new_value: "ENABLED", reason: (args.reason as string) ?? null,
@@ -1016,6 +1019,7 @@ export function registerGoogleAdsTools() {
         const resp = await adsMutate(conn, cid, "campaignBudgets:mutate", {
           operations: [{ update: { resourceName, amountMicros: String(newMicros) }, updateMask: "amount_micros" }],
         });
+        assertGoogleMutation(resp, resourceName);
         await writeChangeLog(ctx.supabaseUser, {
           user_id: ctx.userId, customer_id: cid,
           entity: "campaign_budget", entity_id: String(budgetId),
@@ -1078,6 +1082,7 @@ export function registerGoogleAdsTools() {
             keyword: { text, matchType },
           } }],
         });
+        assertGoogleMutation(resp, `customers/${cid}/campaignCriteria/${campaignId}~`, true);
         await writeChangeLog(ctx.supabaseUser, {
           user_id: ctx.userId, customer_id: cid,
           entity: "campaign_negative_keyword", entity_id: String(campaignId),
@@ -1133,6 +1138,7 @@ export function registerGoogleAdsTools() {
         const resp = await adsMutate(conn, cid, "campaigns:mutate", {
           operations: [{ remove: resourceName }],
         });
+        assertGoogleMutation(resp, resourceName);
         await writeChangeLog(ctx.supabaseUser, {
           user_id: ctx.userId, customer_id: cid,
           entity: "campaign", entity_id: String(campaignId),

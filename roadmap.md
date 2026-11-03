@@ -1,8 +1,9 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
-- [ ] Jóváhagyott terv alapján a közös AI OS és a két meglévő chatfelület célzott javítása; üzleti modulok változatlanok.
-- [ ] Izolált kötelező hibaforgatókönyvek, regresszió, AI acceptance és PASS/FAIL jelentés; publikálás nélkül.
+- [x] Jóváhagyott terv alapján a közös AI OS és a két meglévő chatfelület célzott javítása; üzleti modulok változatlanok.
+- [x] Izolált kötelező hibaforgatókönyvek, 155/155 regresszió, AI acceptance 12/12 és PASS/FAIL jelentés; publikálás nélkül.
+- [ ] Hitelesített teljes két-chat végigpróba és valós szerepkörös Timothy/Michael TESZT végrehajtás: external_unmanaged Supabase, nincs átadható munkamenet; éles üzleti írás nélkül kell megszervezni.
 
 ## Ajánlatkészítő két munkafolyamat (2026-11-03)
 - [x] Indítási munkamódválasztó; meglévő típus nélküli ajánlat választása adatvesztés nélkül.

@@ -178,6 +178,16 @@ export type Database = {
       agent_run_steps: {
         Row: {
           agent_id: string | null
+          approval_contract_hash: string | null
+          approval_decided_at: string | null
+          approval_decided_by: string | null
+          approval_events: Json | null
+          approval_expires_at: string | null
+          approval_finished_at: string | null
+          approval_origin_call_id: string | null
+          approval_started_at: string | null
+          approval_status: string | null
+          approval_token: string | null
           created_at: string
           duration_ms: number | null
           error: string | null
@@ -191,6 +201,16 @@ export type Database = {
         }
         Insert: {
           agent_id?: string | null
+          approval_contract_hash?: string | null
+          approval_decided_at?: string | null
+          approval_decided_by?: string | null
+          approval_events?: Json | null
+          approval_expires_at?: string | null
+          approval_finished_at?: string | null
+          approval_origin_call_id?: string | null
+          approval_started_at?: string | null
+          approval_status?: string | null
+          approval_token?: string | null
           created_at?: string
           duration_ms?: number | null
           error?: string | null
@@ -204,6 +224,16 @@ export type Database = {
         }
         Update: {
           agent_id?: string | null
+          approval_contract_hash?: string | null
+          approval_decided_at?: string | null
+          approval_decided_by?: string | null
+          approval_events?: Json | null
+          approval_expires_at?: string | null
+          approval_finished_at?: string | null
+          approval_origin_call_id?: string | null
+          approval_started_at?: string | null
+          approval_status?: string | null
+          approval_token?: string | null
           created_at?: string
           duration_ms?: number | null
           error?: string | null
@@ -4539,6 +4569,39 @@ export type Database = {
       }
     }
     Functions: {
+      ai_os_approval_create: {
+        Args: {
+          p_agent: string
+          p_call: string
+          p_hash: string
+          p_input: Json
+          p_run: string
+          p_step: number
+          p_tool: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      ai_os_approval_decide: {
+        Args: {
+          p_confirmation?: string
+          p_decision: string
+          p_id: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      ai_os_approval_finish: {
+        Args: {
+          p_error?: string
+          p_id: string
+          p_result: Json
+          p_status: string
+          p_token: string
+          p_user: string
+        }
+        Returns: Json
+      }
       can_access_email_thread: {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean

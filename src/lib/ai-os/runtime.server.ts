@@ -20,6 +20,8 @@ import { callLlm } from "./providers.server";
 import { getTool, toolsForAgent, toSpec } from "./tool-registry";
 import type { ApprovalLevel, ChatMessage, ToolCall } from "./types";
 import { isToolErrorEnvelope, sanitizeErrorForLlm, toolError } from "./tool-errors";
+import { createApproval, frozenArgs } from "./approval.server";
+import { failureResult, type ApprovalSnapshot } from "./approval";
 
 const MAX_STEPS = 50;
 
@@ -68,7 +70,7 @@ export type RunAgentInput = {
   history: ChatMessage[];
   /** Memóriához betöltendő subjectek (pl. cég/lead/projekt amiről szó van). */
   memorySubjects?: Array<{ subject_type: string; subject_id: string }>;
-  /** Approval engedélyezett tool-hívás-azonosítók (a kliens jóváhagyásai). */
+  /** Legacy callers are rejected; these IDs never grant permission. */
   approvedToolCallIds?: string[];
 };
 
@@ -77,13 +79,7 @@ export type RunAgentResult = {
   agentId: string;
   finalText: string;
   /** Ha az LLM olyan write toolt akart hívni, ami jóváhagyásra vár, itt jelezzük. */
-  pendingApprovals: Array<{
-    tool_call_id: string;
-    tool_name: string;
-    arguments_json: string;
-    approval: ApprovalLevel;
-    supports_dry_run: boolean;
-  }>;
+  pendingApprovals: ApprovalSnapshot[];
   steps: number;
   usage: { prompt_tokens: number; completion_tokens: number };
 };
@@ -95,6 +91,7 @@ export async function runAgent(
 ): Promise<RunAgentResult> {
   const agent = getAgent(input.agentId);
   if (!agent) throw new Error(`Ismeretlen agent: ${input.agentId}`);
+  if (input.approvedToolCallIds?.length) throw new Error("Régi jóváhagyás nem hajtható végre; új művelet szükséges.");
 
   // 1) Tool-lista a registry-ből (szerepkör + agent szűrés).
   const allowedTools = toolsForAgent({
@@ -150,7 +147,7 @@ export async function runAgent(
     ...input.history,
   ];
 
-  const approved = new Set(input.approvedToolCallIds ?? []);
+  let hadToolFailure = false;
   let stepNo = 0;
   let totalPrompt = 0;
   let totalCompletion = 0;
@@ -185,7 +182,7 @@ export async function runAgent(
       if (!result.tool_calls.length) {
         await finishRun(adminClient, {
           runId,
-          status: pendingApprovals.length ? "ok" : "ok",
+          status: hadToolFailure ? "error" : "ok",
           promptTokens: totalPrompt,
           completionTokens: totalCompletion,
           totalSteps: stepNo,
@@ -193,7 +190,7 @@ export async function runAgent(
         return {
           runId,
           agentId: agent.id,
-          finalText: result.text,
+          finalText: hadToolFailure ? "A művelet sikertelen; nem igazolt végrehajtás." : pendingApprovals.length ? "Jóváhagyást igénylő művelet vár rád." : result.text,
           pendingApprovals,
           steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
@@ -240,7 +237,11 @@ export async function runAgent(
           tool.approval ?? (tool.needs_approval ? "confirm" : "safe");
         // 2) Args parse (mode kiolvasásához).
         let parsedArgs: Record<string, unknown> = {};
-        try { parsedArgs = JSON.parse(call.function.arguments || "{}"); } catch { /* noop */ }
+        try {
+          const parsed: unknown = JSON.parse(call.function.arguments || "{}");
+          if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Érvénytelen műveleti paraméterek.");
+          parsedArgs = parsed as Record<string, unknown>;
+        } catch { throw new Error("Érvénytelen műveleti paraméterek; nem történt végrehajtás."); }
         // 3) Effektív mode: ha a tool nem támogatja a dry_run-t, minden "execute".
         //    Ha támogatja és a hívó nem adott meg mode-ot → alapból "dry_run" (biztonság).
         const rawMode = typeof parsedArgs.mode === "string" ? (parsedArgs.mode as string) : undefined;
@@ -250,20 +251,16 @@ export async function runAgent(
         // 4) Approval csak akkor kell, ha a művelet valóban végrehajtó (execute) ÉS a
         //    szint nem safe. Dry run soha nem igényel jóváhagyást.
         const requiresApproval =
-          approvalLevel !== "safe" && effectiveMode === "execute" && !approved.has(call.id);
+          approvalLevel !== "safe" && effectiveMode === "execute";
         if (requiresApproval) {
-          const rawArgs = call.function.arguments || "{}";
-          pendingApprovals.push({
-            tool_call_id: call.id,
-            tool_name: tool.name,
-            arguments_json: rawArgs,
-            approval: approvalLevel,
-            supports_dry_run: tool.supports_dry_run ?? false,
+          const args = await frozenArgs(userClient, tool.domain, { ...parsedArgs, ...(tool.supports_dry_run ? { mode: effectiveMode } : {}) });
+          const pending = await createApproval(adminClient, {
+            runId, userId: input.userId, stepNo: ++stepNo, agentId: agent.id,
+            toolName: tool.name, callId: call.id, args,
+            approval: approvalLevel === "dangerous" ? "dangerous" : "confirm",
+            supportsDryRun: tool.supports_dry_run ?? false,
           });
-          await logStep(adminClient, {
-            runId, stepNo: ++stepNo, kind: "approval", toolName: tool.name,
-            input: { call_id: call.id, args: parsedArgs, approval: approvalLevel, mode: effectiveMode },
-          });
+          pendingApprovals.push(pending);
           messages.push({
             role: "tool", tool_call_id: call.id,
             content: JSON.stringify({
@@ -317,6 +314,7 @@ export async function runAgent(
           }
           break;
         }
+        if (failureResult(output)) { hadToolFailure = true; errMsg = "A művelet sikertelen."; }
         // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
         const llmPayload: unknown = isToolErrorEnvelope(output)
           ? { ok: false, error: sanitizeErrorForLlm(output.error) }
@@ -349,11 +347,11 @@ export async function runAgent(
       );
       if (allPending && pendingApprovals.length) {
         await finishRun(adminClient, {
-          runId, status: "ok",
+          runId, status: hadToolFailure ? "error" : "ok",
           promptTokens: totalPrompt, completionTokens: totalCompletion, totalSteps: stepNo,
         });
         return {
-          runId, agentId: agent.id, finalText: result.text,
+          runId, agentId: agent.id, finalText: hadToolFailure ? "A művelet sikertelen; nem igazolt végrehajtás." : pendingApprovals.length ? "Jóváhagyást igénylő művelet vár rád." : result.text,
           pendingApprovals, steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
         };

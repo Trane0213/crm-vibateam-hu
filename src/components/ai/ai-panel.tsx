@@ -13,6 +13,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { contextPrefix, detectRecordContext, type RecordContext, CONTEXT_QUESTIONS, GENERAL_QUESTIONS } from "@/lib/ai-panel-context";
 import {
   AGENT_IDS, AGENT_META, Bubble, THREADS_EVENT, isLegacyErrorMessage, loadThreads, saveThreads,
@@ -82,6 +84,7 @@ export function AiPanel() {
 
 function PanelBody({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
+  const run = useServerFn(runAiAgent);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { visibleAgentIds } = useVisibleAgents();
   const agents = AGENT_IDS.filter((a) => visibleAgentIds.has(a));
@@ -129,7 +132,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
 
   async function ask(text: string) {
     const question = text.trim();
-    if (!question || busy) return;
+    if (!question || busy || checking) return;
     if (question.length > 4000) { toast.error("A kérdés túl hosszú", { description: "Rövidítsd 4000 karakter alá." }); return; }
     let thread = active && active.agent === agent ? active : null;
     if (!thread) {
@@ -146,11 +149,11 @@ function PanelBody({ onClose }: { onClose: () => void }) {
     setBusy(true);
     try {
       const history = [...thread.messages, userMsg].slice(-20).map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
-      const result = await runAiAgent({ data: { agentId: uiAgentToAiOs(thread.agent), history } });
+      const result = await run({ data: { agentId: uiAgentToAiOs(thread.agent), history } });
       const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
         ? result.pendingApprovals.map((p) => ({
             tool_call_id: p.tool_call_id, tool_name: p.tool_name, arguments_json: p.arguments_json,
-            status: "pending" as const, approval: (p as any).approval, supports_dry_run: (p as any).supports_dry_run,
+            action_id: p.action_id, expires_at: p.expires_at, status: p.status, verified: true, approval: (p as any).approval, supports_dry_run: (p as any).supports_dry_run,
           }))
         : undefined;
       const msg: Msg = { id: uid(), role: "assistant", at: Date.now(), runId: result.runId, approvals,
@@ -166,27 +169,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
     }
   }
 
-  function setApproval(msgId: string, callId: string, status: ToolApproval["status"], error?: string) {
-    commit((prev) => prev.map((t) => t.id !== activeId ? t : { ...t, messages: t.messages.map((m) => m.id === msgId && m.approvals
-      ? { ...m, approvals: m.approvals.map((a) => a.tool_call_id === callId ? { ...a, status, error } : a) } : m) }));
-  }
-
-  // Jóváhagyás: csak a felhasználó kifejezett kattintására fut le a művelet.
-  async function approve(msgId: string, callId: string) {
-    if (!active || busy) return;
-    const idx = active.messages.findIndex((m) => m.id === msgId);
-    const history = active.messages.slice(0, idx).slice(-20).map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
-    setBusy(true);
-    try {
-      const result = await runAiAgent({ data: { agentId: uiAgentToAiOs(active.agent), history, approvedToolCallIds: [callId] } });
-      setApproval(msgId, callId, "approved");
-      const tid = active.id;
-      commit((prev) => prev.map((t) => t.id === tid ? { ...t, updatedAt: Date.now(), messages: [...t.messages, { id: uid(), role: "assistant", at: Date.now(), content: result.finalText || "Művelet végrehajtva.", runId: result.runId }] } : t));
-    } catch (e: any) {
-      setApproval(msgId, callId, "error", e?.message ?? String(e));
-      toast.error("Végrehajtás sikertelen", { description: e?.message });
-    } finally { setBusy(false); }
-  }
+  const { act, checking } = useAiApprovals(threads, activeId, commit);
 
   const visible = active?.messages.filter((m) => !isLegacyErrorMessage(m)) ?? [];
 
@@ -271,8 +254,9 @@ function PanelBody({ onClose }: { onClose: () => void }) {
                 )}
                 <Bubble msg={m}
                   onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
-                  onApproveTool={(cid) => approve(m.id, cid)}
-                  onRejectTool={(cid) => setApproval(m.id, cid, "rejected")} />
+                  onApproveTool={(cid, confirmation) => act(m.id, cid, "approve", confirmation)}
+                  onRejectTool={(cid) => act(m.id, cid, "reject")}
+                  onCheckTool={(cid) => act(m.id, cid, "check")} />
               </div>
             ))
           )}
