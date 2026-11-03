@@ -163,6 +163,8 @@ export const FIXTURES: AgentAcceptance[] = [
       "crm_lead_history",
       "crm_email_mailboxes",
       "crm_read_email_thread",
+      "crm_quote_context",
+      "crm_compare_quotes",
       "sales_mark_won_with_project",
       "website_search_pages",
     ],
@@ -195,6 +197,13 @@ export const FIXTURES: AgentAcceptance[] = [
         expected_tools: ["sales_mark_won_with_project"],
         expected_behavior:
           "sales_mark_won_with_project tool, dry_run → user confirm → execute (approval-szint: confirm).",
+      },
+      {
+        id: "timothy.quote.context",
+        title: "Forráshű ajánlatverzió és küldési bizonyíték",
+        user_prompt: "Miben változott az ajánlat, elküldtük-e, és mi a nettó érték?",
+        expected_tools: ["crm_list_quotes", "crm_quote_context", "crm_compare_quotes"],
+        expected_behavior: "Meglévő nettó/állomány definíció, explicit verziók, részlegesség, quote_sends bizonyíték; nincs ármódosítás vagy kitalált ügyfélválasz.",
       },
     ],
   },
