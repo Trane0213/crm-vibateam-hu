@@ -5,6 +5,7 @@ import { verifyNextStepAction } from './next-step-action';
 import { verifyFollowupAction } from './followup-action';
 import {verifyContactAction} from './contact-action';
 import {verifyAssignmentAction} from './assignment-action';
+import {verifyPipelineStatus} from './pipeline-status-action';
 
 export type ActionStatus = "pending" | "executing" | "succeeded" | "failed" | "rejected" | "expired" | "unknown";
 export type ApprovalSnapshot = {
@@ -49,6 +50,7 @@ export function verifyExecution(toolName: string, value: unknown, args: Record<s
   if (out?.ok !== true) return { status: "unknown" };
   if (toolName === "memory_write") return { status: typeof out.id === "string" && out.id.length > 0 ? "succeeded" : "unknown" };
   const data = out.data;
+  if(toolName==='sales_change_pipeline_status')return {status:verifyPipelineStatus(data,args)?'succeeded':'unknown'};
   if(toolName==='sales_reassign_lead')return {status:verifyAssignmentAction(data,args)?'succeeded':'unknown'};
   if(toolName==='sales_set_lead_contact')return {status:verifyContactAction(data,args)?'succeeded':'unknown'};
   if(toolName==='sales_create_followup')return {status:verifyFollowupAction(data,args)?'succeeded':'unknown'};

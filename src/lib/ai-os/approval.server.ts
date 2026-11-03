@@ -29,6 +29,10 @@ export async function authorizeAgent(sb: SupabaseClient, userId: string, agentId
 }
 export async function frozenArgs(sb: SupabaseClient, toolDomain: string, args: Record<string, unknown>): Promise<Record<string, unknown>> {
  if (hasSensitive(args)) throw new Error("A művelet nem tartalmazhat hozzáférési titkot.");
+ if(toolDomain==='sales.pipeline_status') {
+  const {freezePipelineStatus}=await import('./adapters/pipeline-status-action.server');
+  return freezePipelineStatus(sb,args);
+ }
  if(toolDomain==='sales.assignment') {
   const {freezeAssignmentAction}=await import('./adapters/assignment-action.server');
   return freezeAssignmentAction(sb,args);

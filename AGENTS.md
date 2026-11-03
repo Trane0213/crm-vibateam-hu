@@ -29,4 +29,5 @@
 - Timothy prep activity uses the existing followups schema/input through a user-RLS transactional RPC bound to an executing P0 action; action UUID deduplicates activity plus audit, server time and exact readback prove success, shared approvals invalidate CRM queries — prevents duplicate/backdated activity without changing next-step rules.
 - Timothy next-step updates change only existing lead next_step fields through an invoker RPC with immutable P0 before/context checks and atomic action-ID audit; saved readback and shared invalidation prove success — prevents stale overwrites and replay without creating followups or changing UI writes.
 - Timothy followups use existing rows and atomic user-RLS P0 audit; open-followup checks and lead locks prevent duplicates without changing next-step/quote scheduling.
-- Timothy contact/assignment edits use immutable P0 context and invoker audit/readback; same-company contacts or owner-only active Sales auth IDs, locked identity checks, no downstream record edits.
+- Timothy contact/assignment edits use immutable P0 and invoker audit/readback; same-company contacts or owner-only active Sales auth IDs, locked identity checks, no downstream edits.
+- Timothy open Pipeline changes reuse STATUS_TRANSITIONS via P0 invoker audit/readback; frozen next-step/context, no entry/terminal/quote edits.

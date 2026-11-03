@@ -22,6 +22,7 @@ import { NEXT_STEP_TYPES } from '@/lib/sales/constants';
 import {followupActionSchema,verifyFollowupAction} from '../followup-action';
 import {contactActionSchema,verifyContactAction} from '../contact-action';
 import {assignmentActionSchema,verifyAssignmentAction} from '../assignment-action';
+import {pipelineStatusSchema,verifyPipelineStatus,OPEN_PIPELINE_STATUSES} from '../pipeline-status-action';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -406,6 +407,17 @@ export function registerCrmTools() {
   );
 
   // ---------------- WRITE: SALES WORKFLOW ----------------
+  registerTool({name:'sales_change_pipeline_status',domain:'sales.pipeline_status',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
+    description:'Már Pipeline-ban lévő ügy nyitott státuszváltása a meglévő átmenetek szerint, külön P0 jóváhagyással. Nem beléptet/nyer/elveszít, nem küld levelet, nem módosít ajánlatot vagy next-stepet. Ajánlat kiadva leadstátusz nem kiküldési bizonyíték.',
+    parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},status:{type:'string',enum:[...OPEN_PIPELINE_STATUSES]}},required:['leadId','status']}},
+    async(args,ctx)=>{
+      pipelineStatusSchema.parse(args);
+      if(!ctx.approvalActionId)throw new Error('Tartós jóváhagyás szükséges.');
+      const saved=await ctx.supabaseUser.rpc('sales_change_approved_pipeline_status',{p_action_id:ctx.approvalActionId});
+      if(saved.error)return fail(saved.error);
+      if(!verifyPipelineStatus(saved.data,args))throw new Error('A státuszváltozás mentése nem igazolt.');
+      return ok(saved.data);
+    });
   registerTool({name:'crm_sales_assignees',domain:'sales.assignment',allowed_agents:['timothy'],allowed_roles:['owner'],needs_approval:false,
     description:'Aktív Sales átvevők lapozott keresése a meglévő rekordkeresővel. value = auth UUID; egyező neveknél tisztázás szükséges.',
     parameters:{type:'object',additionalProperties:false,properties:{search:{type:'string',maxLength:200},page:{type:'integer',minimum:0,maximum:100000}}}},
