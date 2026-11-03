@@ -3,8 +3,8 @@
  * (/dashboard) UGYANEZT használja, hogy egy KPI mindkét helyen ugyanazt jelentse.
  *
  * Definíciók (forrás: meglévő táblák, RLS a hívó jogosultsága szerint):
- *  - Nyitott ajánlat: quotes, status NOT IN (won, lost), csak aktuális verzió (is_current ≠ false).
- *    Érték: NETTÓ, a quote_items tételeiből (quoteNet) — a quotes.total_amount nincs karbantartva.
+ *  - Nyitott ajánlat (S7): aktuális, nem lezárt verzió; ügyenként egyszer számolva (alternatívák nem adódnak össze).
+ *    Érték: NETTÓ — tételes (DB-trigger total_amount) vagy kézi nettó, lásd quoteAmounts.
  *    Tétel nélküli ajánlat értéke „nincs rögzítve", nem 0 Ft.
  *  - Napi határok: Europe/Budapest helyi nap (nem a böngésző időzónája).
  *  - TESZT: cégnév / ajánlat cím / lead összegzés „TESZT" kezdetű vagy azt tartalmazó rekord — külön jelölve.
@@ -12,6 +12,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { quoteNet } from "@/lib/sales/quote-net";
+import { quoteAmounts } from "@/lib/quotes/amounts";
+import { isActiveQuote, summarizeActiveQuotes } from "@/lib/quotes/quote-list";
 
 const TZ = "Europe/Budapest";
 
@@ -89,18 +91,15 @@ export function useOpenQuotesSummary() {
     queryKey: ["quotes", "owner-open-summary"],
     staleTime: 30_000,
     queryFn: async (): Promise<OpenQuotesSummary> => {
-      // A quotes táblán nincs company_id: a cég a leadből vagy projektből jön.
-      const raw = await fetchAllPages<QuoteRow & { leads: { company_id: string | null } | null; projects: { company_id: string | null } | null }>((f, t) =>
-        supabase.from("quotes").select("id,title,status,discount_percent,is_current,leads(company_id),projects(company_id)")
-          .not("status", "in", "(won,lost)").or("is_current.is.null,is_current.eq.true").order("id").range(f, t) as any);
-      const quotes = raw.map((q) => ({ ...q, company_id: q.leads?.company_id ?? q.projects?.company_id ?? null }));
-      const ids = quotes.map((q) => q.id);
-      const items: ItemRow[] = [];
-      for (let i = 0; i < ids.length; i += 200) {
-        const chunk = ids.slice(i, i + 200);
-        items.push(...await fetchAllPages<ItemRow>((f, t) =>
-          supabase.from("quote_items").select("quote_id,quantity,unit_price").in("quote_id", chunk).order("id").range(f, t)));
-      }
+      // S7: ugyanaz a definíció, mint az Ajánlatok riportban (summarizeActiveQuotes):
+      // aktuális, nem lezárt verziók; ügyenként csak a legnagyobb ismert nettó.
+      const raw = await fetchAllPages<any>((f, t) =>
+        supabase.from("quotes").select("id,title,status,is_current,lead_id,project_id,total_amount,manual_net_amount,tax_percent,quote_items(count),leads(company_id),projects(company_id)")
+          .or("is_current.is.null,is_current.eq.true").order("id").range(f, t) as any);
+      const quotes = raw.filter((q) => isActiveQuote(q)).map((q) => ({
+        ...q, company_id: q.leads?.company_id ?? q.projects?.company_id ?? null,
+        net: quoteAmounts({ itemCount: Number(q.quote_items?.[0]?.count ?? 0), totalAmount: q.total_amount, manualNetAmount: q.manual_net_amount, taxPercent: q.tax_percent }).net,
+      }));
       const companyIds = Array.from(new Set(quotes.map((q) => q.company_id).filter(Boolean) as string[]));
       const testCompanies = new Set<string>();
       for (let i = 0; i < companyIds.length; i += 200) {
@@ -108,8 +107,10 @@ export function useOpenQuotesSummary() {
         if (error) throw error;
         for (const c of data ?? []) if (isTestLabel((c as any).name)) testCompanies.add((c as any).id);
       }
-      const testQuoteIds = new Set(quotes.filter((q) => q.company_id && testCompanies.has(q.company_id)).map((q) => q.id));
-      return summarizeOpenQuotes(quotes, items, testQuoteIds);
+      const isTest = (q: any) => isTestLabel(q.title) || (q.company_id && testCompanies.has(q.company_id));
+      const all = summarizeActiveQuotes(quotes);
+      const test = summarizeActiveQuotes(quotes.filter(isTest));
+      return { count: all.deals, net: all.net, withValue: all.withValue, withoutValue: all.withoutValue, testCount: test.deals, testNet: test.net ?? 0 };
     },
   });
 }
