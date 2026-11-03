@@ -22,6 +22,7 @@ import type { ApprovalLevel, ChatMessage, ToolCall } from "./types";
 import { isToolErrorEnvelope, sanitizeErrorForLlm, toolError } from "./tool-errors";
 import { createApproval, frozenArgs } from "./approval.server";
 import { failureResult, type ApprovalSnapshot } from "./approval";
+import { modelToolPayload } from "./tool-payload";
 
 const MAX_STEPS = 50;
 
@@ -337,7 +338,7 @@ export async function runAgent(
         });
         messages.push({
           role: "tool", tool_call_id: call.id,
-          content: JSON.stringify(llmPayload).slice(0, 24_000),
+          content: modelToolPayload(llmPayload),
         });
       }
 

@@ -160,6 +160,7 @@ export const FIXTURES: AgentAcceptance[] = [
       "crm_list_leads",
       "crm_list_quotes",
       "crm_list_followups",
+      "crm_lead_history",
       "sales_mark_won_with_project",
       "website_search_pages",
     ],
@@ -171,6 +172,13 @@ export const FIXTURES: AgentAcceptance[] = [
     ],
     required_prompt_phrases: ["Sales", "sales_mark_won_with_project"],
     business_scenarios: [
+      {
+        id: "timothy.company.history",
+        title: "Forráshű céges és leadelőzmény",
+        user_prompt: "Mi történt eddig ezzel a céggel?",
+        expected_tools: ["crm_company_overview", "crm_lead_history"],
+        expected_behavior: "Jogosult rekordok, külön lapozott előzmények; részleges oldalt és hiányzó Gmail-adatot nem állít teljes történetnek.",
+      },
       {
         id: "timothy.won",
         title: "Ajánlat megnyerésének regisztrálása",
