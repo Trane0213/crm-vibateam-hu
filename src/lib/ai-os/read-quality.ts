@@ -10,10 +10,10 @@ export function validateReadIds(args: Record<string, unknown>) {
   }
 }
 
-export function localModelDates(value: unknown): unknown {
-  if (typeof value === 'string') return budapestTimestamp(value) ?? value;
-  if (Array.isArray(value)) return value.map(localModelDates);
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,localModelDates(v)]));
+export function localModelDates(value: unknown, key=''): unknown {
+  if (typeof value === 'string') return (key==='at'||key.endsWith('_at')||key==='due_date'||key==='due') ? budapestTimestamp(value) ?? value : value;
+  if (Array.isArray(value)) return value.map(v=>localModelDates(v,key));
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,localModelDates(v,k)]));
   return value;
 }
 
