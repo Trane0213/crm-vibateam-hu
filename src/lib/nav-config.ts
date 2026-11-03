@@ -70,7 +70,7 @@ export const MORE_GROUPS: NavGroup[] = [
       { title: "Cégek", url: "/companies", icon: Building2 },
       { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
       { title: "Kampánylista", url: "/campaign-list", icon: ListPlus },
-      { title: "Weboldali ajánlatkérések", url: "/web-quote-requests", icon: Inbox },
+      { title: "Weboldali ajánlatkérések", url: "/web-quote-requests", icon: Inbox, hideForRoles: ["sales"] },
     ],
   },
   {
@@ -78,7 +78,7 @@ export const MORE_GROUPS: NavGroup[] = [
     items: [
       { title: "Emailek", url: "/emails", icon: Mail },
       { title: "Hívások", url: "/calls", icon: Phone, hideForRoles: ["sales"] },
-      { title: "Találkozók", url: "/meetings", icon: Calendar },
+      { title: "Találkozók", url: "/meetings", icon: Calendar, hideForRoles: ["sales"] },
     ],
   },
   {
@@ -86,10 +86,10 @@ export const MORE_GROUPS: NavGroup[] = [
     items: [
       { title: "Sales áttekintés", url: "/sales", icon: LayoutDashboard, hideForRoles: ["sales", "marketing"] },
       { title: "Teendők (riport)", url: "/sales/todo", icon: CheckSquare, hideForRoles: ["marketing"] },
-      { title: "Ajánlatok (riport)", url: "/sales/quotes", icon: FileText, hideForRoles: ["marketing"] },
+      { title: "Ajánlatok (riport)", url: "/sales/quotes", icon: FileText, hideForRoles: ["sales", "marketing"] },
       { title: "Elveszett leadek", url: "/leads/lost", icon: XCircle, hideForRoles: ["marketing"] },
       { title: "Aktivitás", url: "/activity", icon: Activity, hideForRoles: ["sales", "marketing"] },
-      { title: "Feladatok", url: "/tasks", icon: CheckSquare },
+      { title: "Feladatok", url: "/tasks", icon: CheckSquare, hideForRoles: ["sales"] },
     ],
   },
   {
