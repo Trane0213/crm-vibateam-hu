@@ -2739,6 +2739,71 @@ export type Database = {
           },
         ]
       }
+      quote_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_url: string
+          id: string
+          mime_type: string | null
+          name: string
+          quote_id: string
+          size_bytes: number | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          name: string
+          quote_id: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          name?: string
+          quote_id?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_documents_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "dashboard_user_workload_v"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "quote_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users_profile_lookup"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           created_at: string | null
@@ -2866,54 +2931,91 @@ export type Database = {
       }
       quotes: {
         Row: {
+          contact_id: string | null
           created_at: string | null
           created_by: string | null
           discount_percent: number | null
+          exclusions: string | null
           id: string
           is_current: boolean
           lead_id: string | null
+          manual_net_amount: number | null
           notes: string | null
+          offer_due_date: string | null
           project_id: string | null
+          quote_kind: string | null
+          request_due_date: string | null
+          responsible_user_id: string | null
+          scope_note: string | null
+          scope_type: string | null
           status: string | null
           tax_percent: number | null
+          technical_scope: string | null
           title: string | null
           total_amount: number | null
           valid_until: string | null
           version: number
         }
         Insert: {
+          contact_id?: string | null
           created_at?: string | null
           created_by?: string | null
           discount_percent?: number | null
+          exclusions?: string | null
           id?: string
           is_current?: boolean
           lead_id?: string | null
+          manual_net_amount?: number | null
           notes?: string | null
+          offer_due_date?: string | null
           project_id?: string | null
+          quote_kind?: string | null
+          request_due_date?: string | null
+          responsible_user_id?: string | null
+          scope_note?: string | null
+          scope_type?: string | null
           status?: string | null
           tax_percent?: number | null
+          technical_scope?: string | null
           title?: string | null
           total_amount?: number | null
           valid_until?: string | null
           version?: number
         }
         Update: {
+          contact_id?: string | null
           created_at?: string | null
           created_by?: string | null
           discount_percent?: number | null
+          exclusions?: string | null
           id?: string
           is_current?: boolean
           lead_id?: string | null
+          manual_net_amount?: number | null
           notes?: string | null
+          offer_due_date?: string | null
           project_id?: string | null
+          quote_kind?: string | null
+          request_due_date?: string | null
+          responsible_user_id?: string | null
+          scope_note?: string | null
+          scope_type?: string | null
           status?: string | null
           tax_percent?: number | null
+          technical_scope?: string | null
           title?: string | null
           total_amount?: number | null
           valid_until?: string | null
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "quotes_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quotes_created_by_fkey"
             columns: ["created_by"]

@@ -6,7 +6,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 // dokumentum- vagy mellékletrekordhoz kell tartoznia, amelyet a hívó a saját
 // jogosultságával (RLS) lát.
 
-const DOC_TABLES = ["project_documents", "company_documents"] as const;
+const DOC_TABLES = ["project_documents", "company_documents", "quote_documents"] as const;
 type DocTable = (typeof DOC_TABLES)[number];
 
 export const r2PresignDownload = createServerFn({ method: "POST" })
@@ -22,6 +22,7 @@ export const r2PresignDownload = createServerFn({ method: "POST" })
     const checks = await Promise.all([
       sb.from("project_documents").select("id").eq("file_url", data.key).limit(1),
       sb.from("company_documents").select("id").eq("file_url", data.key).limit(1),
+      sb.from("quote_documents").select("id").eq("file_url", data.key).limit(1),
       sb.from("email_attachments").select("id").eq("r2_key", data.key).limit(1),
     ]);
     const visible = checks.some((r: any) => !r.error && (r.data?.length ?? 0) > 0);
@@ -55,6 +56,7 @@ export const r2DeleteDocument = createServerFn({ method: "POST" })
     const refs = await Promise.all([
       admin.from("project_documents").select("id", { count: "exact", head: true }).eq("file_url", key),
       admin.from("company_documents").select("id", { count: "exact", head: true }).eq("file_url", key),
+      admin.from("quote_documents" as any).select("id", { count: "exact", head: true }).eq("file_url", key),
       admin.from("email_attachments").select("id", { count: "exact", head: true }).eq("r2_key", key),
     ]);
     if (refs.some((r) => r.error || (r.count ?? 0) > 0)) return { ok: true, fileDeleted: false };
