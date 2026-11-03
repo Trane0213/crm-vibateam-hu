@@ -7,6 +7,8 @@ import { useList } from "@/lib/db-hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { computeLeadUrgency, urgencyOrder, LeadUrgencyDot, type FollowupLite } from "./lead-urgency-dot";
 import { relativeTime } from "@/components/marketing-ui";
+import { useAuth } from "@/hooks/use-auth";
+import { isSalesPrepListLead } from "@/lib/sales/lead-visibility";
 
 /** DB értékek érintetlenek; a `label` mező csak UI-felirat.
  *  Marketing UI a `marketingLabel`-t használja (ha definiált), különben a `label`-t. */
@@ -30,7 +32,21 @@ export function LeadListColumn({
   onSelect: (id: string) => void;
   mode?: "marketing" | "sales";
 }) {
-  const { data, isLoading } = useList<any>("leads", { order: "created_at", ascending: false });
+  const { user } = useAuth();
+  const all = useList<any>("leads", { order: "created_at", ascending: false });
+  // SALES: csak a saját (assigned_to = bejelentkezett user) leadek, már a lekérdezésben szűrve.
+  const own = useQuery({
+    queryKey: ["leads", "sales-own", user?.id],
+    enabled: mode === "sales" && !!user?.id,
+    queryFn: async () => {
+      const { data: rows, error } = await supabase.from("leads").select("*")
+        .eq("assigned_to", user!.id).order("created_at", { ascending: false });
+      if (error) throw error;
+      return rows ?? [];
+    },
+  });
+  const data = mode === "sales" ? own.data : all.data;
+  const isLoading = mode === "sales" ? (!user?.id || own.isLoading) : all.isLoading;
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [source, setSource] = useState("");
@@ -85,10 +101,7 @@ export function LeadListColumn({
     const list = (data ?? []).filter((l: any) => {
       // SALES előkészítő lista: a pipeline-ba átléptetett leadek innen
       // eltűnnek (Pipeline menüben jelennek meg). Elveszett szintén kiesik.
-      if (mode === "sales") {
-        if (l.pipeline_entered_at) return false;
-        if (l.status === "lost" || l.status === "won") return false;
-      }
+      if (mode === "sales" && !isSalesPrepListLead(l, user?.id)) return false;
       if (mode === "marketing") {
         // Marketing Workspace = csak aktív leadek (new / contacted).
         if (!(l.status === "new" || l.status === "contacted")) return false;
@@ -180,8 +193,14 @@ export function LeadListColumn({
       <div className="flex-1 overflow-auto">
         {isLoading ? (
           <div className="p-4 text-sm text-muted-foreground">Betöltés…</div>
+        ) : mode === "sales" && own.isError ? (
+          <div role="alert" className="p-4 text-sm text-destructive">A saját leadek betöltése sikertelen.</div>
         ) : filtered.length === 0 ? (
-          <div className="p-4 text-sm text-muted-foreground">Nincs találat.</div>
+          <div className="p-4 text-sm text-muted-foreground">
+            {mode === "sales" && !search && !status && !source
+              ? "Nincs hozzád rendelt, előkészítésre váró lead."
+              : "Nincs találat."}
+          </div>
         ) : (
           <ul className="divide-y">
             {filtered.map((l: any) => {

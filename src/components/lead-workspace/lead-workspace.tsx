@@ -6,6 +6,8 @@ import { LeadDossierColumn } from "./lead-dossier-column";
 import { SalesPrepPanel } from "./sales-prep-panel";
 import { LeadDetailColumn } from "./lead-detail-column";
 import { LeadActionPanel } from "./lead-action-panel";
+import { useAuth } from "@/hooks/use-auth";
+import { isOwnSalesLead } from "@/lib/sales/lead-visibility";
 
 /**
  * Lead Workspace — 3 oszlop.
@@ -29,17 +31,23 @@ export function LeadWorkspace({
 
   // Mélylink: ha a lead nem látható (RLS) vagy nem létezik, jelezzük, és nem
   // mutatunk helyette másik leadet csendben.
+  // SALES módban a mélylink csak saját (assigned_to = user) leadet nyithat meg;
+  // az ellenőrzésig nem jelenítjük meg (nincs villanás más ügyével).
+  const { user } = useAuth();
   useEffect(() => {
     if (!initialLeadId) return;
-    setSelectedId(initialLeadId);
+    if (mode === "sales" && !user?.id) return;
+    setSelectedId(mode === "sales" ? null : initialLeadId);
     let cancelled = false;
-    supabase.from("leads").select("id").eq("id", initialLeadId).maybeSingle().then(({ data }) => {
-      if (cancelled || data) return;
+    supabase.from("leads").select("id,assigned_to").eq("id", initialLeadId).maybeSingle().then(({ data }) => {
+      if (cancelled) return;
+      const allowed = !!data && (mode !== "sales" || isOwnSalesLead(data, user?.id));
+      if (allowed) { setSelectedId(initialLeadId); return; }
       toast.error("A megnyitni kívánt lead nem található, vagy nincs hozzá jogosultságod.");
       setSelectedId(null);
     });
     return () => { cancelled = true; };
-  }, [initialLeadId]);
+  }, [initialLeadId, mode, user?.id]);
 
   const shell =
     className ??
