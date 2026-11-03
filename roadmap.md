@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy Sales AI V3.0 (2026-11-03)
+- [ ] V3 lezárás: aktuális P3-hiányok ellenőrzése, P4 meglévő Sales/Gmail eseményekre épülő figyelés, P5 egy összevont regresszió és rövid jelentés; csak TESZT, publikálás nélkül.
 - [x] Feltöltött specifikáció feldolgozása; meglévő kapcsolódások olvasásos ellenőrzése és szakaszos terv előkészítése.
 - [x] P1/A célzott CRM-adatértelmezés: cégszűrés, lapozás, forrásos leadelőzmény, hibajelzés; 170/170 regresszió, AI 13 forgatókönyv, build PASS; jelentés és STOP.
 - [ ] P1/A hitelesített Timothy/több-szerepkörös végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet.
