@@ -14,6 +14,7 @@ import { useUpsert, useListWhere } from "@/lib/db-hooks";
 import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
+import { usePermissions } from "@/hooks/use-permissions";
 import { quoteAmounts } from "@/lib/quotes/amounts";
 import { formatHuf } from "@/lib/format";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,6 +57,8 @@ function QuoteDetail() {
   const { id } = Route.useParams();
   const companyLabel = useLookup("companies", "name");
   const upsert = useUpsert("quotes");
+  const { role } = usePermissions();
+  const isOwner = role === "owner";
 
   const q = useQuery({
     queryKey: ["quotes", "detail", id],
@@ -148,7 +151,7 @@ function QuoteDetail() {
     manualNetAmount: form.manual_net_amount === "" ? null : Number(form.manual_net_amount),
     taxPercent: form.tax_percent === "" ? null : Number(form.tax_percent),
   });
-  const responsible = form.responsible_user_id || lead.data?.assigned_to || "";
+  const responsible = form.responsible_user_id;
 
   const onSave = () => {
     const payload: Record<string, any> = { id: quote.id };
@@ -156,6 +159,7 @@ function QuoteDetail() {
       const v = form[f].trim();
       payload[f] = v === "" ? null : NUMERIC.has(f) ? Number(v) : v;
     }
+    if (!isOwner) delete payload.responsible_user_id; // felelőst csak tulajdonos ad át
     if (payload.scope_type !== "other") payload.scope_note = payload.scope_note ?? null;
     upsert.mutate(payload);
   };
@@ -266,13 +270,14 @@ function QuoteDetail() {
             {sel("contact_id", "Kapcsolattartó", (contacts.data ?? []).map((c: any) => [c.id, c.email ? `${c.name} · ${c.email}` : c.name]), companyId ? "Nincs megadva" : "Előbb cég (ügy/projekt) szükséges")}
             <div className="grid gap-1.5">
               <Label>Felelős értékesítő</Label>
-              <Select value={responsible || NONE} onValueChange={(v) => set("responsible_user_id", v === NONE ? "" : v)}>
+              <Select disabled={!isOwner} value={responsible || NONE} onValueChange={(v) => set("responsible_user_id", v === NONE ? "" : v)}>
                 <SelectTrigger aria-label="Felelős értékesítő"><SelectValue placeholder="Nincs megadva" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NONE}>{lead.data?.assigned_to ? "Ügy felelőse szerint" : "Nincs megadva"}</SelectItem>
+                  <SelectItem value={NONE}>Nincs megadva</SelectItem>
                   {(sellers.data ?? []).map((u: any) => <SelectItem key={u.auth_user_id} value={u.auth_user_id}>{u.full_name ?? "—"}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {!isOwner && <span className="text-xs text-muted-foreground">A felelős a létrehozó; átadni csak tulajdonos tud.</span>}
             </div>
             {date("request_due_date", "Ajánlatkérési határidő")}
             {date("offer_due_date", "Ajánlattételi határidő")}
