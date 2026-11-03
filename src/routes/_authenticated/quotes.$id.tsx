@@ -15,6 +15,8 @@ import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
 import { QuoteSendPanel } from "@/components/quotes/quote-send-panel";
+import { QuoteStatusPanel } from "@/components/quotes/quote-status-panel";
+import { quoteStatusLabel } from "@/lib/quotes/quote-status";
 import { usePermissions } from "@/hooks/use-permissions";
 import { quoteAmounts } from "@/lib/quotes/amounts";
 import { formatHuf } from "@/lib/format";
@@ -201,7 +203,7 @@ function QuoteDetail() {
                 {quote.title?.trim() ||
                   (quote.version != null ? `v${quote.version}` : `#${String(quote.id).slice(0, 8)}`)}
               </span>
-              <Badge variant="secondary">{quote.status ?? "draft"}</Badge>
+              <Badge variant="secondary">{quoteStatusLabel(quote.status)}</Badge>
               {quote.is_current && <Badge variant="outline">aktuális</Badge>}
               <Badge variant="outline">{(quote as any).alternative_key ?? "A"} alt.</Badge>
               {(quote as any).locked_at && <Badge>kiküldve</Badge>}
@@ -318,6 +320,9 @@ function QuoteDetail() {
         </div>
         <div className="mt-6 rounded-md border bg-card p-5">
           <QuoteSendPanel quote={quote as any} companyId={companyId} />
+        </div>
+        <div className="mt-6 rounded-md border bg-card p-5">
+          <QuoteStatusPanel quote={quote as any} />
         </div>
         {/* Meglévő tétel-panel: a nyomtatási nézet ezekből a tételekből számol. */}
         <div className="mt-6 rounded-md border bg-card p-5">

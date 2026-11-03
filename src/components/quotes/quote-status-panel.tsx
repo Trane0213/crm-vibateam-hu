@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { formatDateTime } from "@/lib/format";
 import { allowedNextStatuses, canScheduleQuoteFollowup, quoteStatusLabel, QUOTE_STATUS_LABEL, type QuoteStatus } from "@/lib/quotes/quote-status";
-import { buildDueAt, splitDueAt } from "@/lib/sales/next-step-input";
+import { localDateTimeToIso as buildDueAt, splitIsoToLocal as splitDueAt } from "@/lib/sales/next-step-input";
 
 type Props = { quote: { id: string; status: string | null; sent_at?: string | null; lead_id: string | null } };
 
