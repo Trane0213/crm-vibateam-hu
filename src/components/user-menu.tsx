@@ -53,6 +53,9 @@ export function UserMenu() {
         <DropdownMenuItem onClick={() => navigate({ to: "/settings/profile" })}>
           <UserCog className="mr-2 h-4 w-4" /> Saját profil
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/settings/gmail" })}>
+          <Mail className="mr-2 h-4 w-4" /> Saját Gmail-fiók
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
           <SettingsIcon className="mr-2 h-4 w-4" /> Beállítások
         </DropdownMenuItem>
