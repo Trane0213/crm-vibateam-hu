@@ -7,6 +7,7 @@
 - [ ] P1/B hitelesített két-chat levélértelmezés és modellminőségi/adversarial próba: external_unmanaged Supabase, nincs átadható munkamenet.
 - [x] P1/C ajánlatértelmezés: nettó, verziók/alternatívák, küldési bizonyíték, utánkövetések, összehasonlítás; 204/204 regresszió, AI 15 forgatókönyv, build PASS; jelentés és STOP.
 - [ ] P1/C hitelesített két-chat/valós RLS és modellminőségi próba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet. P1/D–P5 külön jóváhagyásra vár, nem indult.
+- [ ] P1/D jóváhagyott dokumentumértelmezés: RLS-es fájlazonosítás, korlátozott PDF/XLSX/DOCX/szövegfeldolgozás, forrás/verzió/hash és részlegesség, izolált tesztek, jelentés és STOP. P2–P5 nem indul.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
