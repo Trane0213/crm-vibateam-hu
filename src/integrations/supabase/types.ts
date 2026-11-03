@@ -4678,6 +4678,10 @@ export type Database = {
         }
         Returns: string
       }
+      sales_create_approved_followup: {
+        Args: { p_action_id: string }
+        Returns: Json
+      }
       sales_mark_won_with_project: {
         Args: {
           p_lead_id: string
