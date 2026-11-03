@@ -135,7 +135,7 @@ function QuotePrint() {
   if (items.error) {
     return <div className="p-8 text-sm text-destructive">Az ajánlat tételei nem tölthetők be — nyomtatás nem lehetséges. Próbáld újra.</div>;
   }
-  if (contact.error || lead.error || project.error || company.error) {
+  if (contact.error || lead.error || project.error || company.error || (contactId && !contact.isLoading && !contact.data)) {
     return <div className="p-8 text-sm text-destructive">Az ajánlat címzettadatai nem tölthetők be — nyomtatás nem lehetséges. Próbáld újra.</div>;
   }
   if (!ready) return <div className="p-8 text-sm text-muted-foreground">Címzettadatok betöltése…</div>;

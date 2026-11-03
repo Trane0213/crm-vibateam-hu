@@ -98,7 +98,7 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
       if (!r.ok || !j?.ok) throw new Error(j?.error ?? `Küldés sikertelen (HTTP ${r.status})`);
       return j;
     },
-    onSuccess: (j: any) => { toast.success(j.duplicate ? "Ez az ajánlat már elment — nem küldtük újra" : "Ajánlat elküldve"); setOpen(null); qc.invalidateQueries({ queryKey: ["quotes"] }); qc.invalidateQueries({ queryKey: ["quote_sends"] }); },
+    onSuccess: (j: any) => { if (j.warning) toast.warning(j.warning); else toast.success(j.duplicate ? "Ez az ajánlat már elment — nem küldtük újra" : "Ajánlat elküldve"); setOpen(null); qc.invalidateQueries({ queryKey: ["quotes"] }); qc.invalidateQueries({ queryKey: ["quote_sends"] }); },
     onError: (e: any) => { toast.error("Nem ment ki — az ajánlat nem lett kiküldöttként jelölve", { description: e?.message }); qc.invalidateQueries({ queryKey: ["quote_sends"] }); },
   });
   const linkM = useMutation({

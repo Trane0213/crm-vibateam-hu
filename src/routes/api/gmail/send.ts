@@ -249,11 +249,13 @@ export const Route = createFileRoute("/api/gmail/send")({
                 email_id: insEmail.id, filename: d.name, mime_type: d.mime_type, size_bytes: d.size_bytes, r2_key: d.file_url, inline: false,
               })));
             }
-            await (admin as any).from("quote_sends").update({
+            const { error: sendLogError } = await (admin as any).from("quote_sends").update({
               status: "sent", sent_at: now, email_id: insEmail?.id ?? null, gmail_message_id: sent.id, thread_id: threadDbId,
             }).eq("id", quoteSendId);
+            if (sendLogError) return Response.json({ ok: true, warning: "A levél kiment, de a kiküldési napló mentése nem sikerült. Ne küldd újra; a kiküldött Gmail-levél hozzárendelésével ellenőrizhető.", id: sent.id, threadId: sent.threadId });
             const { data: qcur } = await (admin as any).from("quotes").select("locked_at").eq("id", body.quote_id).maybeSingle();
-            await (admin as any).from("quotes").update({ status: "sent", sent_at: now, ...(qcur?.locked_at ? {} : { locked_at: now }) }).eq("id", body.quote_id);
+            const { error: quoteError } = await (admin as any).from("quotes").update({ status: "sent", sent_at: now, ...(qcur?.locked_at ? {} : { locked_at: now }) }).eq("id", body.quote_id);
+            if (quoteError) return Response.json({ ok: true, warning: "A levél kiment és a napló rögzült, de az ajánlat állapotának mentése nem sikerült. Ne küldd újra; ellenőrizd a kiküldési naplót.", id: sent.id, threadId: sent.threadId });
           }
           return Response.json({ ok: true, id: sent.id, threadId: sent.threadId });
         } catch (e: any) {
