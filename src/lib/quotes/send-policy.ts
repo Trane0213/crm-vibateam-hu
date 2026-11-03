@@ -6,6 +6,21 @@ export const OUTBOUND_TOTAL_MAX = MAX_BYTES.outbound; // meglévő 20 MB-os kime
 export const isIdempotencyKey = (v: unknown): v is string =>
   typeof v === "string" && /^[A-Za-z0-9-]{16,64}$/.test(v);
 
+/** A quoted attachment must actually be present, both in UI and on the server. */
+export function checkReferencedAttachment(text: string, attachmentCount: number): string | null {
+  const plain = text.replace(/<[^>]*>/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (attachmentCount === 0 && /\b(mellekelten|mellekelt|melleklet\w*|csatolt|csatolva|csatolmany\w*|attached|attachment\w*)\b/.test(plain)) {
+    return "A levél csatolt ajánlatra hivatkozik, de nincs kiválasztott melléklet. Csatold az ajánlatot, vagy módosítsd a kísérőlevelet.";
+  }
+  return null;
+}
+
+/** Live Gmail evidence, not an editable CRM outbound flag, proves delivery. */
+export function isVerifiedSentMessage(message: { id: string; labelIds?: string[]; internalDate?: string }, expectedId: string): boolean {
+  const date = Number(message.internalDate);
+  return message.id === expectedId && !!message.labelIds?.includes("SENT") && Number.isFinite(date) && date > 0;
+}
+
 export function checkOutboundSize(sizes: (number | null | undefined)[]): string | null {
   const total = sizes.reduce<number>((a, s) => a + (Number(s) || 0), 0);
   if (total > OUTBOUND_TOTAL_MAX) {

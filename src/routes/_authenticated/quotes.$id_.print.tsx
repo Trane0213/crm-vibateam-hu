@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatHuf } from "@/lib/format";
 import printLogo from "@/assets/viba-team-logo-print.png.asset.json";
 import { hasDraftTerms, isTemplateKey, QUOTE_TEMPLATES } from "@/lib/quotes/templates";
+import { quotePrintContactId } from "@/lib/quotes/print-contact";
 
 /**
  * Ajánlat nyomtatható HTML nézet — böngésző natív "Print / Save as PDF"
@@ -17,6 +18,13 @@ import { hasDraftTerms, isTemplateKey, QUOTE_TEMPLATES } from "@/lib/quotes/temp
  * `quotes.$id.tsx` route-nak — teljes képernyős, sidebar-mentes render).
  */
 export const Route = createFileRoute("/_authenticated/quotes/$id_/print")({
+  head: () => ({ meta: [
+    { title: "Ajánlat nyomtatása | VIBA CRM" },
+    { name: "description", content: "VIBA-TEAM ajánlat nyomtatható nézete és PDF-mentése." },
+    { property: "og:title", content: "Ajánlat nyomtatása | VIBA CRM" },
+    { property: "og:description", content: "VIBA-TEAM ajánlat tételei, kapcsolattartója és feltételei." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: QuotePrint,
 });
 
@@ -91,7 +99,7 @@ function QuotePrint() {
     },
   });
 
-  const contactId = lead.data?.contact_id ?? null;
+  const contactId = quotePrintContactId(q.data);
   const contact = useQuery({
     queryKey: ["quotes", "print", id, "contact", contactId],
     enabled: !!contactId,
@@ -99,15 +107,15 @@ function QuotePrint() {
       const { data, error } = await supabase
         .from("contacts")
         .select("*")
-        .eq("id", contactId!)
+        .eq("id", contactId ?? "")
         .maybeSingle();
-      if (error) return null;
+      if (error) throw error;
       return data as any;
     },
   });
 
   // Auto-focus print címzés kényelemért — az adatok betöltése után egyszer.
-  const ready = !q.isLoading && !items.isLoading;
+  const ready = !q.isLoading && !items.isLoading && !contact.isLoading && !lead.isLoading && !project.isLoading && !company.isLoading;
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => {
@@ -127,6 +135,10 @@ function QuotePrint() {
   if (items.error) {
     return <div className="p-8 text-sm text-destructive">Az ajánlat tételei nem tölthetők be — nyomtatás nem lehetséges. Próbáld újra.</div>;
   }
+  if (contact.error || lead.error || project.error || company.error || (contactId && !contact.isLoading && !contact.data)) {
+    return <div className="p-8 text-sm text-destructive">Az ajánlat címzettadatai nem tölthetők be — nyomtatás nem lehetséges. Próbáld újra.</div>;
+  }
+  if (!ready) return <div className="p-8 text-sm text-muted-foreground">Címzettadatok betöltése…</div>;
 
   const quote = q.data;
   const rows = items.data ?? [];

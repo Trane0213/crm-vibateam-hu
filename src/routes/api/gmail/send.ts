@@ -8,7 +8,7 @@ import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
 import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
-import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey } from "@/lib/quotes/send-policy";
+import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment } from "@/lib/quotes/send-policy";
 
 export const Route = createFileRoute("/api/gmail/send")({
   server: {
@@ -28,6 +28,10 @@ export const Route = createFileRoute("/api/gmail/send")({
           };
           if (!body?.to || !body?.subject) {
             return Response.json({ error: "to es subject kotelezo" }, { status: 400 });
+          }
+          if (body.quote_id) {
+            const attachmentError = checkReferencedAttachment(`${body.body ?? ""}\n${body.html ?? ""}`, (body.quote_document_ids ?? []).length + (body.attachments ?? []).length);
+            if (attachmentError) return Response.json({ error: attachmentError }, { status: 400 });
           }
           const admin = getAdminClient();
           const { data: senderProfile, error: senderError } = await admin.from("users_profile")
@@ -81,6 +85,8 @@ export const Route = createFileRoute("/api/gmail/send")({
             }
             const sizeErr = checkOutboundSize([...quoteDocs.map((d) => d.size_bytes), ...(body.attachments ?? []).map((a) => a.size_bytes)]);
             if (sizeErr) return Response.json({ error: sizeErr }, { status: 413 });
+            const attachmentError = checkReferencedAttachment(`${body.body ?? ""}\n${body.html ?? ""}`, quoteDocs.length + (body.attachments ?? []).length);
+            if (attachmentError) return Response.json({ error: attachmentError }, { status: 400 });
             const { data: qs, error: qsErr } = await (admin as any).from("quote_sends").insert({
               quote_id: body.quote_id, mode: "crm", status: "sending", idempotency_key: body.idempotency_key,
               to_emails: parseAddressList(body.to), cc_emails: parseAddressList(body.cc ?? ""), subject: body.subject,
@@ -243,11 +249,13 @@ export const Route = createFileRoute("/api/gmail/send")({
                 email_id: insEmail.id, filename: d.name, mime_type: d.mime_type, size_bytes: d.size_bytes, r2_key: d.file_url, inline: false,
               })));
             }
-            await (admin as any).from("quote_sends").update({
+            const { error: sendLogError } = await (admin as any).from("quote_sends").update({
               status: "sent", sent_at: now, email_id: insEmail?.id ?? null, gmail_message_id: sent.id, thread_id: threadDbId,
             }).eq("id", quoteSendId);
+            if (sendLogError) return Response.json({ ok: true, warning: "A levél kiment, de a kiküldési napló mentése nem sikerült. Ne küldd újra; a kiküldött Gmail-levél hozzárendelésével ellenőrizhető.", id: sent.id, threadId: sent.threadId });
             const { data: qcur } = await (admin as any).from("quotes").select("locked_at").eq("id", body.quote_id).maybeSingle();
-            await (admin as any).from("quotes").update({ status: "sent", sent_at: now, ...(qcur?.locked_at ? {} : { locked_at: now }) }).eq("id", body.quote_id);
+            const { error: quoteError } = await (admin as any).from("quotes").update({ status: "sent", sent_at: now, ...(qcur?.locked_at ? {} : { locked_at: now }) }).eq("id", body.quote_id);
+            if (quoteError) return Response.json({ ok: true, warning: "A levél kiment és a napló rögzült, de az ajánlat állapotának mentése nem sikerült. Ne küldd újra; ellenőrizd a kiküldési naplót.", id: sent.id, threadId: sent.threadId });
           }
           return Response.json({ ok: true, id: sent.id, threadId: sent.threadId });
         } catch (e: any) {

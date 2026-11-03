@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CopyPlus, GitBranch, Lock } from "lucide-react";
+import { CopyPlus, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,7 @@ type Q = { id: string; group_id: string; alternative_key: string; alternative_la
 export function QuoteVersionsBar({ quote }: { quote: Q }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [dlg, setDlg] = useState<null | "version" | "alt" | "lock">(null);
+  const [dlg, setDlg] = useState<null | "version" | "alt">(null);
   const [label, setLabel] = useState("");
 
   const group = useQuery({
@@ -35,8 +35,8 @@ export function QuoteVersionsBar({ quote }: { quote: Q }) {
   });
 
   const run = useMutation({
-    mutationFn: async (kind: "version" | "alt" | "lock") => {
-      const fn = kind === "version" ? "quote_new_version" : kind === "alt" ? "quote_new_alternative" : "quote_lock_sent";
+    mutationFn: async (kind: "version" | "alt") => {
+      const fn = kind === "version" ? "quote_new_version" : "quote_new_alternative";
       const args: any = kind === "alt" ? { p_quote_id: quote.id, p_label: label } : { p_quote_id: quote.id };
       const { data, error } = await supabase.rpc(fn as any, args);
       if (error) throw error;
@@ -46,8 +46,7 @@ export function QuoteVersionsBar({ quote }: { quote: Q }) {
       qc.invalidateQueries({ queryKey: ["quotes"] });
       qc.invalidateQueries({ queryKey: ["quote_items"] });
       setDlg(null); setLabel("");
-      if (kind === "lock") toast.success("Kiküldöttként rögzítve");
-      else { toast.success(kind === "version" ? "Új verzió létrehozva" : "Új alternatíva létrehozva"); navigate({ to: "/quotes/$id", params: { id } }); }
+      toast.success(kind === "version" ? "Új verzió létrehozva" : "Új alternatíva létrehozva"); navigate({ to: "/quotes/$id", params: { id } });
     },
     onError: (e: any) => toast.error("A művelet nem sikerült — semmi nem változott", { description: humanizeSupabaseError(e) }),
   });
@@ -62,7 +61,6 @@ export function QuoteVersionsBar({ quote }: { quote: Q }) {
         <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setDlg("version")}><CopyPlus className="mr-1.5 h-4 w-4" /> Új verzió</Button>
           <Button size="sm" variant="outline" onClick={() => setDlg("alt")}><GitBranch className="mr-1.5 h-4 w-4" /> Új alternatíva</Button>
-          {!quote.locked_at && <Button size="sm" variant="outline" onClick={() => setDlg("lock")}><Lock className="mr-1.5 h-4 w-4" /> Kiküldöttként rögzítés</Button>}
         </div>
       </div>
       <div className="mt-3 grid gap-2">
@@ -85,11 +83,10 @@ export function QuoteVersionsBar({ quote }: { quote: Q }) {
       <AlertDialog open={!!dlg} onOpenChange={(o) => !o && setDlg(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{dlg === "version" ? "Új verzió" : dlg === "alt" ? "Új alternatíva" : "Kiküldöttként rögzítés"}</AlertDialogTitle>
+            <AlertDialogTitle>{dlg === "version" ? "Új verzió" : "Új alternatíva"}</AlertDialogTitle>
             <AlertDialogDescription>
               {dlg === "version" && "Az új verzió átveszi az alapadatokat és a tételeket; a mostani verzió és fájljai változatlanul megmaradnak."}
               {dlg === "alt" && "Párhuzamos műszaki megoldás saját árral, fájlokkal és verziókkal. Az alapadatokat átveszi, tételeket nem."}
-              {dlg === "lock" && "A rögzített verzió tartalma, tételei és kiküldött ajánlat fájljai többé nem módosíthatók/törölhetők. Ez nem vonható vissza."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {dlg === "alt" && <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Megnevezés, pl. 2 db autótöltő" maxLength={120} aria-label="Alternatíva megnevezése" />}
