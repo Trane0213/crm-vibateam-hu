@@ -10,11 +10,13 @@ function fixture(tables: Record<string, Row[]>, hidden: string[] = [], errors: s
   const sb = { from(table: string) {
     const call = { table, filters: [] as [string, unknown][] }; calls.push(call);
     let start = 0, end = 999, single = false;
+    const ors: string[] = [];
     const q = { select() { return q; }, eq(key: string, value: unknown) { call.filters.push([key, value]); return q; },
       is(key: string, value: unknown) { call.filters.push([key, value]); return q; }, order() { return q; },
+      or(filter: string) { ors.push(filter); return q; },
       range(a: number, b: number) { start = a; end = b; return q; }, maybeSingle() { single = true; return q; },
       then(resolve: (value: unknown) => unknown) {
-        const rows = (tables[table] ?? []).filter((r) => !hidden.includes(String(r.id))).filter((r) => call.filters.every(([k, v]) => {
+        const rows = (tables[table] ?? []).filter((r) => !hidden.includes(String(r.id))).filter(r => ors.every(filter => filter.startsWith('is_current.') ? r.is_current !== false : !['accepted','rejected','withdrawn','won','lost'].includes(String(r.status)))).filter((r) => call.filters.every(([k, v]) => {
           if (k === "leads.company_id" || k === "projects.company_id") {
             const source = k.split(".")[0];
             return (tables[source] ?? []).some((s) => s.id === r[source === "leads" ? "lead_id" : "project_id"] && s.company_id === v && !hidden.includes(String(s.id)));
@@ -78,6 +80,18 @@ describe("Timothy P1/C authoritative quote semantics", () => {
 });
 
 describe("Timothy P1/C user-scoped tool flow", () => {
+  it('filters historical and closed quotes before open-list pagination on all branches', async () => {
+    const rows=[quote('old',{is_current:false}),quote('closed',{status:'accepted'}),quote('open'),quote('p-old',{lead_id:null,project_id:'p',is_current:false}),quote('p-open',{lead_id:null,project_id:'p'})];
+    const f=fixture({quotes:rows,leads:[{id:'l',company_id:'c'}],projects:[{id:'p',company_id:'c'}]});
+    for(const args of [{selection:'open'}, {selection:'open',company_id:'c'}]) {
+      const out=await run('crm_list_quotes',{...args,limit:1},f.ctx);
+      expect(out.data.pagination.total_visible).toBe(2);expect(out.data.items[0].id).toBe('open');
+      const next=await run('crm_list_quotes',{...args,limit:1,offset:1},f.ctx);
+      expect(next.data.items[0].id).toBe('p-open');expect(next.data.historical_items).toEqual([]);
+    }
+    const history=await run('crm_quote_context',{quote_id:'open',section:'versions'},f.ctx);
+    expect(history.data.historical_items.map((r:Row)=>r.id)).toEqual(['old','p-old']);
+  });
   it("includes project-only quotes and deduplicates won-lead quotes", async () => {
     const f = fixture({ leads: [{ id: "l", company_id: "c" }], projects: [{ id: "p", company_id: "c" }], quotes: [quote("both", { project_id: "p" }), quote("project", { lead_id: null, project_id: "p" }), quote("other", { lead_id: "foreign" })] });
     const out = await run("crm_list_quotes", { company_id: "c" }, f.ctx);
