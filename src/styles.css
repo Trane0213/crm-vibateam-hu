@@ -205,6 +205,11 @@
 .quote-a4-document tr { break-inside: avoid; }
 .quote-a4-document img { max-width: 100%; object-fit: contain; }
 .quote-a4-document h1, .quote-a4-document h2 { letter-spacing: 0; }
+.quote-preview-surface { container-type: inline-size; }
+@container (max-width: 790px) { .quote-preview-surface > .quote-a4-document { zoom: 0.8; } }
+@container (max-width: 635px) { .quote-preview-surface > .quote-a4-document { zoom: 0.65; } }
+@container (max-width: 515px) { .quote-preview-surface > .quote-a4-document { zoom: 0.5; } }
+@container (max-width: 395px) { .quote-preview-surface > .quote-a4-document { zoom: 0.4; } }
 @media print {
   .no-print { display: none !important; }
   body, .quote-print-surface { background: var(--document-paper) !important; }
