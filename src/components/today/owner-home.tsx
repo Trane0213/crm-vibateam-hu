@@ -4,6 +4,7 @@ import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
 import { OwnerKpiStrip } from "@/components/dashboard/owner-kpi-strip";
 import { SectionLabel } from "@/components/today/today-shell";
+import { SalesWorklists } from "@/components/today/sales-worklists";
 
 /**
  * Tulajdonosi „Ma" — gyors napi vezetői fókusz. A részletes bontás az
@@ -17,6 +18,10 @@ export function OwnerHome() {
       <div className="px-6 pt-4">
         <OwnerKpiStrip />
       </div>
+      <section className="px-6 pt-4">
+        <h2 className="mb-3 text-base font-semibold">Sales – teljes csapat</h2>
+        <SalesWorklists />
+      </section>
 
       <div className="px-6 pt-4">
         <DailyBriefing />
