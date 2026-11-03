@@ -18,6 +18,8 @@ import { NEXT_STEP_LABEL,type NextStepType } from '@/lib/sales/constants';
 import {followupActionSchema} from '@/lib/ai-os/followup-action';
 import {contactActionSchema} from '@/lib/ai-os/contact-action';
 import {assignmentActionSchema} from '@/lib/ai-os/assignment-action';
+import {pipelineStatusSchema} from '@/lib/ai-os/pipeline-status-action';
+import {LEAD_STATUS_LABEL} from '@/lib/sales/constants';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
@@ -282,6 +284,7 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
   const followup=(()=>{try{return approval.tool_name==='sales_create_followup'?followupActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   const contact=(()=>{try{return approval.tool_name==='sales_set_lead_contact'?contactActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   const assignment=(()=>{try{return approval.tool_name==='sales_reassign_lead'?assignmentActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
+  const pipelineStatus=(()=>{try{return approval.tool_name==='sales_change_pipeline_status'?pipelineStatusSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
   const level: ApprovalLevel = approval.approval ?? "confirm";
   const [dangerText, setDangerText] = useState("");
@@ -350,6 +353,13 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
         <p><strong>Régi felelős:</strong> {assignment.data.context.assignee_name||'Tulajdonosi ügy'} · {assignment.data.context.assigned_to||'—'}</p>
         <p><strong>Új felelős:</strong> {assignment.data.context.new_assignee_name} · {assignment.data.assigneeId}</p>
         <p className="text-muted-foreground">A lead és kapcsolt ajánlat láthatósága átkerül az új értékesítőhöz. Az ajánlat és utánkövetés felelőse, Gmail-hozzáférés és projekt nem változik.</p>
+      </div>:pipelineStatus?.success?<div className="space-y-2 rounded border bg-background/60 p-2">
+        <p><strong>Ügy:</strong> {pipelineStatus.data.context.lead_name} · {pipelineStatus.data.leadId}</p>
+        <p><strong>Cég:</strong> {pipelineStatus.data.context.company_name||'Nincs megadva'}</p>
+        <p><strong>Régi státusz:</strong> {LEAD_STATUS_LABEL[pipelineStatus.data.context.status]} → <strong>Új státusz:</strong> {LEAD_STATUS_LABEL[pipelineStatus.data.status]}</p>
+        <p><strong>Mentett következő lépés:</strong> {NEXT_STEP_LABEL[pipelineStatus.data.context.next_step_type]} · {nextStepBudapestTime(pipelineStatus.data.context.next_step_due_at)}</p>
+        <p className="whitespace-pre-wrap break-words">{pipelineStatus.data.context.next_step_note}</p>
+        <p className="text-muted-foreground">Csak az ügy státusza változik; ajánlat, következő lépés és felelős nem módosul, levél nem megy ki. Az „Ajánlat kiadva” nem kiküldési bizonyíték.</p>
       </div>:<pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>}
       {approval.transportError && <p className="mt-2 text-destructive">{approval.transportError}</p>}
       {approval.action_id && (!approval.verified || approval.status === "unknown" || approval.status === "executing") && <Button size="sm" variant="outline" className="mt-2" disabled={approval.submitting} onClick={onCheck}>Állapot ellenőrzése</Button>}
