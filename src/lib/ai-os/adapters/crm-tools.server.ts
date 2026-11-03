@@ -23,6 +23,7 @@ import {followupActionSchema,verifyFollowupAction} from '../followup-action';
 import {contactActionSchema,verifyContactAction} from '../contact-action';
 import {assignmentActionSchema,verifyAssignmentAction} from '../assignment-action';
 import {pipelineStatusSchema,verifyPipelineStatus,OPEN_PIPELINE_STATUSES} from '../pipeline-status-action';
+import { userReference, readTimestamp } from './crm-read-input';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -195,7 +196,7 @@ export function registerCrmTools() {
         type: "object",
         properties: {
           status: { type: "string", description: "pl. new | qualified | pipeline | won | lost" },
-          assigned_to: { type: "string" },
+          assigned_to: { type: "string", description: "A felelős auth UUID-ja vagy me a bejelentkezett felhasználóhoz." },
           company_id: { type: "string" },
           ...CRM_PAGE_PROPERTIES,
         },
@@ -203,11 +204,12 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       const window = readWindow(args);
+      const assignee = userReference(args.assigned_to, ctx.userId);
       let q = ctx.supabaseUser.from("leads").select(LEAD_CONTEXT_SELECT, { count: "exact" })
         .order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true })
         .range(window.offset, window.offset + window.limit - 1);
       if (args.status) q = q.eq("status", String(args.status));
-      if (args.assigned_to) q = q.eq("assigned_to", String(args.assigned_to));
+      if (assignee) q = q.eq("assigned_to", assignee);
       if (args.company_id) q = q.eq("company_id", String(args.company_id));
       const { data, error, count } = await q;
       if (error) return fail(error.message);
@@ -272,21 +274,23 @@ export function registerCrmTools() {
         type: "object",
         properties: {
           status: { type: "string" },
-          project_manager_user_id: { type: "string" },
-          limit: { type: "integer", default: 25 },
+          project_manager_user_id: { type: "string", description: "Auth UUID vagy me." },
+          ...CRM_PAGE_PROPERTIES,
         },
       },
     },
     async (args, ctx) => {
+      const window = readWindow(args);
+      const manager = userReference(args.project_manager_user_id, ctx.userId);
       let q = ctx.supabaseUser.from("projects")
-        .select("id,title,status,project_manager_user_id,start_date,deadline,created_at")
+        .select("id,title,status,project_manager_user_id,start_date,deadline,created_at", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(Math.min(Number(args.limit ?? 25), 100));
+        .order("id").range(window.offset, window.offset + window.limit - 1);
       if (args.status) q = q.eq("status", String(args.status));
-      if (args.project_manager_user_id) q = q.eq("project_manager_user_id", String(args.project_manager_user_id));
-      const { data, error } = await q;
+      if (manager) q = q.eq("project_manager_user_id", manager);
+      const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "projects"));
     },
   );
 
@@ -334,23 +338,26 @@ export function registerCrmTools() {
       parameters: {
         type: "object",
         properties: {
-          assigned_to: { type: "string" },
-          due_before: { type: "string", description: "ISO dátum (csak ezen idő előttiek)." },
-          limit: { type: "integer", default: 25 },
+          assigned_to: { type: "string", description: "A felelős auth UUID-ja vagy me a bejelentkezett felhasználóhoz." },
+          due_before: { type: "string", description: "Teljes ISO időpont Z vagy ±HH:MM időzónával. Budapest nap végét UTC-re váltva add meg." },
+          ...CRM_PAGE_PROPERTIES,
         },
       },
     },
     async (args, ctx) => {
+      const window = readWindow(args);
+      const assignee = userReference(args.assigned_to, ctx.userId);
+      const before = readTimestamp(args.due_before);
       let q = ctx.supabaseUser.from("followups")
-        .select("id,lead_id,project_id,company_id,quote_id,followup_type,assigned_to,due_date,completed,result")
+        .select("id,lead_id,project_id,company_id,quote_id,followup_type,assigned_to,due_date,completed,result", { count: "exact" })
         .eq("completed", false)
         .order("due_date", { ascending: true })
-        .limit(Math.min(Number(args.limit ?? 25), 100));
-      if (args.assigned_to) q = q.eq("assigned_to", String(args.assigned_to));
-      if (args.due_before) q = q.lte("due_date", String(args.due_before));
-      const { data, error } = await q;
+        .order("id").range(window.offset, window.offset + window.limit - 1);
+      if (assignee) q = q.eq("assigned_to", assignee);
+      if (before) q = q.lte("due_date", before);
+      const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "followups"));
     },
   );
 
@@ -364,20 +371,21 @@ export function registerCrmTools() {
         properties: {
           project_id: { type: "string" },
           status: { type: "string" },
-          limit: { type: "integer", default: 50 },
+          ...CRM_PAGE_PROPERTIES,
         },
       },
     },
     async (args, ctx) => {
+      const window = readWindow(args, 50);
       let q = ctx.supabaseUser.from("tasks")
-        .select("id,project_id,title,status,priority,assigned_user,due_date,created_at")
+        .select("id,project_id,title,status,priority,assigned_user,due_date,created_at", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(Math.min(Number(args.limit ?? 50), 200));
+        .order("id").range(window.offset, window.offset + window.limit - 1);
       if (args.project_id) q = q.eq("project_id", String(args.project_id));
       if (args.status) q = q.eq("status", String(args.status));
-      const { data, error } = await q;
+      const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "tasks"));
     },
   );
 
@@ -389,20 +397,21 @@ export function registerCrmTools() {
       parameters: {
         type: "object",
         properties: {
-          from: { type: "string", description: "ISO dátum kezdet (alapértelmezett: ma)." },
-          limit: { type: "integer", default: 20 },
+          from: { type: "string", description: "Teljes ISO időpont időzónával (alapértelmezett: most)." },
+          ...CRM_PAGE_PROPERTIES,
         },
       },
     },
     async (args, ctx) => {
-      const fromIso = args.from ? String(args.from) : new Date().toISOString();
-      const { data, error } = await ctx.supabaseUser.from("meetings")
-        .select("id,title,meeting_date,location,summary,company_id,project_id")
+      const window = readWindow(args, 20);
+      const fromIso = readTimestamp(args.from) ?? new Date().toISOString();
+      const { data, error, count } = await ctx.supabaseUser.from("meetings")
+        .select("id,title,meeting_date,location,summary,company_id,project_id", { count: "exact" })
         .gte("meeting_date", fromIso)
         .order("meeting_date", { ascending: true })
-        .limit(Math.min(Number(args.limit ?? 20), 100));
+        .order("id").range(window.offset, window.offset + window.limit - 1);
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "meetings"));
     },
   );
 
