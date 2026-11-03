@@ -1,7 +1,8 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Ajánlatkezelő V2.1/B (2026-11-03)
-- [ ] Hat munkaterület a meglévő ajánlatpanelekből, állandó összefoglaló fejléc és megőrzött szerkesztési állapot.
-- [ ] Célzott és teljes regresszió, ellenőrzési jelentés; STOP, C és publikálás nélkül.
+- [x] Hat munkaterület a meglévő ajánlatpanelekből, állandó összefoglaló fejléc; rejtett panelek csatolva maradnak.
+- [x] Teljes regresszió 121/121, AI 12/12, build PASS; ellenőrzési jelentés; STOP, C és publikálás nélkül.
+- [ ] Hitelesített munkaterületváltás és mentési végigpróba: external_unmanaged Supabase, átadható munkamenet nincs; felhasználói ellenőrzés szükséges.
 
 ## Ajánlatkezelő V2.1/A (2026-11-03)
 - [x] Igazolt kiküldéshez kötött rögzítés; hatáselemzés, visszaállítás és célzott tesztek.

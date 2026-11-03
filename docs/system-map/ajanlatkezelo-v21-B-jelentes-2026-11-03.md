@@ -16,6 +16,7 @@ Kizárólag a meglévő ajánlatadatlap átrendezése; A védelmei megmaradnak. 
 ## Ellenőrzés
 - PASS: fordítás (2026-11-03 14:52:18 UTC).
 - PASS: AI acceptance 12/12.
+- PASS: végső teljes regresszió 121/121 (23 tesztfájl); újabb fordítás 2026-11-03 14:52:53 UTC: build OK.
 - Az első teljes regresszió 120/121: a korábban is hibás tulajdonosi menüteszt az ownernek szándékosan rejtett Gmail-menüpontot is követelte. A teszt most a meglévő hideForRoles-szabályt figyelembe veszi, és külön ellenőrzi, hogy az owner Gmail-oldali jogosultsága megmaradt. Navigációs működés nem változott.
 - Hitelesített böngészős végigpróba NEM TESZTELT: external_unmanaged Supabase, átadható munkamenet nincs. Mentés, lapváltás közbeni szerkesztési állapot, rögzített fejléc asztali/mobil megjelenése, fájlkezelés és Gmail végigpróba nem tekinthető böngészőben igazoltnak.
 
