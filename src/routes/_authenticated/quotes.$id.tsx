@@ -14,6 +14,7 @@ import { useUpsert, useListWhere } from "@/lib/db-hooks";
 import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
+import { QuoteSendPanel } from "@/components/quotes/quote-send-panel";
 import { usePermissions } from "@/hooks/use-permissions";
 import { quoteAmounts } from "@/lib/quotes/amounts";
 import { formatHuf } from "@/lib/format";
@@ -314,6 +315,9 @@ function QuoteDetail() {
         </div>
         <div className="mt-6 rounded-md border bg-card p-5">
           <QuoteDocumentManager quoteId={quote.id} />
+        </div>
+        <div className="mt-6 rounded-md border bg-card p-5">
+          <QuoteSendPanel quote={quote as any} companyId={companyId} />
         </div>
         {/* Meglévő tétel-panel: a nyomtatási nézet ezekből a tételekből számol. */}
         <div className="mt-6 rounded-md border bg-card p-5">

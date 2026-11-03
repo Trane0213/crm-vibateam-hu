@@ -2932,6 +2932,85 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_sends: {
+        Row: {
+          attachments: Json
+          cc_emails: string[]
+          created_at: string
+          created_by: string
+          email_id: string | null
+          error: string | null
+          gmail_message_id: string | null
+          id: string
+          idempotency_key: string | null
+          mode: string
+          quote_id: string
+          sent_at: string | null
+          status: string
+          subject: string | null
+          thread_id: string | null
+          to_emails: string[]
+        }
+        Insert: {
+          attachments?: Json
+          cc_emails?: string[]
+          created_at?: string
+          created_by: string
+          email_id?: string | null
+          error?: string | null
+          gmail_message_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          mode: string
+          quote_id: string
+          sent_at?: string | null
+          status: string
+          subject?: string | null
+          thread_id?: string | null
+          to_emails?: string[]
+        }
+        Update: {
+          attachments?: Json
+          cc_emails?: string[]
+          created_at?: string
+          created_by?: string
+          email_id?: string | null
+          error?: string | null
+          gmail_message_id?: string | null
+          id?: string
+          idempotency_key?: string | null
+          mode?: string
+          quote_id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+          thread_id?: string | null
+          to_emails?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_sends_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_sends_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_sends_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quotes: {
         Row: {
           alternative_key: string
@@ -2955,6 +3034,7 @@ export type Database = {
           responsible_user_id: string | null
           scope_note: string | null
           scope_type: string | null
+          sent_at: string | null
           status: string | null
           tax_percent: number | null
           technical_scope: string | null
@@ -2985,6 +3065,7 @@ export type Database = {
           responsible_user_id?: string | null
           scope_note?: string | null
           scope_type?: string | null
+          sent_at?: string | null
           status?: string | null
           tax_percent?: number | null
           technical_scope?: string | null
@@ -3015,6 +3096,7 @@ export type Database = {
           responsible_user_id?: string | null
           scope_note?: string | null
           scope_type?: string | null
+          sent_at?: string | null
           status?: string | null
           tax_percent?: number | null
           technical_scope?: string | null

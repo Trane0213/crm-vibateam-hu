@@ -8,6 +8,7 @@ import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
 import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
+import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey } from "@/lib/quotes/send-policy";
 
 export const Route = createFileRoute("/api/gmail/send")({
   server: {
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/api/gmail/send")({
             expectedMailbox?: string;
             project_id?: string; company_id?: string; contact_id?: string; lead_id?: string;
             attachments?: { key: string; filename: string; mime_type: string; size_bytes: number }[];
+            quote_id?: string; quote_document_ids?: string[]; idempotency_key?: string;
           };
           if (!body?.to || !body?.subject) {
             return Response.json({ error: "to es subject kotelezo" }, { status: 400 });
@@ -61,6 +63,41 @@ export const Route = createFileRoute("/api/gmail/send")({
           try { assertSenderIdentity(body.expectedMailbox, email, actual.emailAddress); }
           catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Hibás küldőazonosság" }, { status: 403 }); }
 
+          // S4: ajánlat-kiküldés — jogosultság (RLS), saját dokumentumok, méret, egyszeri küldés.
+          let quoteSendId: string | null = null;
+          let quoteDocs: { id: string; quote_id: string; name: string; file_url: string; mime_type: string | null; size_bytes: number | null; document_type: string }[] = [];
+          if (body.quote_id) {
+            if (!isIdempotencyKey(body.idempotency_key)) return Response.json({ error: "Hiányzó küldési azonosító." }, { status: 400 });
+            const { data: qrow } = await caller.from("quotes").select("id").eq("id", body.quote_id).maybeSingle();
+            if (!qrow) return Response.json({ error: "Az ajánlathoz nincs jogosultságod." }, { status: 403 });
+            const ids = (body.quote_document_ids ?? []).filter((x) => typeof x === "string");
+            if (ids.length) {
+              const { data: docs, error: dErr } = await caller.from("quote_documents" as any)
+                .select("id,quote_id,name,file_url,mime_type,size_bytes,document_type").in("id", ids);
+              if (dErr) throw new Error(dErr.message);
+              quoteDocs = (docs ?? []) as any;
+              const docErr = checkQuoteDocs(ids, quoteDocs, body.quote_id);
+              if (docErr) return Response.json({ error: docErr }, { status: 403 });
+            }
+            const sizeErr = checkOutboundSize([...quoteDocs.map((d) => d.size_bytes), ...(body.attachments ?? []).map((a) => a.size_bytes)]);
+            if (sizeErr) return Response.json({ error: sizeErr }, { status: 413 });
+            const { data: qs, error: qsErr } = await (admin as any).from("quote_sends").insert({
+              quote_id: body.quote_id, mode: "crm", status: "sending", idempotency_key: body.idempotency_key,
+              to_emails: parseAddressList(body.to), cc_emails: parseAddressList(body.cc ?? ""), subject: body.subject,
+              attachments: [
+                ...quoteDocs.map((d) => ({ source: "quote_document", document_id: d.id, name: d.name, key: d.file_url, size_bytes: d.size_bytes, document_type: d.document_type })),
+                ...(body.attachments ?? []).map((a) => ({ source: "upload", name: a.filename, key: a.key, size_bytes: a.size_bytes })),
+              ],
+              created_by: userId,
+            }).select("id").single();
+            if (qsErr) {
+              const { data: prev } = await (admin as any).from("quote_sends").select("status").eq("idempotency_key", body.idempotency_key).maybeSingle();
+              if (prev?.status === "sent") return Response.json({ ok: true, duplicate: true });
+              return Response.json({ error: "Ez a küldés már folyamatban van vagy sikertelen volt — nyisd meg újra a küldést." }, { status: 409 });
+            }
+            quoteSendId = qs.id;
+          }
+
           // Csatolmányok letöltése R2-ből presigned GET-tel és base64 buffer-ré alakítása.
           const attBuffers: { filename: string; mimeType: string; content: Buffer }[] = [];
           // 1/C: csak a küldő saját, szerver által kiosztott kimenő mellékletkulcsa csatolható.
@@ -81,6 +118,15 @@ export const Route = createFileRoute("/api/gmail/send")({
             });
           }
 
+          for (const d of quoteDocs) {
+            const r = await fetch(presignR2Url({ method: "GET", key: d.file_url, expiresIn: 300 }));
+            if (!r.ok) {
+              if (quoteSendId) await (admin as any).from("quote_sends").update({ status: "failed", error: `Melléklet nem tölthető: ${d.name}` }).eq("id", quoteSendId);
+              throw new Error(`R2 letöltés sikertelen (${r.status}) – ${d.name}`);
+            }
+            attBuffers.push({ filename: d.name, mimeType: d.mime_type || "application/octet-stream", content: Buffer.from(await r.arrayBuffer()) });
+          }
+
           const htmlBody = body.html && body.html.trim().length > 0
             ? body.html
             : (body.body ?? "").replace(/\n/g, "<br/>");
@@ -93,7 +139,12 @@ export const Route = createFileRoute("/api/gmail/send")({
             attachments: attBuffers,
             inReplyTo: body.inReplyTo, references: body.references,
           });
-          const sent = await sendMessage(accessToken, raw, body.threadId);
+          let sent: Awaited<ReturnType<typeof sendMessage>>;
+          try { sent = await sendMessage(accessToken, raw, body.threadId); }
+          catch (sendErr: any) {
+            if (quoteSendId) await (admin as any).from("quote_sends").update({ status: "failed", error: String(sendErr?.message ?? sendErr).slice(0, 500) }).eq("id", quoteSendId);
+            throw sendErr;
+          }
           const toList = parseAddressList(body.to);
           const ccList = parseAddressList(body.cc ?? "");
           const bccList = parseAddressList(body.bcc ?? "");
@@ -184,6 +235,19 @@ export const Route = createFileRoute("/api/gmail/send")({
               inline: false,
             }));
             await admin.from("email_attachments").insert(rows);
+          }
+          if (quoteSendId) {
+            const now = new Date().toISOString();
+            if (insEmail?.id && quoteDocs.length) {
+              await admin.from("email_attachments").insert(quoteDocs.map((d) => ({
+                email_id: insEmail.id, filename: d.name, mime_type: d.mime_type, size_bytes: d.size_bytes, r2_key: d.file_url, inline: false,
+              })));
+            }
+            await (admin as any).from("quote_sends").update({
+              status: "sent", sent_at: now, email_id: insEmail?.id ?? null, gmail_message_id: sent.id, thread_id: threadDbId,
+            }).eq("id", quoteSendId);
+            const { data: qcur } = await (admin as any).from("quotes").select("locked_at").eq("id", body.quote_id).maybeSingle();
+            await (admin as any).from("quotes").update({ status: "sent", sent_at: now, ...(qcur?.locked_at ? {} : { locked_at: now }) }).eq("id", body.quote_id);
           }
           return Response.json({ ok: true, id: sent.id, threadId: sent.threadId });
         } catch (e: any) {
