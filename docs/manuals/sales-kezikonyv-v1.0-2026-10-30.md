@@ -34,6 +34,9 @@ Tulajdonosi, beállítási és jelenléti oldalak Sales szerepkörben „Nincs j
 
 ## 3. Sales munkafelület (3 oszlop)
 
+### Timothy nyitott Pipeline-státusz
+Már Pipeline-ban lévő saját ügyön kérheted a meglévő, engedett nyitott státuszváltást. A kártyán ellenőrizd a régi/új státuszt és a mentett következő lépést; külön jóváhagyás szükséges. Közben megváltozott ügy vagy határidő nem íródik felül. Nem léptet be új ügyet, nem nyer/elveszít, nem módosít ajánlatot/felelőst/következő lépést és nem küld levelet. **Ajánlat kiadva** leadstátusz továbbra sem bizonyítja a tényleges kiküldést, piszkozat mellett is engedett. Hitelesített teljes végigpróba **NEM TESZTELT**; izolált TESZT-próba történt.
+
 ### Timothy felelős-átadás — csak tulajdonos
 Tulajdonos kérheti egy nyitott ügy átadását egy megnevezett, aktív értékesítőnek. A jóváhagyási kártya mutatja a régi/új felelőst; csak külön jóváhagyás után történik mentés. A lead és kapcsolt ajánlat láthatósága az új értékesítőhöz kerül, de az ajánlat és utánkövetés felelőse, Gmail-hozzáférés és projekt nem változik. Sales nem adhat át, lezárt ügy nem adható át; megváltozott ügy/átvevő új jóváhagyást igényel. Bejelentkezett teljes végigpróba **NEM TESZTELT**, csak elkülönített TESZT-próba történt.
 
