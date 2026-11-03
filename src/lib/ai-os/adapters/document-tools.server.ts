@@ -5,7 +5,7 @@ import { toolError } from "../tool-errors";
 import type { ToolContext } from "../types";
 import { CRM_PAGE_PROPERTIES, crmReadPage, readWindow } from "./crm-read-page";
 import { authorizeDocumentScope, authorizedDocument, documentInput, fetchDocumentBytes } from "./document-access.server";
-import { DOCUMENT_LIMITS, extractDocument } from "./document-extract.server";
+import { DOCUMENT_LIMITS, extractDocument, LargeDocumentError } from "./document-extract.server";
 import { safeMailText } from "./gmail-context";
 
 const properties = { source: { type: "string", enum: ["quote_documents", "company_documents", "project_documents", "email_attachments"] },
@@ -13,6 +13,7 @@ const properties = { source: { type: "string", enum: ["quote_documents", "compan
 
 export async function readDocument(args: Record<string, unknown>, ctx: ToolContext, download = fetchDocumentBytes) {
   const data = documentInput.parse(args);
+  if ((data.unit > 0 || data.text_offset > 0) && !data.expected_hash) throw new Error("Folytatáshoz fájl-hash szükséges.");
   const { row, key, version } = await authorizedDocument(data, ctx);
   const source = { table: data.source, id: row.id, quote_id: row.quote_id ?? null, project_id: row.project_id ?? null, company_id: row.company_id ?? null, email_id: row.email_id ?? null };
   if (Number(row.size_bytes ?? 0) > DOCUMENT_LIMITS.bytes) return { ok: true, data: { source, status: "requires_large_processing", limits: DOCUMENT_LIMITS, completeness: { full_document: false }, limitations: ["5 MB felett külön feldolgozás szükséges; tartalom nem lett olvasva, háttérfeldolgozás nem indult."] } };
@@ -20,7 +21,12 @@ export async function readDocument(args: Record<string, unknown>, ctx: ToolConte
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer))).map((b) => b.toString(16).padStart(2, "0")).join("");
   if (data.expected_hash && data.expected_hash !== hash) throw new Error("A fájltartalom megváltozott; a korábbi folytatás nem használható.");
   const name = String(row.name ?? row.filename ?? "");
-  const extracted = await extractDocument(bytes, name, data.unit, data.text_offset);
+  let extracted;
+  try { extracted = await extractDocument(bytes, name, data.unit, data.text_offset); }
+  catch (e) {
+    if (!(e instanceof LargeDocumentError)) throw e;
+    return { ok: true, data: { source, status: "requires_large_processing", provenance: { sha256: hash, processed_at: new Date().toISOString(), quote_version: version }, limits: DOCUMENT_LIMITS, completeness: { full_document: false }, limitations: ["A tartalmi méret/oldal/sorkorlát miatt nincs teljes feldolgozás, háttérmunka nem indult."] } };
+  }
   return { ok: true, data: { source, name: safeMailText(name).text, document_type: row.document_type ?? null,
     provenance: { sha256: hash, byte_length: bytes.length, uploaded_at: row.created_at, processed_at: new Date().toISOString(), quote_version: version,
       parser: extracted.parser, file_version: "content_sha256; quote_version is separate business version", persistence: "on_demand_no_extracted_copy_or_background_job" },
