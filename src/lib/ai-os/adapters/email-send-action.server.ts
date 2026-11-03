@@ -25,6 +25,10 @@ export async function freezeEmailSend(user: SupabaseClient, args: Record<string,
   if (contact && (contact.error || contact.data?.company_id !== l.data.company_id)) throw new Error('A kapcsolattartó nem ellenőrizhető.');
   const quote = message.quoteId ? await user.from('quotes').select('id,lead_id,project_id,contact_id,version,alternative_key,status,locked_at,is_current').eq('id',message.quoteId).maybeSingle() : null;
   if (quote && (quote.error || !quote.data || quote.data.lead_id !== l.data.id || !quote.data.is_current || ['accepted','rejected','withdrawn'].includes(quote.data.status))) throw new Error('Az ajánlat nem aktuális vagy más ügyhöz tartozik.');
+  if (quote?.data?.project_id) {
+    const project = await user.from('projects').select('lead_id,company_id').eq('id',quote.data.project_id).maybeSingle();
+    if (project.error || project.data?.lead_id !== l.data.id || project.data?.company_id !== l.data.company_id) throw new Error('Az ajánlati projekt más ügyhöz tartozik.');
+  }
   const thread = message.threadId ? await user.from('email_threads').select('id,gmail_thread_id,company_id,lead_id,project_id,contact_id,last_message_at').eq('id',message.threadId).maybeSingle() : null;
   if (thread) {
     if (thread.error || !thread.data?.gmail_thread_id || thread.data.company_id !== l.data.company_id || thread.data.lead_id !== l.data.id || thread.data.contact_id !== l.data.contact_id || (thread.data.project_id && thread.data.project_id !== quote?.data?.project_id)) throw new Error('A válaszszál nem pontosan ehhez az ügyhöz tartozik.');
@@ -62,7 +66,8 @@ export async function executeEmailSend(args: Record<string,unknown>, ctx: ToolCo
   const {handleGmailSend} = await import('@/lib/gmail/send.server');
   const m=approved.message;
   const projectId = approved.context.quote?.project_id as string | undefined;
-  const request = new Request('https://internal.invalid/api/gmail/send',{method:'POST',headers:{authorization:`Bearer ${ctx.accessToken}`,'content-type':'application/json'},body:JSON.stringify({to:m.to.join(','),cc:m.cc.join(','),bcc:m.bcc.join(','),subject:m.subject,body:m.body,
+  const html = m.body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>');
+  const request = new Request('https://internal.invalid/api/gmail/send',{method:'POST',headers:{authorization:`Bearer ${ctx.accessToken}`,'content-type':'application/json'},body:JSON.stringify({to:m.to.join(','),cc:m.cc.join(','),bcc:m.bcc.join(','),subject:m.subject,body:m.body,html,
     expectedMailbox:m.mailbox,lead_id:m.leadId,company_id:approved.context.company.id,contact_id:approved.context.contact?.id,project_id:projectId,
     threadId:approved.context.thread?.gmail_thread_id,quote_id:m.quoteId,idempotency_key:ctx.approvalActionId,
     quote_document_ids:approved.attachments.filter(a=>a.source==='quote_documents').map(a=>a.document_id),
@@ -90,8 +95,23 @@ export async function executeEmailSend(args: Record<string,unknown>, ctx: ToolCo
   });
   const out = await response.json() as {ok?:boolean;id?:string;warning?:string};
   if (!response.ok || !out.ok || !out.id || out.warning || !verified) return dispatched ? {ok:true,data:{verified_sent:false,proof_saved:false}} : {ok:false,error:'Nem történt igazolt küldés.'};
-  const saved = await ctx.supabaseUser.from('emails').select('id,thread_id,owner_user_id,lead_id,from_email,gmail_message_id').eq('gmail_message_id',out.id).eq('owner_user_id',ctx.userId).eq('lead_id',m.leadId).maybeSingle();
+  const saved = await ctx.supabaseUser.from('emails').select('id,thread_id,owner_user_id,lead_id,company_id,contact_id,project_id,from_email,gmail_message_id,to_emails,cc_emails,bcc_emails,subject,body').eq('gmail_message_id',out.id).eq('owner_user_id',ctx.userId).eq('lead_id',m.leadId).maybeSingle();
   if (saved.error || !saved.data || saved.data.from_email?.toLowerCase() !== m.mailbox) return {ok:true,data:{verified_sent:true,proof_saved:false}};
+  const e = saved.data;
+  try {
+    assertSameEmail({to:m.to.map(x=>x.toLowerCase()),cc:m.cc.map(x=>x.toLowerCase()),bcc:m.bcc.map(x=>x.toLowerCase()),subject:m.subject,body:html,company_id:approved.context.company.id,contact_id:approved.context.contact?.id??null,project_id:projectId??null},
+      {to:e.to_emails,cc:e.cc_emails,bcc:e.bcc_emails,subject:e.subject,body:e.body,company_id:e.company_id,contact_id:e.contact_id,project_id:e.project_id});
+    const thread = await ctx.supabaseUser.from('email_threads').select('company_id,lead_id').eq('id',e.thread_id).maybeSingle();
+    if(thread.error || thread.data?.lead_id!==m.leadId || thread.data?.company_id!==approved.context.company.id) throw new Error('Hiányos szálbizonyíték.');
+    const attachmentRows = await ctx.supabaseUser.from('email_attachments').select('filename,mime_type,size_bytes,r2_key').eq('email_id',e.id);
+    if(attachmentRows.error)throw new Error('Hiányos mellékletbizonyíték.');
+    assertSameEmail(approved.attachments.map(a=>({filename:a.name,mime_type:a.mime,size_bytes:a.size,r2_key:a.key})).sort((a,b)=>a.r2_key.localeCompare(b.r2_key)),
+      (attachmentRows.data??[]).sort((a,b)=>a.r2_key.localeCompare(b.r2_key)));
+    if(m.quoteId) {
+      const send = await ctx.supabaseUser.from('quote_sends').select('quote_id,status,gmail_message_id,email_id').eq('idempotency_key',ctx.approvalActionId).maybeSingle();
+      if(send.error || send.data?.quote_id!==m.quoteId || send.data?.status!=='sent' || send.data.gmail_message_id!==out.id || send.data.email_id!==e.id) throw new Error('Hiányos ajánlati bizonyíték.');
+    }
+  } catch {return {ok:true,data:{verified_sent:true,proof_saved:false}};}
   return {ok:true,data:{gmail_message_id:out.id,email_id:saved.data.id,thread_id:saved.data.thread_id,mailbox:m.mailbox,lead_id:m.leadId,verified_sent:true,proof_saved:true}};
 }
 export function registerEmailSendTool() {
