@@ -70,6 +70,10 @@ type QuoteRow = {
 
 function QuoteDetail() {
   const { id } = Route.useParams();
+  return <QuoteWorkflowDetail id={id} />;
+}
+
+export function QuoteWorkflowDetail({ id }: { id: string }) {
   const companyLabel = useLookup("companies", "name");
   const upsert = useUpsert("quotes");
   const { role } = usePermissions();
@@ -213,6 +217,7 @@ function QuoteDetail() {
   const features = quoteWorkflowFeatures(form.quote_kind);
   const own = features.ownEditor;
   const chooseWorkflow = async (kind: QuoteWorkflow) => {
+    if ((quote as any).locked_at) { set("quote_kind", kind); setWorkspace("overview"); return; }
     try {
       // Only the existing kind field changes; documents/items/terms are retained.
       await upsert.mutateAsync({ id: quote.id, quote_kind: kind });
@@ -222,6 +227,44 @@ function QuoteDetail() {
   };
   const huf = (n: number | null) => (n == null ? "Nincs megadva" : formatHuf(n));
 
+  const pricingEditor = (<div className="space-y-4">
+          <div className="flex items-center justify-between gap-3 py-5">
+            <h2 className="text-sm font-semibold">Árazási alapadatok</h2>
+            <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
+              <Save className="mr-1.5 h-4 w-4" /> Mentés
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="q-disc">Kedvezmény (%)</Label>
+                <Input id="q-disc" type="number" min={0} max={100} step="0.01" value={form.discount_percent} onChange={(e) => set("discount_percent", e.target.value)} placeholder="0" />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="q-tax">ÁFA (%)</Label>
+                <Input id="q-tax" type="number" min={0} max={100} step="0.01" value={form.tax_percent} onChange={(e) => set("tax_percent", e.target.value)} placeholder="27" />
+              </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="q-manual">Megadott nettó összeg (fájlalapú ajánlat, Ft)</Label>
+              <Input id="q-manual" type="number" min={0} step="1" value={form.manual_net_amount} onChange={(e) => set("manual_net_amount", e.target.value)} placeholder="Ha ismert és ellenőrzött" />
+            </div>
+            <div className="rounded-md border bg-muted/30 p-3 text-sm sm:col-span-2">
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                <span>Nettó: <strong>{huf(amounts.net)}</strong></span>
+                <span>ÁFA ({amounts.vatPercent}%): {huf(amounts.vat)}</span>
+                <span>Bruttó: <strong>{huf(amounts.gross)}</strong></span>
+                <span className="text-muted-foreground">Forrás: {amounts.source === "items" ? "tételes számítás" : amounts.source === "manual" ? "megadott összeg" : "nincs összeg"}</span>
+              </div>
+              {amounts.mismatch && (
+                <div className="mt-2 text-destructive">Eltérés: tételes nettó {huf(amounts.itemsNet)}, megadott nettó {huf(amounts.manualNet)}. Ellenőrizd!</div>
+              )}
+            </div>
+          </div>
+            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
+            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
+            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
+  </div>);
   return (
     <div className="flex flex-col">
       <div className="sticky top-0 z-20 border-b bg-background px-4 py-4 sm:px-6">
@@ -285,7 +328,7 @@ function QuoteDetail() {
         </div>
       </div>
 
-      {!features.kind && <div className="p-4 sm:p-6"><QuoteWorkflowChoice disabled={upsert.isPending || !!(quote as any).locked_at} onChoose={chooseWorkflow} /></div>}
+      {!features.kind && <div className="p-4 sm:p-6"><QuoteWorkflowChoice disabled={upsert.isPending} onChoose={chooseWorkflow} /></div>}
       {features.kind && <Tabs value={workspace} onValueChange={setWorkspace} className="min-w-0 p-4 sm:p-6">
         <div className="overflow-x-auto border-b pb-3">
           <TabsList aria-label="Ajánlat munkaterületei" className="h-auto w-max justify-start">
@@ -338,84 +381,9 @@ function QuoteDetail() {
             technical_scope: form.technical_scope, exclusions: form.exclusions,
             discount_percent: form.discount_percent || null, tax_percent: form.tax_percent || null,
             manual_net_amount: form.manual_net_amount || null,
-          }}><div className="grid gap-4 sm:grid-cols-2">
-          <div className="flex items-center justify-between gap-3 py-5">
-            <h2 className="text-sm font-semibold">Árazási alapadatok</h2>
-            <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
-              <Save className="mr-1.5 h-4 w-4" /> Mentés
-            </Button>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="q-disc">Kedvezmény (%)</Label>
-                <Input id="q-disc" type="number" min={0} max={100} step="0.01" value={form.discount_percent} onChange={(e) => set("discount_percent", e.target.value)} placeholder="0" />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="q-tax">ÁFA (%)</Label>
-                <Input id="q-tax" type="number" min={0} max={100} step="0.01" value={form.tax_percent} onChange={(e) => set("tax_percent", e.target.value)} placeholder="27" />
-              </div>
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="q-manual">Megadott nettó összeg (fájlalapú ajánlat, Ft)</Label>
-              <Input id="q-manual" type="number" min={0} step="1" value={form.manual_net_amount} onChange={(e) => set("manual_net_amount", e.target.value)} placeholder="Ha ismert és ellenőrzött" />
-            </div>
-            <div className="rounded-md border bg-muted/30 p-3 text-sm sm:col-span-2">
-              <div className="flex flex-wrap gap-x-6 gap-y-1">
-                <span>Nettó: <strong>{huf(amounts.net)}</strong></span>
-                <span>ÁFA ({amounts.vatPercent}%): {huf(amounts.vat)}</span>
-                <span>Bruttó: <strong>{huf(amounts.gross)}</strong></span>
-                <span className="text-muted-foreground">Forrás: {amounts.source === "items" ? "tételes számítás" : amounts.source === "manual" ? "megadott összeg" : "nincs összeg"}</span>
-              </div>
-              {amounts.mismatch && (
-                <div className="mt-2 text-destructive">Eltérés: tételes nettó {huf(amounts.itemsNet)}, megadott nettó {huf(amounts.manualNet)}. Ellenőrizd!</div>
-              )}
-            </div>
-          </div>
-            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
-            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
-            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
-          </div>
+          }}>{pricingEditor}
           <div className="mt-6 border-t py-5"><QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} /></div>
-          </QuoteTemplatePanel> : <div>
-          <div className="flex items-center justify-between gap-3 py-5">
-            <h2 className="text-sm font-semibold">Árazási alapadatok</h2>
-            <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
-              <Save className="mr-1.5 h-4 w-4" /> Mentés
-            </Button>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="q-disc">Kedvezmény (%)</Label>
-                <Input id="q-disc" type="number" min={0} max={100} step="0.01" value={form.discount_percent} onChange={(e) => set("discount_percent", e.target.value)} placeholder="0" />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="q-tax">ÁFA (%)</Label>
-                <Input id="q-tax" type="number" min={0} max={100} step="0.01" value={form.tax_percent} onChange={(e) => set("tax_percent", e.target.value)} placeholder="27" />
-              </div>
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="q-manual">Megadott nettó összeg (fájlalapú ajánlat, Ft)</Label>
-              <Input id="q-manual" type="number" min={0} step="1" value={form.manual_net_amount} onChange={(e) => set("manual_net_amount", e.target.value)} placeholder="Ha ismert és ellenőrzött" />
-            </div>
-            <div className="rounded-md border bg-muted/30 p-3 text-sm sm:col-span-2">
-              <div className="flex flex-wrap gap-x-6 gap-y-1">
-                <span>Nettó: <strong>{huf(amounts.net)}</strong></span>
-                <span>ÁFA ({amounts.vatPercent}%): {huf(amounts.vat)}</span>
-                <span>Bruttó: <strong>{huf(amounts.gross)}</strong></span>
-                <span className="text-muted-foreground">Forrás: {amounts.source === "items" ? "tételes számítás" : amounts.source === "manual" ? "megadott összeg" : "nincs összeg"}</span>
-              </div>
-              {amounts.mismatch && (
-                <div className="mt-2 text-destructive">Eltérés: tételes nettó {huf(amounts.itemsNet)}, megadott nettó {huf(amounts.manualNet)}. Ellenőrizd!</div>
-              )}
-            </div>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
-            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
-            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
-          </div></div>}
+          </QuoteTemplatePanel> : pricingEditor}
         </TabsContent>
         <TabsContent value="send" forceMount hidden={workspace !== "send"} className="py-5">
           {own && <div className="mb-6 space-y-4">
