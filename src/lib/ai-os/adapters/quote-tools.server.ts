@@ -35,8 +35,8 @@ async function items(id: string, args: Record<string, unknown>, ctx: ToolContext
 export function registerQuoteTools() {
   registerSalesIntelligenceTools();
   registerTool({ name: "crm_list_quotes", domain: "crm.quotes",
-    description: "Ajánlatok, lead- és projekt-only cégkapcsolattal, nettóval és aktuális/verzió/alternatíva jelöléssel. Lapozott összesítés csak teljes oldalnál teljes kiválasztás, nem összeadott alternatívák.",
-    parameters: { type: "object", properties: { company_id: { type: "string" }, lead_id: { type: "string" }, project_id: { type: "string" }, ...CRM_PAGE_PROPERTIES } },
+    description: "Ajánlatok, lead- és projekt-only cégkapcsolattal, nettóval és aktuális/verzió/alternatíva jelöléssel. Saját Sales-ajánlatokhoz szűrő nélkül hívd: RLS védi. lead_id/company_id/project_id konkrét rekord UUID, soha nem me. Lapozott összesítés csak teljes oldalnál teljes kiválasztás, nem összeadott alternatívák.",
+    parameters: { type: "object", properties: { company_id: { type: "string", format: "uuid" }, lead_id: { type: "string", format: "uuid" }, project_id: { type: "string", format: "uuid" }, ...CRM_PAGE_PROPERTIES } },
   }, async (args, ctx) => {
     try { return { ok: true, data: await readQuoteList(args, ctx) }; } catch (e) { return toolError.fromException(e); }
   });

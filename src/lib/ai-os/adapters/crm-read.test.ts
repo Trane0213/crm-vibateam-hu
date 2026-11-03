@@ -57,6 +57,10 @@ describe("Timothy P1/A CRM reads", () => {
     await expect(execute('crm_list_followups', {assigned_to:'Ramon'}, f.ctx)).rejects.toThrow();
     expect(f.calls).toEqual([]);
   });
+  it('rejects me used as a quote entity before any database call', async () => {
+    const f=fixture({}); const out=await execute('crm_list_quotes',{lead_id:'me'},f.ctx);
+    expect(out.ok).toBe(false); expect(f.calls).toEqual([]);
+  });
   it('rejects malformed dates and invalid legacy page sizes before querying', async () => {
     for (const args of [{due_before:'2026-11-03'}, {limit:-1}, {limit:1.5}, {offset:-1}]) {
       const f=fixture({}); await expect(execute('crm_list_followups',args,f.ctx)).rejects.toThrow(); expect(f.calls).toEqual([]);

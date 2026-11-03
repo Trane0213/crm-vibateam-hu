@@ -3,6 +3,9 @@ import { crmReadPage, readWindow } from "./crm-read-page";
 import { QUOTE_SELECT, quoteContext, quotePageSummary } from "./quote-context";
 
 export async function readQuoteList(args: Record<string, unknown>, ctx: ToolContext, defaultLimit = 25, budget = 10000) {
+  for (const field of ['lead_id', 'company_id', 'project_id', 'group_id']) {
+    if (args[field] === 'me') throw new Error(`${field} rekordazonosító, nem felhasználó. Saját ajánlatokhoz hagyd el a szűrőt: a felhasználói RLS érvényesül; me csak assigned_to mezőben használható.`);
+  }
   const window = readWindow(args, defaultLimit);
   const sb = ctx.supabaseUser;
   let q = sb.from("quotes").select(QUOTE_SELECT, { count: "exact" });
