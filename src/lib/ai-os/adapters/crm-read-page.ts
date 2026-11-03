@@ -23,10 +23,11 @@ function boundText(value: unknown, truncated: string[], path: string): unknown {
   return value;
 }
 
-export function crmReadPage(rows: Record<string, unknown>[], count: number | null, window: { limit: number; offset: number }, source: string, budget = 18000) {
+export function crmReadPage(rows: unknown[], count: number | null, window: { limit: number; offset: number }, source: string, budget = 18000) {
   const items: Record<string, unknown>[] = [];
   const truncatedFields: string[] = [];
   for (const row of rows) {
+    if (!row || typeof row !== "object" || Array.isArray(row) || !("id" in row) || typeof row.id !== "string") throw new Error("Érvénytelen CRM rekord; hiányzó forrásazonosító.");
     const fields: string[] = [];
     const item = boundText(row, fields, String(row.id)) as Record<string, unknown>;
     if (JSON.stringify([...items, item]).length > budget) break;
