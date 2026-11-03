@@ -23,8 +23,8 @@ const user={id:'TESZT-user'};
 qc.setQueryData(['r2-status'],{configured:true});
 qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});
 qc.setQueryData(['quote-template-defaults','b2b'],{revision:0,terms:{payment:'TESZT alap'}});
-(window as any).switchKind=(kind:any)=>{quote.quote_kind=kind;qc.clear();qc.setQueryData(['r2-status'],{configured:true});qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});qc.setQueryData(['quote-template-defaults','b2b'],{revision:0,terms:{payment:'TESZT alap'}});render(kind);};
-let currentKind='received_budget';const rootRoute=createRootRoute({component:()=> <QuoteWorkflowDetail key={currentKind} id={quote.id}/>});
+(window as any).switchKind=(kind:any)=>{quote.quote_kind=kind;qc.clear();qc.setQueryData(['r2-status'],{configured:true});qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});qc.setQueryData(['quote-template-defaults','b2b'],{revision:0,terms:{payment:'TESZT alap'}});render(kind);window.location.hash=kind;};
+let currentKind='received_budget';const rootRoute=createRootRoute({component:()=> <QuoteWorkflowDetail key={currentKind} id={quote.id+'-'+currentKind}/>});
 const router=createRouter({routeTree:rootRoute});
 const root=createRoot(document.getElementById('root') as HTMLElement);
 function render(kind:string){currentKind=kind;root.render(<QueryClientProvider client={qc}><RouterProvider router={router}/></QueryClientProvider>);router.invalidate();}
