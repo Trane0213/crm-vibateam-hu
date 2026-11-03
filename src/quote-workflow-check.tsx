@@ -19,7 +19,7 @@ const user={id:'TESZT-user'};
  if(table==='users_profile')data=[{auth_user_id:'TESZT-user',full_name:'TESZT Sales',active:true,roles:{name:'sales'}}];
  if(table==='contacts')data=[];
  if(!single&&!Array.isArray(data))data=[data];resolve({data:single&&Array.isArray(data)?data[0]??null:data,error:null});};
- return (...args:any[])=>{if(prop==='maybeSingle'||prop==='single')single=true;if(prop==='update')payload=args[0];return chain;};}});return chain;};
+ return (...args:any[])=>{if(prop==='maybeSingle'||prop==='single'){single=true;return Promise.resolve({data:table==='quotes'?quote:table==='leads'?{id:'TESZT-lead',company_id:'TESZT-company',summary:'TESZT ügy'}:null,error:null});};if(prop==='update')payload=args[0];return chain;};}});return chain;};
 qc.setQueryData(['r2-status'],{configured:true});
 qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});
 qc.setQueryData(['quote-template-defaults','b2b'],{revision:0,terms:{payment:'TESZT alap'}});
