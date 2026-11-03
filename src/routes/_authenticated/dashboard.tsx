@@ -29,6 +29,13 @@ import { PROJECT_STATUS, PROJECT_STATUS_LABEL, PROJECT_STATUS_TONE, ACTIVE_PROJE
 import { tStatus } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  head:()=>({meta:[
+    {title:'Irányítópult – vezetői áttekintés | VIBA CRM'},
+    {name:'description',content:'VIBA CRM vezetői ügy-, ajánlat- és projektáttekintés, napi mutatókkal.'},
+    {property:'og:title',content:'Irányítópult – vezetői áttekintés | VIBA CRM'},
+    {property:'og:description',content:'Vezetői mutatók, határidők és saját napi Sales AI-javaslat a VIBA CRM-ben.'},
+    {property:'og:type',content:'website'},{name:'twitter:card',content:'summary'},
+  ]}),
   component: Dashboard,
 });
 

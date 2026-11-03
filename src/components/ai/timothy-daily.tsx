@@ -22,11 +22,13 @@ export function TimothyDaily() {
   useEffect(()=>{ let active=true; if(daily.data) void dailySalesFingerprint(daily.data).then(h=>{if(active)setFingerprint(h);}); return()=>{active=false;}; },[daily.data]);
   const query=useQuery({queryKey,
     enabled:!!user && !!daily.data && !daily.isError,
-    queryFn:()=>call({data:{mode:'sales',intent:'automatic'}}),retry:false,staleTime:Infinity,
+    queryFn:()=>call({data:{mode:'sales',intent:client.getQueryData<{status:string}>(queryKey)?.status==='running'?'read':'automatic'}}),retry:false,staleTime:Infinity,
+    refetchInterval:q=>q.state.data?.status==='running'?5000:false,
     refetchOnWindowFocus:false});
   async function refresh() {
     setManual(true);setManualError(null);
     try { const res=await call({data:{mode:'sales',intent:'manual'}});
+      if (!res || typeof res.status !== 'string') throw new Error('A napi javaslat frissítése sikertelen.');
       client.setQueryData(queryKey,res);
       if(res.status !== 'ready') setManualError('A napi javaslat nem készült el; a futás eredménye nem igazolt.');
     } catch(e) {setManualError(e instanceof Error?e.message:'A frissítés sikertelen.');} finally {setManual(false);}
