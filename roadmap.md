@@ -12,8 +12,9 @@
 - [x] P2 előkészítés: eredeti specifikáció, közös napi logika és ismétlődő briefing vizsgálata; élő ai_memory constraint/RLS ellenőrzés, előzetes terv.
 - [x] P2 megvalósítás: kompakt Timothy-kártya, közös napi adatok, tartós napi futásvédelem, frissesség; regresszió/AI acceptance/izolált SQL és böngésző; jelentés és STOP, publikálás nélkül.
 - [ ] P2 hitelesített Sales/owner napi kvóta, kézi frissítés és modellminőség végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet. Korábbi P1 és P0 végigpróbák továbbra is nyitva.
-- [ ] P3 előkészítés: jóváhagyott folytatás alapján CRM-műveletek és Gmail-küldés meglévő útjainak ellenőrzése; hatás/visszaállítás és szakaszos végrehajtási terv.
-- [ ] P3 megvalósítás és hitelesített lezárási kapu; P4–P5 nem indult.
+- [x] P3 előkészítés: CRM/Gmail meglévő útjainak ellenőrzése; P3/A terv és hatás/rollback jóváhagyva.
+- [x] P3/A jóváhagyott Hívás/E-mail aktivitás: existing followups, P0 action UUID idempotencia, audittranzakció, szerveridő; 234 teszt és AI 17 forgatókönyv PASS, izolált SQL/kártya PASS; STOP.
+- [ ] P3/A hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. P3/B–D és P4–P5 nem indult; külön jóváhagyásra vár.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
