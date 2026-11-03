@@ -32,6 +32,7 @@ type QuoteItem = {
   quantity: number | null;
   unit: string | null;
   unit_price: number | null;
+  section?: string | null;
 };
 
 /**
@@ -39,7 +40,7 @@ type QuoteItem = {
  * Tényleges DB-séma: id, quote_id, name, quantity, unit, unit_price, created_at.
  * Sor-összeg = quantity * unit_price (számolt, nem tárolt).
  */
-export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
+export function QuoteItemsPanel({ quoteId, locked = false }: { quoteId: string; locked?: boolean }) {
   const items = useListWhere<QuoteItem>("quote_items", "quote_id", quoteId, {
     order: "created_at",
     ascending: true,
@@ -55,6 +56,11 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
     (acc, r) => acc + (Number(r.quantity) || 0) * (Number(r.unit_price) || 0),
     0,
   );
+  const sections = new Map<string, number>();
+  for (const r of rows) {
+    const k = r.section?.trim() || "";
+    if (k) sections.set(k, (sections.get(k) ?? 0) + (Number(r.quantity) || 0) * (Number(r.unit_price) || 0));
+  }
 
   return (
     <>
@@ -62,10 +68,21 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
         <div className="text-sm text-muted-foreground">
           {rows.length} tétel · nettó részösszeg (kedvezmény előtt): <span className="font-medium tabular-nums text-foreground">{formatHuf(sum)}</span>
         </div>
-        <Button size="sm" onClick={() => setEditing({ quote_id: quoteId, quantity: 1 })}>
-          <Plus className="mr-1 h-4 w-4" /> Új tétel
-        </Button>
+        {locked ? (
+          <span className="text-xs text-muted-foreground">Kiküldött ajánlat — a tételek nem módosíthatók, készíts új verziót.</span>
+        ) : (
+          <Button size="sm" onClick={() => setEditing({ quote_id: quoteId, quantity: 1 })}>
+            <Plus className="mr-1 h-4 w-4" /> Új tétel
+          </Button>
+        )}
       </div>
+      {sections.size > 0 && (
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          {Array.from(sections.entries()).map(([k, v]) => (
+            <span key={k}>{k}: <span className="tabular-nums text-foreground">{formatHuf(v)}</span></span>
+          ))}
+        </div>
+      )}
 
       {items.isLoading ? (
         <div className="mt-3 text-sm text-muted-foreground">Betöltés…</div>
@@ -78,6 +95,7 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Munkarész</TableHead>
                 <TableHead>Megnevezés</TableHead>
                 <TableHead className="text-right">Menny.</TableHead>
                 <TableHead>Egység</TableHead>
@@ -91,26 +109,27 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
                 const total = (Number(r.quantity) || 0) * (Number(r.unit_price) || 0);
                 return (
                   <TableRow key={r.id}>
+                    <TableCell className="text-muted-foreground">{r.section ?? "—"}</TableCell>
                     <TableCell className="font-medium">{r.name ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{r.quantity ?? "—"}</TableCell>
                     <TableCell>{r.unit ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{formatHuf(r.unit_price)}</TableCell>
                     <TableCell className="text-right tabular-nums font-medium">{formatHuf(total)}</TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-1">
+                      {!locked && <div className="flex justify-end gap-1">
                         <Button size="icon" variant="ghost" onClick={() => setEditing(r)} aria-label="Szerkesztés">
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button size="icon" variant="ghost" onClick={() => setDeleteId(r.id)} aria-label="Törlés">
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </div>
+                      </div>}
                     </TableCell>
                   </TableRow>
                 );
               })}
               <TableRow>
-                <TableCell colSpan={4} className="text-right text-sm text-muted-foreground">Összesen</TableCell>
+                <TableCell colSpan={5} className="text-right text-sm text-muted-foreground">Összesen</TableCell>
                 <TableCell className="text-right tabular-nums font-semibold">{formatHuf(sum)}</TableCell>
                 <TableCell />
               </TableRow>
@@ -126,6 +145,16 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
           </DialogHeader>
           {editing && (
             <div className="grid gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="qi-section">Munkarész (opcionális)</Label>
+                <Input
+                  id="qi-section"
+                  value={editing.section ?? ""}
+                  onChange={(e) => setEditing({ ...editing, section: e.target.value })}
+                  placeholder="pl. P1 szerelés / kábelhúzás / energiasínek"
+                  maxLength={120}
+                />
+              </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="qi-name">Megnevezés</Label>
                 <Input
@@ -188,6 +217,7 @@ export function QuoteItemsPanel({ quoteId }: { quoteId: string }) {
                     quantity: editing.quantity,
                     unit: editing.unit,
                     unit_price: editing.unit_price,
+                    section: editing.section?.trim() || null,
                   },
                   { onSuccess: () => setEditing(null) },
                 );

@@ -13,6 +13,7 @@ import { fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import { useUpsert, useListWhere } from "@/lib/db-hooks";
 import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
+import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
 import { quoteAmounts } from "@/lib/quotes/amounts";
 import { formatHuf } from "@/lib/format";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -197,6 +198,8 @@ function QuoteDetail() {
               </span>
               <Badge variant="secondary">{quote.status ?? "draft"}</Badge>
               {quote.is_current && <Badge variant="outline">aktuális</Badge>}
+              <Badge variant="outline">{(quote as any).alternative_key ?? "A"} alt.</Badge>
+              {(quote as any).locked_at && <Badge>kiküldve</Badge>}
               {quote.version != null && quote.title && (
                 <span className="text-xs font-normal text-muted-foreground">v{quote.version}</span>
               )}
@@ -244,10 +247,11 @@ function QuoteDetail() {
       </div>
 
       <div className="p-6">
+        <div className="mb-6"><QuoteVersionsBar quote={quote as any} /></div>
         <div className="rounded-md border bg-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold">Fej-adatok</h2>
-            <Button size="sm" onClick={onSave} disabled={upsert.isPending}>
+            <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
               <Save className="mr-1.5 h-4 w-4" /> Mentés
             </Button>
           </div>
@@ -308,7 +312,7 @@ function QuoteDetail() {
         </div>
         {/* Meglévő tétel-panel: a nyomtatási nézet ezekből a tételekből számol. */}
         <div className="mt-6 rounded-md border bg-card p-5">
-          <QuoteItemsPanel quoteId={quote.id} />
+          <QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} />
         </div>
       </div>
     </div>
