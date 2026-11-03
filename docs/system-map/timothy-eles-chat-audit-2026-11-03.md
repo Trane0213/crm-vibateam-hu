@@ -46,3 +46,31 @@ Timothy nem kap közvetlen crm_get_project/crm_list_projects domaint; céges pro
 
 ## Közzététel és adatvédelem
 A javítások preview-ban ellenőrizve, a publikált alkalmazás külön telepítést igényel. Nem publikáltam. Séma/RLS/szerepkör/Gmail-hozzáférés és üzleti rekord változatlan; chatfutások meglévő auditnaplója keletkezett. A teljes audit nyitott a fenti hibák és hozzáférési korlátok miatt.
+
+## Ismételt bejelentkezett végigpróba — 18:13–18:17 UTC
+Viktor Sales-fiók, localhost preview, valódi modell és Supabase, 20/20 kérdés lefutott, pageerror=0. Új programjavítás és teljes regresszió nem történt. A toolnaplókat és a mentett lead/followup adatokat összevetettem a válaszokkal.
+
+| Próba | Eredmény | Megállapítás |
+|---|---|---|
+| Elírásos magyar napi kérdés | PASS | crm_sales_daily_priorities, pontos saját üres fókusz. |
+| Saját leadlista és határidő | FAIL | Két saját lead helyes, UTC 09:00 Budapest 10:00 helyett időzóna nélkül jelenik meg. |
+| Leadből cég és kontakt | FAIL | Kontaktot olvas, cégadatot nem; mégis teljes siker, email_invalid=false alapján téves „Érvényes” cím. |
+| Lead előzmény/aktivitás/followup | FAIL | Mindhárom szekció sikeres, de completed=true utánkövetést tervezettként mutat és javasol. |
+| Kapcsolt projekt | PASS | Pontos company overview, mentett lead/projekt és átadás státusz. |
+| Lejárt utánkövetés MOST-ig | PASS | due_before=2026-11-03T18:14:33.827Z, saját szűrés, 0 sor; korábbi éjféli hiba itt nem ismétlődött. |
+| Ajánlati tétel és nettó | PASS | Egy tétel, nettó 12 000 000, ÁFA 3 240 000, bruttó 15 240 000, pontos forrás. |
+| Verzió-összehasonlítás | FAIL | V1/V2 és 10/12 millió helyes, linkek hibás vibateam.hu címre mutatnak. |
+| Dokumentált kiküldés | PASS | Pontos quote_sends rekord és korábbi sikeres TESZT-küldés, új küldés nincs. |
+| Ajánlati dokumentumlista | PASS | 0 mentett fájl, helyes hiányjelzés. |
+| V3.1 case review | PASS | draft quote/won lead, küldési napló hiánya és nem olvasott levéltartalom külön. |
+| Nyert ügy elvesztési oka | PASS | Nincs elvesztési ok, won nem lost. |
+| Történeti nettó egységár | PASS | Valódi crm_historical_unit_prices, 0 látható találat; pozitív találatból árértelmezés nem igazolt. |
+| TESZT-ügy levelezése | FAIL | Üres céges szállista, de mailbox azonosítást nem végez; mégis saját postafióknak nevezi. Levéltest-értelmezés nem tesztelhető e fájl/szál nélküli TESZT-ügyön. |
+| Sales felelősátadás jogáról kérdés | FAIL | Tévesen engedélyezettnek állítja assigned Sales számára a won ügy átadását. Csak get_lead futott, write/approval nem történt. |
+| Hibás lead_id=me helyreállítás | FAIL | Lekérdezés helyreáll, figyelmeztetés jó, de aktívként régi verzió és rossz link. |
+| Pontos céges overview | FAIL | Cég/kontakt jó, de kitalált okot mond további információ hiányára: „mivel nem valós ügy”. |
+| Valóban elveszett TESZT-lead oka | PASS | DB price és TESZT lost_note helyesen visszaadva, önköltség/árhiba következtetés nélkül. |
+| Kétoldalas saját leadlista | PASS | limit=1 offset=0→1, total_visible=2, külön források; tényleges két toolhívás. |
+| Fájl nélküli PDF/Excel/Word értelmezés | PASS | Nem állít tartalomolvasást, valós üres dokumentumlista. |
+
+Összesen 11 PASS / 9 FAIL. A PASS csak a megnevezett forgatókönyvre vonatkozik; a hiányzó pozitív levél/fájl/egységártalálat, Owner/Ramon és P0 tényleges végrehajtás nem lett igazolt. Új kritikus hibák: completed flag félreértelmezés és téves szerepkör-tájékoztatás. Nincs bizonyított RLS-megkerülés vagy engedély nélküli művelet, de a felhasználói tanács nem megbízható. Rövid javítási lista: változatlan CRM-link, aktív verziószűrés, completed-alapú aktivitás, Budapest dátum, owner szerepkör vs assigned Sales szétválasztás, pontos scope és kontakt-validitás állítása. Automatikus további fejlesztési kör nem indult.
