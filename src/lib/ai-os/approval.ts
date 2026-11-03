@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ToolSpec } from "./types";
 import { verifyPrepAction } from './prep-action';
+import { verifyNextStepAction } from './next-step-action';
 
 export type ActionStatus = "pending" | "executing" | "succeeded" | "failed" | "rejected" | "expired" | "unknown";
 export type ApprovalSnapshot = {
@@ -45,6 +46,7 @@ export function verifyExecution(toolName: string, value: unknown, args: Record<s
   if (out?.ok !== true) return { status: "unknown" };
   if (toolName === "memory_write") return { status: typeof out.id === "string" && out.id.length > 0 ? "succeeded" : "unknown" };
   const data = out.data;
+  if(toolName==='sales_update_next_step')return {status:verifyNextStepAction(data,args)?'succeeded':'unknown'};
   if(toolName==='sales_record_prep_activity')return {status:verifyPrepAction(data,args)?'succeeded':'unknown'};
   if (toolName === "sales_mark_won_with_project") return { status: typeof data?.project_id === "string" && z.string().uuid().safeParse(data.project_id).success ? "succeeded" : "unknown" };
   const campaign = data?.campaign as { id?: string; status?: string } | undefined;

@@ -92,12 +92,13 @@ export const AGENTS: Record<string, AgentDefinition> = {
     provider: "openai",
     model: "gpt-4o-mini",
     temperature: 0.2,
-    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "sales.prep_activity", "kg", "website.knowledge"],
+    tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "sales.prep_activity", "sales.next_step", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
         commonHeader(ctx, "Timothy (Sales)"),
         ``,
         `Hatáskör: pipeline, ajánlatkészítés, utókövetés, megnyerés.`,
+        `P3/B1: sales_update_next_step csak pontos lead következő lépését menti (type, dueAt, note), külön P0 jóváhagyással. Felhasználó által megadott teljes dátum és idő szükséges, Europe/Budapest értelmezéssel és pontos ISO időzónával. Hiányzó időt/dátumot ne találj ki, relatív/nyári időszámítás miatt kétértelmű időpontot tisztázz. Egy régi jegyzet felülírására és üres jegyzetre is kérj egyértelmű utasítást. A kártya régi/új értékeket mutat; megváltozott szerverállapothoz új jóváhagyás kell. Nincs lépéstörlés, új followup, kontakt/felelős/státusz változtatás vagy levélküldés. Összetett aktivitás + következő lépés kérés két külön művelet és jóváhagyás; egyik sikere nem bizonyítja a másikét. Csak igazolt succeeded után állíts mentést.`,
         `P3/A: sales_record_prep_activity csak már megtörtént Hívás (call) vagy E-mail (email) eredményt rögzít, pontos leadId + type + result alapján, P0 jóváhagyás után. Csak előkészítésben lévő, jogosult saját ügy. Időpontot nem kérsz/nem adsz, a jóváhagyáskor szerver rögzíti; nincs visszadátumozás. Cég/kapcsolattartó/felelős a mentett leadből jön. A művelet NEM módosít következő lépést, státuszt, felelőst vagy kapcsolattartót és NEM küld e-mailt. Összetett kérésnél egyértelműen jelezd: kizárólag aktivitás rögzül, a következő lépés a meglévő ügy-munkafelületen menthető. Hiányos/ellentmondásos eredmény vagy nem egyértelmű ügy esetén kérdezz, ne találj ki tényt. Csak igazolt succeeded állapot után állíts rögzítést.`,
         `Megnyerést csak a projektlétrehozó folyamaton keresztül (sales_mark_won_with_project tool) javasolj.`,
         `CRM-HELYZETKÉP P1/A: konkrét céget/leadet először crm_search, crm_company_overview, crm_get_lead eszközzel azonosíts. Lead előzményhez crm_lead_history: status_history, followups és activities szekciók külön olvasandók.`,
