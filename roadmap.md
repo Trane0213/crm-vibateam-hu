@@ -18,6 +18,7 @@
 - [x] P3 folytatás: jóváhagyott lead-utánkövetés existing táblába, nyitott ismétlésvédelemmel; egy összevont kör 273 teszt/AI/build/izolált SQL/kártya PASS, rövid közös jegyzet; nem publikált.
 - [x] P3 kapcsolattartó: existing azonos céges személy nyitott leaden, régi/új P0 kontextus; 287 teszt/AI/build/izolált SQL/kártya PASS, más rekordadat/ajánlati kontakt változatlan; nem publikált.
 - [x] P3 felelős-átadás: owner-only P0, meglévő lapozott átvevőkereső, aktív Sales cél, nyitott lead, kontextus/audit/readback; 309 teszt/AI/build/izolált SQL/kártya PASS, migráció sikeres, éles action=0; nem publikált.
+- [ ] P3 nyitott Pipeline-státusz: meglévő átmenetekkel P0-jóváhagyás, friss lead/feltételek, atomi audit/readback, izolált teszt; nincs beléptetés/lezárás/küldés.
 - [ ] P3 hitelesített két-chat/valódi RLS és modellpróba: external_unmanaged munkamenetkorlát. Státusz/küldés és P4–P5 külön jóváhagyásra vár.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
