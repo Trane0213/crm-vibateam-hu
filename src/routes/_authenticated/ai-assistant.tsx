@@ -12,6 +12,8 @@ import {
   Bubble,
 } from "@/components/ai/chat-shared";
 import { runAiAgent } from "@/lib/ai-os/runtime.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
@@ -19,6 +21,7 @@ import { useVisibleAgents } from "@/hooks/use-visible-agents";
 
 export const Route = createFileRoute("/_authenticated/ai-assistant")({
   component: AiAssistantRoute,
+  head: () => ({ meta: [{ title: "AI-asszisztens | VIBA CRM" }, { name: "description", content: "VIBA CRM asszisztensek és jóváhagyott műveletek." }, { property: "og:title", content: "AI-asszisztens | VIBA CRM" }, { property: "og:description", content: "VIBA CRM asszisztensek és jóváhagyott műveletek." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
 });
 
 function AiAssistantRoute() {
@@ -37,6 +40,7 @@ function AiAssistantRoute() {
 
 function AiAssistantPage() {
   const navigate = useNavigate();
+  const run = useServerFn(runAiAgent);
   const { visibleAgentIds } = useVisibleAgents();
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const urlAgent = (() => {
@@ -114,7 +118,7 @@ function AiAssistantPage() {
 
   async function ask(text: string) {
     const question = text.trim();
-    if (!question || busy) return;
+    if (!question || busy || checking) return;
     if (question.length > 4000) {
       toast.error("A kérdés túl hosszú", { description: "Rövidítsd 4000 karakter alá." });
       return;
@@ -137,13 +141,14 @@ function AiAssistantPage() {
         .filter((m) => m.role === "user" || m.role === "assistant")
         .slice(-20)
         .map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
-      const result = await runAiAgent({ data: { agentId: aiAgentId, history } });
+      const result = await run({ data: { agentId: aiAgentId, history } });
       const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
         ? result.pendingApprovals.map((p) => ({
             tool_call_id: p.tool_call_id,
             tool_name: p.tool_name,
             arguments_json: p.arguments_json,
-            status: "pending" as const,
+            action_id: p.action_id, expires_at: p.expires_at,
+            status: p.status, verified: true,
             approval: (p as any).approval,
             supports_dry_run: (p as any).supports_dry_run,
           }))
@@ -172,57 +177,7 @@ function AiAssistantPage() {
     }
   }
 
-  async function approveToolCall(msgId: string, toolCallId: string) {
-    const thread = active;
-    if (!thread) return;
-    const msg = thread.messages.find((m) => m.id === msgId);
-    if (!msg?.approvals) return;
-    const approval = msg.approvals.find((a) => a.tool_call_id === toolCallId);
-    if (!approval || approval.status !== "pending") return;
-    updateApprovalStatus(msgId, toolCallId, "pending");
-    setBusy(true);
-    try {
-      const aiAgentId = uiAgentToAiOs(thread.agent ?? agent);
-      // A history-t a userMsg-ig építjük újra (az approvals az utolsó assistant lépéshez tartoznak).
-      const idx = thread.messages.findIndex((m) => m.id === msgId);
-      const history = thread.messages
-        .slice(0, idx)
-        .filter((m) => m.role === "user" || m.role === "assistant")
-        .slice(-20)
-        .map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
-      const result = await runAiAgent({
-        data: { agentId: aiAgentId, history, approvedToolCallIds: [toolCallId] },
-      });
-      updateApprovalStatus(msgId, toolCallId, "approved");
-      const followup: Msg = {
-        id: uid(), role: "assistant", at: Date.now(),
-        content: result.finalText || "Művelet végrehajtva.",
-        runId: result.runId,
-      };
-      setThreads((prev) => prev.map((t) => t.id === thread.id ? {
-        ...t, updatedAt: Date.now(), messages: [...t.messages, followup],
-      } : t));
-      toast.success(`${approval.tool_name} végrehajtva`);
-    } catch (e: any) {
-      updateApprovalStatus(msgId, toolCallId, "error", e?.message ?? String(e));
-      toast.error("Végrehajtás sikertelen", { description: e?.message });
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function rejectToolCall(msgId: string, toolCallId: string) {
-    updateApprovalStatus(msgId, toolCallId, "rejected");
-  }
-
-  function updateApprovalStatus(msgId: string, toolCallId: string, status: ToolApproval["status"], error?: string) {
-    setThreads((prev) => prev.map((t) => t.id !== activeId ? t : {
-      ...t,
-      messages: t.messages.map((m) => m.id === msgId && m.approvals
-        ? { ...m, approvals: m.approvals.map((a) => a.tool_call_id === toolCallId ? { ...a, status, error } : a) }
-        : m),
-    }));
-  }
+  const { act, checking } = useAiApprovals(threads, activeId, update => setThreads(update));
 
   const meta = AGENT_META[agent];
   const quickActions = QUICK_ACTIONS[agent];
@@ -242,7 +197,7 @@ function AiAssistantPage() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="truncate text-lg font-semibold tracking-tight">{meta.name}</h1>
-              <Badge variant="outline" className="text-[10px] font-normal">Csak olvasás</Badge>
+              <Badge variant="outline" className="text-[10px] font-normal">Írás csak jóváhagyással</Badge>
             </div>
             <p className="mt-0.5 text-sm text-muted-foreground">"{meta.tagline}"</p>
           </div>
@@ -321,8 +276,9 @@ function AiAssistantPage() {
                     key={m.id}
                     msg={m}
                     onOpenNav={() => m.nav && navigate({ to: m.nav.to as any, params: m.nav.params as any })}
-                    onApproveTool={(cid) => approveToolCall(m.id, cid)}
-                    onRejectTool={(cid) => rejectToolCall(m.id, cid)}
+                    onApproveTool={(cid, confirmation) => act(m.id, cid, "approve", confirmation)}
+                    onRejectTool={(cid) => act(m.id, cid, "reject")}
+                    onCheckTool={(cid) => act(m.id, cid, "check")}
                   />
                 ));
               })()}
@@ -387,7 +343,7 @@ function EmptyChat({ onPick, disabled, agent, meta, actions }: {
       <div>
         <h3 className="text-sm font-semibold">{meta.name}</h3>
         <p className="mx-auto mt-1 max-w-md text-xs text-muted-foreground">
-          {meta.tagline} A saját jogosultságoddal lát adatokat. Csak olvas — nem hoz létre és nem módosít.
+          {meta.tagline} A saját jogosultságoddal lát adatokat. Írás csak igazolt jóváhagyással történik.
         </p>
       </div>
       <div className="grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">

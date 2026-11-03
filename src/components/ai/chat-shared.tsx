@@ -11,6 +11,7 @@ import bossPortrait from "@/assets/agent-boss.jpg";
 import michaelPortrait from "@/assets/agent-michael.jpg";
 import scarletPortrait from "@/assets/agent-scarlet.jpg";
 import { AgentResponse } from "@/components/ai/agent-response";
+import { ACTION_LABELS, type ActionStatus } from "@/lib/ai-os/approval";
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
@@ -23,7 +24,9 @@ export type ToolApproval = {
   tool_call_id: string;
   tool_name: string;
   arguments_json: string;
-  status: "pending" | "approved" | "rejected" | "error";
+  action_id?: string; expires_at?: string;
+  status: ActionStatus | "approved" | "error";
+  verified?: boolean; submitting?: boolean; transportError?: string; no_op?: boolean;
   error?: string;
   approval?: ApprovalLevel;
   supports_dry_run?: boolean;
@@ -96,7 +99,9 @@ export function loadThreads(): Thread[] {
       const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
       if (legacy) { localStorage.setItem(key, legacy); localStorage.removeItem(LEGACY_STORAGE_KEY); raw = legacy; }
     }
-    return raw ? (JSON.parse(raw) as Thread[]) : [];
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Thread[];
+    return parsed.map(t => ({ ...t, messages: t.messages.map(m => ({ ...m, approvals: m.approvals?.map(a => ({ ...a, verified: false, submitting: false })) })) }));
   } catch {
     return [];
   }
@@ -212,10 +217,11 @@ export const AGENT_META: Record<AgentId, AgentMeta> = {
 };
 
 
-export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool }: {
+export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool, onCheckTool }: {
   msg: Msg;
   onOpenNav?: () => void;
-  onApproveTool?: (toolCallId: string) => void;
+  onApproveTool?: (toolCallId: string, confirmation?: string) => void;
+  onCheckTool?: (toolCallId: string) => void;
   onRejectTool?: (toolCallId: string) => void;
 }) {
   const isUser = msg.role === "user";
@@ -239,7 +245,8 @@ export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool }: {
             <ToolApprovalCardView
               key={a.tool_call_id}
               approval={a}
-              onApprove={() => onApproveTool?.(a.tool_call_id)}
+              onApprove={(confirmation) => onApproveTool?.(a.tool_call_id, confirmation)}
+              onCheck={() => onCheckTool?.(a.tool_call_id)}
               onReject={() => onRejectTool?.(a.tool_call_id)}
             />
           ))}
@@ -257,9 +264,10 @@ export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool }: {
 }
 
 
-export function ToolApprovalCardView({ approval, onApprove, onReject }: {
+export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }: {
   approval: ToolApproval;
-  onApprove?: () => void;
+  onApprove?: (confirmation?: string) => void;
+  onCheck?: () => void;
   onReject?: () => void;
 }) {
   let argsPretty = approval.arguments_json;
@@ -267,7 +275,7 @@ export function ToolApprovalCardView({ approval, onApprove, onReject }: {
   const level: ApprovalLevel = approval.approval ?? "confirm";
   const [dangerText, setDangerText] = useState("");
   const dangerOk = dangerText.trim().toUpperCase() === "MEGERŐSÍTEM";
-  const tone = approval.status === "approved" ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
+  const tone = approval.status === "succeeded" && approval.verified ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5"
     : approval.status === "rejected" ? "border-muted bg-muted/30"
     : approval.status === "error" ? "border-destructive/40 bg-destructive/5"
     : level === "dangerous" ? "border-destructive/50 bg-destructive/5"
@@ -285,10 +293,9 @@ export function ToolApprovalCardView({ approval, onApprove, onReject }: {
           {levelBadge}
           {approval.supports_dry_run && <Badge variant="outline" className="text-[10px]">dry_run támogatott</Badge>}
         </div>
-        {approval.status === "approved" && <Badge variant="outline" className="text-[10px]"><CheckCircle2 className="mr-1 h-3 w-3" />Végrehajtva</Badge>}
-        {approval.status === "rejected" && <Badge variant="outline" className="text-[10px]">Elvetve</Badge>}
-        {approval.status === "error" && <Badge variant="destructive" className="text-[10px]">Hiba</Badge>}
-        {approval.status === "pending" && <Badge variant="outline" className="text-[10px]">Jóváhagyásra vár</Badge>}
+        <Badge variant="outline" className="text-[10px]">
+          {!approval.action_id ? "Korábbi művelet – nem végrehajtható" : approval.submitting ? "Döntés mentése…" : !approval.verified ? "Állapot ellenőrzése szükséges" : approval.no_op ? "Már a kívánt állapotban" : ACTION_LABELS[approval.status as ActionStatus] ?? "Nem igazolt"}
+        </Badge>
       </div>
       {level === "dangerous" && approval.status === "pending" && (
         <div className="mb-2 rounded border border-destructive/40 bg-destructive/10 p-2">
@@ -299,8 +306,10 @@ export function ToolApprovalCardView({ approval, onApprove, onReject }: {
         </div>
       )}
       <pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>
+      {approval.transportError && <p className="mt-2 text-destructive">{approval.transportError}</p>}
+      {approval.action_id && (!approval.verified || approval.status === "unknown" || approval.status === "executing") && <Button size="sm" variant="outline" className="mt-2" disabled={approval.submitting} onClick={onCheck}>Állapot ellenőrzése</Button>}
       {approval.error && <p className="mt-2 text-destructive">{approval.error}</p>}
-      {approval.status === "pending" && (
+      {approval.status === "pending" && approval.action_id && (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {level === "dangerous" && (
             <input
@@ -315,12 +324,12 @@ export function ToolApprovalCardView({ approval, onApprove, onReject }: {
             size="sm"
             variant={level === "dangerous" ? "destructive" : "default"}
             className="h-7 px-2 text-[11px]"
-            onClick={onApprove}
-            disabled={level === "dangerous" && !dangerOk}
+            onClick={() => onApprove?.(level === "dangerous" ? dangerText.trim().toUpperCase() : undefined)}
+            disabled={approval.submitting || !approval.verified || (level === "dangerous" && !dangerOk)}
           >
             <CheckCircle2 className="mr-1 h-3 w-3" /> Jóváhagy és végrehajt
           </Button>
-          <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={onReject}>
+          <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" disabled={approval.submitting || !approval.verified} onClick={onReject}>
             <XCircle className="mr-1 h-3 w-3" /> Elvet
           </Button>
         </div>
