@@ -6,6 +6,7 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { safeAudit } from "./approval";
 
 export type RunStartInput = {
   userId: string;
@@ -49,17 +50,18 @@ export async function logStep(
     durationMs?: number;
   },
 ): Promise<void> {
-  await admin.from("agent_run_steps").insert({
+  const { error } = await admin.from("agent_run_steps").insert({
     run_id: input.runId,
     step_no: input.stepNo,
     kind: input.kind,
     agent_id: input.agentId,
     tool_name: input.toolName,
-    input_json: input.input as object | null,
-    output_json: input.output as object | null,
-    error: input.error,
+    input_json: safeAudit(input.input) as object | null,
+    output_json: safeAudit(input.output) as object | null,
+    error: safeAudit(input.error) as string | undefined,
     duration_ms: input.durationMs,
   });
+  if (error) throw new Error("Az AI-napló mentése sikertelen.");
 }
 
 export async function finishRun(
@@ -73,15 +75,16 @@ export async function finishRun(
     totalSteps?: number;
   },
 ): Promise<void> {
-  await admin
+  const { error } = await admin
     .from("agent_runs")
     .update({
       status: input.status,
-      error_message: input.errorMessage ?? null,
+      error_message: safeAudit(input.errorMessage) ?? null,
       prompt_tokens: input.promptTokens ?? 0,
       completion_tokens: input.completionTokens ?? 0,
       total_steps: input.totalSteps ?? 0,
       finished_at: new Date().toISOString(),
     })
     .eq("id", input.runId);
+  if (error) throw new Error("Az AI-futás lezárása sikertelen.");
 }
