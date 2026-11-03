@@ -57,8 +57,8 @@ export const getOwnRunProgress=createServerFn({method:'POST'})
   .handler(async({data,context})=>{
     const run=await context.supabase.from('agent_runs').select('id,status').eq('user_id',context.userId).eq('thread_id',data.threadId).gte('started_at',data.since).order('started_at',{ascending:false}).limit(1).maybeSingle();
     if(run.error || !run.data)return null;
-    const step=await context.supabase.from('agent_run_steps').select('tool_name').eq('run_id',run.data.id).eq('kind','tool').order('step_no',{ascending:false}).limit(1).maybeSingle();
-    return {label:progressLabel(step.error?null:step.data?.tool_name??null,run.data.status)};
+    const step=await context.supabase.from('agent_run_steps').select('tool_name,error').eq('run_id',run.data.id).eq('kind','tool').order('step_no',{ascending:false}).limit(1).maybeSingle();
+    return {label:progressLabel(step.error?null:step.data?.tool_name??null,run.data.status,!!step.data?.error)};
   });
 export const decideAiAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

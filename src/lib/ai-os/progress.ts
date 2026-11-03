@@ -1,4 +1,5 @@
-export function progressLabel(tool: string | null, status: string) {
+export function progressLabel(tool: string | null, status: string, failed=false) {
+  if(failed)return 'Egy adatellenőrzés nem sikerült; a hiányt külön jelzem.';
   if (status !== 'running') return status === 'ok' ? 'Az ellenőrzés befejeződött.' : 'Az ellenőrzés elakadt; a válaszban jelzem a hiányt.';
   if (!tool) return 'Értelmezem a kérdésedet.';
   if (tool.includes('email') || tool.includes('mailbox')) return 'Ellenőriztem a kapcsolódó levelezés elérhetőségét.';
