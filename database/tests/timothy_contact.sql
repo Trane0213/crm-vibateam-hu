@@ -1,0 +1,38 @@
+-- Scratch DB ONLY. No production execution.
+CREATE ROLE authenticated;
+CREATE ROLE anon;
+CREATE SCHEMA auth;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
+CREATE FUNCTION crm_role_of(uuid) RETURNS text LANGUAGE sql AS $$ SELECT current_setting('test.role',true) $$;
+CREATE FUNCTION is_owner_role(uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT current_setting('test.role',true)='owner' $$;
+CREATE TABLE leads(id uuid PRIMARY KEY,company_id uuid,contact_id uuid,status text,pipeline_entered_at timestamptz,assigned_to uuid,next_step_type text,next_step_due_at timestamptz,next_step_note text);
+GRANT SELECT,UPDATE ON leads TO authenticated;
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_lead ON leads FOR ALL TO authenticated USING(is_owner_role(auth.uid()) OR assigned_to=auth.uid());
+CREATE TABLE agent_runs(id uuid PRIMARY KEY,user_id uuid,agent_id text);
+GRANT SELECT ON agent_runs TO authenticated;
+ALTER TABLE agent_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_run ON agent_runs TO authenticated USING(user_id=auth.uid());
+CREATE TABLE agent_run_steps(id uuid PRIMARY KEY,run_id uuid,agent_id text,tool_name text,approval_status text,approval_token uuid,input_json jsonb);
+GRANT SELECT ON agent_run_steps TO authenticated;
+ALTER TABLE agent_run_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_step ON agent_run_steps TO authenticated USING(EXISTS(SELECT 1 FROM agent_runs r WHERE r.id=run_id));
+CREATE TABLE activities(id uuid PRIMARY KEY,user_id uuid,action text,details jsonb,created_at timestamptz);
+GRANT SELECT,INSERT ON activities TO authenticated;
+ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
+CREATE POLICY read_audit ON activities FOR SELECT TO authenticated USING(true);
+CREATE POLICY insert_self ON activities FOR INSERT TO authenticated WITH CHECK(user_id=auth.uid());
+GRANT USAGE ON SCHEMA auth TO authenticated;
+CREATE TABLE companies(id uuid PRIMARY KEY,name text); GRANT SELECT,UPDATE ON companies TO authenticated;
+CREATE TABLE contacts(id uuid PRIMARY KEY,company_id uuid,name text); GRANT SELECT,UPDATE ON contacts TO authenticated;
+\i database/timothy_contact.sql
+INSERT INTO companies VALUES('00000000-0000-4000-8000-000000000020','TESZT Cég');
+INSERT INTO contacts VALUES('00000000-0000-4000-8000-000000000021','00000000-0000-4000-8000-000000000020','TESZT új személy');
+INSERT INTO leads VALUES('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000020',NULL,'new',NULL,'00000000-0000-4000-8000-000000000010',NULL,NULL,NULL);
+INSERT INTO agent_runs VALUES('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000010','timothy');
+INSERT INTO agent_run_steps VALUES('00000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000002','timothy','sales_set_lead_contact','executing',gen_random_uuid(),'{"args":{"leadId":"00000000-0000-4000-8000-000000000001","contactId":"00000000-0000-4000-8000-000000000021","context":{"company_id":"00000000-0000-4000-8000-000000000020","company_name":"TESZT Cég","contact_id":null,"contact_name":null,"assigned_to":"00000000-0000-4000-8000-000000000010","status":"new","pipeline_entered_at":null,"new_contact_name":"TESZT új személy"}}}');
+SET test.uid='00000000-0000-4000-8000-000000000010'; SET test.role='sales'; SET ROLE authenticated;
+SELECT sales_set_approved_contact('00000000-0000-4000-8000-000000000003');
+SELECT sales_set_approved_contact('00000000-0000-4000-8000-000000000003');
+DO $$ BEGIN IF (SELECT count(*) FROM activities)<>1 OR NOT EXISTS(SELECT 1 FROM leads WHERE contact_id='00000000-0000-4000-8000-000000000021' AND status='new' AND next_step_type IS NULL AND next_step_due_at IS NULL) THEN RAISE EXCEPTION 'contact exact/scope/duplicate failure'; END IF; END $$;
+RESET ROLE;
