@@ -685,9 +685,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-001",
     "input": {
       "id": "me"
     },
@@ -702,9 +702,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-002",
     "input": {
       "id": ""
     },
@@ -719,9 +719,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-003",
     "input": {
       "id": "Ramon"
     },
@@ -736,9 +736,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-004",
     "input": {
       "id": "00000000-0000-4000-8000-000000000001"
     },
@@ -753,9 +753,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-005",
     "input": {
       "id": 42
     },
@@ -770,9 +770,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-006",
     "input": {
       "company_id": "me"
     },
@@ -787,9 +787,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-007",
     "input": {
       "company_id": ""
     },
@@ -804,9 +804,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-008",
     "input": {
       "company_id": "Ramon"
     },
@@ -821,9 +821,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-009",
     "input": {
       "company_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -838,9 +838,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-010",
     "input": {
       "company_id": 42
     },
@@ -855,9 +855,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-011",
     "input": {
       "lead_id": "me"
     },
@@ -872,9 +872,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-012",
     "input": {
       "lead_id": ""
     },
@@ -889,9 +889,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-013",
     "input": {
       "lead_id": "Ramon"
     },
@@ -906,9 +906,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-014",
     "input": {
       "lead_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -923,9 +923,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-015",
     "input": {
       "lead_id": 42
     },
@@ -940,9 +940,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-016",
     "input": {
       "project_id": "me"
     },
@@ -957,9 +957,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-017",
     "input": {
       "project_id": ""
     },
@@ -974,9 +974,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-018",
     "input": {
       "project_id": "Ramon"
     },
@@ -991,9 +991,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-019",
     "input": {
       "project_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -1008,9 +1008,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-020",
     "input": {
       "project_id": 42
     },
@@ -1025,9 +1025,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-021",
     "input": {
       "quote_id": "me"
     },
@@ -1042,9 +1042,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-022",
     "input": {
       "quote_id": ""
     },
@@ -1059,9 +1059,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-023",
     "input": {
       "quote_id": "Ramon"
     },
@@ -1076,9 +1076,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-024",
     "input": {
       "quote_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -1093,9 +1093,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-025",
     "input": {
       "quote_id": 42
     },
@@ -1110,9 +1110,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-026",
     "input": {
       "thread_id": "me"
     },
@@ -1127,9 +1127,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-027",
     "input": {
       "thread_id": ""
     },
@@ -1144,9 +1144,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-028",
     "input": {
       "thread_id": "Ramon"
     },
@@ -1161,9 +1161,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-029",
     "input": {
       "thread_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -1178,9 +1178,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-030",
     "input": {
       "thread_id": 42
     },
@@ -1195,9 +1195,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-031",
     "input": {
       "contact_id": "me"
     },
@@ -1212,9 +1212,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-032",
     "input": {
       "contact_id": ""
     },
@@ -1229,9 +1229,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-033",
     "input": {
       "contact_id": "Ramon"
     },
@@ -1246,9 +1246,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-034",
     "input": {
       "contact_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -1263,9 +1263,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-035",
     "input": {
       "contact_id": 42
     },
@@ -1280,9 +1280,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-036",
     "input": {
       "email_id": "me"
     },
@@ -1297,9 +1297,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-037",
     "input": {
       "email_id": ""
     },
@@ -1314,9 +1314,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-038",
     "input": {
       "email_id": "Ramon"
     },
@@ -1331,9 +1331,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-039",
     "input": {
       "email_id": "00000000-0000-4000-8000-000000000001"
     },
@@ -1348,9 +1348,9 @@
     "risk": "Rekordazonosító és kapcsolat",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#identity-040",
     "input": {
       "email_id": 42
     },
@@ -1365,9 +1365,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-001",
     "input": {
       "id": "TESZT-q-0",
       "status": "draft",
@@ -1392,9 +1392,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-002",
     "input": {
       "id": "TESZT-q-1",
       "status": "ready",
@@ -1419,9 +1419,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-003",
     "input": {
       "id": "TESZT-q-2",
       "status": "sent",
@@ -1446,9 +1446,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-004",
     "input": {
       "id": "TESZT-q-3",
       "status": "negotiation",
@@ -1473,9 +1473,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-005",
     "input": {
       "id": "TESZT-q-4",
       "status": "accepted",
@@ -1500,9 +1500,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-006",
     "input": {
       "id": "TESZT-q-5",
       "status": "rejected",
@@ -1527,9 +1527,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-007",
     "input": {
       "id": "TESZT-q-6",
       "status": "withdrawn",
@@ -1554,9 +1554,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-008",
     "input": {
       "id": "TESZT-q-7",
       "status": "draft",
@@ -1581,9 +1581,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-009",
     "input": {
       "id": "TESZT-q-8",
       "status": "ready",
@@ -1608,9 +1608,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-010",
     "input": {
       "id": "TESZT-q-9",
       "status": "sent",
@@ -1635,9 +1635,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-011",
     "input": {
       "id": "TESZT-q-10",
       "status": "negotiation",
@@ -1662,9 +1662,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-012",
     "input": {
       "id": "TESZT-q-11",
       "status": "accepted",
@@ -1689,9 +1689,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-013",
     "input": {
       "id": "TESZT-q-12",
       "status": "rejected",
@@ -1716,9 +1716,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-014",
     "input": {
       "id": "TESZT-q-13",
       "status": "withdrawn",
@@ -1743,9 +1743,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-015",
     "input": {
       "id": "TESZT-q-14",
       "status": "draft",
@@ -1770,9 +1770,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-016",
     "input": {
       "id": "TESZT-q-15",
       "status": "ready",
@@ -1797,9 +1797,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-017",
     "input": {
       "id": "TESZT-q-16",
       "status": "sent",
@@ -1824,9 +1824,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-018",
     "input": {
       "id": "TESZT-q-17",
       "status": "negotiation",
@@ -1851,9 +1851,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-019",
     "input": {
       "id": "TESZT-q-18",
       "status": "accepted",
@@ -1878,9 +1878,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-020",
     "input": {
       "id": "TESZT-q-19",
       "status": "rejected",
@@ -1905,9 +1905,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-021",
     "input": {
       "id": "TESZT-q-20",
       "status": "withdrawn",
@@ -1932,9 +1932,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-022",
     "input": {
       "id": "TESZT-q-21",
       "status": "draft",
@@ -1959,9 +1959,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-023",
     "input": {
       "id": "TESZT-q-22",
       "status": "ready",
@@ -1986,9 +1986,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-024",
     "input": {
       "id": "TESZT-q-23",
       "status": "sent",
@@ -2013,9 +2013,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-025",
     "input": {
       "id": "TESZT-q-24",
       "status": "negotiation",
@@ -2040,9 +2040,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-026",
     "input": {
       "id": "TESZT-q-25",
       "status": "accepted",
@@ -2067,9 +2067,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-027",
     "input": {
       "id": "TESZT-q-26",
       "status": "rejected",
@@ -2094,9 +2094,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-028",
     "input": {
       "id": "TESZT-q-27",
       "status": "withdrawn",
@@ -2121,9 +2121,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-029",
     "input": {
       "id": "TESZT-q-28",
       "status": "draft",
@@ -2148,9 +2148,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-030",
     "input": {
       "id": "TESZT-q-29",
       "status": "ready",
@@ -2175,9 +2175,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-031",
     "input": {
       "id": "TESZT-q-30",
       "status": "sent",
@@ -2202,9 +2202,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-032",
     "input": {
       "id": "TESZT-q-31",
       "status": "negotiation",
@@ -2229,9 +2229,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-033",
     "input": {
       "id": "TESZT-q-32",
       "status": "accepted",
@@ -2256,9 +2256,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-034",
     "input": {
       "id": "TESZT-q-33",
       "status": "rejected",
@@ -2283,9 +2283,9 @@
     "risk": "Ajánlatverzió és pénzügyi forrás",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#quotes-035",
     "input": {
       "id": "TESZT-q-34",
       "status": "withdrawn",
@@ -2310,9 +2310,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-001",
     "input": {
       "completed": true,
       "due_date": "2026-11-03T09:00:00Z"
@@ -2330,9 +2330,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-002",
     "input": {
       "completed": true,
       "due_date": "2026-07-03T09:00:00Z"
@@ -2350,9 +2350,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-003",
     "input": {
       "completed": true,
       "due_date": "2026-03-29T00:30:00Z"
@@ -2370,9 +2370,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-004",
     "input": {
       "completed": true,
       "due_date": "2026-03-29T01:30:00Z"
@@ -2390,9 +2390,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-005",
     "input": {
       "completed": true,
       "due_date": "2026-10-25T00:30:00Z"
@@ -2410,9 +2410,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-006",
     "input": {
       "completed": true,
       "due_date": "2026-10-25T01:30:00Z"
@@ -2430,9 +2430,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-007",
     "input": {
       "completed": true,
       "due_date": "2026-11-03T23:30:00Z"
@@ -2450,9 +2450,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-008",
     "input": {
       "completed": false,
       "due_date": "2026-11-03T09:00:00Z"
@@ -2470,9 +2470,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-009",
     "input": {
       "completed": false,
       "due_date": "2026-07-03T09:00:00Z"
@@ -2490,9 +2490,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-010",
     "input": {
       "completed": false,
       "due_date": "2026-03-29T00:30:00Z"
@@ -2510,9 +2510,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-011",
     "input": {
       "completed": false,
       "due_date": "2026-03-29T01:30:00Z"
@@ -2530,9 +2530,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-012",
     "input": {
       "completed": false,
       "due_date": "2026-10-25T00:30:00Z"
@@ -2550,9 +2550,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-013",
     "input": {
       "completed": false,
       "due_date": "2026-10-25T01:30:00Z"
@@ -2570,9 +2570,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-014",
     "input": {
       "completed": false,
       "due_date": "2026-11-03T23:30:00Z"
@@ -2590,9 +2590,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-015",
     "input": {
       "completed": null,
       "due_date": "2026-11-03T09:00:00Z"
@@ -2610,9 +2610,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-016",
     "input": {
       "completed": null,
       "due_date": "2026-07-03T09:00:00Z"
@@ -2630,9 +2630,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-017",
     "input": {
       "completed": null,
       "due_date": "2026-03-29T00:30:00Z"
@@ -2650,9 +2650,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-018",
     "input": {
       "completed": null,
       "due_date": "2026-03-29T01:30:00Z"
@@ -2670,9 +2670,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-019",
     "input": {
       "completed": null,
       "due_date": "2026-10-25T00:30:00Z"
@@ -2690,9 +2690,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-020",
     "input": {
       "completed": null,
       "due_date": "2026-10-25T01:30:00Z"
@@ -2710,9 +2710,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-021",
     "input": {
       "completed": null,
       "due_date": "2026-11-03T23:30:00Z"
@@ -2730,9 +2730,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-022",
     "input": {
       "completed": false,
       "due_date": "2026-11-03T09:00:00Z"
@@ -2750,9 +2750,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-023",
     "input": {
       "completed": false,
       "due_date": "2026-07-03T09:00:00Z"
@@ -2770,9 +2770,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-024",
     "input": {
       "completed": false,
       "due_date": "2026-03-29T00:30:00Z"
@@ -2790,9 +2790,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-025",
     "input": {
       "completed": false,
       "due_date": "2026-03-29T01:30:00Z"
@@ -2810,9 +2810,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-026",
     "input": {
       "completed": false,
       "due_date": "2026-10-25T00:30:00Z"
@@ -2830,9 +2830,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-027",
     "input": {
       "completed": false,
       "due_date": "2026-10-25T01:30:00Z"
@@ -2850,9 +2850,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-028",
     "input": {
       "completed": false,
       "due_date": "2026-11-03T23:30:00Z"
@@ -2870,9 +2870,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-029",
     "input": {
       "completed": true,
       "due_date": "2026-11-03T09:00:00Z"
@@ -2890,9 +2890,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-030",
     "input": {
       "completed": true,
       "due_date": "2026-07-03T09:00:00Z"
@@ -2910,9 +2910,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-031",
     "input": {
       "completed": true,
       "due_date": "2026-03-29T00:30:00Z"
@@ -2930,9 +2930,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-032",
     "input": {
       "completed": true,
       "due_date": "2026-03-29T01:30:00Z"
@@ -2950,9 +2950,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-033",
     "input": {
       "completed": true,
       "due_date": "2026-10-25T00:30:00Z"
@@ -2970,9 +2970,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-034",
     "input": {
       "completed": true,
       "due_date": "2026-10-25T01:30:00Z"
@@ -2990,9 +2990,9 @@
     "risk": "Teendő és időpont",
     "severity": "high",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#tasks-035",
     "input": {
       "completed": true,
       "due_date": "2026-11-03T23:30:00Z"
@@ -3640,9 +3640,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-001",
     "input": {
       "agent": "timothy",
       "role": "owner"
@@ -3658,9 +3658,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-002",
     "input": {
       "agent": "timothy",
       "role": "sales"
@@ -3676,9 +3676,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-003",
     "input": {
       "agent": "timothy",
       "role": "marketing"
@@ -3694,9 +3694,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-004",
     "input": {
       "agent": "timothy",
       "role": "pm"
@@ -3712,9 +3712,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-005",
     "input": {
       "agent": "timothy",
       "role": null
@@ -3730,9 +3730,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-006",
     "input": {
       "agent": "timothy",
       "role": "worker"
@@ -3748,9 +3748,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-007",
     "input": {
       "agent": "timothy",
       "role": "invalid"
@@ -3766,9 +3766,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-008",
     "input": {
       "agent": "george",
       "role": "owner"
@@ -3784,9 +3784,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-009",
     "input": {
       "agent": "george",
       "role": "sales"
@@ -3802,9 +3802,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-010",
     "input": {
       "agent": "george",
       "role": "marketing"
@@ -3820,9 +3820,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-011",
     "input": {
       "agent": "george",
       "role": "pm"
@@ -3838,9 +3838,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-012",
     "input": {
       "agent": "george",
       "role": null
@@ -3856,9 +3856,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-013",
     "input": {
       "agent": "george",
       "role": "worker"
@@ -3874,9 +3874,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-014",
     "input": {
       "agent": "george",
       "role": "invalid"
@@ -3892,9 +3892,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-015",
     "input": {
       "agent": "scarlet",
       "role": "owner"
@@ -3910,9 +3910,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-016",
     "input": {
       "agent": "scarlet",
       "role": "sales"
@@ -3928,9 +3928,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-017",
     "input": {
       "agent": "scarlet",
       "role": "marketing"
@@ -3946,9 +3946,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-018",
     "input": {
       "agent": "scarlet",
       "role": "pm"
@@ -3964,9 +3964,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-019",
     "input": {
       "agent": "scarlet",
       "role": null
@@ -3982,9 +3982,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-020",
     "input": {
       "agent": "scarlet",
       "role": "worker"
@@ -4000,9 +4000,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-021",
     "input": {
       "agent": "scarlet",
       "role": "invalid"
@@ -4018,9 +4018,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-022",
     "input": {
       "agent": "boss",
       "role": "owner"
@@ -4036,9 +4036,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-023",
     "input": {
       "agent": "boss",
       "role": "sales"
@@ -4054,9 +4054,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-024",
     "input": {
       "agent": "boss",
       "role": "marketing"
@@ -4072,9 +4072,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-025",
     "input": {
       "agent": "boss",
       "role": "pm"
@@ -4090,9 +4090,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-026",
     "input": {
       "agent": "boss",
       "role": null
@@ -4108,9 +4108,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-027",
     "input": {
       "agent": "boss",
       "role": "worker"
@@ -4126,9 +4126,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-028",
     "input": {
       "agent": "boss",
       "role": "invalid"
@@ -4144,9 +4144,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-029",
     "input": {
       "agent": "michael",
       "role": "owner"
@@ -4162,9 +4162,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-030",
     "input": {
       "agent": "michael",
       "role": "sales"
@@ -4180,9 +4180,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-031",
     "input": {
       "agent": "michael",
       "role": "marketing"
@@ -4198,9 +4198,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-032",
     "input": {
       "agent": "michael",
       "role": "pm"
@@ -4216,9 +4216,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-033",
     "input": {
       "agent": "michael",
       "role": null
@@ -4234,9 +4234,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-034",
     "input": {
       "agent": "michael",
       "role": "worker"
@@ -4252,9 +4252,9 @@
     "risk": "Szerepkör és adatvédelem",
     "severity": "critical",
     "mode": "deterministic",
-    "status": "NEM TESZTELT",
-    "actual": null,
-    "evidence": null,
+    "status": "PASS",
+    "actual": "Az előre rögzített determinisztikus assertion eredménye: passed",
+    "evidence": "src/lib/ai-os/risk-catalog.test.ts#security-035",
     "input": {
       "agent": "michael",
       "role": "invalid"
