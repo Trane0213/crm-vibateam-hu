@@ -41,12 +41,20 @@ export function isTemplateKey(v: unknown): v is TemplateKey {
 }
 
 /** Sablon alapértékek — a már kitöltött feltételeket soha nem írja felül. */
-export function applyTemplateDefaults(key: TemplateKey, current: Record<string, string> | null | undefined): Record<string, string> {
+export function applyTemplateDefaults(key: TemplateKey, current: Record<string, string> | null | undefined, defaults?: Record<string, string>): Record<string, string> {
   const out: Record<string, string> = { ...(current ?? {}) };
   for (const s of QUOTE_TEMPLATES[key].sections) {
-    if (!out[s.key]?.trim()) out[s.key] = s.default;
+    if (!out[s.key]?.trim()) out[s.key] = defaults?.[s.key] ?? s.default;
   }
   return out;
+}
+
+export function canReadTemplateDefaults(role: unknown): boolean {
+  return role === "owner" || role === "sales" || role === "project_manager";
+}
+
+export function canWriteTemplateDefaults(role: unknown): boolean {
+  return role === "owner";
 }
 
 export function hasDraftTerms(terms: Record<string, string> | null | undefined): boolean {
