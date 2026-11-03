@@ -41,12 +41,25 @@ function QuotePrint() {
         .select("*")
         .eq("quote_id", id)
         .order("created_at", { ascending: true });
-      if (error) return [] as ItemRow[]; // tábla hiánya nem robbanthatja a printet
+      if (error) throw error; // hibás tétel-lekérés ne tűnjön üres ajánlatnak
       return (data ?? []) as ItemRow[];
     },
   });
 
-  const leadId = q.data?.lead_id ?? null;
+  // Projektből indított, lead nélküli ajánlatnál a projekt leadjét / cégét használjuk.
+  const projectId = q.data?.project_id ?? null;
+  const project = useQuery({
+    queryKey: ["quotes", "print", id, "project", projectId],
+    enabled: !!projectId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects").select("id, lead_id, company_id").eq("id", projectId!).maybeSingle();
+      if (error) throw error;
+      return data as any;
+    },
+  });
+
+  const leadId = q.data?.lead_id ?? project.data?.lead_id ?? null;
   const lead = useQuery({
     queryKey: ["quotes", "print", id, "lead", leadId],
     enabled: !!leadId,
@@ -61,7 +74,7 @@ function QuotePrint() {
     },
   });
 
-  const companyId = lead.data?.company_id ?? null;
+  const companyId = lead.data?.company_id ?? project.data?.company_id ?? null;
   const company = useQuery({
     queryKey: ["quotes", "print", id, "company", companyId],
     enabled: !!companyId,
@@ -107,7 +120,10 @@ function QuotePrint() {
     return <div className="p-8 text-sm text-muted-foreground">Betöltés…</div>;
   }
   if (q.error || !q.data) {
-    return <div className="p-8 text-sm text-red-600">Az ajánlat nem található.</div>;
+    return <div className="p-8 text-sm text-destructive">Az ajánlat nem található, vagy nincs hozzá jogosultságod.</div>;
+  }
+  if (items.error) {
+    return <div className="p-8 text-sm text-destructive">Az ajánlat tételei nem tölthetők be — nyomtatás nem lehetséges. Próbáld újra.</div>;
   }
 
   const quote = q.data;
