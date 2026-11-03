@@ -14,6 +14,8 @@ import { toolError } from "../tool-errors";
 import { CRM_PAGE_PROPERTIES, LEAD_CONTEXT_SELECT, crmReadPage, readWindow, leadTimeline } from "./crm-read-page";
 import { OWNER_ROLES } from "../roles";
 import { safeMailText } from "./gmail-context";
+import { registerQuoteTools } from "./quote-tools.server";
+import { readQuoteList } from "./quote-read.server";
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -103,10 +105,8 @@ export function registerCrmTools() {
       const window = readWindow(args, section === "summary" ? 5 : 25);
       const sections = section === "summary" ? ["contacts", "leads", "projects", "quotes"] : [section];
       const results = await Promise.all(sections.map(async (name) => {
-        // Quotes join through the RLS-visible lead; no capped ID download.
-        let query = name === "quotes"
-          ? sb.from("quotes").select("id,lead_id,project_id,title,status,total_amount,valid_until,created_at,leads!inner(company_id)", { count: "exact" }).eq("leads.company_id", id)
-          : sb.from(name).select(name === "contacts" ? "id,name,email,phone,position,email_invalid,created_at" : name === "leads" ? LEAD_CONTEXT_SELECT : "id,lead_id,company_id,title,status,created_at", { count: "exact" }).eq("company_id", id);
+        if (name === "quotes") return [name, await readQuoteList({ ...args, company_id: id, limit: window.limit }, ctx, window.limit, section === "summary" ? 3500 : 10000)] as const;
+        let query = sb.from(name).select(name === "contacts" ? "id,name,email,phone,position,email_invalid,created_at" : name === "leads" ? LEAD_CONTEXT_SELECT : "id,lead_id,company_id,title,status,created_at", { count: "exact" }).eq("company_id", id);
         query = query.order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
         const result = await query;
         if (result.error) throw result.error;
@@ -115,7 +115,7 @@ export function registerCrmTools() {
       const companyPage = crmReadPage([company.data], 1, { limit: 1, offset: 0 }, "companies", 2500);
       return ok({ company: companyPage.items[0], company_completeness: companyPage.completeness, sections: Object.fromEntries(results),
         scope: "Csak a felhasználó számára olvasható rekordok; nem teljes cégtörténet.",
-        limitations: ["Gmail-levéltörzs és dokumentumértelmezés még nem része ennek a helyzetképnek.", "Az ajánlatlista leadhez kötött; projekt-only ajánlatok értelmezése P1/C-ben következik."],
+        limitations: ["Levéltörzs külön P1/B eszközökkel, ajánlatrészlet crm_quote_context eszközzel olvasható. Dokumentumtartalom P1/D előtt nem értelmezett."],
         sources: companyPage.sources });
     },
   );
@@ -284,32 +284,7 @@ export function registerCrmTools() {
   );
 
   // ---------------- QUOTES ----------------
-  registerTool(
-    {
-      name: "crm_list_quotes",
-      description: "Ajánlatok listázása (lead_id vagy company_id szűrővel).",
-      domain: "crm.quotes",
-      parameters: {
-        type: "object",
-        properties: {
-          lead_id: { type: "string" },
-          company_id: { type: "string" },
-          ...CRM_PAGE_PROPERTIES,
-        },
-      },
-    },
-    async (args, ctx) => {
-      const window = readWindow(args);
-      const select = "id,lead_id,project_id,title,status,total_amount,valid_until,created_at";
-      let q = ctx.supabaseUser.from("quotes").select(args.company_id ? `${select},leads!inner(company_id)` : select, { count: "exact" })
-        .order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
-      if (args.lead_id) q = q.eq("lead_id", String(args.lead_id));
-      if (args.company_id) q = q.eq("leads.company_id", String(args.company_id));
-      const { data, error, count } = await q;
-      if (error) return fail(error.message);
-      return ok({ ...crmReadPage(data ?? [], count, window, "quotes"), limitations: ["Cégszűréskor csak leadhez kapcsolt ajánlatok; projekt-only ajánlatok P1/C-ben. Verziók nettó állománnyá nem összegezhetők ebből a listából."] });
-    },
-  );
+  registerQuoteTools();
 
   // ---------------- EMAILS ----------------
   registerTool(
