@@ -21,6 +21,7 @@ import { nextStepActionSchema,verifyNextStepAction } from '../next-step-action';
 import { NEXT_STEP_TYPES } from '@/lib/sales/constants';
 import {followupActionSchema,verifyFollowupAction} from '../followup-action';
 import {contactActionSchema,verifyContactAction} from '../contact-action';
+import {assignmentActionSchema,verifyAssignmentAction} from '../assignment-action';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -405,6 +406,27 @@ export function registerCrmTools() {
   );
 
   // ---------------- WRITE: SALES WORKFLOW ----------------
+  registerTool({name:'crm_sales_assignees',domain:'sales.assignment',allowed_agents:['timothy'],allowed_roles:['owner'],needs_approval:false,
+    description:'Aktív Sales átvevők lapozott keresése a meglévő rekordkeresővel. value = auth UUID; egyező neveknél tisztázás szükséges.',
+    parameters:{type:'object',additionalProperties:false,properties:{search:{type:'string',maxLength:200},page:{type:'integer',minimum:0,maximum:100000}}}},
+    async(args,ctx)=>{
+      const role=await ctx.supabaseUser.from('roles').select('id').eq('name','sales').single();
+      if(role.error)return fail(role.error);
+      const result=await ctx.supabaseUser.rpc('crm_record_search',{p_source:'auth_users',p_search:typeof args.search==='string'?args.search:'',p_page:Number(args.page??0),p_filters:{active:true,role_id:role.data.id}});
+      if(result.error)return fail(result.error);
+      return ok(result.data);
+    });
+  registerTool({name:'sales_reassign_lead',domain:'sales.assignment',allowed_agents:['timothy'],allowed_roles:['owner'],needs_approval:true,
+    description:'Tulajdonos külön P0 jóváhagyásával egy nyitott lead átadása pontosan azonosított aktív Salesnek. Csak lead assigned_to változik; ajánlat/followup felelős, Gmail, státusz/projekt változatlan. A lead és kapcsolt ajánlat láthatósága átkerül.',
+    parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},assigneeId:{type:'string',format:'uuid',description:'users_profile.auth_user_id, nem profil id'}},required:['leadId','assigneeId']}},
+    async(args,ctx)=>{
+      assignmentActionSchema.parse(args);
+      if(!ctx.approvalActionId)throw new Error('Tartós jóváhagyás szükséges.');
+      const saved=await ctx.supabaseUser.rpc('sales_reassign_approved_lead',{p_action_id:ctx.approvalActionId});
+      if(saved.error)return fail(saved.error);
+      if(!verifyAssignmentAction(saved.data,args))throw new Error('A felelős átadása nem igazolt.');
+      return ok(saved.data);
+    });
   registerTool({name:'sales_set_lead_contact',domain:'sales.contact',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
     description:'Nyitott lead kapcsolattartójának kiválasztása meglévő, azonos céges kontaktra, P0 jóváhagyással. Nem szerkeszt személyadatot/ajánlatot, nem hoz létre vagy töröl kontaktot.',
     parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},contactId:{type:'string',format:'uuid'}},required:['leadId','contactId']}},

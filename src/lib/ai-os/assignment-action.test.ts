@@ -1,0 +1,22 @@
+import {describe,it,expect} from 'vitest';
+import {assignmentActionInput,assignmentActionSchema,eligibleAssignmentTarget,verifyAssignmentAction} from './assignment-action';
+import {verifyExecution} from './approval';
+const id='00000000-0000-4000-8000-000000000001',target='00000000-0000-4000-8000-000000000009';
+const args={leadId:id,assigneeId:target,context:{lead_name:'TESZT',company_id:id,company_name:'TESZT Cég',contact_id:null,assigned_to:id,assigned_at:'2026-11-03T17:00:00Z',assignee_name:'TESZT régi',new_assignee_name:'TESZT új',status:'new',pipeline_entered_at:null}};
+const saved={lead:{id,company_id:id,contact_id:null,assigned_to:target,assigned_at:'2026-11-03T18:00:00+01:00',status:'new',pipeline_entered_at:null},before_assigned_to:id,audit_id:id,approval_id:id};
+describe('Timothy lead-only assignment',()=>{
+ it('requires auth UUID not name',()=>expect(assignmentActionInput.safeParse({leadId:id,assigneeId:'Ramon'}).success).toBe(false));
+ it('does not unassign',()=>expect(assignmentActionInput.safeParse({leadId:id,assigneeId:null}).success).toBe(false));
+ it('cannot patch status',()=>expect(assignmentActionInput.safeParse({leadId:id,assigneeId:target,status:'won'}).success).toBe(false));
+ it('requires immutable old assignee evidence',()=>expect(assignmentActionSchema.safeParse({...args,context:{...args.context,assigned_to:undefined}}).success).toBe(false));
+ it('active sales auth target accepted',()=>expect(eligibleAssignmentTarget({auth_user_id:target,active:true,roles:{name:'sales'}})).toBe(true));
+ it('inactive sales blocked',()=>expect(eligibleAssignmentTarget({auth_user_id:target,active:false,roles:{name:'sales'}})).toBe(false));
+ it.each(['owner','marketing','pm'])('%s target blocked',name=>expect(eligibleAssignmentTarget({auth_user_id:target,active:true,roles:{name}})).toBe(false));
+ it('profile ID alone is not auth assignment',()=>expect(eligibleAssignmentTarget({id:target,active:true,roles:{name:'sales'}})).toBe(false));
+ it('exact saved assignment and unchanged timestamp passes',()=>expect(verifyAssignmentAction(saved,args)).toBe(true));
+ it('unassigned lead DB timestamp accepted',()=>expect(verifyAssignmentAction({...saved,before_assigned_to:null},{...args,context:{...args.context,assigned_to:null,assigned_at:null}})).toBe(true));
+ it.each(['id','company_id','contact_id','assigned_to','assigned_at','status','pipeline_entered_at'])('wrong saved %s fails',field=>expect(verifyAssignmentAction({...saved,lead:{...saved.lead,[field]:'wrong'}},args)).toBe(false));
+ it('before evidence must match',()=>expect(verifyAssignmentAction({...saved,before_assigned_to:null},args)).toBe(false));
+ it('audit must match action',()=>expect(verifyAssignmentAction({...saved,audit_id:target},args)).toBe(false));
+ it('generic ok cannot prove assignment',()=>expect(verifyExecution('sales_reassign_lead',{ok:true,data:{id}},args).status).toBe('unknown'));
+});
