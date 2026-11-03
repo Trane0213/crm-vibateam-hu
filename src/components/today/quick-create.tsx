@@ -7,6 +7,7 @@ import { useUpsert } from "@/lib/db-hooks";
 import { toast } from "sonner";
 import { findOpenLeadDuplicate } from "@/lib/dedupe/detect";
 import { supabase } from "@/integrations/supabase/client";
+import { NewQuoteButton } from "@/components/quotes/new-quote-button";
 
 const LEAD_FIELDS: Field[] = [
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
@@ -29,17 +30,6 @@ const FOLLOWUP_FIELDS: Field[] = [
   ]},
   { name: "due_date", label: "Esedékesség", type: "datetime", required: true },
   { name: "result", label: "Jegyzet", type: "textarea" },
-];
-
-const QUOTE_FIELDS: Field[] = [
-  { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" }, required: true },
-  { name: "version", label: "Verzió", type: "number" },
-  { name: "status", label: "Státusz", type: "select", required: true, options: [
-    { value: "draft", label: "Készül" }, { value: "sent", label: "Kiküldve" },
-    { value: "negotiation", label: "Tárgyalás" }, { value: "won", label: "Megnyert" },
-    { value: "lost", label: "Elveszett" },
-  ]},
-  { name: "total_amount", label: "Összérték (HUF)", type: "number" },
 ];
 
 function QuickButton({
@@ -157,11 +147,5 @@ export function QuickCreateQuoteButton({
   label?: string;
   variant?: "default" | "secondary" | "outline";
 }) {
-  const seed = { status: "draft", version: 1, ...(defaults ?? {}) };
-  return (
-    <QuickButton
-      table="quotes" label={label} title="Új ajánlat"
-      fields={QUOTE_FIELDS} defaults={seed} variant={variant}
-    />
-  );
+  return <NewQuoteButton leadId={defaults?.lead_id ?? null} label={label} variant={variant} />;
 }
