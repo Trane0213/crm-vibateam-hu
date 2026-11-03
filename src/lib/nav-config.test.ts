@@ -11,7 +11,8 @@ const reachable = (role: RoleSlug) =>
 describe("navigáció", () => {
   it("tulajdonos minden menüpontot elér (fő menü vagy Továbbiak)", () => {
     const r = reachable("owner");
-    for (const i of all.filter((x) => !x.agentId && x.url !== "/ai-assistants")) expect(r.has(i.url)).toBe(true);
+    for (const i of all.filter((x) => !x.agentId && x.url !== "/ai-assistants" && !x.hideForRoles?.includes("owner"))) expect(r.has(i.url)).toBe(true);
+    expect(canAccessRoute("owner", "/settings/gmail")).toBe(true);
   });
   it("egyik szerepkör sem lát olyan menüpontot, amihez nincs joga", () => {
     for (const role of ROLES) for (const url of reachable(role)) expect(canAccessRoute(role, url)).toBe(true);
