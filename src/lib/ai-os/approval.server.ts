@@ -69,7 +69,9 @@ export async function decideAction(user: SupabaseClient, admin: SupabaseClient, 
   if (tool.domain === "ads.google" && status === "failed") status = "unknown";
   if (status !== "succeeded") error = status === "unknown" ? "A végrehajtás eredménye még nem igazolt." : "A művelet végrehajtása sikertelen.";
  } catch { error = "A végrehajtás eredménye még nem igazolt."; }
- const finish = await admin.rpc("ai_os_approval_finish", { p_id: action.id, p_user: userId, p_token: action.approval_token, p_status: status, p_result: safeAudit({ result, no_op }), p_error: error ?? null });
- if (finish.error || !finish.data) return { ...snapshot(action), status: "executing", error: "A végrehajtás eredménye még nem igazolt." };
- return snapshot(finish.data as ActionRow);
+ try {
+  const finish = await admin.rpc("ai_os_approval_finish", { p_id: action.id, p_user: userId, p_token: action.approval_token, p_status: status, p_result: safeAudit({ result: result ?? null, no_op: no_op ?? false }), p_error: error ?? null });
+  if (!finish.error && finish.data) return snapshot(finish.data as ActionRow);
+ } catch { /* Persisted claim stays executing; never replay. */ }
+ return { ...snapshot(action), status: "executing", error: "A végrehajtás eredménye még nem igazolt." };
 }

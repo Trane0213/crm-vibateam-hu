@@ -20,7 +20,7 @@ export async function contractHash(tool: ToolSpec): Promise<string> {
 }
 const sensitiveKey = /^(authorization|password|secret|.*token.*|.*secret.*|api[_-]?key|refresh_token_cipher|refresh_token_iv|signature)$/i;
 export function hasSensitive(value: unknown): boolean {
-  if (typeof value === "string") return /Bearer\s+\S+|[?&](token|signature|x-amz-signature|x-goog-signature|attachment_token)=/i.test(value);
+  if (typeof value === "string") return /Bearer\s+\S+|(?:api[_-]?key|password|secret|access_token|refresh_token)\s*[=:]\s*\S+|[?&](token|signature|x-amz-signature|x-goog-signature|attachment_token)=/i.test(value);
   if (!value || typeof value !== "object") return false;
   return Object.entries(value).some(([k, v]) => sensitiveKey.test(k) || hasSensitive(v));
 }
@@ -40,11 +40,15 @@ export function verifyExecution(toolName: string, value: unknown, args: Record<s
   if (toolName === "memory_write") return { status: typeof out.id === "string" && out.id.length > 0 ? "succeeded" : "unknown" };
   const data = out.data;
   if (toolName === "sales_mark_won_with_project") return { status: typeof data?.project_id === "string" && z.string().uuid().safeParse(data.project_id).success ? "succeeded" : "unknown" };
-  if (data?.no_op === true && data.dry_run === false) return { status: "succeeded", no_op: true };
+  const campaign = data?.campaign as { id?: string; status?: string } | undefined;
+  if (data?.no_op === true && data.dry_run === false && String(campaign?.id) === args.campaign_id && campaign?.status === (toolName === "pause_campaign" ? "PAUSED" : toolName === "enable_campaign" ? "ENABLED" : "")) return { status: "succeeded", no_op: true };
   const response = data?.response as { results?: Array<{ resourceName?: string }> } | undefined;
   const results = response?.results;
+  const resource = results?.[0]?.resourceName;
   const prefix = `customers/${args.customer_id}/`;
-  return { status: data?.executed === true && data.dry_run === false && results?.length === 1 && typeof results[0]?.resourceName === "string" && results[0].resourceName.startsWith(prefix) ? "succeeded" : "unknown" };
+  const expected = toolName === "update_campaign_budget" ? `${prefix}campaignBudgets/${data?.budget_id}` : toolName === "add_campaign_negative_keyword" ? `${prefix}campaignCriteria/${args.campaign_id}~` : `${prefix}campaigns/${args.campaign_id}`;
+  const matches = typeof resource === "string" && (toolName === "add_campaign_negative_keyword" ? resource.startsWith(expected) && resource.length > expected.length : resource === expected);
+  return { status: data?.executed === true && data.dry_run === false && results?.length === 1 && matches ? "succeeded" : "unknown" };
 }
 export const ACTION_LABELS: Record<ActionStatus, string> = {
   pending: "Jóváhagyásra vár", executing: "Végrehajtás folyamatban", succeeded: "Sikeresen végrehajtva", failed: "Sikertelen", rejected: "Elutasítva", expired: "Lejárt", unknown: "A végrehajtás eredménye még nem igazolt.",

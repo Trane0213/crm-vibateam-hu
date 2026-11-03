@@ -19,7 +19,7 @@ export function useAiApprovals(threads: Thread[], activeId: string | null, commi
   const cards = thread?.messages.flatMap(m => (m.approvals ?? []).filter(a => a.action_id && (!reconciled.current.has(a.action_id) || a.status === "executing")).map(a => ({ m, a }))) ?? [];
   if (!thread || !cards.length) return;
   let cancelled = false;
-  const timer = setTimeout(async () => {
+  const refresh = async () => {
    try {
     const result = await read({ data: { actionIds: cards.map(c => c.a.action_id).filter((id): id is string => !!id).slice(0, 100) } });
     if (cancelled) return;
@@ -30,8 +30,10 @@ export function useAiApprovals(threads: Thread[], activeId: string | null, commi
    } catch {
     if (!cancelled) for (const { m, a } of cards) update(thread.id, m.id, a.tool_call_id, { verified: false, transportError: "Az állapot ellenőrzése sikertelen." });
    }
-  }, cards.some(c => c.a.status === "executing" && reconciled.current.has(c.a.action_id ?? "")) ? 3000 : 0);
-  return () => { cancelled = true; clearTimeout(timer); };
+  };
+  const timer = setTimeout(refresh, 0);
+  const poll = cards.some(c => c.a.status === "executing") ? setInterval(refresh, 5000) : undefined;
+  return () => { cancelled = true; clearTimeout(timer); if (poll) clearInterval(poll); };
  // Reconcile on opening and while executing, not during unrelated local edits.
  }, [activeId, threads.map(t => t.messages.flatMap(m => m.approvals?.map(a => `${a.action_id}:${a.status}:${a.verified}`) ?? []).join()).join()]);
 
