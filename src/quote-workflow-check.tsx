@@ -5,7 +5,7 @@ import {createRouter,createRootRoute,RouterProvider} from '@tanstack/react-route
 import {QuoteWorkflowDetail} from './routes/_authenticated/quotes.$id';
 import {supabase} from './integrations/supabase/client';
 import './styles.css';
-const quote:any={id:'TESZT-flow',title:'TESZT ajánlat',version:1,is_current:true,status:'draft',quote_kind:window.location.hash==='#viba_offer'?'viba_offer':'received_budget',lead_id:'TESZT-lead',project_id:null,created_at:'2026-11-03',responsible_user_id:'TESZT-user',template_key:'b2b',template_terms:{payment:'TESZT 30 nap'},manual_net_amount:200000};
+const quote:any={id:'TESZT-flow',title:'TESZT ajánlat',version:1,is_current:true,status:'draft',quote_kind:window.location.search.includes('viba_offer')?'viba_offer':'received_budget',lead_id:'TESZT-lead',project_id:null,created_at:'2026-11-03',responsible_user_id:'TESZT-user',template_key:'b2b',template_terms:{payment:'TESZT 30 nap'},manual_net_amount:200000};
 const qc=new QueryClient({defaultOptions:{queries:{staleTime:Infinity,retry:false}}});
 const user={id:'TESZT-user'};
 (supabase.auth as any).getSession=async()=>({data:{session:{user}},error:null});
@@ -24,7 +24,7 @@ qc.setQueryData(['r2-status'],{configured:true});
 qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});
 qc.setQueryData(['quote-template-defaults','b2b'],{revision:0,terms:{payment:'TESZT alap'}});
 (window as any).switchKind=(kind:any)=>{quote.quote_kind=kind;qc.clear();qc.setQueryData(['r2-status'],{configured:true});qc.setQueryData(['users_profile','me','TESZT-user'],{auth_user_id:'TESZT-user',roles:{name:'sales'}});qc.setQueryData(['quote-template-defaults','b2b'],{revision:0,terms:{payment:'TESZT alap'}});render(kind);window.location.hash=kind;};
-let currentKind=window.location.hash==='#viba_offer'?'viba_offer':'received_budget';const rootRoute=createRootRoute({component:()=> <QuoteWorkflowDetail key={currentKind} id={quote.id+'-'+currentKind}/>});
+let currentKind=window.location.search.includes('viba_offer')?'viba_offer':'received_budget';const rootRoute=createRootRoute({component:()=> <QuoteWorkflowDetail key={currentKind} id={quote.id+'-'+currentKind}/>});
 const router=createRouter({routeTree:rootRoute});
 const root=createRoot(document.getElementById('root') as HTMLElement);
 function render(kind:string){currentKind=kind;root.render(<QueryClientProvider client={qc}><RouterProvider router={router}/></QueryClientProvider>);router.invalidate();}
