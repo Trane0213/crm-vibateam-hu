@@ -20,6 +20,9 @@ import { createDraftQuote } from "@/lib/quotes/create";
 import type { LeadStatus } from "@/lib/sales/constants";
 import { statusToLostStage } from "@/lib/sales/constants";
 import type { PipelineLead } from "./pipeline-types";
+import { QuoteWorkflowChoice } from "@/components/quotes/quote-workflow-choice";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { QuoteWorkflow } from "@/lib/quotes/workflow";
 
 /**
  * A Pipeline kártya megnyitása utáni 3 oszlopos részletnézet.
@@ -42,17 +45,21 @@ export function PipelineDetailSheet({
   const qc = useQueryClient();
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
+  const [quoteChoiceOpen, setQuoteChoiceOpen] = useState(false);
   const navigate = useNavigate();
   const newQuote = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (kind: QuoteWorkflow) => {
       if (!lead) throw new Error("Nincs lead.");
       const id = await createDraftQuote({ leadId: lead.id });
+      const result = await supabase.from("quotes").update({ quote_kind: kind }).eq("id", id).select("id");
+      if (result.error || result.data?.length !== 1) toast.error("A piszkozat elkészült; az ajánlattípust az adatlapon kell megadni.");
       await logActivity("quotes", "create", String(id), { lead_id: lead.id });
       return id;
     },
     onError: (e: any) =>
       toast.error("Nem sikerült létrehozni", { description: humanizeSupabaseError(e) }),
     onSuccess: (id) => {
+      setQuoteChoiceOpen(false);
       qc.invalidateQueries({ queryKey: ["quotes"] });
       navigate({ to: "/quotes/$id", params: { id } });
     },
@@ -198,11 +205,14 @@ export function PipelineDetailSheet({
                     variant="outline"
                     className="w-full"
                     disabled={newQuote.isPending}
-                    onClick={() => newQuote.mutate()}
+                    onClick={() => setQuoteChoiceOpen(true)}
                   >
                     <FileText className="mr-1.5 h-3.5 w-3.5" />
                     {newQuote.isPending ? "Létrehozás…" : "Ajánlat készítése"}
                   </Button>
+                  <Dialog open={quoteChoiceOpen} onOpenChange={(v) => { if (!newQuote.isPending) setQuoteChoiceOpen(v); }}>
+                    <DialogContent><DialogHeader><DialogTitle>Új ajánlat</DialogTitle></DialogHeader><QuoteWorkflowChoice disabled={newQuote.isPending} onChoose={(kind) => newQuote.mutate(kind)} /></DialogContent>
+                  </Dialog>
                 </div>
                 <div className="mt-4 rounded-md border bg-card p-3 text-[11px] text-muted-foreground">
                   <p className="font-medium text-foreground">Csak itt végezhető</p>

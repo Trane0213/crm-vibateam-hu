@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -16,10 +16,10 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { QuoteTemplateDefaultsEditor } from "./quote-template-defaults-editor";
 import { QuotePrintDocument } from "./quote-print-document";
 
-type Props = { quote: { id: string; locked_at?: string | null; template_key?: string | null; template_version?: number | null; template_terms?: Record<string, string> | null; site_address?: string | null }; headerDraft?: Record<string, unknown> };
+type Props = { quote: { id: string; locked_at?: string | null; template_key?: string | null; template_version?: number | null; template_terms?: Record<string, string> | null; site_address?: string | null }; headerDraft?: Record<string, unknown>; children?: ReactNode };
 
 /** S6: sablonválasztás és ajánlatonként szerkeszthető feltételek. */
-export function QuoteTemplatePanel({ quote, headerDraft }: Props) {
+export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
   const qc = useQueryClient();
   const { role } = usePermissions();
   const getDefaults = useServerFn(getQuoteTemplateDefaults);
@@ -60,6 +60,7 @@ export function QuoteTemplatePanel({ quote, headerDraft }: Props) {
   return (
     <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(280px,1fr)_minmax(0,1.4fr)]">
     <div className="min-w-0 space-y-4">
+      {children}
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-sm font-semibold">VIBA-sablon és feltételek</h2>
         {quote.template_key && isTemplateKey(quote.template_key) && (

@@ -16,6 +16,7 @@ import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
 import { useQuoteList } from "@/components/quotes/use-quote-list";
 import { filterQuoteRows } from "@/lib/quotes/quote-list";
 import { QUOTE_STATUSES, QUOTE_STATUS_LABEL, quoteStatusLabel } from "@/lib/quotes/quote-status";
+import { NewQuoteButton } from "@/components/quotes/new-quote-button";
 
 const KIND_LABEL: Record<string, string> = { received_budget: "Kapott költségvetés", viba_offer: "Saját VIBA" };
 const PAGE = 50;
@@ -33,22 +34,12 @@ function QuotesPage() {
   const pages = Math.max(1, Math.ceil(rows.length / PAGE));
   const shown = rows.slice(page * PAGE, page * PAGE + PAGE);
 
-  const onNew = async () => {
-    try {
-      const id = await createDraftQuote({ leadId: null });
-      toast.success("Új piszkozat létrehozva");
-      navigate({ to: "/quotes/$id", params: { id } });
-    } catch (e: any) {
-      toast.error("Nem sikerült létrehozni", { description: humanizeSupabaseError(e) });
-    }
-  };
-
   return (
     <div className="p-6">
       <PageHeader
         title="Ajánlatok"
         description="Minden ajánlat, amihez hozzáférsz: ügyfél, felelős, állapot, kiküldés, összeg és következő utánkövetés."
-        actions={<Button size="sm" onClick={onNew}><Plus className="mr-1.5 h-4 w-4" /> Új ajánlat</Button>}
+        actions={<NewQuoteButton variant="default" />}
       />
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Input className="w-72" placeholder="Keresés: cím, ügyfél, ügy, projekt" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
@@ -132,5 +123,12 @@ function QuotesPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/quotes/")({
+  head: () => ({ meta: [
+    { title: "Ajánlatok | VIBA-TEAM CRM" },
+    { name: "description", content: "Kapott költségvetések és saját VIBA-ajánlatok kezelése." },
+    { property: "og:title", content: "Ajánlatok | VIBA-TEAM CRM" },
+    { property: "og:description", content: "Ajánlatok, verziók, kiküldések és utánkövetések." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: QuotesPage,
 });

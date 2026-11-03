@@ -311,7 +311,7 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
           )}
           {(quotes.data ?? []).length === 0 ? (
             <>
-              <QuickCreateQuoteButton label="Új ajánlat indítása" variant="secondary" />
+              <QuickCreateQuoteButton defaults={{ lead_id: leadId }} label="Új ajánlat indítása" variant="secondary" />
               <div className="mt-1.5 text-[10px] text-muted-foreground">Még nincs ajánlat ehhez a leadhez.</div>
             </>
           ) : (

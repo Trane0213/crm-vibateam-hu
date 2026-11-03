@@ -7,6 +7,7 @@ import { useUpsert } from "@/lib/db-hooks";
 import { toast } from "sonner";
 import { findOpenLeadDuplicate } from "@/lib/dedupe/detect";
 import { supabase } from "@/integrations/supabase/client";
+import { NewQuoteButton } from "@/components/quotes/new-quote-button";
 
 const LEAD_FIELDS: Field[] = [
   { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
@@ -157,11 +158,5 @@ export function QuickCreateQuoteButton({
   label?: string;
   variant?: "default" | "secondary" | "outline";
 }) {
-  const seed = { status: "draft", version: 1, ...(defaults ?? {}) };
-  return (
-    <QuickButton
-      table="quotes" label={label} title="Új ajánlat"
-      fields={QUOTE_FIELDS} defaults={seed} variant={variant}
-    />
-  );
+  return <NewQuoteButton leadId={defaults?.lead_id ?? null} label={label} variant={variant} />;
 }
