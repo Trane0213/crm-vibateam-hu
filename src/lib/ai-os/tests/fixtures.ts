@@ -161,6 +161,8 @@ export const FIXTURES: AgentAcceptance[] = [
       "crm_list_quotes",
       "crm_list_followups",
       "crm_lead_history",
+      "crm_email_mailboxes",
+      "crm_read_email_thread",
       "sales_mark_won_with_project",
       "website_search_pages",
     ],
