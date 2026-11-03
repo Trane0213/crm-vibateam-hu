@@ -4,6 +4,7 @@ import { getTool, toolsForAgent } from "../tool-registry";
 import { crmReadPage, leadTimeline, readWindow } from "./crm-read-page";
 import { modelToolPayload } from "../tool-payload";
 import type { ToolContext } from "../types";
+import { userReference, readTimestamp } from './crm-read-input';
 
 type Row = Record<string, unknown>;
 function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], errors: string[] = []) {
@@ -34,7 +35,7 @@ function fixture(tables: Record<string, Row[]>, visibleLeadIds?: string[], error
     };
     return q;
   } };
-  return { calls, ctx: { userId: "sales-user", agentId: "timothy", threadId: null, runId: "TESZT", supabaseUser: client, supabaseAdmin: {} } as unknown as ToolContext };
+  return { calls, ctx: { userId: "00000000-0000-4000-8000-000000000001", agentId: "timothy", threadId: null, runId: "TESZT", supabaseUser: client, supabaseAdmin: {} } as unknown as ToolContext };
 }
 async function execute(name: string, args: Row, ctx: ToolContext): Promise<any> {
   const tool = getTool(name);
@@ -44,6 +45,33 @@ async function execute(name: string, args: Row, ctx: ToolContext): Promise<any> 
 
 beforeEach(registerCrmTools);
 describe("Timothy P1/A CRM reads", () => {
+  it('resolves me to the authenticated assignee in leads and followups', async () => {
+    for (const table of ['leads', 'followups']) {
+      const f = fixture({ [table]: [{id:'own',assigned_to:'00000000-0000-4000-8000-000000000001',completed:false},{id:'other',assigned_to:'00000000-0000-4000-8000-000000000002',completed:false}] });
+      const out = await execute(`crm_list_${table}`, {assigned_to:'me'}, f.ctx);
+      expect(out.data.items.map((r: Row) => r.id)).toEqual(['own']);
+    }
+  });
+  it('rejects malformed assignees before a database call', async () => {
+    const f = fixture({});
+    await expect(execute('crm_list_followups', {assigned_to:'Ramon'}, f.ctx)).rejects.toThrow();
+    expect(f.calls).toEqual([]);
+  });
+  it('rejects malformed dates and invalid legacy page sizes before querying', async () => {
+    for (const args of [{due_before:'2026-11-03'}, {limit:-1}, {limit:1.5}, {offset:-1}]) {
+      const f=fixture({}); await expect(execute('crm_list_followups',args,f.ctx)).rejects.toThrow(); expect(f.calls).toEqual([]);
+    }
+  });
+  it('pages followups beyond the former silent 25-row limit', async () => {
+    const f=fixture({followups:Array.from({length:39},(_,i)=>({id:`f${i}`,completed:false}))});
+    const first=await execute('crm_list_followups',{limit:25},f.ctx);
+    const second=await execute('crm_list_followups',{limit:25,offset:first.data.pagination.next_offset},f.ctx);
+    expect(first.data.pagination.total_visible).toBe(39); expect(second.data.items.length).toBe(14); expect(second.data.pagination.has_more).toBe(false);
+  });
+  it('accepts offset ISO dates and does not resolve entity-like names',()=>{
+    expect(readTimestamp('2026-11-03T19:00:00+01:00')).toBe('2026-11-03T19:00:00+01:00');
+    expect(()=>userReference('Ramon','00000000-0000-4000-8000-000000000001')).toThrow();
+  });
   it("filters leads directly by company_id and excludes another company", async () => {
     const { ctx } = fixture({ leads: [{ id: "a", company_id: "company-a" }, { id: "b", company_id: "company-b" }] });
     const out = await execute("crm_list_leads", { company_id: "company-a" }, ctx);
