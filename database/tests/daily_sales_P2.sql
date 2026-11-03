@@ -2,10 +2,12 @@
 CREATE ROLE anon;
 CREATE ROLE authenticated;
 CREATE ROLE service_role;
+CREATE ROLE postgres SUPERUSER LOGIN;
 CREATE TABLE public.ai_memory(id uuid DEFAULT gen_random_uuid() PRIMARY KEY,subject_type text NOT NULL,subject_id uuid NOT NULL,
 scope text NOT NULL,key text NOT NULL,value jsonb NOT NULL,source text,created_by uuid NOT NULL,created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now(),
 UNIQUE(subject_type,subject_id,scope,key,created_by));
 GRANT ALL ON ai_memory TO authenticated,service_role;
+SET ROLE postgres;
 \i database/ai_os_daily_sales_P2_2026-11-03.sql
 DO $$
 DECLARE u uuid:='00000000-0000-4000-8000-000000000001'; b jsonb; c jsonb; f jsonb;
