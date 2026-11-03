@@ -118,8 +118,6 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     for (const a of body.attachments ?? []) {
       const trusted = hooks?.trustedAttachments?.get(a.key);
       if (trusted) { attBuffers.push(trusted); continue; }
-      const trusted = hooks?.trustedAttachments?.get(a.key);
-      if (trusted) { attBuffers.push(trusted); continue; }
       const url = presignR2Url({ method: "GET", key: a.key, expiresIn: 300 });
       const r = await fetch(url);
       if (!r.ok) throw new Error(`R2 letöltés sikertelen (${r.status}) – ${a.filename}`);
