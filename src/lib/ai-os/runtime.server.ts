@@ -70,7 +70,7 @@ export type RunAgentInput = {
   history: ChatMessage[];
   /** Memóriához betöltendő subjectek (pl. cég/lead/projekt amiről szó van). */
   memorySubjects?: Array<{ subject_type: string; subject_id: string }>;
-  /** Approval engedélyezett tool-hívás-azonosítók (a kliens jóváhagyásai). */
+  /** Legacy callers are rejected; these IDs never grant permission. */
   approvedToolCallIds?: string[];
 };
 
@@ -91,6 +91,7 @@ export async function runAgent(
 ): Promise<RunAgentResult> {
   const agent = getAgent(input.agentId);
   if (!agent) throw new Error(`Ismeretlen agent: ${input.agentId}`);
+  if (input.approvedToolCallIds?.length) throw new Error("Régi jóváhagyás nem hajtható végre; új művelet szükséges.");
 
   // 1) Tool-lista a registry-ből (szerepkör + agent szűrés).
   const allowedTools = toolsForAgent({
@@ -146,7 +147,6 @@ export async function runAgent(
     ...input.history,
   ];
 
-  if (input.approvedToolCallIds?.length) throw new Error("Régi jóváhagyás nem hajtható végre; új művelet szükséges.");
   let hadToolFailure = false;
   let stepNo = 0;
   let totalPrompt = 0;

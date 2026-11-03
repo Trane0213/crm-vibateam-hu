@@ -33,6 +33,11 @@ export function safeAudit(value: unknown): unknown {
 export function failureResult(value: unknown): boolean {
   return !!value && typeof value === "object" && ((value as Record<string, unknown>).ok === false || "error" in value);
 }
+export function assertGoogleMutation(value: unknown, expectedResource: string, prefix = false): void {
+  const response = value as { results?: Array<{ resourceName?: string }> } | null;
+  const name = response?.results?.[0]?.resourceName;
+  if (response?.results?.length !== 1 || typeof name !== "string" || (prefix ? !name.startsWith(expectedResource) || name.length <= expectedResource.length : name !== expectedResource)) throw new Error("A külső végrehajtás eredménye nem igazolt.");
+}
 export function verifyExecution(toolName: string, value: unknown, args: Record<string, unknown>): { status: "succeeded" | "failed" | "unknown"; no_op?: boolean } {
   if (failureResult(value)) return { status: "failed" };
   const out = value as { ok?: boolean; id?: string; data?: Record<string, unknown> } | null;

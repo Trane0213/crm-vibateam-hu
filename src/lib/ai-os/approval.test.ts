@@ -9,7 +9,7 @@ const projectId = "00000000-0000-4000-8000-000000000003";
 async function fixture(opts: { name?: string; domain?: string; agent?: string; status?: ActionRow["approval_status"]; output?: unknown; throwExecute?: boolean; dbFail?: string; wrongOwner?: boolean; expired?: boolean; role?: string } = {}) {
  const name = opts.name ?? "sales_mark_won_with_project";
  const agent = opts.agent ?? "timothy";
- const execute = vi.fn(async () => { if (opts.throwExecute) throw new Error("network interrupted"); return opts.output ?? { ok: true, data: { project_id: projectId } }; });
+ const execute = vi.fn(async (_args: Record<string, unknown>) => { if (opts.throwExecute) throw new Error("network interrupted"); return opts.output ?? { ok: true, data: { project_id: projectId } }; });
  registerTool({ name, description: "TESZT", domain: opts.domain ?? "sales.workflow", needs_approval: true, allowed_agents: [agent], parameters: { type: "object" } }, execute);
  const tool = getTool(name);
  if (!tool) throw new Error("fixture registration failed");
