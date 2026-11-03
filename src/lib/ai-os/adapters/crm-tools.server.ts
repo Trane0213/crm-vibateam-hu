@@ -19,6 +19,7 @@ import { readQuoteList } from "./quote-read.server";
 import { prepActionSchema,verifyPrepAction } from '../prep-action';
 import { nextStepActionSchema,verifyNextStepAction } from '../next-step-action';
 import { NEXT_STEP_TYPES } from '@/lib/sales/constants';
+import {followupActionSchema,verifyFollowupAction} from '../followup-action';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -403,6 +404,17 @@ export function registerCrmTools() {
   );
 
   // ---------------- WRITE: SALES WORKFLOW ----------------
+  registerTool({name:'sales_create_followup',domain:'sales.followup',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
+    description:'Tervezett lead-utánkövetés a meglévő followups táblába, P0 jóváhagyással. Meglévő nyitott utánkövetés mellett nem készül új. Nem változtat lead next-step/státuszt és nem küld levelet.',
+    parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},type:{type:'string',enum:['call','email','meeting','other']},dueAt:{type:'string',description:'Teljes ISO időpont pontos időzónával'},note:{type:'string',maxLength:10000}},required:['leadId','type','dueAt','note']}},
+    async(args,ctx)=>{
+      followupActionSchema.parse(args);
+      if(!ctx.approvalActionId)throw new Error('Tartós jóváhagyás szükséges.');
+      const saved=await ctx.supabaseUser.rpc('sales_create_approved_followup',{p_action_id:ctx.approvalActionId});
+      if(saved.error)return fail(saved.error);
+      if(!verifyFollowupAction(saved.data,args))throw new Error('Az utánkövetés mentése nem igazolt.');
+      return ok(saved.data);
+    });
   registerTool({name:'sales_update_next_step',domain:'sales.next_step',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
     description:'Pontos lead következő lépés típus/dátum/idő/jegyzet mentése P0 jóváhagyással. Nincs törlés, státuszváltás, új followup vagy levélküldés. Hiányzó időpontot tisztázni kell.',
     parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},type:{type:'string',enum:[...NEXT_STEP_TYPES]},dueAt:{type:'string',description:'Érvényes ISO dátum+idő pontos Z vagy ±HH:MM időzónával; felhasználó által megadott időpont.'},note:{type:'string',maxLength:10000}},required:['leadId','type','dueAt','note']}},
