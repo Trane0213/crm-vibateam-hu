@@ -8,7 +8,10 @@
 - [x] P1/C ajánlatértelmezés: nettó, verziók/alternatívák, küldési bizonyíték, utánkövetések, összehasonlítás; 204/204 regresszió, AI 15 forgatókönyv, build PASS; jelentés és STOP.
 - [ ] P1/C hitelesített két-chat/valós RLS és modellminőségi próba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet.
 - [x] P1/D korlátozott dokumentumértelmezés: RLS-es fájlazonosítás, PDF/XLSX/DOCX/szöveg, forrás/verzió/hash és részlegesség; 224/224 regresszió, AI 16 forgatókönyv, build PASS; jelentés és STOP.
-- [ ] P1/D hitelesített R2/két-chat/Worker végrehajtás és modellminőség: external_unmanaged Supabase, nincs átadható munkamenet; nagy fájl háttérfeldolgozása nincs megvalósítva. P2–P5 külön jóváhagyásra vár, nem indult.
+- [ ] P1/D hitelesített R2/két-chat/Worker végrehajtás és modellminőség: external_unmanaged Supabase, nincs átadható munkamenet; nagy fájl háttérfeldolgozása nincs megvalósítva.
+- [x] P2 előkészítés: eredeti specifikáció, közös napi logika és ismétlődő briefing vizsgálata; élő ai_memory constraint/RLS ellenőrzés, előzetes terv.
+- [ ] P2 megvalósítás: kompakt Timothy-kártya, közös napi adatok, tartós napi futásvédelem, frissesség és regresszió; előzetes adatbázis-védelmi terv jóváhagyására vár.
+- [ ] P3–P5 külön jóváhagyásra vár; nem indult.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
