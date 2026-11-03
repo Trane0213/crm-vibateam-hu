@@ -17,6 +17,7 @@ export type SendHooks = {
 };
 /** Shared authenticated transport. Hooks are server-only, never parsed from request JSON. */
 export async function handleGmailSend(request: Request, hooks?: SendHooks): Promise<Response> {
+  let sentEvidence: { id: string; threadId: string } | undefined;
   try {
     const userId = await getAuthedUserId(request);
     const body = (await request.json()) as {
@@ -154,10 +155,11 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     try {
       await hooks?.beforeSend(attBuffers);
       sent = await sendMessage(accessToken, raw, body.threadId);
+      sentEvidence = sent;
       await hooks?.verifySent(accessToken, sent);
     }
     catch (sendErr: any) {
-      if (quoteSendId) await (admin as any).from("quote_sends").update({ status: "failed", error: String(sendErr?.message ?? sendErr).slice(0, 500) }).eq("id", quoteSendId);
+      if (quoteSendId && !sentEvidence) await (admin as any).from("quote_sends").update({ status: "failed", error: String(sendErr?.message ?? sendErr).slice(0, 500) }).eq("id", quoteSendId);
       throw sendErr;
     }
     const toList = parseAddressList(body.to);
@@ -268,6 +270,7 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     }
     return Response.json({ ok: true, id: sent.id, threadId: sent.threadId });
   } catch (e: any) {
+    if (hooks && sentEvidence) return Response.json({ok:true,...sentEvidence,warning:'A levél Gmail-azonosítója megvan, de a teljes eredmény nem igazolt. Ne küldd újra.'});
     if (e instanceof Response) return e;
     console.error("[gmail/send] error", e);
     return Response.json({ error: e?.message ?? String(e) }, { status: 500 });

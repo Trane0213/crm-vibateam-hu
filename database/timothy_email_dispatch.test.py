@@ -1,9 +1,9 @@
 """Isolated PostgreSQL only; caller supplies a scratch database socket. Never production."""
 import subprocess, concurrent.futures, os
-base=['psql','-h',os.environ['SCRATCH_PGHOST'],'-p',os.environ['SCRATCH_PGPORT'],'-U','lovable','-d','postgres','-At','-v','ON_ERROR_STOP=1','-c']
+base=['psql','-h',os.environ['SCRATCH_PGHOST'],'-p',os.environ['SCRATCH_PGPORT'],'-U','lovable','-d','postgres','-qAt','-v','ON_ERROR_STOP=1','-c']
 u='00000000-0000-4000-8000-000000000091'; r='10000000-0000-4000-8000-000000000091'; args='{"message":{"body":"TESZT"}}'
 def sql(s): return subprocess.run(base+[s],capture_output=True,text=True,check=True).stdout.strip()
-sql(f"INSERT INTO auth.users(id) VALUES('{u}') ON CONFLICT DO NOTHING; INSERT INTO agent_runs(id,user_id,agent_id) VALUES('{r}','{u}','timothy') ON CONFLICT DO NOTHING")
+sql(f"DELETE FROM agent_run_steps WHERE run_id='{r}';INSERT INTO auth.users(id) VALUES('{u}') ON CONFLICT DO NOTHING; INSERT INTO agent_runs(id,user_id,agent_id) VALUES('{r}','{u}','timothy') ON CONFLICT DO NOTHING")
 n=0
 def action(tool='sales_send_email',agent='timothy',approval='dangerous',expiry="clock_timestamp()+interval '30 minutes'"):
  global n

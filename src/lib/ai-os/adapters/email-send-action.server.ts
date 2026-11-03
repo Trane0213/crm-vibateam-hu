@@ -89,14 +89,15 @@ export async function executeEmailSend(args: Record<string,unknown>, ctx: ToolCo
       const {getMessage,getProfile} = await import('@/lib/gmail/gmail-api.server');
       const profile = await getProfile(token);
       const live = await getMessage(token,sent.id,'metadata');
-      if (profile.emailAddress.toLowerCase() !== m.mailbox || !isVerifiedSentMessage(live,sent.id) || live.threadId !== sent.threadId) throw new Error('A kiküldés még nem igazolt; ne küldd újra.');
+      if (profile.emailAddress.toLowerCase() !== m.mailbox || !isVerifiedSentMessage(live,sent.id) || live.threadId !== sent.threadId || (approved.context.thread && sent.threadId !== approved.context.thread.gmail_thread_id)) throw new Error('A kiküldés még nem igazolt; ne küldd újra.');
       verified = true;
     },
   });
-  const out = await response.json() as {ok?:boolean;id?:string;warning?:string};
-  if (!response.ok || !out.ok || !out.id || out.warning || !verified) return dispatched ? {ok:true,data:{verified_sent:false,proof_saved:false}} : {ok:false,error:'Nem történt igazolt küldés.'};
+  const out = await response.json() as {ok?:boolean;id?:string;threadId?:string;warning?:string};
+  const partial = {gmail_message_id:out.id??null,gmail_thread_id:out.threadId??null,mailbox:m.mailbox,lead_id:m.leadId,verified_sent:verified,proof_saved:false};
+  if (!response.ok || !out.ok || !out.id || out.warning || !verified) return dispatched ? {ok:true,data:partial} : {ok:false,error:'Nem történt igazolt küldés.'};
   const saved = await ctx.supabaseUser.from('emails').select('id,thread_id,owner_user_id,lead_id,company_id,contact_id,project_id,from_email,gmail_message_id,to_emails,cc_emails,bcc_emails,subject,body').eq('gmail_message_id',out.id).eq('owner_user_id',ctx.userId).eq('lead_id',m.leadId).maybeSingle();
-  if (saved.error || !saved.data || saved.data.from_email?.toLowerCase() !== m.mailbox) return {ok:true,data:{verified_sent:true,proof_saved:false}};
+  if (saved.error || !saved.data || saved.data.from_email?.toLowerCase() !== m.mailbox) return {ok:true,data:partial};
   const e = saved.data;
   try {
     assertSameEmail({to:m.to.map(x=>x.toLowerCase()),cc:m.cc.map(x=>x.toLowerCase()),bcc:m.bcc.map(x=>x.toLowerCase()),subject:m.subject,body:html,company_id:approved.context.company.id,contact_id:approved.context.contact?.id??null,project_id:projectId??null},
@@ -111,7 +112,7 @@ export async function executeEmailSend(args: Record<string,unknown>, ctx: ToolCo
       const send = await ctx.supabaseUser.from('quote_sends').select('quote_id,status,gmail_message_id,email_id').eq('idempotency_key',ctx.approvalActionId).maybeSingle();
       if(send.error || send.data?.quote_id!==m.quoteId || send.data?.status!=='sent' || send.data.gmail_message_id!==out.id || send.data.email_id!==e.id) throw new Error('Hiányos ajánlati bizonyíték.');
     }
-  } catch {return {ok:true,data:{verified_sent:true,proof_saved:false}};}
+  } catch {return {ok:true,data:partial};}
   return {ok:true,data:{gmail_message_id:out.id,email_id:saved.data.id,thread_id:saved.data.thread_id,mailbox:m.mailbox,lead_id:m.leadId,verified_sent:true,proof_saved:true}};
 }
 export function registerEmailSendTool() {
