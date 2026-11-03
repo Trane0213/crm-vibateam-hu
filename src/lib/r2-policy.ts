@@ -1,22 +1,25 @@
 // R2 dokumentumvédelem (1/C) — tiszta, tesztelhető szabályok. Szerver- és kliensbiztos.
 // A szerepkörök az 1/B adatbázis-szabályokkal egyeznek.
 
-export type UploadPurpose = "project" | "company" | "outbound";
+export type UploadPurpose = "project" | "company" | "outbound" | "quote";
 
 export const PROJECT_DOC_CATEGORIES = ["quote", "contract", "plan", "technical", "photo", "other"] as const;
 export const COMPANY_DOC_CATEGORIES = [...PROJECT_DOC_CATEGORIES, "marketing"] as const;
+export const QUOTE_DOC_CATEGORIES = ["unpriced_budget", "priced_budget", "technical_plan", "technical_scope", "contract_terms", "sent_offer", "other"] as const;
 
 /** Szerepkörök, amelyek az adott célra feltölthetnek (crm_role_of értékek; tulajdonost külön ellenőrizzük). */
 export const UPLOAD_ROLES: Record<UploadPurpose, readonly string[]> = {
   project: ["project_manager", "pm", "sales"],
   company: ["project_manager", "pm", "sales", "marketing"],
   outbound: ["project_manager", "pm", "sales", "marketing"],
+  quote: ["project_manager", "pm", "sales"],
 };
 
 export const MAX_BYTES: Record<UploadPurpose, number> = {
   project: 50 * 1024 * 1024,
   company: 50 * 1024 * 1024,
   outbound: 20 * 1024 * 1024,
+  quote: 50 * 1024 * 1024,
 };
 
 /** Engedélyezett kiterjesztések → elfogadott MIME-típusok (üres MIME is elfogadott, ha a kiterjesztés rendben van). */
@@ -66,6 +69,7 @@ export function buildKey(args: {
   const stamp = `${Date.now()}-${args.unique}`;
   if (args.purpose === "project") return `${args.targetId ?? "global"}/${args.category}/${stamp}-${safe}`;
   if (args.purpose === "company") return `company-documents/${args.targetId}/${args.category}/${stamp}-${safe}`;
+  if (args.purpose === "quote") return `quote-documents/${args.targetId}/${args.category}/${stamp}-${safe}`;
   return `outbound-attachments/${args.userId}/${stamp}-${safe}`;
 }
 

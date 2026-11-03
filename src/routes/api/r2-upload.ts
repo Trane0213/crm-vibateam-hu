@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  buildKey, checkFile, isUuid, COMPANY_DOC_CATEGORIES, PROJECT_DOC_CATEGORIES, UPLOAD_ROLES, type UploadPurpose,
+  buildKey, checkFile, isUuid, COMPANY_DOC_CATEGORIES, PROJECT_DOC_CATEGORIES, QUOTE_DOC_CATEGORIES, UPLOAD_ROLES, type UploadPurpose,
 } from "@/lib/r2-policy";
 
 // 1/C: feltöltés csak bejelentkezve, szerepkör és cél (projekt/cég) jogosultság
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/r2-upload")({
           const targetRaw = String(form.get("targetId") ?? "");
           const category = String(form.get("category") ?? "other");
           if (!(file instanceof File)) return Response.json({ ok: false, error: "Hiányzó fájl" }, { status: 400 });
-          if (!["project", "company", "outbound"].includes(purpose)) {
+          if (!["project", "company", "outbound", "quote"].includes(purpose)) {
             return Response.json({ ok: false, error: "Érvénytelen feltöltési cél" }, { status: 400 });
           }
 
@@ -53,6 +53,15 @@ export const Route = createFileRoute("/api/r2-upload")({
             if (!isUuid(targetRaw)) return Response.json({ ok: false, error: "Érvénytelen cég" }, { status: 400 });
             const { data: c } = await supabase.from("companies").select("id").eq("id", targetRaw).maybeSingle();
             if (!c) return Response.json({ ok: false, error: "A cég nem található vagy nem elérhető" }, { status: 403 });
+            targetId = targetRaw;
+          } else if (purpose === "quote") {
+            if (!(QUOTE_DOC_CATEGORIES as readonly string[]).includes(category)) {
+              return Response.json({ ok: false, error: "Érvénytelen kategória" }, { status: 400 });
+            }
+            if (!isUuid(targetRaw)) return Response.json({ ok: false, error: "Érvénytelen ajánlat" }, { status: 400 });
+            // RLS (can_access_quote): csak a hívó által látható ajánlathoz.
+            const { data: qt } = await supabase.from("quotes").select("id").eq("id", targetRaw).maybeSingle();
+            if (!qt) return Response.json({ ok: false, error: "Az ajánlat nem található vagy nem elérhető" }, { status: 403 });
             targetId = targetRaw;
           }
 
