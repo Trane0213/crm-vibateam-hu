@@ -19,7 +19,7 @@ export async function dailySalesFingerprint(d: DailyData) {
   return Array.from(new Uint8Array(hash), b=>b.toString(16).padStart(2,'0')).join('');
 }
 export function dailySalesPrompt(d: DailyData) {
-  return JSON.stringify(safeAudit({counts:dailySalesCounts(d), focus:dailySalesFocus(d).map(({lead,reason})=>({
+  return JSON.stringify(safeAudit({counts:dailySalesCounts(d), zero_focus_meaning: 'Nincs saját kiemelt teendő ebben a napi kiválasztásban; más nyitott ügy létezéséről ez nem állítás.', all_open_cases_checked: false, focus:dailySalesFocus(d).map(({lead,reason})=>({
     id:lead.id, name:(lead.company_name ?? lead.summary ?? 'Ügy').slice(0,300), reason,
     due:lead.next_step_due_at, next_step_type:lead.next_step_type,
   })), scope:'own', limitations:'Nincs levelezés vagy dokumentumtartalom; várakozó státusz nem bizonyít megválaszolatlanságot. Üres napi lista nem bizonyítja, hogy minden feladat teljesítve van; kizárólag nincs saját kiemelt nyitott ügy ebben a napi kiválasztásban.'}));

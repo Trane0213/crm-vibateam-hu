@@ -36,9 +36,9 @@ export function registerQuoteTools() {
   registerSalesIntelligenceTools();
   registerTool({ name: "crm_list_quotes", domain: "crm.quotes",
     description: "Ajánlatok, lead- és projekt-only cégkapcsolattal, nettóval és aktuális/verzió/alternatíva jelöléssel. Saját Sales-ajánlatokhoz szűrő nélkül hívd: RLS védi. lead_id/company_id/project_id konkrét rekord UUID, soha nem me. Lapozott összesítés csak teljes oldalnál teljes kiválasztás, nem összeadott alternatívák.",
-    parameters: { type: "object", properties: { company_id: { type: "string", format: "uuid" }, lead_id: { type: "string", format: "uuid" }, project_id: { type: "string", format: "uuid" }, ...CRM_PAGE_PROPERTIES } },
+    parameters: { type: "object", properties: { selection: { type: 'string', enum: ['open', 'all'], description: 'Nyitott ajánlat kérdéshez open kötelező; történethez all.' }, company_id: { type: "string", format: "uuid" }, lead_id: { type: "string", format: "uuid" }, project_id: { type: "string", format: "uuid" }, ...CRM_PAGE_PROPERTIES } },
   }, async (args, ctx) => {
-    try { return { ok: true, data: await readQuoteList(args, ctx) }; } catch (e) { return toolError.fromException(e); }
+    try { return { ok: true, data: await readQuoteList({ selection: 'open', ...args }, ctx) }; } catch (e) { return toolError.fromException(e); }
   });
 
   registerTool({ name: "crm_quote_context", domain: "crm.quotes", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
@@ -62,7 +62,7 @@ export function registerQuoteTools() {
       if (section === "summary") page = crmReadPage([quote], 1, { limit: 1, offset: 0 }, "quotes", 8000);
       else if (section === "items") page = await items(String(raw.id), args, ctx);
       else if (section === "versions") {
-        const data = await readQuoteList({ ...args, group_id: raw.group_id }, ctx);
+        const data = await readQuoteList({ ...args, selection: 'all', group_id: raw.group_id }, ctx);
         return { ok: true, data: { quote, section, ...data } };
       } else {
         const window = readWindow(args, 10);

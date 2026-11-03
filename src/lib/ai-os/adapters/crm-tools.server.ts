@@ -183,7 +183,7 @@ export function registerCrmTools() {
         .from("leads").select(LEAD_CONTEXT_SELECT).eq("id", String(args.id)).maybeSingle();
       if (error) return fail(error.message);
       if (!data) return fail("Nem található lead.");
-      return ok(crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"));
+      return ok({ ...crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"), operation_context: { user_role: ctx.userRole ?? 'unknown', lead_reassignment: ctx.userRole === 'owner' && !['won', 'lost'].includes(data.status) ? 'owner_only_open_lead_requires_P0' : 'not_permitted', assigned_sales_is_not_owner: true } });
     },
   );
 
@@ -325,7 +325,9 @@ export function registerCrmTools() {
       const { data, error, count } = await query;
       if (error) return fail(error.message);
       const safeRows = (data ?? []).map((row) => ({ ...row, subject: safeMailText(row.subject).text, subject_status: safeMailText(row.subject).status }));
-      return ok(crmReadPage(safeRows, count, window, "email_threads"));
+      const accounts = await ctx.supabaseUser.rpc('crm_mailboxes');
+      const own = !accounts.error && Array.isArray(accounts.data) ? accounts.data.filter((m: { userId: string }) => m.userId === ctx.userId) : [];
+      return ok({ ...crmReadPage(safeRows, count, window, "email_threads"), mailbox_context: { access_checked: !accounts.error && Array.isArray(accounts.data), own_accessible_accounts: own.map((m: {email: string}) => m.email), thread_mailbox_membership_checked: false, live_gmail_checked: false, completeness: 'cached_company_links_not_full_mailbox', missing_mail_reason: 'not_determined' } });
     },
   );
 
@@ -340,6 +342,7 @@ export function registerCrmTools() {
         properties: {
           assigned_to: { type: "string", description: "A felelős auth UUID-ja vagy me a bejelentkezett felhasználóhoz." },
           due_before: { type: "string", description: "Teljes ISO időpont Z vagy ±HH:MM időzónával. Budapest nap végét UTC-re váltva add meg." },
+          overdue: { type: 'boolean', description: 'Lejárt MOST-ig: true; a szerver adja a friss aktuális időpontot.' },
           ...CRM_PAGE_PROPERTIES,
         },
       },
@@ -347,7 +350,7 @@ export function registerCrmTools() {
     async (args, ctx) => {
       const window = readWindow(args);
       const assignee = userReference(args.assigned_to, ctx.userId);
-      const before = readTimestamp(args.due_before);
+      const before = args.overdue === true ? new Date().toISOString() : readTimestamp(args.due_before);
       let q = ctx.supabaseUser.from("followups")
         .select("id,lead_id,project_id,company_id,quote_id,followup_type,assigned_to,due_date,completed,result", { count: "exact" })
         .eq("completed", false)
@@ -357,7 +360,7 @@ export function registerCrmTools() {
       if (before) q = q.lte("due_date", before);
       const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(crmReadPage(data ?? [], count, window, "followups"));
+      return ok({ ...crmReadPage(data ?? [], count, window, "followups"), filter_context: { completed: false, due_before: before ?? null, checked_at: new Date().toISOString(), timezone: 'Europe/Budapest' } });
     },
   );
 

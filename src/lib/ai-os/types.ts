@@ -96,6 +96,8 @@ export type ToolContext = {
   approvalActionId?: string;
   userId: string;
   agentId: string;
+  /** Verified runtime role, never supplied by model arguments. */
+  userRole?: string | null;
   threadId: string | null;
   runId: string;
   /** User-scoped Supabase kliens — RLS érvényesül. Olvasási toolokhoz ezt használd. */

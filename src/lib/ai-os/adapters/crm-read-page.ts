@@ -23,13 +23,33 @@ function boundText(value: unknown, truncated: string[], path: string): unknown {
   return value;
 }
 
+export function budapestTimestamp(value: unknown): string | null {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T/.test(value) || !Number.isFinite(Date.parse(value))) return null;
+  return new Intl.DateTimeFormat('hu-HU', { timeZone: 'Europe/Budapest', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(value)) + ' (Europe/Budapest)';
+}
+
+/** Interpretation is attached to saved fields, not inferred by the model. */
+export function crmRecordFacts(row: Record<string, unknown>, source: string, now = new Date()): Record<string, unknown> {
+  const dates = Object.fromEntries(Object.entries(row).flatMap(([key, value]) => {
+    const display = (key.endsWith('_at') || key === 'due_date') ? budapestTimestamp(value) : null;
+    return display ? [[key, display]] : [];
+  }));
+  const facts: Record<string, unknown> = { ...row, ...(Object.keys(dates).length ? { budapest_times: dates } : {}) };
+  if (source === 'followups') {
+    facts.work_state = row.completed === true ? 'completed' : row.completed === false ? (typeof row.due_date === 'string' && Date.parse(row.due_date) < now.getTime() ? 'overdue' : 'open') : 'unknown';
+    facts.action_required = row.completed === false;
+  }
+  if (source === 'contacts') facts.email_verification = !row.email ? 'missing' : row.email_invalid === true ? 'flagged_invalid' : 'not_verified';
+  return facts;
+}
+
 export function crmReadPage(rows: unknown[], count: number | null, window: { limit: number; offset: number }, source: string, budget = 18000) {
   const items: Record<string, unknown>[] = [];
   const truncatedFields: string[] = [];
   for (const row of rows) {
     if (!row || typeof row !== "object" || Array.isArray(row) || !("id" in row) || typeof row.id !== "string") throw new Error("Érvénytelen CRM rekord; hiányzó forrásazonosító.");
     const fields: string[] = [];
-    const item = boundText(row, fields, String(row.id)) as Record<string, unknown>;
+    const item = boundText(crmRecordFacts(row as Record<string, unknown>, source), fields, String(row.id)) as Record<string, unknown>;
     if (JSON.stringify([...items, item]).length > budget) break;
     items.push(item);
     truncatedFields.push(...fields);
@@ -40,7 +60,7 @@ export function crmReadPage(rows: unknown[], count: number | null, window: { lim
   return {
     items,
     pagination: { offset: window.offset, limit: window.limit, returned: items.length, total_visible: count, has_more: hasMore, next_offset: hasMore ? consumed : null },
-    completeness: { scope: "authenticated_user_visible_records", full_company_history: false, page_complete: !hasMore && window.offset === 0, truncated_fields: truncatedFields },
+    completeness: { scope: "authenticated_user_visible_records", full_company_history: false, page_complete: !hasMore && window.offset === 0, truncated_fields: truncatedFields, missing_data_reason: 'not_documented', empty_result_meaning: 'no_visible_matches_in_this_selection_not_proof_of_nonexistence' },
     sources: items.map((item) => ({ table: source, id: item.id })),
   };
 }

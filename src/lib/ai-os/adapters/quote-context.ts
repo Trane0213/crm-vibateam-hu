@@ -31,6 +31,7 @@ export function quoteContext(row: Record<string, unknown>): Record<string, unkno
     source_link: `/quotes/${row.id}`,
     workflow: quoteWorkflow(row.quote_kind), status_label: quoteStatusLabel(row.status as string | null),
     active: isActiveQuote(row as { status: string | null; is_current: boolean | null }),
+    version_state: row.is_current === false ? 'historical_version_not_open' : isActiveQuote(row as { status: string | null; is_current: boolean | null }) ? 'current_open' : 'current_closed',
     content_status: contentStatus, link: `/quotes/${row.id}` };
 }
 
