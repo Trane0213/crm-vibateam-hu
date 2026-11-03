@@ -17,7 +17,7 @@ export async function readDocument(args: Record<string, unknown>, ctx: ToolConte
   const source = { table: data.source, id: row.id, quote_id: row.quote_id ?? null, project_id: row.project_id ?? null, company_id: row.company_id ?? null, email_id: row.email_id ?? null };
   if (Number(row.size_bytes ?? 0) > DOCUMENT_LIMITS.bytes) return { ok: true, data: { source, status: "requires_large_processing", limits: DOCUMENT_LIMITS, completeness: { full_document: false }, limitations: ["5 MB felett külön feldolgozás szükséges; tartalom nem lett olvasva, háttérfeldolgozás nem indult."] } };
   const bytes = await download(key);
-  const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))).map((b) => b.toString(16).padStart(2, "0")).join("");
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer))).map((b) => b.toString(16).padStart(2, "0")).join("");
   if (data.expected_hash && data.expected_hash !== hash) throw new Error("A fájltartalom megváltozott; a korábbi folytatás nem használható.");
   const name = String(row.name ?? row.filename ?? "");
   const extracted = await extractDocument(bytes, name, data.unit, data.text_offset);

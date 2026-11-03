@@ -45,7 +45,7 @@ export async function extractDocument(bytes: Uint8Array, name: string, unit = 0,
   if (ext === "pdf") {
     if (!decoder.decode(bytes.slice(0, 5)).startsWith("%PDF-")) throw new Error("Nem PDF-tartalom.");
     const { getDocumentProxy } = await import("unpdf");
-    const pdf = await getDocumentProxy(bytes.slice(), { isEvalSupported: false, useSystemFonts: false, maxImageSize: 0, isOffscreenCanvasSupported: false, isImageDecoderSupported: false, disableFontFace: true });
+    const pdf = await getDocumentProxy(bytes.slice(), { useSystemFonts: false, maxImageSize: 0, isOffscreenCanvasSupported: false, isImageDecoderSupported: false, disableFontFace: true });
     try {
       if (pdf.numPages > DOCUMENT_LIMITS.pdfPages) throw new Error("A PDF külön nagyfeldolgozást igényel (300 oldal felett).");
       if (unit >= pdf.numPages) throw new Error("Nincs ilyen PDF-oldal.");
@@ -53,7 +53,7 @@ export async function extractDocument(bytes: Uint8Array, name: string, unit = 0,
       const content = await page.getTextContent();
       const text = content.items.map((item) => "str" in item ? item.str + (item.hasEOL ? "\n" : " ") : "").join("");
       return textPage(text, `PDF ${unit + 1}. oldal`, pdf.numPages, unit, textOffset, "unpdf@2.1.0 (serverless PDF.js)", ["Csak szövegréteg, nem OCR; üres/szkennelt oldalnál nincs teljes ellenőrzés.", "Táblázat koordináták és képek nem értelmezettek."]);
-    } finally { await pdf.destroy(); }
+    } finally { await pdf.loadingTask.destroy(); }
   }
   if (ext === "docx") {
     checkedOfficeZip(bytes);
@@ -61,7 +61,7 @@ export async function extractDocument(bytes: Uint8Array, name: string, unit = 0,
     const xml = zip["word/document.xml"];
     if (!xml) throw new Error("Hiányzó Word dokumentumtörzs.");
     const root = parse(decoder.decode(xml));
-    const text = root.querySelectorAll("w:p").map((p) => p.querySelectorAll("w:t").map((t) => t.textContent).join("")).join("\n");
+    const text = root.querySelectorAll("w\\:p").map((p) => p.querySelectorAll("w\\:t").map((t) => t.textContent).join("")).join("\n");
     if (unit !== 0) throw new Error("A Word dokumentum egy szövegegység.");
     return textPage(text, "Word dokumentumtörzs", 1, unit, textOffset, "fflate@0.8.3 + XML text", ["Fejléc/lábléc/megjegyzés/kép/rajz és követett módosítás nem teljes körűen értelmezett; nem teljes Word-audit."]);
   }
