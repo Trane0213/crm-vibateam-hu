@@ -90,8 +90,9 @@ export const AGENTS: Record<string, AgentDefinition> = {
     role: "Sales specialista.",
     description: "Leadek, ajánlatok, utókövetés, megnyerés.",
     provider: "openai",
-    model: "gpt-4o-mini",
-    temperature: 0.2,
+    model: "gpt-6-astra",
+    api: "responses",
+    reasoning_effort: "high",
     tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "sales.prep_activity", "sales.next_step", "sales.followup", "sales.contact", "sales.assignment", "sales.pipeline_status", "sales.email_send", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [

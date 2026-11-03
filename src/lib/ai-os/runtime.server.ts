@@ -26,7 +26,7 @@ import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
 import { RuntimeOutcome } from './runtime-outcome';
-import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer } from './read-quality';
+import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer, collectLeadCompanies, correctLeadAsCompany } from './read-quality';
 
 const MAX_STEPS = 50;
 
@@ -154,7 +154,7 @@ export async function runAgent(
   ];
 
   const outcome = new RuntimeOutcome();
-  const caveats=new Set<string>();
+  const caveats=new Set<string>(); const observedLeadCompanies=new Map<string,string>();
   let stepNo = 0;
   let totalPrompt = 0;
   let totalCompletion = 0;
@@ -171,6 +171,8 @@ export async function runAgent(
         tools: toolSpecs.length ? toolSpecs : undefined,
         temperature: agent.temperature,
         max_tokens: agent.max_tokens,
+        api: agent.api,
+        reasoning_effort: agent.reasoning_effort,
       });
       totalPrompt += result.usage.prompt_tokens ?? 0;
       totalCompletion += result.usage.completion_tokens ?? 0;
@@ -286,7 +288,7 @@ export async function runAgent(
         // (args.mode alapján). A runtime csak biztosítja, hogy execute-hoz volt approval.
         // E1: strukturált hiba normalizálás + automatikus retry retriable hibáknál.
         const tStart = Date.now();
-        const args: Record<string, unknown> = {
+        let args: Record<string, unknown> = {
           ...parsedArgs,
           ...(tool.supports_dry_run ? { mode: effectiveMode } : {}),
         };
@@ -298,6 +300,8 @@ export async function runAgent(
         // állapotváltoztató hatása: safe read-only tool, vagy dry_run mód.
         const readOnly = (approvalLevel === "safe" && !tool.needs_approval && (tool.domain.startsWith('crm.') || tool.domain === 'kg' || tool.domain === 'website.knowledge' || tool.name === 'memory_read')) || effectiveMode === "dry_run";
         const canRetry = readOnly;
+        let idCorrected = false;
+        if (agent.id === 'timothy' && readOnly) { const c = correctLeadAsCompany(args, observedLeadCompanies); args = c.args; idCorrected = c.corrected; }
         while (attempts < MAX_ATTEMPTS) {
           attempts++;
           try {
@@ -327,7 +331,7 @@ export async function runAgent(
           break;
         }
         if (failureResult(output)) { outcome.record(tool.name, true, readOnly); errMsg = "A művelet sikertelen."; }
-        else {outcome.observe(output);if(agent.id==='timothy')for(const c of readCaveats(output))caveats.add(c);}
+        else {outcome.observe(output);if(agent.id==='timothy'){for(const c of readCaveats(output))caveats.add(c);collectLeadCompanies(tool.name,output,observedLeadCompanies);}}
         // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
         const llmPayload: unknown = isToolErrorEnvelope(output)
           ? { ok: false, error: sanitizeErrorForLlm(output.error) }
@@ -341,7 +345,7 @@ export async function runAgent(
           kind: tool.domain === "core.handoff" ? "handoff" : "tool",
           toolName: tool.name,
           agentId: agent.id,
-          input: { ...args, __approval: approvalLevel, __mode: effectiveMode },
+          input: { ...args, __approval: approvalLevel, __mode: effectiveMode, ...(idCorrected ? { __lead_id_as_company_corrected: true } : {}) },
           // A teljes (technical_reason-nel együtt) output kerül auditba,
           // a `retry_attempts` mező jelzi ha volt retry.
           output: { ...(tool.name === "crm_read_email_thread" ? emailToolAudit(output) as Record<string, unknown> : tool.name === "crm_read_document" ? documentToolAudit(output) : typeof output === "object" && output ? output : { value: output }), __attempts: attempts },
@@ -350,7 +354,7 @@ export async function runAgent(
         });
         messages.push({
           role: "tool", tool_call_id: call.id,
-          content: modelToolPayload(agent.id==='timothy'?localModelDates(llmPayload):llmPayload),
+          content: modelToolPayload(agent.id==='timothy'?localModelDates(idCorrected && llmPayload && typeof llmPayload==='object' && !Array.isArray(llmPayload) ? { ...(llmPayload as Record<string, unknown>), id_correction: 'A company_id mezőben lead-azonosító volt; a lead mentett cégazonosítójával olvastam.' } : llmPayload):llmPayload),
         });
       }
 
