@@ -22,6 +22,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { quoteAmounts } from "@/lib/quotes/amounts";
 import { formatHuf } from "@/lib/format";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { QuoteWorkflowChoice } from "@/components/quotes/quote-workflow-choice";
+import { quoteWorkflowFeatures, type QuoteWorkflow } from "@/lib/quotes/workflow";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const NONE = "__none";
@@ -103,7 +105,7 @@ function QuoteDetail() {
       const { data, error } = await supabase
         .from("leads")
         .select("id, company_id, summary, assigned_to")
-        .eq("id", q.data!.lead_id!)
+        .eq("id", q.data?.lead_id ?? "")
         .maybeSingle();
       if (error) throw error;
       return data as any;
@@ -114,7 +116,7 @@ function QuoteDetail() {
     queryKey: ["quotes", "detail", id, "project", q.data?.project_id],
     enabled: !!q.data?.project_id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("projects").select("id, title, company_id").eq("id", q.data!.project_id!).maybeSingle();
+      const { data, error } = await supabase.from("projects").select("id, title, company_id").eq("id", q.data?.project_id ?? "").maybeSingle();
       if (error) throw error;
       return data as any;
     },
@@ -124,7 +126,7 @@ function QuoteDetail() {
     queryKey: ["contacts", "quote-company", companyIdForLists],
     enabled: !!companyIdForLists,
     queryFn: async () => {
-      const { data, error } = await supabase.from("contacts").select("id, name, email").eq("company_id", companyIdForLists!).order("name").limit(500);
+      const { data, error } = await supabase.from("contacts").select("id, name, email").eq("company_id", companyIdForLists ?? "").order("name").limit(500);
       if (error) throw error;
       return data ?? [];
     },
@@ -208,6 +210,16 @@ function QuoteDetail() {
       <Input id={`q-${k}`} type="date" value={form[k]} onChange={(e) => set(k, e.target.value)} />
     </div>
   );
+  const features = quoteWorkflowFeatures(form.quote_kind);
+  const own = features.ownEditor;
+  const chooseWorkflow = async (kind: QuoteWorkflow) => {
+    try {
+      // Only the existing kind field changes; documents/items/terms are retained.
+      await upsert.mutateAsync({ id: quote.id, quote_kind: kind });
+      set("quote_kind", kind);
+      setWorkspace("overview");
+    } catch { /* Existing mutation reports the error; choice remains available. */ }
+  };
   const huf = (n: number | null) => (n == null ? "Nincs megadva" : formatHuf(n));
 
   return (
@@ -230,7 +242,7 @@ function QuoteDetail() {
               )}
             </h1>
           </div>
-          <Link
+          {own && <Link
             to="/quotes/$id/print"
             params={{ id: quote.id }}
             target="_blank"
@@ -239,7 +251,7 @@ function QuoteDetail() {
             <Button size="sm" variant="outline">
               <Printer className="mr-1.5 h-4 w-4" /> Nyomtatás / PDF
             </Button>
-          </Link>
+          </Link>}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           {companyId ? (
@@ -273,22 +285,24 @@ function QuoteDetail() {
         </div>
       </div>
 
-      <Tabs value={workspace} onValueChange={setWorkspace} className="min-w-0 p-4 sm:p-6">
+      {!features.kind && <div className="p-4 sm:p-6"><QuoteWorkflowChoice disabled={upsert.isPending || !!(quote as any).locked_at} onChoose={chooseWorkflow} /></div>}
+      {features.kind && <Tabs value={workspace} onValueChange={setWorkspace} className="min-w-0 p-4 sm:p-6">
         <div className="overflow-x-auto border-b pb-3">
           <TabsList aria-label="Ajánlat munkaterületei" className="h-auto w-max justify-start">
-            <TabsTrigger value="overview">Áttekintés és alapadatok</TabsTrigger>
-            <TabsTrigger value="documents">Dokumentumok és Excel</TabsTrigger>
-            <TabsTrigger value="pricing">Tételek és árak</TabsTrigger>
-            <TabsTrigger value="template">Sablon és előnézet</TabsTrigger>
-            <TabsTrigger value="send">Kiküldés és előzmények</TabsTrigger>
-            <TabsTrigger value="status">Állapot és utánkövetés</TabsTrigger>
+            <TabsTrigger value="overview">1. {own ? "Alapadatok" : "Excel és tervek"}</TabsTrigger>
+            <TabsTrigger value="pricing">2. {own ? "Ajánlat összeállítása" : "Összeg és megjegyzések"}</TabsTrigger>
+            <TabsTrigger value="send">3. {own ? "PDF és kiküldés" : "Kiküldés"}</TabsTrigger>
+            <TabsTrigger value="status">4. Utánkövetés</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="overview" forceMount hidden={workspace !== "overview"}>
-        <div className="py-5"><QuoteVersionsBar quote={quote as any} /></div>
+        <details className="border-b py-3"><summary className="cursor-pointer text-sm font-medium">Verziók és további műveletek</summary><div className="py-3"><QuoteVersionsBar quote={quote as any} /></div>
+          {!(quote as any).locked_at && <div className="max-w-sm py-3">{sel("quote_kind", "Ajánlat típusa", Object.entries(KIND_LABEL))}</div>}
+        </details>
+        {!own && <div className="py-5"><QuoteDocumentManager quoteId={quote.id} /></div>}
         <div className="py-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Fej-adatok</h2>
+            <h2 className="text-sm font-semibold">Ügyfél és alapadatok</h2>
             <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
               <Save className="mr-1.5 h-4 w-4" /> Mentés
             </Button>
@@ -298,7 +312,6 @@ function QuoteDetail() {
               <Label htmlFor="q-title">Ajánlat címe</Label>
               <Input id="q-title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="pl. Klíma szerelés — Kovács villa" maxLength={200} />
             </div>
-            {sel("quote_kind", "Ajánlat típusa", Object.entries(KIND_LABEL))}
             {sel("scope_type", "Ajánlati tartalom", Object.entries(SCOPE_LABEL))}
             {form.scope_type === "other" && area("scope_note", "Tartalom leírása", "Mit tartalmaz az ajánlat?")}
             {sel("contact_id", "Kapcsolattartó", (contacts.data ?? []).map((c: any) => [c.id, c.email ? `${c.name} · ${c.email}` : c.name]), companyId ? "Nincs megadva" : "Előbb cég (ügy/projekt) szükséges")}
@@ -316,13 +329,16 @@ function QuoteDetail() {
             {date("request_due_date", "Ajánlatkérési határidő")}
             {date("offer_due_date", "Ajánlattételi határidő")}
             {date("valid_until", "Érvényesség")}
-            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
-            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
-            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
           </div>
         </div>
         </TabsContent>
         <TabsContent value="pricing" forceMount hidden={workspace !== "pricing"}>
+          {own ? <QuoteTemplatePanel quote={quote as any} headerDraft={{
+            title: form.title, valid_until: form.valid_until || null, notes: form.notes,
+            technical_scope: form.technical_scope, exclusions: form.exclusions,
+            discount_percent: form.discount_percent || null, tax_percent: form.tax_percent || null,
+            manual_net_amount: form.manual_net_amount || null,
+          }}><div className="grid gap-4 sm:grid-cols-2">
           <div className="flex items-center justify-between gap-3 py-5">
             <h2 className="text-sm font-semibold">Árazási alapadatok</h2>
             <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
@@ -356,31 +372,62 @@ function QuoteDetail() {
               )}
             </div>
           </div>
-          <div className="mt-6 border-t py-5">
-            <QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} />
+            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
+            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
+            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
           </div>
-        </TabsContent>
-        <TabsContent value="template" forceMount hidden={workspace !== "template"} className="py-5">
-          <QuoteTemplatePanel quote={quote as any} headerDraft={{
-            title: form.title, valid_until: form.valid_until || null, notes: form.notes,
-            technical_scope: form.technical_scope, exclusions: form.exclusions,
-            discount_percent: form.discount_percent || null, tax_percent: form.tax_percent || null,
-            manual_net_amount: form.manual_net_amount || null,
-          }} />
-          <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer" className="mt-5 inline-block">
-            <Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat előnézete / PDF</Button>
-          </Link>
-        </TabsContent>
-        <TabsContent value="documents" forceMount hidden={workspace !== "documents"} className="py-5">
-          <QuoteDocumentManager quoteId={quote.id} />
+          <div className="mt-6 border-t py-5"><QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} /></div>
+          </QuoteTemplatePanel> : <div>
+          <div className="flex items-center justify-between gap-3 py-5">
+            <h2 className="text-sm font-semibold">Árazási alapadatok</h2>
+            <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
+              <Save className="mr-1.5 h-4 w-4" /> Mentés
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="q-disc">Kedvezmény (%)</Label>
+                <Input id="q-disc" type="number" min={0} max={100} step="0.01" value={form.discount_percent} onChange={(e) => set("discount_percent", e.target.value)} placeholder="0" />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="q-tax">ÁFA (%)</Label>
+                <Input id="q-tax" type="number" min={0} max={100} step="0.01" value={form.tax_percent} onChange={(e) => set("tax_percent", e.target.value)} placeholder="27" />
+              </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="q-manual">Megadott nettó összeg (fájlalapú ajánlat, Ft)</Label>
+              <Input id="q-manual" type="number" min={0} step="1" value={form.manual_net_amount} onChange={(e) => set("manual_net_amount", e.target.value)} placeholder="Ha ismert és ellenőrzött" />
+            </div>
+            <div className="rounded-md border bg-muted/30 p-3 text-sm sm:col-span-2">
+              <div className="flex flex-wrap gap-x-6 gap-y-1">
+                <span>Nettó: <strong>{huf(amounts.net)}</strong></span>
+                <span>ÁFA ({amounts.vatPercent}%): {huf(amounts.vat)}</span>
+                <span>Bruttó: <strong>{huf(amounts.gross)}</strong></span>
+                <span className="text-muted-foreground">Forrás: {amounts.source === "items" ? "tételes számítás" : amounts.source === "manual" ? "megadott összeg" : "nincs összeg"}</span>
+              </div>
+              {amounts.mismatch && (
+                <div className="mt-2 text-destructive">Eltérés: tételes nettó {huf(amounts.itemsNet)}, megadott nettó {huf(amounts.manualNet)}. Ellenőrizd!</div>
+              )}
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
+            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
+            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
+          </div></div>}
         </TabsContent>
         <TabsContent value="send" forceMount hidden={workspace !== "send"} className="py-5">
+          {own && <div className="mb-6 space-y-4">
+            <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
+            <QuoteDocumentManager quoteId={quote.id} />
+          </div>}
           <QuoteSendPanel quote={quote as any} companyId={companyId} />
         </TabsContent>
         <TabsContent value="status" forceMount hidden={workspace !== "status"} className="py-5">
           <QuoteStatusPanel quote={quote as any} />
         </TabsContent>
-      </Tabs>
+      </Tabs>}
     </div>
   );
 }
