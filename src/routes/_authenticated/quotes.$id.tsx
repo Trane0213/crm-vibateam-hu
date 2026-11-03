@@ -22,6 +22,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { quoteAmounts } from "@/lib/quotes/amounts";
 import { formatHuf } from "@/lib/format";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const NONE = "__none";
 const KIND_LABEL: Record<string, string> = { received_budget: "Kapott költségvetés", viba_offer: "Saját VIBA-ajánlat" };
@@ -31,6 +32,14 @@ type FormState = Record<(typeof FIELDS)[number], string>;
 const NUMERIC = new Set(["discount_percent","tax_percent","manual_net_amount"]);
 
 export const Route = createFileRoute("/_authenticated/quotes/$id")({
+  head: () => ({ meta: [
+    { title: "Ajánlat munkaterület | VIBA-TEAM CRM" },
+    { name: "description", content: "VIBA-ajánlat alapadatok, dokumentumok, árazás, sablon, Gmail-kiküldés és utánkövetés." },
+    { property: "og:title", content: "Ajánlat munkaterület | VIBA-TEAM CRM" },
+    { property: "og:description", content: "Ajánlat előkészítése és követése a VIBA-TEAM CRM meglévő munkaterületein." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: QuoteDetail,
 });
 
@@ -78,6 +87,7 @@ function QuoteDetail() {
   });
 
   const [form, setForm] = useState<FormState>(() => Object.fromEntries(FIELDS.map((f) => [f, ""])) as FormState);
+  const [workspace, setWorkspace] = useState("overview");
   const set = (k: keyof FormState, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   useEffect(() => {
@@ -156,6 +166,13 @@ function QuoteDetail() {
     taxPercent: form.tax_percent === "" ? null : Number(form.tax_percent),
   });
   const responsible = form.responsible_user_id;
+  const savedResponsible = (sellers.data ?? []).find((u: any) => u.auth_user_id === (quote as any).responsible_user_id)?.full_name;
+  const savedAmounts = quoteAmounts({
+    itemCount: itemRows.length,
+    totalAmount: (quote as any).total_amount,
+    manualNetAmount: (quote as any).manual_net_amount,
+    taxPercent: (quote as any).tax_percent,
+  });
 
   const onSave = () => {
     const payload: Record<string, any> = { id: quote.id };
@@ -195,12 +212,12 @@ function QuoteDetail() {
 
   return (
     <div className="flex flex-col">
-      <div className="border-b bg-background px-6 py-4">
-        <div className="flex items-start justify-between gap-4">
+      <div className="sticky top-0 z-20 border-b bg-background px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Ajánlat</div>
-            <h1 className="mt-1 flex items-center gap-2 text-xl font-semibold">
-              <span className="truncate">
+            <h1 className="mt-1 flex flex-wrap items-center gap-2 text-xl font-semibold">
+              <span className="break-words [overflow-wrap:anywhere]">
                 {quote.title?.trim() ||
                   (quote.version != null ? `v${quote.version}` : `#${String(quote.id).slice(0, 8)}`)}
               </span>
@@ -208,7 +225,7 @@ function QuoteDetail() {
               {quote.is_current && <Badge variant="outline">aktuális</Badge>}
               <Badge variant="outline">{(quote as any).alternative_key ?? "A"} alt.</Badge>
               {(quote as any).locked_at && <Badge>kiküldve</Badge>}
-              {quote.version != null && quote.title && (
+              {quote.version != null && (
                 <span className="text-xs font-normal text-muted-foreground">v{quote.version}</span>
               )}
             </h1>
@@ -225,7 +242,7 @@ function QuoteDetail() {
           </Link>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-          {companyId && (
+          {companyId ? (
             <span>
               Ügyfél:{" "}
               <Link to="/customers/$id" params={{ id: companyId }} className="text-primary hover:underline">
@@ -233,7 +250,9 @@ function QuoteDetail() {
                 {companyLabel(companyId)}
               </Link>
             </span>
-          )}
+          ) : <span>Ügyfél: nincs megadva</span>}
+          <span>Felelős: {savedResponsible ?? "Nincs megadva"}</span>
+          <span>Nettó: <strong className="text-foreground">{huf(savedAmounts.net)}</strong></span>
           {project.data && (
             <span>
               Projekt:{" "}
@@ -254,9 +273,20 @@ function QuoteDetail() {
         </div>
       </div>
 
-      <div className="p-6">
-        <div className="mb-6"><QuoteVersionsBar quote={quote as any} /></div>
-        <div className="rounded-md border bg-card p-5">
+      <Tabs value={workspace} onValueChange={setWorkspace} className="min-w-0 p-4 sm:p-6">
+        <div className="overflow-x-auto border-b pb-3">
+          <TabsList aria-label="Ajánlat munkaterületei" className="h-auto w-max justify-start">
+            <TabsTrigger value="overview">Áttekintés és alapadatok</TabsTrigger>
+            <TabsTrigger value="documents">Dokumentumok és Excel</TabsTrigger>
+            <TabsTrigger value="pricing">Tételek és árak</TabsTrigger>
+            <TabsTrigger value="template">Sablon és előnézet</TabsTrigger>
+            <TabsTrigger value="send">Kiküldés és előzmények</TabsTrigger>
+            <TabsTrigger value="status">Állapot és utánkövetés</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="overview" forceMount hidden={workspace !== "overview"}>
+        <div className="py-5"><QuoteVersionsBar quote={quote as any} /></div>
+        <div className="py-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold">Fej-adatok</h2>
             <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
@@ -286,6 +316,20 @@ function QuoteDetail() {
             {date("request_due_date", "Ajánlatkérési határidő")}
             {date("offer_due_date", "Ajánlattételi határidő")}
             {date("valid_until", "Érvényesség")}
+            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
+            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
+            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
+          </div>
+        </div>
+        </TabsContent>
+        <TabsContent value="pricing" forceMount hidden={workspace !== "pricing"}>
+          <div className="flex items-center justify-between gap-3 py-5">
+            <h2 className="text-sm font-semibold">Árazási alapadatok</h2>
+            <Button size="sm" onClick={onSave} disabled={upsert.isPending || !!(quote as any).locked_at}>
+              <Save className="mr-1.5 h-4 w-4" /> Mentés
+            </Button>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="q-disc">Kedvezmény (%)</Label>
@@ -311,28 +355,27 @@ function QuoteDetail() {
                 <div className="mt-2 text-destructive">Eltérés: tételes nettó {huf(amounts.itemsNet)}, megadott nettó {huf(amounts.manualNet)}. Ellenőrizd!</div>
               )}
             </div>
-            {area("technical_scope", "Műszaki lehatárolás", "Mire terjed ki az ajánlat?")}
-            {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
-            {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
           </div>
-        </div>
-        <div className="mt-6 rounded-md border bg-card p-5">
+          <div className="mt-6 border-t py-5">
+            <QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} />
+          </div>
+        </TabsContent>
+        <TabsContent value="template" forceMount hidden={workspace !== "template"} className="py-5">
           <QuoteTemplatePanel quote={quote as any} />
-        </div>
-        <div className="mt-6 rounded-md border bg-card p-5">
+          <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer" className="mt-5 inline-block">
+            <Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat előnézete / PDF</Button>
+          </Link>
+        </TabsContent>
+        <TabsContent value="documents" forceMount hidden={workspace !== "documents"} className="py-5">
           <QuoteDocumentManager quoteId={quote.id} />
-        </div>
-        <div className="mt-6 rounded-md border bg-card p-5">
+        </TabsContent>
+        <TabsContent value="send" forceMount hidden={workspace !== "send"} className="py-5">
           <QuoteSendPanel quote={quote as any} companyId={companyId} />
-        </div>
-        <div className="mt-6 rounded-md border bg-card p-5">
+        </TabsContent>
+        <TabsContent value="status" forceMount hidden={workspace !== "status"} className="py-5">
           <QuoteStatusPanel quote={quote as any} />
-        </div>
-        {/* Meglévő tétel-panel: a nyomtatási nézet ezekből a tételekből számol. */}
-        <div className="mt-6 rounded-md border bg-card p-5">
-          <QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} />
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

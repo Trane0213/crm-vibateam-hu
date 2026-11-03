@@ -1,4 +1,8 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Ajánlatkezelő V2.1/B (2026-11-03)
+- [ ] Hat munkaterület a meglévő ajánlatpanelekből, állandó összefoglaló fejléc és megőrzött szerkesztési állapot.
+- [ ] Célzott és teljes regresszió, ellenőrzési jelentés; STOP, C és publikálás nélkül.
+
 ## Ajánlatkezelő V2.1/A (2026-11-03)
 - [x] Igazolt kiküldéshez kötött rögzítés; hatáselemzés, visszaállítás és célzott tesztek.
 - [x] Verzió és alternatíva a kiválasztott forrás sablonját, helyszínét és feltételeit örökli.
