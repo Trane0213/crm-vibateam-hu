@@ -32,17 +32,6 @@ const FOLLOWUP_FIELDS: Field[] = [
   { name: "result", label: "Jegyzet", type: "textarea" },
 ];
 
-const QUOTE_FIELDS: Field[] = [
-  { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" }, required: true },
-  { name: "version", label: "Verzió", type: "number" },
-  { name: "status", label: "Státusz", type: "select", required: true, options: [
-    { value: "draft", label: "Készül" }, { value: "sent", label: "Kiküldve" },
-    { value: "negotiation", label: "Tárgyalás" }, { value: "won", label: "Megnyert" },
-    { value: "lost", label: "Elveszett" },
-  ]},
-  { name: "total_amount", label: "Összérték (HUF)", type: "number" },
-];
-
 function QuickButton({
   table, label, title, fields, defaults, icon, variant = "default", onCreated,
 }: {

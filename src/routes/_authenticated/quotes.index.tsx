@@ -1,7 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { FileText, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +8,6 @@ import { PageHeader, EmptyState } from "@/components/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { fmtDate, fmtDateTime } from "@/components/resource/resource-page";
-import { createDraftQuote } from "@/lib/quotes/create";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { formatHuf } from "@/lib/format";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";

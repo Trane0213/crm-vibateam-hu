@@ -103,7 +103,7 @@ export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
       {locked && <p className="text-xs text-muted-foreground">Kiküldött verzió — módosításhoz új verziót készíts.</p>}
       {role === "owner" && key && defaults.data && <QuoteTemplateDefaultsEditor key={key} templateKey={key} defaults={defaults.data} />}
     </div>
-    <div className="min-w-0">
+    <div className="min-w-0 self-start xl:sticky xl:top-40">
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm font-semibold">A4-előnézet <Badge variant="outline">{locked ? "Mentett, zárolt ajánlat" : "Szerkesztés alatt"}</Badge></div>
       <div className="max-h-[80vh] overflow-auto border bg-muted" aria-label="Élő A4-ajánlatelőnézet">
         <QuotePrintDocument id={quote.id} preview draft={locked ? undefined : { ...headerDraft, template_key: key || null, template_terms: terms, site_address: site }} />

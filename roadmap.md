@@ -1,8 +1,9 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Ajánlatkészítő két munkafolyamat (2026-11-03)
-- [ ] Indítási munkamódválasztó; meglévő típus nélküli ajánlat besorolása adatvesztés nélkül.
-- [ ] Legfeljebb négy lépés, kapott Excelnél sablon/tételárazó rejtve, saját ajánlatnál közös szerkesztés/előnézet.
-- [ ] Mindkét munkamód ellenőrzése, regresszió és jelentés; STOP, publikálás nélkül.
+- [x] Indítási munkamódválasztó; meglévő típus nélküli ajánlat választása adatvesztés nélkül.
+- [x] Négy lépés, kapott Excelnél sablon/tételárazó rejtve, saját ajánlatnál közös szerkesztés/előnézet.
+- [x] Mindkét munkamód elkülönített böngészős ellenőrzése; 130/130 teszt, AI 12/12, build PASS; jelentés és STOP, publikálás nélkül.
+- [ ] Hitelesített TESZT indítás/mentés/fájl/PDF/Gmail/utánkövetés: external_unmanaged Supabase, nincs átadható munkamenet.
 
 ## Ajánlatkezelő V2.1/C (2026-11-03)
 - [x] Tulajdonosi sablonalapok a meglévő settings tárolóban, szerveroldali jogosultság és validálás; meglévő ajánlatok változatlanok.
