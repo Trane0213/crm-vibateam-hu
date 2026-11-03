@@ -1,0 +1,36 @@
+-- Scratch DB ONLY. No production execution.
+CREATE ROLE authenticated;
+CREATE ROLE anon;
+CREATE SCHEMA auth;
+CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT nullif(current_setting('test.uid',true),'')::uuid $$;
+CREATE FUNCTION crm_role_of(uuid) RETURNS text LANGUAGE sql AS $$ SELECT current_setting('test.role',true) $$;
+CREATE FUNCTION is_owner_role(uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT current_setting('test.role',true)='owner' $$;
+CREATE TABLE leads(id uuid PRIMARY KEY,company_id uuid,contact_id uuid,status text,pipeline_entered_at timestamptz,assigned_to uuid,next_step_type text,next_step_due_at timestamptz,next_step_note text,summary text,assigned_at timestamptz);
+GRANT SELECT,UPDATE ON leads TO authenticated;
+ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_lead ON leads FOR ALL TO authenticated USING(is_owner_role(auth.uid()) OR assigned_to=auth.uid());
+CREATE TABLE agent_runs(id uuid PRIMARY KEY,user_id uuid,agent_id text);
+GRANT SELECT ON agent_runs TO authenticated;
+ALTER TABLE agent_runs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_run ON agent_runs TO authenticated USING(user_id=auth.uid());
+CREATE TABLE agent_run_steps(id uuid PRIMARY KEY,run_id uuid,agent_id text,tool_name text,approval_status text,approval_token uuid,input_json jsonb);
+GRANT SELECT ON agent_run_steps TO authenticated;
+ALTER TABLE agent_run_steps ENABLE ROW LEVEL SECURITY;
+CREATE POLICY own_step ON agent_run_steps TO authenticated USING(EXISTS(SELECT 1 FROM agent_runs r WHERE r.id=run_id));
+CREATE TABLE activities(id uuid PRIMARY KEY,user_id uuid,action text,details jsonb,created_at timestamptz);
+GRANT SELECT,INSERT ON activities TO authenticated;
+ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
+CREATE POLICY read_audit ON activities FOR SELECT TO authenticated USING(true);
+CREATE POLICY insert_self ON activities FOR INSERT TO authenticated WITH CHECK(user_id=auth.uid());
+GRANT USAGE ON SCHEMA auth TO authenticated;
+CREATE TABLE companies(id uuid PRIMARY KEY,name text); GRANT SELECT,UPDATE ON companies TO authenticated;
+CREATE TABLE contacts(id uuid PRIMARY KEY,company_id uuid,name text); GRANT SELECT,UPDATE ON contacts TO authenticated;
+CREATE TABLE lead_status_history(id uuid DEFAULT gen_random_uuid(),lead_id uuid,from_status text,to_status text,changed_by uuid);
+GRANT SELECT ON lead_status_history TO authenticated;
+CREATE FUNCTION write_status_history() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ BEGIN IF NEW.status IS DISTINCT FROM OLD.status THEN INSERT INTO lead_status_history(lead_id,from_status,to_status,changed_by) VALUES(NEW.id,OLD.status,NEW.status,auth.uid()); END IF; RETURN NEW; END $$;
+CREATE TRIGGER status_history AFTER UPDATE OF status ON leads FOR EACH ROW EXECUTE FUNCTION write_status_history();
+\i database/timothy_pipeline_status.sql
+INSERT INTO companies VALUES('00000000-0000-4000-8000-000000000020','TESZT Cég');
+INSERT INTO leads(id,company_id,status,assigned_to,summary,pipeline_entered_at,next_step_type,next_step_due_at,next_step_note) VALUES('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000020','quote_prep','00000000-0000-4000-8000-000000000010','TESZT','2026-11-03T17:00:00Z','phone','2026-11-05T09:00:00Z','TESZT hívás');
+INSERT INTO agent_runs VALUES('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000010','timothy');
+INSERT INTO agent_run_steps VALUES('00000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000002','timothy','sales_change_pipeline_status','executing',gen_random_uuid(),'{"args":{"leadId":"00000000-0000-4000-8000-000000000001","status":"quote_sent","context":{"lead_name":"TESZT","company_id":"00000000-0000-4000-8000-000000000020","company_name":"TESZT Cég","contact_id":null,"assigned_to":"00000000-0000-4000-8000-000000000010","status":"quote_prep","pipeline_entered_at":"2026-11-03T17:00:00Z","next_step_type":"phone","next_step_due_at":"2026-11-05T09:00:00Z","next_step_note":"TESZT hívás"}}}');
