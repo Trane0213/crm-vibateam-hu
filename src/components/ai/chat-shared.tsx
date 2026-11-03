@@ -16,6 +16,7 @@ import { prepActionSchema } from '@/lib/ai-os/prep-action';
 import { nextStepActionSchema,nextStepBudapestTime } from '@/lib/ai-os/next-step-action';
 import { NEXT_STEP_LABEL,type NextStepType } from '@/lib/sales/constants';
 import {followupActionSchema} from '@/lib/ai-os/followup-action';
+import {contactActionSchema} from '@/lib/ai-os/contact-action';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
@@ -278,6 +279,7 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
   const prep = (()=>{try{return approval.tool_name==='sales_record_prep_activity'?prepActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   const next = (()=>{try{return approval.tool_name==='sales_update_next_step'?nextStepActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   const followup=(()=>{try{return approval.tool_name==='sales_create_followup'?followupActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
+  const contact=(()=>{try{return approval.tool_name==='sales_set_lead_contact'?contactActionSchema.safeParse(JSON.parse(approval.arguments_json)):null;}catch{return null;}})();
   try { argsPretty = JSON.stringify(JSON.parse(approval.arguments_json), null, 2); } catch { /* keep raw */ }
   const level: ApprovalLevel = approval.approval ?? "confirm";
   const [dangerText, setDangerText] = useState("");
@@ -334,6 +336,12 @@ export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }:
         <p><strong>Tervezett utánkövetés:</strong> {{call:'Telefon',email:'E-mail',meeting:'Találkozó',other:'Egyéb'}[followup.data.type]} · {nextStepBudapestTime(followup.data.dueAt)}</p>
         <p className="whitespace-pre-wrap break-words"><strong>Jegyzet:</strong> {followup.data.note||'Nincs megadva'}</p>
         <p className="text-muted-foreground">Csak új tervezett utánkövetés; a következő lépés és státusz nem változik, levél nem megy ki.</p>
+      </div>:contact?.success?<div className="space-y-2 rounded border bg-background/60 p-2">
+        <p><strong>Ügy:</strong> {contact.data.context.lead_name} · <strong>Cég:</strong> {contact.data.context.company_name}</p>
+        <p><strong>Felelős:</strong> {contact.data.context.assigned_to||'Tulajdonosi ügy'}</p>
+        <p><strong>Régi kapcsolattartó:</strong> {contact.data.context.contact_name||'Nincs megadva'} · {contact.data.context.contact_id||'—'}</p>
+        <p><strong>Új kapcsolattartó:</strong> {contact.data.context.new_contact_name} · {contact.data.contactId}</p>
+        <p className="text-muted-foreground">Csak az ügy kapcsolattartója változik; személyadat, ajánlat és státusz nem módosul.</p>
       </div>:<pre className="max-h-48 overflow-auto rounded bg-background/60 p-2 text-[11px] leading-snug">{argsPretty}</pre>}
       {approval.transportError && <p className="mt-2 text-destructive">{approval.transportError}</p>}
       {approval.action_id && (!approval.verified || approval.status === "unknown" || approval.status === "executing") && <Button size="sm" variant="outline" className="mt-2" disabled={approval.submitting} onClick={onCheck}>Állapot ellenőrzése</Button>}

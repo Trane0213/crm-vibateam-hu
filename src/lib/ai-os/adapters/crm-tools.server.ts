@@ -20,6 +20,7 @@ import { prepActionSchema,verifyPrepAction } from '../prep-action';
 import { nextStepActionSchema,verifyNextStepAction } from '../next-step-action';
 import { NEXT_STEP_TYPES } from '@/lib/sales/constants';
 import {followupActionSchema,verifyFollowupAction} from '../followup-action';
+import {contactActionSchema,verifyContactAction} from '../contact-action';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -404,6 +405,17 @@ export function registerCrmTools() {
   );
 
   // ---------------- WRITE: SALES WORKFLOW ----------------
+  registerTool({name:'sales_set_lead_contact',domain:'sales.contact',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
+    description:'Nyitott lead kapcsolattartójának kiválasztása meglévő, azonos céges kontaktra, P0 jóváhagyással. Nem szerkeszt személyadatot/ajánlatot, nem hoz létre vagy töröl kontaktot.',
+    parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},contactId:{type:'string',format:'uuid'}},required:['leadId','contactId']}},
+    async(args,ctx)=>{
+      contactActionSchema.parse(args);
+      if(!ctx.approvalActionId)throw new Error('Tartós jóváhagyás szükséges.');
+      const saved=await ctx.supabaseUser.rpc('sales_set_approved_contact',{p_action_id:ctx.approvalActionId});
+      if(saved.error)return fail(saved.error);
+      if(!verifyContactAction(saved.data,args))throw new Error('A kapcsolattartó mentése nem igazolt.');
+      return ok(saved.data);
+    });
   registerTool({name:'sales_create_followup',domain:'sales.followup',allowed_agents:['timothy'],allowed_roles:['owner','sales'],needs_approval:true,
     description:'Tervezett lead-utánkövetés a meglévő followups táblába, P0 jóváhagyással. Meglévő nyitott utánkövetés mellett nem készül új. Nem változtat lead next-step/státuszt és nem küld levelet.',
     parameters:{type:'object',additionalProperties:false,properties:{leadId:{type:'string',format:'uuid'},type:{type:'string',enum:['call','email','meeting','other']},dueAt:{type:'string',description:'Teljes ISO időpont pontos időzónával'},note:{type:'string',maxLength:10000}},required:['leadId','type','dueAt','note']}},

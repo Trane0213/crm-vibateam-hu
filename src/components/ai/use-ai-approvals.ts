@@ -51,7 +51,7 @@ export function useAiApprovals(threads: Thread[], activeId: string | null, commi
    const result = await decide({ data: { actionId: id, decision, confirmation } });
    reconciled.current.add(id);
    update(thread.id, msgId, callId, { ...result, submitting: false, verified: true, transportError: undefined });
-   if(result.status==='succeeded'&&['sales_record_prep_activity','sales_update_next_step','sales_create_followup'].includes(result.tool_name)) {
+   if(result.status==='succeeded'&&['sales_record_prep_activity','sales_update_next_step','sales_create_followup','sales_set_lead_contact'].includes(result.tool_name)) {
     for(const key of ['leads','pipeline','followups','activities','activity','company-activity'])void qc.invalidateQueries({queryKey:[key]});
    }
    if (decision === "approve" && result.status === "succeeded") toast.success(result.no_op ? "Már a kívánt állapotban volt; nem történt új módosítás." : "A művelet sikeresen végrehajtva.");
