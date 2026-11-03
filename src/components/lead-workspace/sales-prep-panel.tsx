@@ -25,6 +25,7 @@ import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { fmtDateTime, fmtDate } from "@/components/resource/resource-page";
 import { toast } from "sonner";
 import { NextStepEditor } from "@/components/sales/next-step-editor";
+import { canEnterPipeline } from "@/lib/sales/next-step-input";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { useUpdateLead } from "./use-lead-mutations";
 import { updateLeadOrThrow } from "@/lib/sales/lead-update";
