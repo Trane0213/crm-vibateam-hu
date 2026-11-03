@@ -42,11 +42,21 @@ export const runAiAgent = createServerFn({ method: "POST" })
     const { authorizeAgent } = await import("./approval.server");
     const userRole = await authorizeAgent(context.supabase, context.userId, data.agentId);
 
+    // agent_runs.thread_id → ai_threads FK: a kliens szál-UUID-jához saját, tartalommentes
+    // ai_threads sort biztosítunk user-RLS-sel; ha nem a hívóé, szál nélkül futunk.
+    let threadId: string | null = null;
+    if (data.threadId) {
+      await context.supabase.from("ai_threads")
+        .upsert({ id: data.threadId, user_id: context.userId, agent_id: data.agentId }, { onConflict: "id", ignoreDuplicates: true });
+      const own = await context.supabase.from("ai_threads").select("id").eq("id", data.threadId).eq("user_id", context.userId).maybeSingle();
+      threadId = own.data?.id ?? null;
+    }
+
     return await runAgent(context.supabase, admin, {
       agentId: data.agentId,
       userId: context.userId,
       userRole,
-      threadId: data.threadId ?? null,
+      threadId,
       history: data.history,
       memorySubjects: data.memorySubjects,
     });
