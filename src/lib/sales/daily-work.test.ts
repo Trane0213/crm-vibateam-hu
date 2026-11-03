@@ -1,9 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { dailyWork, dueBucket, type DailyLead } from "./daily-work";
+import { dailyWork, dueBucket, salesOverview, salesFocusSections, type DailyLead } from "./daily-work";
 const now = new Date("2026-11-03T12:28:00Z");
 const lead: DailyLead = { id: "own", assigned_to: "ramon", status: "new", summary: "TESZT", source: "email_inbound", company_id: null,
   contact_id: null, created_at: "2026-11-03T10:00Z", next_step_type: null, next_step_due_at: null, pipeline_entered_at: null };
 describe("Sales daily rules", () => {
+  it("counts own preparation separately from active pipeline and won", () => {
+    const rows = [lead, { ...lead, id: "pipeline", status: "quote_prep", pipeline_entered_at: "2026-11-03T10:00Z" },
+      { ...lead, id: "other", assigned_to: "other" }, { ...lead, id: "lost", status: "lost" }];
+    expect(salesOverview(rows, [], "ramon", 3)).toEqual({ prep: 1, pipeline: 1, openQuotes: 0, won: 3 });
+  });
+  it("counts only sent/negotiation current own open quotes, never drafts or closed versions", () => {
+    const q = { id: "q", lead_id: "own", title: "TESZT", status: "sent", is_current: true };
+    const quotes = [q, { ...q, id: "negotiation", status: "negotiation" }, { ...q, id: "draft", status: "draft" },
+      { ...q, id: "old", is_current: false }, { ...q, id: "won", status: "won" },
+      { ...q, id: "other", lead_id: "other" }, { ...q, id: "unknown", status: null }];
+    expect(salesOverview([lead], quotes, "ramon", 0).openQuotes).toBe(2);
+  });
+  it("shows a lead once at its highest daily priority without changing source buckets", () => {
+    const overdue = { ...lead, id: "overdue", next_step_due_at: "2026-11-02T10:00Z" };
+    const today = { ...lead, id: "today", next_step_due_at: "2026-11-03T14:00Z" };
+    const waiting = { ...lead, id: "waiting", status: "quote_sent" };
+    const incomplete = { ...lead, id: "incomplete", created_at: "2026-10-01T10:00Z" };
+    const d = dailyWork([overdue, today, lead, waiting, incomplete], [{ id: "q", lead_id: "waiting", title: "TESZT", status: "sent", is_current: true }], "ramon", false, now);
+    expect(salesFocusSections(d).map(rows => rows.map(l => l.id))).toEqual([["overdue"], ["today"], ["own"], ["waiting"], ["incomplete"]]);
+    expect(d.incomplete).toHaveLength(5);
+  });
   it("only includes own cases for sales, all open cases for owner", () => {
     const rows = [lead, { ...lead, id: "other", assigned_to: "other" }, { ...lead, id: "closed", status: "won" }];
     expect(dailyWork(rows, [], "ramon", false, now).leads.map(l => l.id)).toEqual(["own"]);

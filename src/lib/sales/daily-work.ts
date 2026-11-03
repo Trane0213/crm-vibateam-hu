@@ -3,8 +3,27 @@ import type { DueBucket } from "./constants";
 
 export type DailyLead = { id: string; assigned_to: string | null; status: string | null; summary: string | null;
   source: string | null; company_id: string | null; contact_id: string | null; created_at: string | null;
-  next_step_type: string | null; next_step_due_at: string | null; pipeline_entered_at: string | null };
+  next_step_type: string | null; next_step_due_at: string | null; pipeline_entered_at: string | null; company_name?: string | null };
 export type DailyQuote = { id: string; lead_id: string | null; title: string | null; status: string | null; is_current: boolean | null };
+
+/** Presentation-only summaries; daily bucket rules and owner counts stay unchanged. */
+export function salesOverview(leads: DailyLead[], quotes: DailyQuote[], userId: string, won: number) {
+  const own = leads.filter(l => l.assigned_to === userId && l.status !== "won" && l.status !== "lost");
+  const ownIds = new Set(own.map(l => l.id));
+  return {
+    prep: own.filter(l => !l.pipeline_entered_at).length,
+    pipeline: own.filter(l => !!l.pipeline_entered_at).length,
+    openQuotes: quotes.filter(q => ownIds.has(q.lead_id ?? "") && q.is_current === true && (q.status === "sent" || q.status === "negotiation")).length,
+    won,
+  };
+}
+
+export function salesFocusSections(d: ReturnType<typeof dailyWork>) {
+  const sentIds = new Set(d.quotes.filter(q => q.is_current === true && (q.status === "sent" || q.status === "negotiation")).map(q => q.lead_id));
+  const seen = new Set<string>();
+  return [d.buckets.overdue, d.buckets.today, d.newLeads, d.waiting.filter(l => sentIds.has(l.id)), d.incomplete].map(rows =>
+    rows.filter(l => { if (seen.has(l.id)) return false; seen.add(l.id); return true; }));
+}
 
 export function dueBucket(due: string | null, now: Date): DueBucket {
   if (!due || Number.isNaN(Date.parse(due))) return "missing";

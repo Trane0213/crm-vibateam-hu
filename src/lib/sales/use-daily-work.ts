@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import { budapestDayBounds } from "@/lib/owner-kpis";
-import { dailyWork, type DailyLead, type DailyQuote } from "./daily-work";
+import { dailyWork, salesOverview, type DailyLead, type DailyQuote } from "./daily-work";
 
 async function allRows<T>(query: (from: number, to: number) => PromiseLike<{ data: unknown; error: unknown }>) {
   const rows: T[] = [];
@@ -40,7 +40,24 @@ export function useDailyWork() {
         quotes.push(...await allRows<DailyQuote>((f, t) => supabase.from("quotes")
           .select("id,lead_id,title,status,is_current").in("lead_id", leads.slice(i, i + 100).map(l => l.id)).order("id").range(f, t)));
       }
-      return dailyWork(leads, quotes, user.id, team, new Date());
+      // Sales-only overview supplements the same scoped query; owner/pulse rules are unchanged.
+      let overview;
+      if (!team) {
+        const { count, error } = await supabase.from("leads").select("id", { count: "exact", head: true })
+          .eq("assigned_to", user.id).eq("status", "won");
+        if (error) throw error;
+        if (count === null) throw new Error("A megnyert ügyek száma nem érhető el.");
+        overview = salesOverview(leads, quotes, user.id, count);
+        const companyIds = [...new Set(leads.flatMap(l => l.company_id ? [l.company_id] : []))];
+        const names = new Map<string, string>();
+        for (let i = 0; i < companyIds.length; i += 100) {
+          const rows = await allRows<{ id: string; name: string }>((f, t) => supabase.from("companies")
+            .select("id,name").in("id", companyIds.slice(i, i + 100)).order("id").range(f, t));
+          for (const row of rows) names.set(row.id, row.name);
+        }
+        for (const l of leads) l.company_name = l.company_id ? names.get(l.company_id) ?? null : null;
+      }
+      return { ...dailyWork(leads, quotes, user.id, team, new Date()), overview };
     },
   });
 }
