@@ -18,3 +18,4 @@
 - Quote sending goes only through `/api/gmail/send` with `quote_id` + idempotency key (server writes `quote_sends`, marks sent/locks only after Gmail success); Gmail-sent mails are linked via `quoteLinkSentEmail` — one send path, auditable proof.
 - Quote send evidence is database-enforced; linking verifies a live own-account Gmail SENT message, versions copy template fields from their exact source, and print contact comes only from the saved quote selection — prevents false sends and cross-alternative/customer substitutions.
 - Quote detail workspaces reuse the existing panels and keep inactive tabs mounted but hidden; draft inputs must survive tab changes without introducing parallel save, send, or PDF paths.
+- Quote preview and print share QuotePrintDocument; general template defaults are owner-written settings snapshots behind authenticated role checks, never dynamically merged into saved quotes or locked documents.
