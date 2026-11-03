@@ -23,7 +23,7 @@ CREATE POLICY own_step ON agent_run_steps TO authenticated USING(EXISTS(SELECT 1
 \i database/timothy_P3A_2026-11-03.sql
 INSERT INTO leads VALUES('00000000-0000-4000-8000-000000000001',NULL,NULL,'new',NULL,'00000000-0000-4000-8000-000000000010');
 INSERT INTO agent_runs VALUES('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000010','timothy');
-INSERT INTO agent_run_steps VALUES('00000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000002','timothy','sales_record_prep_activity','executing',gen_random_uuid(),'{"args":{"leadId":"00000000-0000-4000-8000-000000000001","type":"call","result":"TESZT"}}');
+INSERT INTO agent_run_steps VALUES('00000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000002','timothy','sales_record_prep_activity','executing',gen_random_uuid(),'{"args":{"leadId":"00000000-0000-4000-8000-000000000001","type":"call","result":"TESZT","context":{"company_id":null,"contact_id":null,"assigned_to":"00000000-0000-4000-8000-000000000010"}}}');
 SET test.uid='00000000-0000-4000-8000-000000000010'; SET test.role='sales'; SET ROLE authenticated;
 SELECT sales_record_approved_prep_activity('00000000-0000-4000-8000-000000000003');
 SELECT sales_record_approved_prep_activity('00000000-0000-4000-8000-000000000003');

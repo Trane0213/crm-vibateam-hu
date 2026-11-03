@@ -9,13 +9,15 @@ BEGIN
  AND s.tool_name='sales_record_prep_activity' AND s.approval_status='executing' AND s.approval_token IS NOT NULL;
  IF NOT FOUND THEN RAISE EXCEPTION 'Approved activity not accessible' USING ERRCODE='42501'; END IF;
  payload:=a.input_json->'args';
- IF jsonb_typeof(payload)<>'object' OR payload->>'type' NOT IN ('call','email') OR payload->>'leadId' IS NULL
- OR payload->>'result' IS NULL OR length(payload->>'result')>10000
+ IF jsonb_typeof(payload) IS DISTINCT FROM 'object' OR payload->>'type' IS NULL OR payload->>'type' NOT IN ('call','email') OR jsonb_typeof(payload->'leadId') IS DISTINCT FROM 'string'
+ OR jsonb_typeof(payload->'result') IS DISTINCT FROM 'string' OR length(payload->>'result')>10000 OR jsonb_typeof(payload->'context') IS DISTINCT FROM 'object'
  OR EXISTS(SELECT 1 FROM jsonb_object_keys(payload) k WHERE k NOT IN ('leadId','type','result','context')) THEN RAISE EXCEPTION 'Invalid activity'; END IF;
- SELECT id,company_id,status,pipeline_entered_at,assigned_to INTO l FROM leads WHERE id=(payload->>'leadId')::uuid FOR UPDATE;
+ SELECT id,company_id,contact_id,status,pipeline_entered_at,assigned_to INTO l FROM leads WHERE id=(payload->>'leadId')::uuid FOR UPDATE;
  r:=crm_role_of(uid);
  IF NOT FOUND OR NOT (is_owner_role(uid) OR (r='sales' AND l.assigned_to=uid)) THEN RAISE EXCEPTION 'Lead not accessible' USING ERRCODE='42501'; END IF;
  IF l.pipeline_entered_at IS NOT NULL OR l.status IN ('won','lost') THEN RAISE EXCEPTION 'Lead is not in preparation'; END IF;
+ IF to_jsonb(l.company_id) IS DISTINCT FROM nullif(payload->'context'->'company_id','null'::jsonb) OR to_jsonb(l.contact_id) IS DISTINCT FROM nullif(payload->'context'->'contact_id','null'::jsonb)
+ OR to_jsonb(l.assigned_to) IS DISTINCT FROM nullif(payload->'context'->'assigned_to','null'::jsonb) THEN RAISE EXCEPTION 'Lead context changed'; END IF;
  SELECT * INTO f FROM followups WHERE id=p_action_id;
  IF FOUND THEN
   IF f.lead_id IS DISTINCT FROM l.id OR f.followup_type IS DISTINCT FROM payload->>'type' OR f.result IS DISTINCT FROM nullif(payload->>'result','') OR f.completed IS DISTINCT FROM true OR f.due_date IS DISTINCT FROM f.created_at
