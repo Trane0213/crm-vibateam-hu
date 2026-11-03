@@ -2,7 +2,7 @@
 
 ## Megvalósult
 - A Sales Ma áttekintése és napi listája között kompakt Timothy-blokk, legfeljebb öt kiemelt saját ügy, tényszerű prioritási indoklás, első teendő, közvetlen `/leads?lead=<id>` munkafelület-link. A feltöltött P2/A kifejezett kérését hajtja végre, nem általános UI-újrarendezés.
-- `load-daily-work.ts` közös betöltő a meglévő useDailyWork-ból kiemelve. Saját/csapat scope, dailyWork/salesFocusSections, Buddha helyett **Europe/Budapest** nap, stable ID lapozás és hibakezelés. Nem új számítás. Lejárt→mai→új→ajánlatra váró→hiányos sorrend változatlan; P2 nem tekinti a várakozó státuszt igazolt megválaszolatlanságnak. Nem pontoz bizonyíték nélküli pénzügyi érték alapján.
+- `load-daily-work.ts` közös betöltő a meglévő useDailyWork-ból kiemelve. Saját/csapat scope, dailyWork/salesFocusSections, **Europe/Budapest** nap, stable ID lapozás és hibakezelés. Nem új számítás. Lejárt→mai→új→ajánlatra váró→hiányos sorrend változatlan; P2 nem tekinti a várakozó státuszt igazolt megválaszolatlanságnak. Nem pontoz bizonyíték nélküli pénzügyi érték alapján.
 - A strukturált aktuális számlálókat/ügyeket a CRM adja; az AI kizárólag rövid Javaslatot ír a meglévő sales_briefing/runAgent/OpenAI gpt-4o-mini útvonalon. Nincs write-tool vagy végrehajtás. Modelldata maximum öt ügy, rövid név és mentett határidő; safeAudit titokszűrés. Érdemi modellminőség még nem ellenőrzött.
 - Sales Ma, owner Ma és dashboard Sales módja közös per-user budapesti napi automatikus kvótát használ. A régi Sales táblalistás snapshot elhagyva; módváltás nem újragenerál. Kézi Frissítés külön kérés. PM adatszámítás és feldolgozás változatlan.
 - `ai_memory` privát `system:daily-sales:` rendszerkulcs; csak service_role RPC foglalás/lezárás, namespace trigger, futási token és 5 perces lease. Automatikus kvóta a modellhívás előtt elfogy, hiba/ismeretlen futás nem nyitja újra. A napi cache olvasása nem exponál futási tokent. Általános getMemory és memory_read kizárja a rendszersorokat.
@@ -17,7 +17,7 @@ Hatás: `timothy-v3-P2-hatas-2026-11-03.md`; pontos SQL: `database/ai_os_daily_s
 ## PASS / FAIL / NEM TESZTELT
 | Ellenőrzés | Eredmény |
 |---|---|
-| Meglévő napi logika és célzott P2, teljes Vitest | PASS; végső darabszám a futásnaplóban |
+| Meglévő napi logika és célzott P2, teljes Vitest | PASS, 231/231 teszt, 32 fájl |
 | AI acceptance | PASS, 5 agent / 16 forgatókönyv, 0 hiba |
 | Automatikus build | PASS |
 | Izolált SQL automatikus/másik user/kézi/eredeti token/újranyitás | PASS |
