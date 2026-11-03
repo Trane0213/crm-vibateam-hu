@@ -11,6 +11,8 @@
 
 import { registerTool } from "../tool-registry";
 import { toolError } from "../tool-errors";
+import { CRM_PAGE_PROPERTIES, LEAD_CONTEXT_SELECT, crmReadPage, readWindow, leadTimeline } from "./crm-read-page";
+import { OWNER_ROLES } from "../roles";
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -45,12 +47,9 @@ export function registerCrmTools() {
         sb.from("leads").select("id,company_id,status,summary,assigned_to").or(`summary.ilike.${like}`).limit(limit),
         sb.from("projects").select("id,title,status").or(`title.ilike.${like}`).limit(limit),
       ]);
-      return ok({
-        companies: companies.data ?? [],
-        contacts: contacts.data ?? [],
-        leads: leads.data ?? [],
-        projects: projects.data ?? [],
-      });
+      const results = { companies, contacts, leads, projects };
+      for (const result of Object.values(results)) if (result.error) return fail(result.error.message);
+      return ok({ results: Object.fromEntries(Object.entries(results).map(([table, result]) => [table, crmReadPage(result.data ?? [], null, { limit, offset: 0 }, table, 3500)])), limitations: ["Keresési találatok, nem teljes listák; céges/lead listával folytasd a lapozást."] });
     },
   );
 
@@ -64,62 +63,59 @@ export function registerCrmTools() {
       parameters: {
         type: "object",
         properties: {
-          limit: { type: "integer", default: 50, minimum: 1, maximum: 200 },
+          ...CRM_PAGE_PROPERTIES,
           name_like: { type: "string", description: "Opcionális név töredék szűrő." },
         },
       },
     },
     async (args, ctx) => {
+      const window = readWindow(args);
       let q = ctx.supabaseUser
         .from("companies")
-        .select("id,name,website,company_type,created_at")
+        .select("id,name,website,company_type,created_at", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(Math.min(Number(args.limit ?? 50), 200));
+        .order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
       if (args.name_like) q = q.ilike("name", `%${String(args.name_like)}%`);
-      const { data, error } = await q;
+      const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "companies"));
     },
   );
 
   registerTool(
     {
       name: "crm_company_overview",
-      description:
-        "Egy céghez tartozó összesítő: kapcsolattartók, leadek, projektek, ajánlatok darabszámokkal és rövid listával.",
+      description: "Jogosultan látható céges helyzetkép. Lapozható szekciók, pontos látható darabszám; nem teljes cégtörténet. Lead előzményhez crm_lead_history.",
       domain: "crm.companies",
-      parameters: {
-        type: "object",
-        properties: { company_id: { type: "string" } },
-        required: ["company_id"],
-      },
+      parameters: { type: "object", properties: {
+        company_id: { type: "string" }, section: { type: "string", enum: ["summary", "contacts", "leads", "projects", "quotes"], default: "summary" }, ...CRM_PAGE_PROPERTIES,
+      }, required: ["company_id"] },
     },
     async (args, ctx) => {
       const id = String(args.company_id);
       const sb = ctx.supabaseUser;
-      const [company, contacts, leads, projects] = await Promise.all([
-        sb.from("companies").select("id,name,website,company_type,tax_number,notes").eq("id", id).maybeSingle(),
-        sb.from("contacts").select("id,name,email,phone,position").eq("company_id", id).limit(25),
-        sb.from("leads").select("id,status,summary,assigned_to,created_at").eq("company_id", id).limit(25),
-        sb.from("projects").select("id,title,status").eq("company_id", id).limit(25),
-      ]);
-      const leadIds = (leads.data ?? []).map((l: any) => l.id);
-      const quotes = leadIds.length
-        ? await sb.from("quotes").select("id,lead_id,title,status,total_amount,valid_until,created_at").in("lead_id", leadIds).limit(25)
-        : { data: [] as any[] };
-      return ok({
-        company: company.data,
-        counts: {
-          contacts: contacts.data?.length ?? 0,
-          leads: leads.data?.length ?? 0,
-          projects: projects.data?.length ?? 0,
-          quotes: quotes.data?.length ?? 0,
-        },
-        contacts: contacts.data ?? [],
-        leads: leads.data ?? [],
-        projects: projects.data ?? [],
-        quotes: quotes.data ?? [],
-      });
+      const company = await sb.from("companies").select("id,name,website,company_type,tax_number,notes").eq("id", id).maybeSingle();
+      if (company.error) return fail(company.error.message);
+      if (!company.data) return fail("Nem található hozzáférhető cég.");
+      const section = String(args.section ?? "summary");
+      if (!["summary", "contacts", "leads", "projects", "quotes"].includes(section)) return fail("Ismeretlen szekció.");
+      const window = readWindow(args, section === "summary" ? 5 : 25);
+      const sections = section === "summary" ? ["contacts", "leads", "projects", "quotes"] : [section];
+      const results = await Promise.all(sections.map(async (name) => {
+        // Quotes join through the RLS-visible lead; no capped ID download.
+        let query = name === "quotes"
+          ? sb.from("quotes").select("id,lead_id,project_id,title,status,total_amount,valid_until,created_at,leads!inner(company_id)", { count: "exact" }).eq("leads.company_id", id)
+          : sb.from(name).select(name === "contacts" ? "id,name,email,phone,position,email_invalid,created_at" : name === "leads" ? LEAD_CONTEXT_SELECT : "id,lead_id,company_id,title,status,created_at", { count: "exact" }).eq("company_id", id);
+        query = query.order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
+        const result = await query;
+        if (result.error) throw result.error;
+        return [name, crmReadPage(result.data ?? [], result.count, window, name, section === "summary" ? 3500 : 18000)] as const;
+      }));
+      const companyPage = crmReadPage([company.data], 1, { limit: 1, offset: 0 }, "companies", 2500);
+      return ok({ company: companyPage.items[0], company_completeness: companyPage.completeness, sections: Object.fromEntries(results),
+        scope: "Csak a felhasználó számára olvasható rekordok; nem teljes cégtörténet.",
+        limitations: ["Gmail-levéltörzs és dokumentumértelmezés még nem része ennek a helyzetképnek.", "Az ajánlatlista leadhez kötött; projekt-only ajánlatok értelmezése P1/C-ben következik."],
+        sources: companyPage.sources });
     },
   );
 
@@ -140,7 +136,7 @@ export function registerCrmTools() {
         .from("companies").select("*").eq("id", String(args.id)).maybeSingle();
       if (error) return fail(error.message);
       if (!data) return fail("Nem található cég.");
-      return ok(data);
+      return ok(crmReadPage([data], 1, { limit: 1, offset: 0 }, "companies"));
     },
   );
 
@@ -151,18 +147,17 @@ export function registerCrmTools() {
       domain: "crm.contacts",
       parameters: {
         type: "object",
-        properties: { company_id: { type: "string" }, limit: { type: "integer", default: 25 } },
+        properties: { company_id: { type: "string" }, ...CRM_PAGE_PROPERTIES },
         required: ["company_id"],
       },
     },
     async (args, ctx) => {
-      const { data, error } = await ctx.supabaseUser
-        .from("contacts")
-        .select("id,name,email,phone,position")
-        .eq("company_id", String(args.company_id))
-        .limit(Math.min(Number(args.limit ?? 25), 100));
+      const window = readWindow(args);
+      const { data, error, count } = await ctx.supabaseUser.from("contacts")
+        .select("id,name,email,phone,position,email_invalid,created_at", { count: "exact" }).eq("company_id", String(args.company_id))
+        .order("created_at", { ascending: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "contacts"));
     },
   );
 
@@ -176,10 +171,10 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       const { data, error } = await ctx.supabaseUser
-        .from("leads").select("*").eq("id", String(args.id)).maybeSingle();
+        .from("leads").select(LEAD_CONTEXT_SELECT).eq("id", String(args.id)).maybeSingle();
       if (error) return fail(error.message);
       if (!data) return fail("Nem található lead.");
-      return ok(data);
+      return ok(crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"));
     },
   );
 
@@ -194,27 +189,52 @@ export function registerCrmTools() {
           status: { type: "string", description: "pl. new | qualified | pipeline | won | lost" },
           assigned_to: { type: "string" },
           company_id: { type: "string" },
-          limit: { type: "integer", default: 25 },
+          ...CRM_PAGE_PROPERTIES,
         },
       },
     },
     async (args, ctx) => {
-      let q = ctx.supabaseUser.from("leads")
-        .select("id,company_id,status,summary,assigned_to,next_step_type,next_step_due_at,created_at")
-        .order("created_at", { ascending: false })
-        .limit(Math.min(Number(args.limit ?? 25), 100));
+      const window = readWindow(args);
+      let q = ctx.supabaseUser.from("leads").select(LEAD_CONTEXT_SELECT, { count: "exact" })
+        .order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true })
+        .range(window.offset, window.offset + window.limit - 1);
       if (args.status) q = q.eq("status", String(args.status));
       if (args.assigned_to) q = q.eq("assigned_to", String(args.assigned_to));
-      if (args.company_id) {
-        // Az ajánlatnak nincs saját cég mezője: a cég leadjein keresztül szűrünk.
-        const { data: ls } = await ctx.supabaseUser.from("leads").select("id").eq("company_id", String(args.company_id));
-        const ids = (ls ?? []).map((l: any) => l.id);
-        if (!ids.length) return ok([]);
-        q = q.in("lead_id", ids);
-      }
-      const { data, error } = await q;
+      if (args.company_id) q = q.eq("company_id", String(args.company_id));
+      const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok(crmReadPage(data ?? [], count, window, "leads"));
+    },
+  );
+
+  registerTool(
+    {
+      name: "crm_lead_history",
+      description: "RLS-látható lead időrendi előzményei. section=status_history/followups/activities külön lapozható; a lead olvashatóságát minden lap előtt ellenőrzi. Audit esemény nem ügyfélkapcsolat. A visszaadott oldal nem teljes történet.",
+      domain: "crm.leads", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
+      parameters: { type: "object", properties: { lead_id: { type: "string" }, section: { type: "string", enum: ["status_history", "followups", "activities"], default: "status_history" }, ...CRM_PAGE_PROPERTIES }, required: ["lead_id"] },
+    },
+    async (args, ctx) => {
+      const id = String(args.lead_id);
+      const window = readWindow(args);
+      const lead = await ctx.supabaseUser.from("leads").select(LEAD_CONTEXT_SELECT).eq("id", id).maybeSingle();
+      if (lead.error) return fail(lead.error.message);
+      if (!lead.data) return fail("Nem található hozzáférhető lead; előzmény nem olvasható.");
+      const section = String(args.section ?? "status_history");
+      const table = section === "status_history" ? "lead_status_history" : section === "followups" ? "followups" : section === "activities" ? "activities" : null;
+      if (!table) return fail("Ismeretlen előzményszekció.");
+      const clock = table === "lead_status_history" ? "changed_at" : table === "followups" ? "due_date" : "created_at";
+      let query = ctx.supabaseUser.from(table).select(table === "lead_status_history" ? "id,lead_id,from_status,to_status,changed_by,changed_at,note" : table === "followups" ? "id,lead_id,company_id,followup_type,completed,result,due_date,created_at,assigned_to" : "id,action,details,created_at,user_id", { count: "exact" });
+      query = table === "activities" ? query.eq("details->>entity_type", "leads").eq("details->>entity_id", id) : query.eq("lead_id", id);
+      const result = await query.order(clock, { ascending: false, nullsFirst: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
+      if (result.error) return fail(result.error.message);
+      const page = crmReadPage(result.data ?? [], result.count, window, table, 6500);
+      const timeline = leadTimeline(table === "lead_status_history" ? page.items : [], table === "followups" ? page.items : [], table === "activities" ? page.items : []);
+      const contacts = timeline.filter((e) => e.kind === "recorded_contact" && ["call", "email", "meeting"].includes(String(e.record.followup_type)));
+      return ok({ lead: crmReadPage([lead.data], 1, { limit: 1, offset: 0 }, "leads", 3500), section, ...page, timeline,
+        last_recorded_contact_on_page: contacts.at(-1) ?? null,
+        limitations: ["Az utolsó rögzített kapcsolat ezen az oldalon nem bizonyítja a teljes Gmail-levelezés utolsó válaszát.", "A due_date tervezett határidő; csak completed=true rekord kerül kapcsolat-eseményként az idővonalra.", "A lead auditnapló nem hívás és nem ügyfélválasz."],
+      });
     },
   );
 
@@ -273,26 +293,20 @@ export function registerCrmTools() {
         properties: {
           lead_id: { type: "string" },
           company_id: { type: "string" },
-          limit: { type: "integer", default: 25 },
+          ...CRM_PAGE_PROPERTIES,
         },
       },
     },
     async (args, ctx) => {
-      let q = ctx.supabaseUser.from("quotes")
-        .select("id,lead_id,project_id,title,status,total_amount,valid_until,created_at")
-        .order("created_at", { ascending: false })
-        .limit(Math.min(Number(args.limit ?? 25), 100));
+      const window = readWindow(args);
+      const select = "id,lead_id,project_id,title,status,total_amount,valid_until,created_at";
+      let q = ctx.supabaseUser.from("quotes").select(args.company_id ? `${select},leads!inner(company_id)` : select, { count: "exact" })
+        .order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
       if (args.lead_id) q = q.eq("lead_id", String(args.lead_id));
-      if (args.company_id) {
-        // Az ajánlatnak nincs saját cég mezője: a cég leadjein keresztül szűrünk.
-        const { data: ls } = await ctx.supabaseUser.from("leads").select("id").eq("company_id", String(args.company_id));
-        const ids = (ls ?? []).map((l: any) => l.id);
-        if (!ids.length) return ok([]);
-        q = q.in("lead_id", ids);
-      }
-      const { data, error } = await q;
+      if (args.company_id) q = q.eq("leads.company_id", String(args.company_id));
+      const { data, error, count } = await q;
       if (error) return fail(error.message);
-      return ok(data ?? []);
+      return ok({ ...crmReadPage(data ?? [], count, window, "quotes"), limitations: ["Cégszűréskor csak leadhez kapcsolt ajánlatok; projekt-only ajánlatok P1/C-ben. Verziók nettó állománnyá nem összegezhetők ebből a listából."] });
     },
   );
 

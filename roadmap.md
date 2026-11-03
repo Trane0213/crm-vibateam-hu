@@ -1,7 +1,9 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Timothy Sales AI V3.0 (2026-11-03)
 - [x] Feltöltött specifikáció feldolgozása; meglévő kapcsolódások olvasásos ellenőrzése és szakaszos terv előkészítése.
-- [ ] P1/A célzott CRM-adatértelmezés: a terv tulajdonosi jóváhagyására vár; P1/B–P5 nem indul párhuzamosan.
+- [x] P1/A célzott CRM-adatértelmezés: cégszűrés, lapozás, forrásos leadelőzmény, hibajelzés; 170/170 regresszió, AI 13 forgatókönyv, build PASS; jelentés és STOP.
+- [ ] P1/A hitelesített Timothy/több-szerepkörös végigpróba: external_unmanaged Supabase, nincs átadható biztonságos munkamenet.
+- [ ] P1/B Gmail-tartalom: külön tulajdonosi jóváhagyásra vár; P1/C–P5 nem indul párhuzamosan.
 
 ## AI OS P0 – jóváhagyás és végrehajtás (2026-11-03)
 - [x] Tartós szerveroldali jóváhagyás, idempotencia, migrációs hatáselemzés és visszaállítás megtervezése; jóváhagyásra megállás.
