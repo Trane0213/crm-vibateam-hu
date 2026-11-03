@@ -47,12 +47,9 @@ export function registerCrmTools() {
         sb.from("leads").select("id,company_id,status,summary,assigned_to").or(`summary.ilike.${like}`).limit(limit),
         sb.from("projects").select("id,title,status").or(`title.ilike.${like}`).limit(limit),
       ]);
-      return ok({
-        companies: companies.data ?? [],
-        contacts: contacts.data ?? [],
-        leads: leads.data ?? [],
-        projects: projects.data ?? [],
-      });
+      const results = { companies, contacts, leads, projects };
+      for (const result of Object.values(results)) if (result.error) return fail(result.error.message);
+      return ok({ results: Object.fromEntries(Object.entries(results).map(([table, result]) => [table, crmReadPage(result.data ?? [], null, { limit, offset: 0 }, table, 3500)])), limitations: ["Keresési találatok, nem teljes listák; céges/lead listával folytasd a lapozást."] });
     },
   );
 
@@ -139,7 +136,7 @@ export function registerCrmTools() {
         .from("companies").select("*").eq("id", String(args.id)).maybeSingle();
       if (error) return fail(error.message);
       if (!data) return fail("Nem található cég.");
-      return ok(data);
+      return ok(crmReadPage([data], 1, { limit: 1, offset: 0 }, "companies"));
     },
   );
 
