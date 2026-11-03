@@ -10,6 +10,7 @@
 
 import type { AgentDefinition, SystemPromptContext } from "./types";
 import { buildConstitutionBlock } from "./constitution";
+import { AI_MODEL } from "./model-config";
 
 function commonHeader(ctx: SystemPromptContext, agentName: string): string {
   const memBlock = ctx.memory.length
@@ -36,8 +37,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "George",
     role: "Orchestrator — eldönti, ki válaszoljon, és összesít.",
     description: "CRM navigátor és minden specialista koordinátora.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.2,
     // AI-1.4a: `crm.quotes` eltávolítva — ajánlat írási/lezárási műveletek kizárólag Timothy hatásköre.
     // George handoffal továbbítja az ajánlat-jellegű kéréseket.
@@ -69,8 +69,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "Scarlet",
     role: "Marketing specialista.",
     description: "Lead-minősítés, kampány, csatorna-elemzés.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.3,
     // AI-1.4a: `marketing.workflow` eltávolítva — jelenleg üres domain, egyetlen tool sincs regisztrálva rá.
     // Ha később write toolok készülnek (AI-1.4b), akkor visszakerül a listába.
@@ -89,10 +88,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "Timothy",
     role: "Sales specialista.",
     description: "Leadek, ajánlatok, utókövetés, megnyerés.",
-    provider: "openai",
-    model: "gpt-6-astra",
-    api: "responses",
-    reasoning_effort: "high",
+    ...AI_MODEL,
     tool_domains: ["core.memory", "crm.search", "crm.companies", "crm.contacts", "crm.leads", "crm.quotes", "crm.followups", "crm.emails", "sales.workflow", "sales.prep_activity", "sales.next_step", "sales.followup", "sales.contact", "sales.assignment", "sales.pipeline_status", "sales.email_send", "kg", "website.knowledge"],
     buildSystemPrompt: (ctx) =>
       [
@@ -138,8 +134,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "Boss",
     role: "Projektvezető asszisztens.",
     description: "Projektek, határidők, kockázatok, napi briefing.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.2,
     // AI-1.4a: `pm.workflow` eltávolítva — jelenleg üres domain, egyetlen tool sincs regisztrálva rá.
     // Ha később write toolok készülnek (AI-1.4b), akkor visszakerül a listába.
@@ -165,8 +160,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "Michael",
     role: "Google Ads specialista.",
     description: "Google Ads elemző, kizárólag a VIBA-TEAM üzleti céljainak támogatására.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.1,
     // AI-1.7: `core.memory` felvéve, mert Michael a `memory_write` engedélyezett
     // agentjei között van. M2/M3 + KG-1 + WK-6: website tudás a landing oldalakhoz.
@@ -428,8 +422,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "Sales Daily Briefing",
     role: "Napi értékesítési riport generátor.",
     description: "Strukturált napi sales riport CRM snapshot alapján.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.2,
     tool_domains: [],
     is_background: true,
@@ -456,8 +449,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "PM Daily Briefing",
     role: "Napi projektvezetői riport generátor.",
     description: "Strukturált napi PM riport CRM snapshot alapján.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.2,
     tool_domains: [],
     is_background: true,
@@ -488,8 +480,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "CRM Summary",
     role: "Snapshot-alapú CRM összefoglaló.",
     description: "Rövid magyar összefoglalót készít a megadott CRM kontextusból.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.2,
     tool_domains: [],
     is_background: true,
@@ -511,8 +502,7 @@ export const AGENTS: Record<string, AgentDefinition> = {
     name: "Sales Research",
     role: "Magyar B2B cégkutató.",
     description: "Strukturált JSON listát ad valós magyar cégekről.",
-    provider: "openai",
-    model: "gpt-4o-mini",
+    ...AI_MODEL,
     temperature: 0.3,
     tool_domains: [],
     is_background: true,
