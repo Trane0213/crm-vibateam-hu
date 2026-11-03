@@ -1,0 +1,12 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QuotePrintDocument } from './components/quotes/quote-print-document';
+import './styles.css';
+const id = 'TESZT-preview';
+const qc = new QueryClient({defaultOptions:{queries:{staleTime:Infinity,retry:false}}});
+qc.setQueryData(['quotes','print',id],{id,title:'TESZT – A4 ajánlat',version:1,created_at:'2026-11-03',manual_net_amount:200000,tax_percent:27,template_key:'b2b',template_terms:{payment:'TESZT 30 nap'},contact_id:null,lead_id:null,project_id:null});
+qc.setQueryData(['quotes','print',id,'items'],[]);
+const root=createRoot(document.getElementById('root') as HTMLElement);
+(window as any).renderPreview=(draft:any={},preview=true)=>root.render(<QueryClientProvider client={qc}><div style={{maxWidth:'100%',overflow:'auto'}}><QuotePrintDocument id={id} preview={preview} draft={draft}/></div></QueryClientProvider>);
+(window as any).renderPreview();
