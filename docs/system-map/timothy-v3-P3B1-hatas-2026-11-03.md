@@ -1,0 +1,6 @@
+# P3/B1 előzetes hatás és visszaállítás
+Jóváhagyott terv: csak három leads next_step mező, meglévő RLS és trigger alatt; új SECURITY INVOKER RPC csak authenticated EXECUTE, anon/PUBLIC tiltás. Nincs tábla/oszlop/RLS/trigger változás. Pontos régi állapot és kontextus összevetése, action lock, tranzakciós audit. Won/lost nem írható ezen a szűk műveleten. UI kézi mentés változatlan.
+
+SQL: database/timothy_P3B1_2026-11-03.sql. Rollback: database/rollback_timothy_P3B1_2026-11-03.sql + eszközbekötés eltávolítása; audit és éles adat megmarad. Egyedi adatvisszaállítás az audit before alapján csak tulajdonosi jóváhagyással, aktuális after és kontextus egyezés esetén, nem tömegesen. Mentés és audit együtt rollbackel hibánál. Jóváhagyásnapló immutabilitása/P0 claim változatlan, ismeretlen állapot nem újrapróbálható. Éles próbaírás tilos, izolált TESZT teszt.
+
+A meglévő activities RLS saját user_id-val kliensINSERT-et enged; az audit nem önálló jogosultsági bizonyíték. A függvény mindig ellenőrzi a változtathatatlan saját executing P0 műveletet, user-lead RLS-t, kontextust, teljes auditazonosságot és élő mentett értékeket. Az activities policy nem módosul.
