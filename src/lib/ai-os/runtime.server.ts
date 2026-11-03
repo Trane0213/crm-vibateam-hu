@@ -26,6 +26,7 @@ import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
 import { RuntimeOutcome } from './runtime-outcome';
+import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer } from './read-quality';
 
 const MAX_STEPS = 50;
 
@@ -153,6 +154,7 @@ export async function runAgent(
   ];
 
   const outcome = new RuntimeOutcome();
+  const caveats=new Set<string>();
   let stepNo = 0;
   let totalPrompt = 0;
   let totalCompletion = 0;
@@ -195,7 +197,7 @@ export async function runAgent(
         return {
           runId,
           agentId: agent.id,
-          finalText: outcome.text(result.text, pendingApprovals.length > 0),
+          finalText: outcome.text(agent.id==='timothy' ? groundedReadAnswer(result.text,[...caveats],input.userRole) : result.text, pendingApprovals.length > 0),
           pendingApprovals,
           steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
@@ -299,6 +301,7 @@ export async function runAgent(
         while (attempts < MAX_ATTEMPTS) {
           attempts++;
           try {
+            if(agent.id==='timothy' && readOnly)validateReadIds(args);
             output = await tool.execute(args, {
               userId: input.userId, agentId: agent.id,
               userRole: input.userRole,
@@ -324,7 +327,7 @@ export async function runAgent(
           break;
         }
         if (failureResult(output)) { outcome.record(tool.name, true, readOnly); errMsg = "A művelet sikertelen."; }
-        else outcome.observe(output);
+        else {outcome.observe(output);if(agent.id==='timothy')for(const c of readCaveats(output))caveats.add(c);}
         // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
         const llmPayload: unknown = isToolErrorEnvelope(output)
           ? { ok: false, error: sanitizeErrorForLlm(output.error) }
@@ -347,7 +350,7 @@ export async function runAgent(
         });
         messages.push({
           role: "tool", tool_call_id: call.id,
-          content: modelToolPayload(llmPayload),
+          content: modelToolPayload(agent.id==='timothy'?localModelDates(llmPayload):llmPayload),
         });
       }
 

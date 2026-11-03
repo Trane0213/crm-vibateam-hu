@@ -27,7 +27,7 @@ import {EmailSendApproval} from './email-send-approval';
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
 export const AGENT_IDS: AgentId[] = ["crm", "marketing", "sales", "pm", "ads"];
 export function isAgentId(v: unknown): v is AgentId { return typeof v === "string" && (AGENT_IDS as string[]).includes(v); }
-export const uid = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+export const uid = () => crypto.randomUUID();
 export type NavCard = { to: string; params?: Record<string, string>; label: string };
 export type ApprovalLevel = "safe" | "confirm" | "dangerous";
 export type ToolApproval = {

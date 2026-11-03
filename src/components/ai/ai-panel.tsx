@@ -16,6 +16,7 @@ import { runAiAgent } from "@/lib/ai-os/runtime.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { SalesWatch } from './sales-watch';
+import { useRunProgress } from './use-run-progress';
 import { contextPrefix, detectRecordContext, type RecordContext, CONTEXT_QUESTIONS, GENERAL_QUESTIONS } from "@/lib/ai-panel-context";
 import {
   AGENT_IDS, AGENT_META, Bubble, THREADS_EVENT, isLegacyErrorMessage, loadThreads, saveThreads,
@@ -97,6 +98,9 @@ function PanelBody({ onClose }: { onClose: () => void }) {
   const [showHistory, setShowHistory] = useState(false);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progressSince,setProgressSince]=useState<string|null>(null);
+  const [progressThread,setProgressThread]=useState<string|null>(null);
+  const progress=useRunProgress(busy?progressThread:null,busy?progressSince:null);
   const [useCtx, setUseCtx] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -148,9 +152,11 @@ function PanelBody({ onClose }: { onClose: () => void }) {
     commit((prev) => prev.map((t) => t.id === tid ? { ...t, updatedAt: Date.now(), messages: [...t.messages, userMsg] } : t));
     setInput("");
     setBusy(true);
+    const executionThread=/^[0-9a-f-]{36}$/i.test(tid)?tid:crypto.randomUUID();
+    setProgressThread(executionThread);setProgressSince(new Date().toISOString());
     try {
       const history = [...thread.messages, userMsg].slice(-20).map((m) => ({ role: m.role, content: m.modelContent ?? m.content }));
-      const result = await run({ data: { agentId: uiAgentToAiOs(thread.agent), history } });
+      const result = await run({ data: { agentId: uiAgentToAiOs(thread.agent), threadId:executionThread, history } });
       const approvals: ToolApproval[] | undefined = result.pendingApprovals.length
         ? result.pendingApprovals.map((p) => ({
             tool_call_id: p.tool_call_id, tool_name: p.tool_name, arguments_json: p.arguments_json,
@@ -264,7 +270,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
           )}
           {busy && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {meta.firstName} a CRM-adatokat nézi…
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> <span role="status">{progress}</span>
             </div>
           )}
         </div>

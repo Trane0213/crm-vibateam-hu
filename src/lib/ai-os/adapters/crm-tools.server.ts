@@ -24,6 +24,7 @@ import {contactActionSchema,verifyContactAction} from '../contact-action';
 import {assignmentActionSchema,verifyAssignmentAction} from '../assignment-action';
 import {pipelineStatusSchema,verifyPipelineStatus,OPEN_PIPELINE_STATUSES} from '../pipeline-status-action';
 import { userReference, readTimestamp } from './crm-read-input';
+import { z } from 'zod';
 
 const fail = (err: unknown) => toolError.fromException(err);
 
@@ -162,8 +163,11 @@ export function registerCrmTools() {
     },
     async (args, ctx) => {
       const window = readWindow(args);
+      const companyId=z.string().uuid().parse(args.company_id);
+      const company=await ctx.supabaseUser.from('companies').select('id').eq('id',companyId).maybeSingle();
+      if(company.error || !company.data)return fail('A cégazonosítóhoz nem található hozzáférhető cég. A lead company_id mezőjét használd; üres keresés nem kontakt-hiány bizonyítéka.');
       const { data, error, count } = await ctx.supabaseUser.from("contacts")
-        .select("id,name,email,phone,position,email_invalid,created_at", { count: "exact" }).eq("company_id", String(args.company_id))
+        .select("id,name,email,phone,position,email_invalid,created_at", { count: "exact" }).eq("company_id", companyId)
         .order("created_at", { ascending: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
       if (error) return fail(error.message);
       return ok(crmReadPage(data ?? [], count, window, "contacts"));
@@ -183,7 +187,8 @@ export function registerCrmTools() {
         .from("leads").select(LEAD_CONTEXT_SELECT).eq("id", String(args.id)).maybeSingle();
       if (error) return fail(error.message);
       if (!data) return fail("Nem található lead.");
-      return ok({ ...crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"), operation_context: { user_role: ctx.userRole ?? 'unknown', lead_reassignment: ctx.userRole === 'owner' && !['won', 'lost'].includes(data.status) ? 'owner_only_open_lead_requires_P0' : 'not_permitted', assigned_sales_is_not_owner: true } });
+      const company=data.company_id ? await ctx.supabaseUser.from('companies').select('id,name').eq('id',data.company_id).maybeSingle() : null;
+      return ok({ ...crmReadPage([data], 1, { limit: 1, offset: 0 }, "leads"), saved_relations:{company_id:data.company_id,contact_id:data.contact_id,company:company?.error?null:company?.data??null,company_checked:!company?.error,company_lookup_error:!!company?.error}, operation_context: { user_role: ctx.userRole ?? 'unknown', lead_reassignment: ctx.userRole === 'owner' && !['won', 'lost'].includes(data.status) ? 'owner_only_open_lead_requires_P0' : 'not_permitted', assigned_sales_is_not_owner: true } });
     },
   );
 
@@ -242,6 +247,7 @@ export function registerCrmTools() {
       const timeline = leadTimeline(table === "lead_status_history" ? page.items : [], table === "followups" ? page.items : [], table === "activities" ? page.items : []);
       const contacts = timeline.filter((e) => e.kind === "recorded_contact" && ["call", "email", "meeting"].includes(String(e.record.followup_type)));
       return ok({ lead: crmReadPage([lead.data], 1, { limit: 1, offset: 0 }, "leads", 3500), section, ...page, timeline,
+        completed_items:table==='followups'?page.items.filter(r=>r.completed===true):[], open_items:table==='followups'?page.items.filter(r=>r.completed===false):[],
         last_recorded_contact_on_page: contacts.at(-1) ?? null,
         limitations: ["Az utolsó rögzített kapcsolat ezen az oldalon nem bizonyítja a teljes Gmail-levelezés utolsó válaszát.", "A due_date tervezett határidő; csak completed=true rekord kerül kapcsolat-eseményként az idővonalra.", "A lead auditnapló nem hívás és nem ügyfélválasz."],
       });

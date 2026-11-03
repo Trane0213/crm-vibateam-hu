@@ -1,0 +1,99 @@
+[
+  {
+    "id": "intent-001",
+    "question": "mik a mai teendöim",
+    "answer": "A mai teendőid a következők:\n\n- Nincsenek nyitott ügyek, amelyeket követned kellene.\n\nKérlek, jelezd, ha van valami konkrét, amivel segíthetek!",
+    "status": "FAIL",
+    "mode": "isolated_model",
+    "technical": "PASS",
+    "review": "Üres napi listából túlzó nincs nyitott ügy állítás."
+  },
+  {
+    "id": "intent-002",
+    "question": "mutasd a nyitot ajánlataim",
+    "answer": "Nincs elég adat. Kérlek, pontosítsd, hogy melyik céghez vagy leadhez szeretnéd látni a nyitott ajánlatokat.",
+    "status": "FAIL",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "intent-009",
+    "question": "ez már kész vagy tervezett",
+    "answer": "A legutóbbi információk alapján a feladat már befejezett, és nincs további teendő vele. Ha van más kérdésed vagy szükséged van további információra, kérlek jelezd!\n\nAz ellenőrzött előzményoldalon 1 befejezett és 0 nyitott utánkövetés van. Befejezett rekord nem elvégzendő teendő.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "intent-005",
+    "question": "atadhatom a felelöst",
+    "answer": "Sales munkatársként nem adhatsz át felelőst, akkor sem, ha az ügy hozzád tartozik. Ezt a tulajdonosi (Owner) szerepkör intézheti nyitott ügyön, külön jóváhagyással.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "intent-007",
+    "question": "kapott az ügy válaszlevelet",
+    "answer": "Nincs elég adat. Kérlek, pontosítsd, hogy melyik ügyre vonatkozik a válaszlevél, vagy ha van konkrét információd az üzenetről, azt is oszd meg!\n\nCsak a CRM-ben tárolt, jogosultan elérhető levelezést ellenőriztem. Üres lista nem bizonyítja, hogy nem érkezett ügyfélválasz a Gmailben.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "context-002",
+    "question": "Nem, ez téves volt; a cégadat hiányának okát nem tudjuk.",
+    "answer": "Köszönöm a pontosítást. A cégadat hiányának okát nem tudjuk, mivel az információ nem dokumentált. Ha további kérdéseid vannak, vagy más információra van szükséged, kérlek jelezd!\n\nA hiányzó céges adatok okát a nyilvántartás nem igazolja; a TESZT-jelölésből ezt nem következtetem ki.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "context-003",
+    "question": "Nem az A cég, most a B ügyre gondoltam.",
+    "answer": "Kérlek, pontosítsd, hogy milyen információra van szükséged a B ügy kapcsán! Milyen konkrét kérdésed van?\n\nA hiányzó céges adatok okát a nyilvántartás nem igazolja; a TESZT-jelölésből ezt nem következtetem ki.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "context-005",
+    "question": "Ez lezárt ügy, csak az előzményt kérem.",
+    "answer": "Kérlek, add meg a konkrét lead azonosítóját, hogy meg tudjam nézni az előzményeit!",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "intent-008",
+    "question": "mennyi a nettó ár",
+    "answer": "A nettó ár 12,000,000 Ft.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "intent-004",
+    "question": "kihez tartozik az ügy",
+    "answer": "Nincs elég adat. Kérlek, add meg a konkrét ügyet vagy leadet, amelyhez tartozó információt keresel.",
+    "status": "FAIL",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "intent-010",
+    "question": "nem erre a cégre gondoltam",
+    "answer": "Kérlek, pontosítsd, melyik cégre gondoltál, hogy segíthessek!",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  },
+  {
+    "id": "context-006",
+    "question": "A címzettet javítom, még ne küldd!",
+    "answer": "Rendben, várom a címzett pontosítását, és nem küldöm el a levelet addig.",
+    "status": "PASS",
+    "mode": "isolated_model",
+    "technical": "PASS"
+  }
+]
