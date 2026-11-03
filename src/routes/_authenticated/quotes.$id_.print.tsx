@@ -137,7 +137,9 @@ function QuotePrint() {
   const discountPct = Number(quote.discount_percent) || 0;
   const taxPct = quote.tax_percent == null ? 27 : Number(quote.tax_percent) || 0;
   const discountAmt = Math.round((subtotal * discountPct) / 100);
-  const net = subtotal - discountAmt;
+  const manualNet = rows.length === 0 && quote.manual_net_amount != null ? Number(quote.manual_net_amount) : null;
+  const noAmount = rows.length === 0 && manualNet == null; // S8: tétel és kézi összeg nélkül nem 0 Ft
+  const net = manualNet ?? subtotal - discountAmt;
   const taxAmt = Math.round((net * taxPct) / 100);
   const gross = net + taxAmt;
 
@@ -250,6 +252,9 @@ function QuotePrint() {
           </div>
 
           {/* Összesítő */}
+          {noAmount ? (
+            <div className="mt-6 text-right text-sm text-neutral-500">Ajánlati összeg: nincs megadva</div>
+          ) : (
           <div className="mt-6 flex justify-end">
             <div className="w-full max-w-xs text-sm">
               <div className="flex justify-between py-1 text-neutral-600">
@@ -276,6 +281,7 @@ function QuotePrint() {
               </div>
             </div>
           </div>
+          )}
 
           {/* S6: VIBA-sablon szakaszai */}
           {(() => {
