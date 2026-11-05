@@ -352,7 +352,7 @@ Böngészős ellenőrzés ebben a körben nem történt (read-only kódaudit + k
 ### 10.1 Lefedettség
 
 - 77 route fájl mindegyike leltározva ✓; 14 API-végpont ✓; ~55 szerverfüggvény ✓; 91 tábla/12 nézet/166 RLS élesben számolva ✓; 60+ AI-eszköz ✓; 6 automatizmus-család ✓.
-- **Lefe Detettségi hiányok:** gombszintű visszakövetés a Today-komponensekben, marketing cégmunkalapon, globális keresőben/értesítésekben; per-metódus auth-audit minden Gmail-végpontra; éles `route_permissions` felülbírálások tartalma; nézetek security-invoker jellege (customer_kpi_v kivételével).
+- **Lefedettségi hiányok:** gombszintű visszakövetés a Today-komponensekben, marketing cégmunkalapon, globális keresőben/értesítésekben; per-metódus auth-audit minden Gmail-végpontra; éles `route_permissions` felülbírálások tartalma; nézetek security-invoker jellege (customer_kpi_v kivételével).
 
 ### 10.2 Ismert hibák / félkész funkciók
 
