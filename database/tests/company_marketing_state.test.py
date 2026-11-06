@@ -11,7 +11,7 @@ def sql(query, fail=False):
  return r.stdout.strip()
 cid='11111111-1111-4111-8111-111111111111'; uid='22222222-2222-4222-8222-222222222222'; lid='33333333-3333-4333-8333-333333333333'; eid='44444444-4444-4444-8444-444444444444'
 sql(f"insert into companies(id,notes) values('{cid}','TESZT állapot'); insert into leads values('{lid}','{cid}');")
-sql("alter table companies enable row level security; create policy fixture_company_access on companies for all to authenticated using (current_setting('test.visible',true) is distinct from 'no') with check (current_setting('test.visible',true) is distinct from 'no'); grant bypassrls to service_role;".replace('grant bypassrls to service_role','alter role service_role bypassrls'))
+sql("alter table companies enable row level security; create policy fixture_company_access on companies for all to authenticated using (current_setting('test.visible',true) is distinct from 'no') with check (current_setting('test.visible',true) is distinct from 'no'); alter role service_role bypassrls;")
 def acting(role): return f"set role authenticated; set test.uid='{uid}'; set test.role='{role}'; "
 for role in ['sales','pm','project_manager','']:
  sql(acting(role)+f"update companies set marketing_status='qualified' where id='{cid}'",fail=True)
@@ -47,4 +47,14 @@ sql("create function test_audit_failure() returns trigger language plpgsql as $$
 sql(acting('marketing')+f"select company_set_marketing_status('{cid}','qualified','{expected}'::jsonb)",True)
 assert sql(f"select marketing_status from companies where id='{cid}'")=='contacted'
 sql("drop trigger test_audit_failure on activities; drop function test_audit_failure();")
+for role in ['sales','pm','marketing','owner']:
+ sql(acting(role)+f"update companies set notes=notes||E'\n[MKT:STATUS:rejected:2026-11-06]' where id='{cid}'",True)
+sql(f"update leads set source='phone' where id='{lid}'")
+expected=sql(f"select jsonb_build_object('marketing_status',marketing_status,'marketing_status_changed_at',marketing_status_changed_at,'notes',notes) from companies where id='{cid}'")
+sql(acting('sales')+f"update companies set notes='TESZT concurrent note' where id='{cid}'")
+sql(acting('marketing')+f"select company_set_marketing_status('{cid}','handoff','{expected}'::jsonb,'{lid}','phone')",True)
+assert sql(f"select notes from companies where id='{cid}'")=='TESZT concurrent note'
+expected=sql(f"select jsonb_build_object('marketing_status',marketing_status,'marketing_status_changed_at',marketing_status_changed_at,'notes',notes) from companies where id='{cid}'")
+sql(acting('marketing')+f"select company_set_marketing_status('{cid}','handoff','{expected}'::jsonb,'{lid}','phone')")
+assert sql(f"select notes from companies where id='{cid}'")=='TESZT concurrent note\n[MKT:LEAD_SOURCE:phone]'
 print('PASS: five statuses, owner/marketing, sales/PM/no-role denial, metadata protection, stale input, handoff scope, notes independence, atomic audit and SENT/DRAFT guard')
