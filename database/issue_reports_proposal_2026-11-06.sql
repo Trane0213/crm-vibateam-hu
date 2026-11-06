@@ -1,4 +1,5 @@
--- PROPOSAL ONLY. Not applied. One new table; no business-table changes.
+-- HISTORICAL: applied with prior approval on 2026-11-06, confirmed read-only.
+-- DO NOT REAPPLY. Superseded extension proposal requires separate approval.
 BEGIN;
 CREATE TABLE public.issue_reports (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
