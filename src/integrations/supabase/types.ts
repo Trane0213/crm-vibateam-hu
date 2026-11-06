@@ -1134,6 +1134,7 @@ export type Database = {
           name: string
           prechecked_at: string | null
           status: string
+          target_company_ids: string[] | null
           target_group: string | null
           updated_at: string
         }
@@ -1146,6 +1147,7 @@ export type Database = {
           name: string
           prechecked_at?: string | null
           status?: string
+          target_company_ids?: string[] | null
           target_group?: string | null
           updated_at?: string
         }
@@ -1158,6 +1160,7 @@ export type Database = {
           name?: string
           prechecked_at?: string | null
           status?: string
+          target_company_ids?: string[] | null
           target_group?: string | null
           updated_at?: string
         }
@@ -4861,6 +4864,10 @@ export type Database = {
       ai_os_email_dispatch_claim: {
         Args: { p_action: string; p_args: Json; p_user: string }
         Returns: boolean
+      }
+      campaign_add_target_company: {
+        Args: { p_campaign: string; p_company: string; p_expected: string }
+        Returns: Json
       }
       campaign_store_preparation: {
         Args: {
