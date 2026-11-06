@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
+- [ ] 17:59 UTC 3. szakasz engedélyezve: meglévő marketing napi munkafolyamat célzott hiányjavítása és tesztje; 2. szakasz hiányai nyitva maradnak. Nincs éles küldés/publikálás vagy automatikus 4. szakasz.
 - [ ] 17:43 UTC 2. szakasz engedélyezve: meglévő kampánykezelés hiányai (közös levélíró, forráshű személyre szabás, jóváhagyás/ütemezés/pause-stop/dispatch/valós statisztika), kész részek ismétlése nélkül. Sémát érintő függőséghez célzott hatás/rollback kapu; nincs éles ügyfélküldés/publikálás, 3. szakasz nem indul automatikusan.
 - [x] 2. szakasz kódoldali céljavítás: forráshű címzettenkénti HTML-preview/escapelt CRM-érték/igazolt név; exact revision TESZT-audit és repeat/error/unknown UI-zár. 80 kampányteszt/10 fájl PASS, AI 21 PASS, build OK, izolált desktop/mobil HTML PASS. Nincs séma/éles adat/Gmail/küldés/publikálás.
 - [ ] 2. szakasz folytatási kapu: célzott közös levélíró+HTML-aláírás és approval/scheduling/delivery ledger sémabővítés jóváhagyásra; külső időzítő és hitelesített saját Gmail E2E hiányzik. Későbbi ügyfélaktiválás külön kapu; 3. szakasz nem engedélyezett.
