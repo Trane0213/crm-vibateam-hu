@@ -8,7 +8,7 @@
 - [x] 2. kör megjelenítési része: közös marketingösszefoglaló és mentett kampánytagság a cégoldalon, marketing utánkövetések, idővonal SENT/DRAFT-védelem. 658 teszt PASS, build OK; jelentés docs/system-map/marketing-kozos-cegadatlap-2026-11-06.md, adat/küldés/publikálás nélkül.
 - [x] 2. kör strukturált marketingállapot: jóváhagyott nullable companies mezők, user-RLS zárolt mentés/metadata/audit, legacy-marker írásvédelem, közös olvasók és Gmail SENT-bizonyíték út. 669 teszt PASS, izolált SQL PASS, build OK; 664/701/8 és teljes jegyzethash változatlan, backfill/küldés/publikálás nélkül. Jelentés: docs/system-map/marketing-strukturalt-allapot-2026-11-06.md; STOP.
 - [ ] Strukturált állapot hitelesített owner/Marketing/Sales/PM mentési végigpróba: external_unmanaged munkamenet hiánya; NEM TESZTELT.
-- [ ] 2. kör kontaktforrás és személy/gyűjtőcím/ismeretlen ellenőrzöttség: következő külön funkciókapu, még nem indult; új tulajdonosi jóváhagyás szükséges.
+- [ ] 2. kör kontaktforrás és személy/gyűjtőcím/ismeretlen ellenőrzöttség: tulajdonosi folytatás alapján friss séma/jogosultság és meglévő kontaktmentési utak read-only előkészítése folyamatban; alkalmazás előtt külön hatás/rollback jóváhagyási kapu. Nincs automatikus besorolás vagy kontaktátírás.
 - [ ] 3–5. kör: kontrollált kampány, napi munkafolyamat, Scarlet és végigpróba; csak az előző kör elfogadása után, adatjavítás/RLS/küldés külön kapuval.
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
 - [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
