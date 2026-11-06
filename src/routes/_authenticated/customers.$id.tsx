@@ -241,7 +241,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
       </div>
 
       <div className="p-6">
-        <CompanyMarketingSummary notes={c.notes ?? null} />
+        <CompanyMarketingSummary notes={c.notes ?? null} company={c} />
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Building2 className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
