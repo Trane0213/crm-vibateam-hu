@@ -95,8 +95,8 @@ export async function syncInbox(
       .maybeSingle();
     if (found?.id) {
       threadCache.set(gmailThreadId, found.id);
-      // Ha a thread még nem ismeri valamelyik CRM mezőt, de az új email igen,
-      // szinkronizáljuk a threadre is, hogy konzisztens legyen.
+      // Membership follows a message actually retrieved from this authenticated Gmail account.
+      await admin.from('email_thread_access').upsert({thread_id:found.id,user_id:userId,mailbox_email:myMailbox},{onConflict:'thread_id,user_id'});
       const resolved = resolveThreadLink(found, crm);
       if (resolved.conflict) result.errors.push(`Szál ${found.id}: eltérő CRM-kapcsolat, kézi ellenőrzés szükséges.`);
       // Existing historical thread assignments remain unchanged; only new messages inherit them.
