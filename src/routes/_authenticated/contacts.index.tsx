@@ -6,6 +6,7 @@ import { ResourcePage, useLookup } from "@/components/resource/resource-page";
 import { RecordCombobox } from "@/components/resource/record-combobox";
 import { loadContactSurfaceMap } from "@/lib/crm/crm-surface";
 import { FilterBar, QualityBar, relativeTime } from "@/components/marketing-ui";
+import { ContactProvenanceSummary } from '@/components/customers/contact-provenance';
 
 function ContactsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -78,6 +79,7 @@ function ContactsPage() {
                     </span>
                   )}
                 </div>
+                <ContactProvenanceSummary contact={r} />
                 {r.company_id && (
                   <Link to="/customers/$id" params={{ id: r.company_id }} className="text-xs text-muted-foreground hover:text-primary hover:underline">
                     {companyLabel(r.company_id)}

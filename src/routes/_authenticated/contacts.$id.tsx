@@ -10,8 +10,10 @@ import { EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { toast } from "sonner";
+import { ContactProvenanceEditor } from '@/components/customers/contact-provenance';
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
+  head: () => ({ meta: [{ title: 'Kapcsolattartó adatlap | VIBA CRM' }, { name: 'description', content: 'Kapcsolattartó adatai, adatforrása és emberi ellenőrzöttsége a VIBA CRM-ben.' }, { property: 'og:title', content: 'Kapcsolattartó adatlap | VIBA CRM' }, { property: 'og:description', content: 'Céges kapcsolattartó és ellenőrzöttség.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: ContactDetail,
 });
 
@@ -120,6 +122,7 @@ function ContactDetail() {
                 {save.isPending ? "Mentés…" : "Mentés"}
               </Button>
             </div>
+            <ContactProvenanceEditor contact={q.data} disabled={dirty || save.isPending} />
           </CardContent>
         </Card>
       </div>
