@@ -1,0 +1,1 @@
+- Company campaign membership is shared between role-specific company views and reads persisted recipient/contact IDs through user RLS, never current search filters or mail content; this preserves one company identity without expanding campaign access.
