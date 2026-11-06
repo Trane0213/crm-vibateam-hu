@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Briefcase, Building2, CalendarClock, CheckCircle2, FileText, Plus, Radar, Send, Users } from "lucide-react";
+import { AlertTriangle, Briefcase, Building2, CalendarClock, CheckCircle2, FileText, Radar, Send, Users } from "lucide-react";
 import { WorkspacePanel } from "./workspace-panel";
 import { OwnerKpiStrip } from "./owner-kpi-strip";
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,10 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useDailyWork } from "@/lib/sales/use-daily-work";
 import { DailyLeadRows } from "@/components/today/sales-worklists";
-import { useList } from "@/lib/db-hooks";
 import { useSalesProjectSnapshot } from "@/lib/owner-kpis";
 import { allDailyRows } from "@/lib/sales/load-daily-work";
 import { ACTIVE_PROJECT_STATUSES, PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
-import { LEAD_STATUS_LABEL, type LeadStatus } from "@/lib/sales/constants";
+import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 import { NewQuoteButton } from "@/components/quotes/new-quote-button";
 
 type Period = "7" | "30" | "90";
@@ -21,10 +20,10 @@ const dateLabel = (iso: string) => new Intl.DateTimeFormat("hu-HU", { timeZone: 
 export function OwnerWorkspace({ period = "30", detail = false }: { period?: Period; detail?: boolean }) {
   const daily = useDailyWork();
   const snapshot = useSalesProjectSnapshot();
-  const tasks = useList<{ id: string; title: string; status: string; due_date: string | null; project_id: string | null }>("tasks", { order: "due_date", ascending: true });
-  const projects = useList<{ id: string; title: string; status: string; project_manager_user_id: string | null }>("projects");
+  const tasks = useQuery({ queryKey: ["tasks", "owner-workspace"], queryFn: () => allDailyRows<{ id: string; title: string; status: string; due_date: string | null; project_id: string | null }>((from, to) => supabase.from("tasks").select("id,title,status,due_date,project_id").order("id").range(from, to)) });
+  const projects = useQuery({ queryKey: ["projects", "owner-workspace"], queryFn: () => allDailyRows<{ id: string; title: string; status: string; project_manager_user_id: string | null }>((from, to) => supabase.from("projects").select("id,title,status,project_manager_user_id").order("id").range(from, to)) });
   const customers = useQuery({ queryKey: ["dashboard", "customer-composition"], queryFn: () => allDailyRows<{ id: string; company_type: string | null }>((from, to) => supabase.from("companies").select("id,company_type").order("id").range(from, to)) });
-  const campaigns = useList<{ id: string; name: string; status: string; delivery_state?: string | null }>("email_campaigns");
+  const campaigns = useQuery({ queryKey: ["email_campaigns", "owner-workspace"], queryFn: () => allDailyRows<{ id: string; name: string; status: string }>((from, to) => supabase.from("email_campaigns").select("id,name,status").order("id").range(from, to)) });
   const now = new Date();
   const due = (tasks.data ?? []).filter(task => task.status !== "done" && task.due_date).sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""));
   const overdue = due.filter(task => task.due_date && Date.parse(task.due_date) < now.getTime());
