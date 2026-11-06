@@ -113,7 +113,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
       <div className="flex flex-wrap items-center gap-2">
         <Input className="max-w-xs" placeholder="Kampány neve" value={name} disabled={archived || busy} onChange={e => setName(e.target.value)} />
         <Input className="max-w-xs" placeholder="Célcsoport" value={target} disabled={archived || busy} onChange={e => setTarget(e.target.value)} />
-        <Button size="sm" disabled={busy || (selected && !camp) || archived || !name.trim() || (!!camp && !dirty)} onClick={() => act(async () => {
+        <Button size="sm" disabled={busy || (selected && !camp) || archived || !name.trim() || (!!camp && (!dirty || html!==camp.message_html || signatureHtml!==camp.signature_html || signatureText!==camp.signature_text || (html!==null&&(subject!==camp.message_subject||body!==camp.message_body))))} onClick={() => act(async () => {
           const r = await saveFn({ data: { id: selected, expectedUpdatedAt: camp?.updated_at ?? null, name, target_group: target, message_subject: subject, message_body: body } });
           setSelected(r.id);
         }, "Tervezet mentve.")}>{selected ? "Módosítás mentése" : "Tervezet mentése"}</Button>

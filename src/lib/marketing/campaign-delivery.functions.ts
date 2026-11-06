@@ -69,3 +69,10 @@ export const controlCampaignDelivery=createServerFn({method:'POST'}).middleware(
  if(c.delivery_state!==expected)throw new Error('A vezérlés eredménye nem igazolt.');
  return {state:expected};
 });
+export const processScheduledTest=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator(z.object({itemId:z.string().uuid(),confirmed:z.literal(true)}).strict()).handler(async({data,context})=>{
+ const {getRequest}=await import('@tanstack/react-start/server');
+ const authorization=getRequest().headers.get('authorization');
+ if(!authorization)throw new Error('Saját bejelentkezés szükséges.');
+ const {processCampaignTestItem}=await import('./campaign-delivery.server');
+ return processCampaignTestItem(context.supabase,context.userId,authorization,data.itemId);
+});
