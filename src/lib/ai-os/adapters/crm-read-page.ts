@@ -1,4 +1,8 @@
 /** Bounded, explicit pagination for model-facing CRM reads (user RLS remains upstream). */
+import { readMarketingMeta, marketingStateOrigin, type CompanyMarketingState } from '@/lib/marketing-status';
+import { contactProvenanceLabel, type ContactProvenance } from '@/lib/contact-provenance';
+
+export const CONTACT_CONTEXT_SELECT = 'id,name,email,phone,position,email_invalid,created_at,contact_kind,data_source,verification_state,verification_reference,verified_by,verified_at';
 export const CRM_PAGE_PROPERTIES = {
   limit: { type: "integer", default: 25, minimum: 1, maximum: 100 },
   offset: { type: "integer", default: 0, minimum: 0 },
@@ -40,6 +44,11 @@ export function crmRecordFacts(row: Record<string, unknown>, source: string, now
     facts.action_required = row.completed === false;
   }
   if (source === 'contacts') facts.email_verification = !row.email ? 'missing' : row.email_invalid === true ? 'flagged_invalid' : 'not_verified';
+  if (source === 'contacts') facts.identity_interpretation = contactProvenanceLabel(row as ContactProvenance);
+  if (source === 'companies') {
+    const notes = typeof row.notes === 'string' ? row.notes : null;
+    facts.marketing_interpretation = { ...readMarketingMeta(notes, row as CompanyMarketingState), origin: marketingStateOrigin(notes, row as CompanyMarketingState), workflow_is_not_delivery_proof: true };
+  }
   return facts;
 }
 
