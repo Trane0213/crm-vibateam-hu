@@ -120,7 +120,7 @@ export const getCampaignDraft = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     await requireCampaignRole(context.supabase, context.userId);
-    const { data: camp, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,message_subject,message_body,status,created_by,prechecked_at,updated_at,target_company_ids").eq("id", data.id).maybeSingle();
+    const { data: camp, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,message_subject,message_body,message_html,gmail_draft_source,status,created_by,prechecked_at,updated_at,target_company_ids").eq("id", data.id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!camp) throw new Error("A kampány nem található vagy nincs jogosultságod.");
     const targetCompanies: { id: string; name: string; marketing_blocked: boolean | null }[] = [];

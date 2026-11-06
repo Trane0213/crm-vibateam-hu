@@ -1128,8 +1128,10 @@ export type Database = {
         Row: {
           created_at: string | null
           created_by: string | null
+          gmail_draft_source: Json | null
           id: string
           message_body: string | null
+          message_html: string | null
           message_subject: string | null
           name: string
           prechecked_at: string | null
@@ -1141,8 +1143,10 @@ export type Database = {
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          gmail_draft_source?: Json | null
           id?: string
           message_body?: string | null
+          message_html?: string | null
           message_subject?: string | null
           name: string
           prechecked_at?: string | null
@@ -1154,8 +1158,10 @@ export type Database = {
         Update: {
           created_at?: string | null
           created_by?: string | null
+          gmail_draft_source?: Json | null
           id?: string
           message_body?: string | null
+          message_html?: string | null
           message_subject?: string | null
           name?: string
           prechecked_at?: string | null
@@ -4867,6 +4873,22 @@ export type Database = {
       }
       campaign_add_target_company: {
         Args: { p_campaign: string; p_company: string; p_expected: string }
+        Returns: Json
+      }
+      campaign_detach_gmail_source: {
+        Args: { p_campaign: string; p_expected: string; p_user: string }
+        Returns: Json
+      }
+      campaign_import_gmail_source: {
+        Args: {
+          p_campaign: string
+          p_expected: string
+          p_html: string
+          p_source: Json
+          p_subject: string
+          p_text: string
+          p_user: string
+        }
         Returns: Json
       }
       campaign_store_preparation: {

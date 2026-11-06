@@ -18,6 +18,9 @@ import { CampaignTestControl } from "@/components/marketing/campaign-test-contro
 import type { EligibilityStatus } from "@/lib/marketing/campaign-eligibility";
 import { campaignEntryContacts } from '@/lib/marketing/campaign-entry';
 import { GmailDraftPicker } from './gmail-draft-picker';
+import { CampaignHtmlPreview } from './campaign-html-preview';
+import { detachGmailCampaignSource } from '@/lib/marketing/gmail-drafts.functions';
+import { savedDraftSource } from '@/lib/marketing/gmail-draft-source';
 
 const LABEL: Record<EligibilityStatus | "all", string> = {
   all: "Mind", ready: "Kész előkészítésre", contacted: "Már megkeresett", replied: "Válasz érkezett",
@@ -34,6 +37,8 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const checkFn = useServerFn(precheckAndStoreCampaign);
   const getFn = useServerFn(getCampaignDraft);
   const addTargetFn = useServerFn(addCampaignTargetCompany);
+  const detachFn = useServerFn(detachGmailCampaignSource);
+  const [detachConfirmed, setDetachConfirmed] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
@@ -73,6 +78,8 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const d = camp ? detail.data : undefined;
   const pages = d ? Math.max(1, Math.ceil(d.total / d.pageSize)) : 1;
   const archived = camp?.status === "archived";
+  const sourceLocked = !!camp?.gmail_draft_source;
+  const savedSource = savedDraftSource(camp?.gmail_draft_source);
   const dirty = !!camp && (name.trim() !== camp.name || (target.trim() || null) !== (camp.target_group ?? null) || subject !== (camp.message_subject ?? "") || body !== (camp.message_body ?? ""));
   const picked = explicitContactIds(contactIds,choices.map(c=>c.id));
   const selectedCompanyIds = [...new Set(choices.filter(c=>picked.includes(c.id)).map(c=>c.company_id))];
@@ -108,10 +115,17 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
         </span>
       </div>
       <div className="space-y-2">
-        <label className="block">Tárgy<Input aria-label="Kampányüzenet tárgya" value={subject} maxLength={500} disabled={archived || busy} onChange={e=>setSubject(e.target.value)} /></label>
-        <label className="block">Üzenet<Textarea aria-label="Kampányüzenet szövege" value={body} maxLength={20000} disabled={archived || busy} rows={5} onChange={e=>setBody(e.target.value)} /></label>
+        <label className="block">Tárgy<Input aria-label="Kampányüzenet tárgya" value={subject} maxLength={500} disabled={archived || busy || sourceLocked} onChange={e=>setSubject(e.target.value)} /></label>
+        <label className="block">Üzenet<Textarea aria-label="Kampányüzenet szövege" value={body} maxLength={20000} disabled={archived || busy || sourceLocked} rows={5} onChange={e=>setBody(e.target.value)} /></label>
       </div>
-      <GmailDraftPicker key={selected ?? 'new'} disabled={busy || !!archived || !!dirty || (!camp && (!!subject || !!body))} onCopy={copy => { setSubject(copy.subject); setBody(copy.body); setPreviewId(null); toast.info('Szöveges változat átvéve; a tervezet még nincs mentve.'); }} />
+      {sourceLocked && camp && <section className="space-y-2 border-y py-3">
+        <h3 className="font-medium">Mentett Gmail-piszkozatmásolat</h3>
+        <p className="break-all text-xs text-muted-foreground">{savedSource?.mailbox ?? 'Ismeretlen forrás'} · {savedSource?.draft_id ?? ''} · {fmt(savedSource?.read_at ?? null)}</p>
+        {camp.message_html && <CampaignHtmlPreview html={camp.message_html} />}
+        <label className="flex items-start gap-2"><Checkbox checked={detachConfirmed} disabled={busy || archived || dirty || !body.trim()} onCheckedChange={v => setDetachConfirmed(v === true)} />Csak a szöveges változatot tartom meg, a HTML és forráskapcsolat leválasztását jóváhagyom</label>
+        <Button size="sm" variant="outline" disabled={busy || archived || dirty || !detachConfirmed || !body.trim()} onClick={() => act(async () => { await detachFn({ data: { campaignId: camp.id, revision: camp.updated_at, confirmed: true } }); setDetachConfirmed(false); }, 'Szöveges tervezetre váltva; a Gmail-piszkozat változatlan.')}>Váltás szöveges tervezetre</Button>
+      </section>}
+      <GmailDraftPicker key={`${selected ?? 'new'}:${camp?.updated_at ?? ''}`} plainCopyDisabled={sourceLocked} campaign={camp ? { id: camp.id, revision: camp.updated_at } : undefined} onImported={() => { refresh(); toast.success('Teljes piszkozatmásolat mentve; címzettek és Gmail változatlanok.'); }} disabled={busy || !!archived || !!dirty || (!camp && (!!subject || !!body))} onCopy={copy => { setSubject(copy.subject); setBody(copy.body); setPreviewId(null); toast.info('Szöveges változat átvéve; a tervezet még nincs mentve.'); }} />
       {choices.length>0 && <fieldset disabled={busy || archived} className="space-y-2"><legend className="font-medium">Kontaktkijelölés · {picked.length} címzett</legend>
         <div className="max-h-52 overflow-auto divide-y">{choices.map(c=><label key={c.id} className="flex items-start gap-2 py-2"><Checkbox checked={picked.includes(c.id)} aria-label={`${c.email ?? c.name ?? c.id} kampánykontakt`} onCheckedChange={v=>setContactIds(prev=>v===true ? [...new Set([...prev,c.id])] : prev.filter(id=>id!==c.id))}/><span className="min-w-0 break-words">{c.company_name} · {c.email ?? "Nincs email"} · {c.name}</span></label>)}</div>
       </fieldset>}

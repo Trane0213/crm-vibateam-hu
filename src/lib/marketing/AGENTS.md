@@ -1,1 +1,2 @@
 - Own Gmail campaign source reads verify Owner/Marketing and active authenticated-user mailbox against live Gmail identity before content access; no browser-selected account is accepted, because shared CRM threads must not expand mailbox ownership.
+- Complete campaign Gmail imports use service-only RPC after user-RLS scope and fresh source hash checks, exact readback and atomic metadata audit; imported copy is protected until explicit detach because ordinary text edits must not leave stale HTML/provenance.
