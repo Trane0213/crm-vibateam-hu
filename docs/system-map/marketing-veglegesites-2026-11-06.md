@@ -12,6 +12,13 @@ A 17:40 UTC feltöltött hat szakaszos utasítás az irányadó: most kizáróla
 - Credit ebben a körben nem mért. Az 1. szakasz teljes elfogadása nem állítható a bejelentkezett ellenőrzés és review-jog döntés hiányában. Következő: 2. szakasz, csak új tulajdonosi engedéllyel; a kihagyott aláírás/Gmail-terv nem jogosít migrációra.
 
 ## Elkészült kapcsolódások
+### 2. szakasz – célzott javítás és mentési kapu · 17:47 UTC
+- Mentett címzettelőnézet a HTML-t is személyre szabja a közös campaignPreview-n keresztül; csak igazolt személynév, HTML-ben escapelt CRM-érték, eredeti formázás megtartva. HTML-only esetén nem találunk ki plain body-t, korábbi küldési claimkorlát megmarad.
+- TESZT-eredményolvasás exact campaign/revision szűréssel, user-RLS út. Azonos címzett/revízió mentett kísérlete, bizonytalan kliensválasz vagy olvasási hiba/betöltés zárolja az újraküldő gombot; DB claim továbbra végső ismétlésvédelem. Nem aktivált új küldési jogot.
+- 80 kampányteszt/10 fájl PASS, AI acceptance 21 PASS; harness build OK (17:46:31 UTC). A kezdeti RPC-mock tesztet a valódi olvasó helper izolált tesztjére cseréltük; végső kör PASS. Elkülönített tényleges HTML-komponens asztali/mobil próba: CRM `<img>` érték szöveg marad, 0 injektált image/script, 0 pageerror/overflow. Ez nem hitelesített kampánymentési/küldési E2E; valódi /campaign-list továbbra /auth.
+- Új technikai helper campaign-test-results.server és két regressziós teszt; közös preview/policy és meglévő két vezérlő célzott módosítása. Séma/éles adat/Gmail/role/publikálás nem változott.
+- A teljes 2. szakasz jóváhagyás/ütemezés/stop-pause/durable dispatch/statisztika része a jelenlegi sémával nem teljesíthető. Célzott sémabővítés hatás/rollback terv jóváhagyásra kész. Külső Supabase időzített HTTP-feldolgozása külön külső ütemező bekötését igényli; nem kézzel épített pg_net cron. Ügyfélaktiválás és bejelentkezett E2E nem engedélyezett/hozzáférhető; nem teljes szakaszlezárás.
+
 - Az importellenőrzés a title mezőben mentett szál-UUID-t is megnyitja; kizárólag email_thread típusú tételnél, szigorú UUID-ellenőrzéssel. Meglévő levél–cég ellenőrzésre belépő, új felület/automatikus relink nélkül.
 - Cégadatlap Kampányok részéből és kontaktadatlapról Owner/Marketing „Hozzáadás kampányhoz”: a meglévő kampány-előkészítést nyitja validált company/contact URL-azonosítóval. A kontakt csak a látható azonos céges jelöltek között lesz kijelölve, a mentett lista megmarad; nincs automatikus mentés vagy küldési jogosultság. Nem mentett kontaktváltozásnál az action tiltott.
 - A kampány cégolvasási hibája nem jelenik meg üres/igazolt nulla listaként. Hiányzó/nem látható kiválasztott cégnél figyelmeztetés.
