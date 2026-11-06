@@ -1,9 +1,10 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
-- [ ] Biztonságos Gmail–cég/kontakt hozzárendelés; ütközés nem írható felül, történeti átkötés csak ellenőrzéssel.
-- [ ] Meglévő Marketing Ma/munkafelület, külső válaszmutató, hívás/átadás célzott javítása.
-- [ ] Scarlet meglévő AI OS-en: marketingadatok, napi prioritás és javaslat; önálló küldés nélkül.
-- [ ] Célzott tesztek és rövid igazolt eredmény; éles ügyféllevél/adatátírás/publikálás nélkül.
+- [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
+- [x] Marketing Ma közös napi adatforrás, saját külső válaszmutató, visszahívás és utánkövetés; minden cég keresése külön a kampánytól, cégazonosító szerinti küldés-visszajelzés.
+- [x] Scarlet közös napi/aktivitás és fiókspecifikus tárolt levélolvasás; központi modell változatlan, nincs íróművelet vagy önálló küldés.
+- [x] 47 célzott teszt és 21 AI acceptance sikeres; olvasási DB-ellenőrzés: 446 cég, 213 kontakt-cégeltérés, 2426 kapcsolatlan szál. Üzleti adat/küldés/publikálás nélkül.
+- [ ] Hitelesített Marketing→Gmail→CRM→Ramon végigpróba és Scarlet modellválasz: nincs használható böngészős munkamenet (external_unmanaged); nem tesztelt. Marketing önálló followup-írás jelenlegi RLS szerint tiltott, nem bővítettük; hívás callback_date használható.
 ## Timothy kockázatalapú minőségbiztosítás és segítőkész működés
 - [x] Közös terv és teljes lánc kockázattérkép; 300 változatos katalóguseset előre rögzített elvárással: docs/qa/timothy-risk-catalog.json.
 - [x] Közös ID/cégkapcsolat/állapot/idő/válaszvédelmek, saját auditfutás állapotjelzés mindkét chatben; P0/RLS és memóriajog változatlan. 242 érintett teszt/21 AI acceptance/build OK.

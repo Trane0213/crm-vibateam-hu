@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Phone } from "lucide-react";
 import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/resource-page";
+import {supabase} from '@/integrations/supabase/client';
+import {prepareCompanyCall} from '@/lib/marketing-call';
 
 const CALL_TYPE = [
   { value: "sales", label: "Értékesítés" },
@@ -32,6 +34,8 @@ function CallsPage() {
       table="phone_calls"
       order="created_at"
       ascending={false}
+      beforeCreate={values=>prepareCompanyCall(supabase,values)}
+      beforeUpdate={values=>prepareCompanyCall(supabase,values)}
       fields={[
         { name: "direction", label: "Irány", type: "select", options: [
           { value: "inbound", label: "Bejövő" },
@@ -39,6 +43,7 @@ function CallsPage() {
         ]},
         { name: "call_type", label: "Típus", type: "select", options: CALL_TYPE },
         { name: "outcome", label: "Eredmény", type: "select", options: OUTCOME },
+        { name: "callback_date", label: "Következő teendő: visszahívás időpontja", type: "datetime" },
         { name: "project_id", label: "Projekt", type: "ref", ref: { table: "projects", labelColumn: "title" } },
         { name: "company_id", label: "Ügyfél", type: "ref", ref: { table: "companies", labelColumn: "name" } },
         { name: "contact_id", label: "Kapcsolattartó", type: "ref", ref: { table: "contacts", labelColumn: "name" } },
@@ -49,6 +54,7 @@ function CallsPage() {
         { key: "direction", label: "Irány" },
         { key: "call_type", label: "Típus" },
         { key: "outcome", label: "Eredmény" },
+        { key: "callback_date", label: "Visszahívás", render:r=>fmtDateTime(r.callback_date) },
         { key: "contact", label: "Kapcsolattartó", render: (r) => contactLabel(r.contact_id) },
         {
           key: "company",
@@ -70,5 +76,6 @@ function CallsPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/calls")({
+  head:()=>({meta:[{title:'Hívások | VIBA CRM'},{name:'description',content:'Ügyfélhívások, kapcsolattartók és visszahívási időpontok.'},{property:'og:title',content:'Hívások | VIBA CRM'},{property:'og:description',content:'Céges telefonhívások és következő teendők.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),
   component: CallsPage,
 });

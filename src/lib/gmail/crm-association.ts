@@ -17,6 +17,8 @@ export function matchCrmAddresses(addresses: string[], contacts: Contact[], lead
 export function resolveThreadLink(saved: CrmLink, candidate: CrmLink): { link: CrmLink; conflict: boolean; patch: Partial<CrmLink> } {
   const conflict = (Object.keys(saved) as (keyof CrmLink)[]).some(k => saved[k] && candidate[k] && saved[k] !== candidate[k]);
   if (conflict) return { link: saved, conflict: true, patch: {} };
+  // A partial historical assignment cannot safely be completed using another participant.
+  if (!saved.company_id && (saved.contact_id || saved.lead_id)) return {link:saved,conflict:false,patch:{}};
   const link = { company_id: saved.company_id ?? candidate.company_id, contact_id: saved.contact_id ?? candidate.contact_id, lead_id: saved.lead_id ?? candidate.lead_id };
   const patch: Partial<CrmLink> = {};
   for (const key of Object.keys(saved) as (keyof CrmLink)[]) if (!saved[key] && link[key]) patch[key] = link[key];
