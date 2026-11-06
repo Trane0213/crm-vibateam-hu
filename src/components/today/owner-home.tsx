@@ -1,47 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { TrendingUp, Sparkles } from "lucide-react";
 import { WelcomeHeader } from "@/components/welcome-header";
 import { DailyBriefing } from "@/components/ai/daily-briefing";
-import { OwnerKpiStrip } from "@/components/dashboard/owner-kpi-strip";
-import { SectionLabel } from "@/components/today/today-shell";
-import { SalesWorklists } from "@/components/today/sales-worklists";
-
-/**
- * Tulajdonosi „Ma" — gyors napi vezetői fókusz. A részletes bontás az
- * Irányítópulton van; a KPI sáv mindkét oldalon ugyanaz a komponens.
- */
+import { OwnerWorkspace } from "@/components/dashboard/owner-workspace";
+import { Button } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
 export function OwnerHome() {
-  return (
-    <div className="crm-today flex flex-col">
-      <WelcomeHeader title="Vezetői áttekintés" subtitle="A teljes csapat mai ügyei és határidői." />
-
-      <div className="px-6 pt-4">
-        <OwnerKpiStrip />
-      </div>
-      <section className="px-6 pt-4">
-        <h2 className="mb-3 text-base font-semibold">Sales – teljes csapat</h2>
-        <SalesWorklists />
-      </section>
-
-      <div className="px-6 pt-4">
-        <DailyBriefing />
-      </div>
-
-      <SectionLabel
-        title="Részletek"
-        action={<Link to="/dashboard" className="text-xs text-primary hover:underline">Részletes irányítópult →</Link>}
-      />
-      <div className="px-6 pb-6 text-xs text-muted-foreground">
-        Ügyfél-, projekt-, terheltségi és utókövetési bontás az Irányítópulton.
-        <div className="mt-2 flex gap-4">
-          <Link to="/dashboard" className="inline-flex items-center gap-2 text-primary hover:underline">
-            <TrendingUp className="h-3.5 w-3.5" /> Irányítópult
-          </Link>
-          <Link to="/ai-assistants" className="inline-flex items-center gap-2 text-primary hover:underline">
-            <Sparkles className="h-3.5 w-3.5" /> AI Asszisztensek
-          </Link>
-        </div>
-      </div>
+  return <div className="crm-today flex flex-col">
+    <WelcomeHeader title="Vezetői áttekintés" subtitle="Üzleti állapot, döntések és a csapat következő lépései." />
+    <div className="space-y-4 px-4 py-4 sm:px-6">
+      <div className="flex justify-end"><Button asChild variant="outline" size="sm"><Link to="/dashboard" search={{ period: "30" }}>Időszakos részletek<ArrowUpRight className="h-4 w-4" /></Link></Button></div>
+      <OwnerWorkspace />
+      <details className="border-t pt-3"><summary className="cursor-pointer text-sm font-semibold">Vezetői AI-összefoglaló</summary><div className="pt-3"><DailyBriefing /></div></details>
     </div>
-  );
+  </div>;
 }
