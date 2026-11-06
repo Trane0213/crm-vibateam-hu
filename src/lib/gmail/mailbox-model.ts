@@ -13,6 +13,22 @@ export type MailboxPage = {
   counts: Record<MailFolder | "unknown" | "messages", number>;
 };
 
+/** Reject failed HTTP/RPC payloads before Query can cache them as successful data. */
+export async function mailboxResult<T>(request: Promise<T>, kind: "mailboxes" | "page"): Promise<T> {
+  const value: unknown = await request;
+  if (value instanceof Response) {
+    throw new Error(value.status === 401
+      ? "A munkamenet ellenőrzése nem sikerült. Jelentkezz be újra."
+      : "A postafiók betöltése nem sikerült.");
+  }
+  const valid = kind === "mailboxes"
+    ? Array.isArray(value) && value.every(row => row && typeof row === "object" && typeof row.email === "string" && typeof row.userId === "string")
+    : value !== null && typeof value === "object" && "rows" in value && Array.isArray(value.rows)
+      && "total" in value && typeof value.total === "number" && "counts" in value && value.counts !== null && typeof value.counts === "object";
+  if (!valid) throw new Error("A postafiók válasza hibás; az adatok nem igazoltak.");
+  return value as T;
+}
+
 export function defaultMailbox(mailboxes: Mailbox[], userId: string | undefined): string | null {
   return mailboxes.find(m => m.userId === userId && m.active)?.email
     ?? mailboxes.find(m => m.active)?.email ?? mailboxes[0]?.email ?? null;
