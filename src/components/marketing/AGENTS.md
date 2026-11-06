@@ -3,3 +3,4 @@
 - Record campaign actions open the existing campaign preparation using validated company/contact IDs; URL selections never grant membership or sending, preserving the server-checked save path.
 - Company marketing blocks live on companies and use the user-RLS transactional company_set_marketing_block RPC plus exact readback; prechecks evaluate the current parent company for every contact, because new contacts cannot bypass a company-wide block.
 - Contactless campaign targets are stored on email_campaigns.target_company_ids via campaign_add_target_company with user RLS, atomic audit and idempotent add; target membership never creates a recipient or send permission.
+- Gmail campaign sources use drafts.list/get only for the authenticated active own corporate account; source HTML is inert text, attachments/HTML-only never silently flatten, and explicit plain-text copying changes only unsaved campaign copy because the persisted campaign/send path is currently plain text.

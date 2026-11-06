@@ -1,0 +1,1 @@
+- Own Gmail campaign source reads verify Owner/Marketing and active authenticated-user mailbox against live Gmail identity before content access; no browser-selected account is accepted, because shared CRM threads must not expand mailbox ownership.
