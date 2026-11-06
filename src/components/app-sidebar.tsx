@@ -29,6 +29,7 @@ export function AppSidebar() {
   const moreActive = more.some((g) => g.items.some((i) => isNavActive(pathname, i.url)));
   const [moreOpen, setMoreOpen] = useState(moreActive);
   const [aiOpen, setAiOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(more.find(g => g.items.some(i => isNavActive(pathname, i.url)))?.label ?? null);
 
   const active = (i: NavItem) =>
     i.search?.agent
@@ -101,8 +102,8 @@ export function AppSidebar() {
             {(moreOpen && !collapsed) &&
               more.map((g) => (
                 <div key={g.label} className="mt-2">
-                  <div className="px-3 pb-1 text-[10px] font-medium text-sidebar-foreground/40">{g.label}</div>
-                  <SidebarMenu className="gap-0.5">{g.items.map(renderItem)}</SidebarMenu>
+                  <Button type="button" variant="ghost" className="h-8 w-full justify-between px-3 text-xs text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground" aria-expanded={openGroup === g.label} onClick={() => setOpenGroup(openGroup === g.label ? null : g.label)}>{g.label}<ChevronDown className={`h-3.5 w-3.5 ${openGroup === g.label ? "rotate-180" : ""}`} /></Button>
+                  {openGroup === g.label && <SidebarMenu className="gap-0.5">{g.items.map(renderItem)}</SidebarMenu>}
                 </div>
               ))}
           </SidebarGroup>
