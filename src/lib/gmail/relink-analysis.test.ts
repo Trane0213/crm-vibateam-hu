@@ -8,7 +8,7 @@ const idx = buildContactIndex([
   { id: "c4", email: "nocomp@x.hu", company_id: null },
 ]);
 const T = (company_id: string | null = null) => ({ id: "t", company_id, contact_id: null, subject: "Szál tárgy", last_message_at: null });
-const out = (to: string[], extra: Record<string, unknown> = {}) => ({ from_email: "info@vibateam.hu", to_emails: to, cc_emails: [], is_outbound: true, internal_date: "2026-10-01T10:00:00Z", subject: "", gmail_label_ids: ["SENT"], ...extra });
+const out = (to: string[], extra: Record<string, unknown> = {}) => ({ from_email: "info@vibateam.hu", to_emails: to, cc_emails: [], is_outbound: true, internal_date: "2026-10-01T10:00:00Z", subject: "", gmail_message_id: "gmail-id", gmail_label_ids: ["SENT"], ...extra });
 const inn = (from: string, at = "2026-10-02T10:00:00Z") => ({ from_email: from, to_emails: ["info@vibateam.hu"], cc_emails: [], is_outbound: false, internal_date: at, subject: null, gmail_label_ids: ["INBOX"] });
 const MB = "info@vibateam.hu";
 
@@ -86,3 +86,9 @@ describe("saját (Viba-Team) céghez mentett szálak", () => {
     expect(analyzeThread(T("SELF"), [inn("news@shop.hu")].map(m => ({ ...m, gmail_label_ids: ["CATEGORY_PROMOTIONS"] })), MB, i2, S).category).toBe("self_bulk");
   });
 });
+
+it('draft is not a sent outreach or a reply trigger',()=>{const r=analyzeThread(T(),[out(['anna@acme.hu'],{gmail_label_ids:['SENT','DRAFT']}),inn('anna@acme.hu')],MB,idx);expect(r.outbound).toBe(0);expect(r.replied).toBe(false);});
+it('unrelated sender in same thread is not a reply',()=>expect(analyzeThread(T(),[out(['anna@acme.hu']),inn('bela@beta.hu')],MB,idx).replied).toBe(false));
+it('incoming before sent is not a reply',()=>expect(analyzeThread(T(),[inn('anna@acme.hu','2026-09-01T00:00:00Z'),out(['anna@acme.hu'])],MB,idx).replied).toBe(false));
+it('multiple external participants cannot be certain',()=>expect(analyzeThread(T(),[out(['anna@acme.hu','unknown@else.hu'])],MB,idx).category).toBe('review'));
+it('saved company without exact contact is not linked',()=>expect(analyzeThread(T('A'),[out(['unknown@else.hu'])],MB,idx).category).toBe('review'));
