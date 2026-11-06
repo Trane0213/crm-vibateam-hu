@@ -1,0 +1,1 @@
+create policy campaign_delivery_no_direct_access on public.campaign_delivery_items for all to public using(false) with check(false);
