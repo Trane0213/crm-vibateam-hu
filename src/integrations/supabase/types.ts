@@ -695,6 +695,59 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_send_audit: {
+        Row: {
+          budapest_day: string
+          campaign_id: string
+          campaign_revision: string
+          claimed_at: string
+          email_id: string | null
+          finished_at: string | null
+          gmail_message_id: string | null
+          id: string
+          mailbox: string
+          recipient: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          budapest_day: string
+          campaign_id: string
+          campaign_revision: string
+          claimed_at?: string
+          email_id?: string | null
+          finished_at?: string | null
+          gmail_message_id?: string | null
+          id?: string
+          mailbox: string
+          recipient: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          budapest_day?: string
+          campaign_id?: string
+          campaign_revision?: string
+          claimed_at?: string
+          email_id?: string | null
+          finished_at?: string | null
+          gmail_message_id?: string | null
+          id?: string
+          mailbox?: string
+          recipient?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_send_audit_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           company_type: string | null
@@ -2438,6 +2491,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      marketing_email_suppressions: {
+        Row: {
+          blocked: boolean
+          changed_at: string
+          changed_by: string
+          email_norm: string
+          reference: string
+          revision: string
+          source_contact_id: string
+        }
+        Insert: {
+          blocked: boolean
+          changed_at?: string
+          changed_by: string
+          email_norm: string
+          reference: string
+          revision?: string
+          source_contact_id: string
+        }
+        Update: {
+          blocked?: boolean
+          changed_at?: string
+          changed_by?: string
+          email_norm?: string
+          reference?: string
+          revision?: string
+          source_contact_id?: string
+        }
+        Relationships: []
       }
       meetings: {
         Row: {
@@ -4733,6 +4816,26 @@ export type Database = {
         }
         Returns: Json
       }
+      campaign_test_claim: {
+        Args: {
+          p_campaign: string
+          p_mailbox: string
+          p_recipient: string
+          p_revision: string
+          p_user: string
+        }
+        Returns: string
+      }
+      campaign_test_finish: {
+        Args: {
+          p_email: string
+          p_gmail: string
+          p_id: string
+          p_user: string
+          p_verified: boolean
+        }
+        Returns: string
+      }
       can_access_email_thread: {
         Args: { _thread_id: string; _user_id: string }
         Returns: boolean
@@ -4761,6 +4864,16 @@ export type Database = {
           p_expected: Json
           p_handoff_lead?: string
           p_status: string
+        }
+        Returns: Json
+      }
+      contact_set_marketing_suppression: {
+        Args: {
+          p_blocked: boolean
+          p_contact: string
+          p_email: string
+          p_reference: string
+          p_revision: string
         }
         Returns: Json
       }
