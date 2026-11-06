@@ -50,4 +50,20 @@ sql(act()+f"select campaign_delivery_control('{c}','{u}','{revision()}','stop')"
 assert sql(f"select state from campaign_delivery_items where id='{item}'")=='cancelled'
 sql(act()+f"select campaign_delivery_control('{c}','{u}','{revision()}','resume')",True)
 assert sql("select has_function_privilege('authenticated','campaign_delivery_claim(uuid,uuid,text)','execute')::text")=='false'
+# Shared quota: one uncertain delivery plus 39 legacy test attempts consumes exactly 40.
+sql(act()+f"insert into campaign_send_audit(campaign_id,campaign_revision,user_id,mailbox,recipient,budapest_day) select '{c}',clock_timestamp()+i*interval '1 second','{u}','info@vibateam.hu','info@vibateam.hu',(clock_timestamp() at time zone 'Europe/Budapest')::date from generate_series(1,39) i;")
+sql(act()+f"select campaign_test_claim('{c}','{u}','{revision()}','info@vibateam.hu','viktor.csotai@gmail.com')",True)
+sql(act()+f"update email_campaigns set delivery_state='scheduled' where id='{c2}';insert into campaign_delivery_items(campaign_id,campaign_revision,user_id,mailbox,recipient_email,mode,scheduled_at,snapshot,snapshot_hash) values('{c2}','{rev2}','{u}','info@vibateam.hu','viktor.csotai@gmail.com','test',clock_timestamp()-interval '1 minute','{json.dumps(snapshot)}','{digest}');")
+i3=sql(f"select id from campaign_delivery_items where campaign_id='{c2}' and state='pending'")
+sql(act()+f"select campaign_delivery_claim('{i3}','{u}','{digest}')",True)
+sql(act()+f"insert into marketing_email_suppressions(email_norm,blocked,reference,source_contact_id,changed_by) values('viktor.csotai@gmail.com',true,'TESZT friss tiltás','33333333-3333-4333-8333-333333333333','{u}');")
+sql(act()+f"select campaign_delivery_claim('{i3}','{u}','{digest}')")
+assert sql(f"select state from campaign_delivery_items where id='{i3}'")=='blocked'
+# Content change invalidates the exact immutable approval, even when changed as a privileged fixture.
+sql(act()+f"update email_campaigns set message_body='TESZT changed' where id='{c2}'")
+assert sql(f"select (approved_revision is null and delivery_state is null)::text from email_campaigns where id='{c2}'")=='true'
+sql("create function fixture_audit_fail() returns trigger language plpgsql as $$begin raise exception 'TESZT audit rollback';end$$;create trigger fixture_audit_fail before insert on activities for each row execute function fixture_audit_fail();")
+before=sql(f"select message_body from email_campaigns where id='{c}'")
+sql(act()+f"select campaign_save_message('{c}','{u}','{revision()}','TESZT','wrong',null,null,null)",True)
+assert sql(f"select message_body from email_campaigns where id='{c}'")==before
 print('PASS: shared schema, own role, direct access denied, stale copy, future/pause/stop, immutable snapshot, parallel single claim, uncertain no replay')
