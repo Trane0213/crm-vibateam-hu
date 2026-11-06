@@ -16,7 +16,8 @@ CREATE TRIGGER company_marketing_legacy_guard BEFORE INSERT OR UPDATE ON public.
 
 -- Preserve old signature but revoke its client entry; new path owns source update.
 REVOKE EXECUTE ON FUNCTION public.company_set_marketing_status(uuid,text,jsonb,uuid) FROM authenticated;
-CREATE FUNCTION public.company_set_marketing_status(p_company uuid,p_status text,p_expected jsonb,p_handoff_lead uuid,p_lead_source text)
+ALTER FUNCTION public.company_set_marketing_status(uuid,text,jsonb,uuid) RENAME TO company_set_marketing_status_legacy_internal;
+CREATE FUNCTION public.company_set_marketing_status(p_company uuid,p_status text,p_expected jsonb,p_handoff_lead uuid DEFAULT NULL,p_lead_source text DEFAULT NULL)
 RETURNS jsonb LANGUAGE plpgsql SET search_path=public AS $$
 DECLARE c public.companies; next_notes text;
 BEGIN
