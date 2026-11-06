@@ -11,7 +11,7 @@ export async function loadMarketingDaily(sb: SupabaseClient, userId: string, now
     sb.from('phone_calls').select('id,company_id,contact_id,outcome,callback_date,summary,created_at').eq('outcome','callback').not('callback_date','is',null).order('callback_date').limit(1001),
   ]);
   for (const result of [companies,contacts,emails,followups,calls]) if (result.error) throw result.error;
-  // Use range-independent exact counts: PostgREST may cap limit(1001) at 1000.
+  // Conservative coverage flag: PostgREST may cap limit(1001) at 1000.
   const partial = [companies,contacts,emails,followups,calls].some(r => (r.data?.length ?? 0) >= 1000);
   const campaign = (companies.data ?? []).filter(isMarketingCompany).map(c => ({...c,meta:readMarketingMeta(c.notes)}));
   const campaignIds = new Set(campaign.map(c=>c.id));

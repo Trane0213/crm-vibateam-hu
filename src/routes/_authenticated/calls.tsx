@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Phone } from "lucide-react";
 import { ResourcePage, fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import {supabase} from '@/integrations/supabase/client';
-import {validateCrmLink} from '@/lib/gmail/validate-crm-link';
+import {prepareCompanyCall} from '@/lib/marketing-call';
 
 const CALL_TYPE = [
   { value: "sales", label: "Értékesítés" },
@@ -34,8 +34,8 @@ function CallsPage() {
       table="phone_calls"
       order="created_at"
       ascending={false}
-      beforeCreate={async values=>{const link=await validateCrmLink(supabase,values);if(values.outcome==='callback'&&!values.callback_date)throw new Error('A visszahívás időpontja kötelező.');return {...values,company_id:link.company_id};}}
-      beforeUpdate={async values=>{const link=await validateCrmLink(supabase,values);if(values.outcome==='callback'&&!values.callback_date)throw new Error('A visszahívás időpontja kötelező.');return {...values,company_id:link.company_id};}}
+      beforeCreate={values=>prepareCompanyCall(supabase,values)}
+      beforeUpdate={values=>prepareCompanyCall(supabase,values)}
       fields={[
         { name: "direction", label: "Irány", type: "select", options: [
           { value: "inbound", label: "Bejövő" },

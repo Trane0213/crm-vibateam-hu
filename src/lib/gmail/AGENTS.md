@@ -1,0 +1,2 @@
+- CRM mail association uses exact normalized contact emails and saved contact-company relations; never pick a company by domain or overwrite historical CRM fields during sync, because ambiguous candidates need human review.
+- Manual thread-company edits and sends validate user-visible CRM relations; cached Scarlet/Timothy reads retain account ownership filters, because shared threads do not grant every account's message content.

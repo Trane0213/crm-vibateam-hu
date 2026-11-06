@@ -1,0 +1,1 @@
+- Marketing priorities reuse loadMarketingDaily with user-RLS and existing campaign/callback fields; Scarlet reads reuse exact mailbox authorization and content-free audit, because marketing must not create a parallel CRM or expose another mailbox.

@@ -183,11 +183,13 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     let threadDbId: string;
     const { data: foundThread } = await admin
       .from("email_threads")
-      .select("id")
+      .select("id,company_id,contact_id,lead_id")
       .eq("gmail_thread_id", sent.threadId)
       .maybeSingle();
     if (foundThread?.id) {
       threadDbId = foundThread.id;
+      const resolved=resolveThreadLink(foundThread,{company_id:body.company_id??null,contact_id:body.contact_id??null,lead_id:body.lead_id??null});
+      if(resolved.conflict)return Response.json({ok:true,warning:'A levél kiment, de a szál CRM-kapcsolata időközben megváltozott. Ne küldd újra; kézi ellenőrzés szükséges.',id:sent.id,threadId:sent.threadId});
     } else {
       const { data: ins, error: insErr } = await admin
         .from("email_threads")
@@ -210,7 +212,7 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
       { thread_id: threadDbId, user_id: userId, mailbox_email: (email ?? "").toLowerCase() },
       { onConflict: "thread_id,user_id" },
     );
-    const { data: insEmail } = await admin.from("emails").insert({
+    const { data: insEmail, error: emailInsertError } = await admin.from("emails").insert({
       gmail_message_id: sent.id,
       thread_id: threadDbId,
       from_email: email,
@@ -231,6 +233,7 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
       lead_id: body.lead_id ?? null,
       project_id: body.project_id ?? null,
     }).select("id").single();
+    if(emailInsertError||!insEmail)return Response.json({ok:true,warning:'A levél kiment, de a CRM-levél mentése nem igazolt. Ne küldd újra; ellenőrizd a Gmail Elküldött leveleket.',id:sent.id,threadId:sent.threadId});
     await admin
       .from("email_threads")
       .update({

@@ -97,6 +97,9 @@ describe("Timothy per-account email context", () => {
     const f=fixture();
     const out=await tool.execute({company_id:company,thread_id:thread,mailbox:'own@example.com'}, {...f.ctx,agentId:'scarlet'}) as any;
     expect(out.data.items[0].content.text).toBe('Kérem az ajánlatot.');
+    const denied=await tool.execute({company_id:company,thread_id:thread,mailbox:'foreign@example.com'}, {...f.ctx,agentId:'scarlet'}) as any;
+    expect(denied.ok).toBe(false);
+    expect(toolsForAgent({agentId:'scarlet',agentDomains:['crm.emails'],userRole:'sales'}).some(t=>t.name==='scarlet_read_email_thread')).toBe(false);
   });
 });
 describe("Email content safety and freshness", () => {
