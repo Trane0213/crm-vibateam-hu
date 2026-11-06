@@ -1,7 +1,7 @@
 """Isolated one-table issue RLS regression; never connects to hosted data."""
 import subprocess
 from pathlib import Path
-host='/tmp/marketing-pg';port='55439';db='issue_reports_fixture'
+host='/tmp/marketing-pg';port='55439';db='issue_reports_fixture2'
 subprocess.run(['createdb','-h',host,'-p',port,'-U','lovable',db],check=True)
 base=['psql','-h',host,'-p',port,'-U','lovable','-d',db,'-qAt','-v','ON_ERROR_STOP=1','-c']
 def sql(q,fail=False):
@@ -18,7 +18,8 @@ assert sql(acting()+"select reporter_role||':'||status from issue_reports").ends
 assert sql(acting(who=other)+"select count(*) from issue_reports").endswith('0')
 assert sql(acting('owner',other)+"select count(*) from issue_reports").endswith('1')
 sql(acting()+insert,True)
-sql(acting()+"update issue_reports set status='closed'",True)
+sql(acting()+"update issue_reports set status='closed'")
+assert sql(acting()+"select status from issue_reports").endswith('new')
 sql(acting('owner',other)+"update issue_reports set status='investigating',owner_note='TESZT observed'")
 sql(acting('owner',other)+"update issue_reports set description='changed'",True)
 sql("set role anon; select * from issue_reports",True)
