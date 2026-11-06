@@ -1,7 +1,7 @@
 /**
  * AI OS — Sales Research server function.
  *
- * A `/sales/research` oldal hívja. A `research_companies` agentet futtatja
+ * LETILTVA 2026-11-06 (ellenőrizetlen generálás). Korábban a `/sales/research` oldal hívta. A `research_companies` agentet futtatja
  * (tool nélkül, strukturált JSON kimenet). Nem érinti a régi `src/lib/ai/*`
  * réteget.
  */
