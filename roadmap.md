@@ -2,7 +2,7 @@
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
 - [x] Feltöltött követelmények rögzítése és meglévő alapok összevetése; közös, jóváhagyásos végrehajtási terv előkészítése.
 - [x] 0–1. kör: frissített térkép és 487 Excel-sor/203 jelölés tételes SELECT-audit. 82 külső SENT, 120 csak DRAFT, 1 TESZT/belső jelölés; 32 teszt PASS, belső bejelentkezett próba NEM TESZTELT. Jelentés: docs/system-map/marketing-egysegesites-01-2026-11-06.md; adat/kód/RLS/küldés változatlan, STOP.
-- [ ] Következő célzott hitelességi javítás és a jelölések külön adatjavítása: tulajdonosi jóváhagyásra vár; belső owner/marketing/sales/PM próba biztonságos munkamenet hiányában nyitott.
+- [ ] Jóváhagyott következő célzott hitelességi kódjavítás: SENT/DRAFT-védelem, három céges fiók, azonos szálbeli válasz és hiányos történet; jelölések adatjavítása továbbra is külön jóváhagyásra vár. Belső owner/marketing/sales/PM próba biztonságos munkamenet hiányában nyitott.
 - [ ] 2–5. kör: közös adatlap/állapotok, kontrollált kampány, napi munkafolyamat, Scarlet és végigpróba; csak az előző kör elfogadása után, adatjavítás/RLS/küldés külön kapuval.
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
 - [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
