@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Mail, Radar, BookOpen, ListPlus, Building2, ArrowRightCircle, Sparkles, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";

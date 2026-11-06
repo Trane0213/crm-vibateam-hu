@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/campaign-list")({
+  head:()=>({meta:[{title:'Kampánylista | VIBA CRM'},{name:'description',content:'Kijelölt marketingkampány és kereshető CRM-cégek.'},{property:'og:title',content:'Kampánylista | VIBA CRM'},{property:'og:description',content:'Marketingcégek és kapcsolattartók a VIBA CRM-ben.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),
   component: CampaignListPage,
 });
 
@@ -60,25 +61,27 @@ function isActiveCampaign(notes: string | null): boolean {
 }
 
 function CampaignListPage() {
+  const [scope,setScope]=useState<"campaign"|"all">("campaign");
   const [search, setSearch] = useState("");
   const [composer, setComposer] = useState<{ to: string; company: string; companyId: string; contactId?: string } | null>(null);
   const [rejecting, setRejecting] = useState<{ id: string; name: string; notes: string | null } | null>(null);
   const qc = useQueryClient();
 
   const q = useQuery({
-    queryKey: ["campaign-list", "marketing-universe"],
+    queryKey: ["campaign-list", "marketing-universe",scope],
     queryFn: async (): Promise<CampaignRow[]> => {
-      const companies = await selectMarketingCompanies(
-        supabase,
-        "id,name,website,notes,created_at",
-        { limit: 500 },
-      );
+      const companies = scope==='campaign' ? await selectMarketingCompanies(supabase,"id,name,website,notes,created_at",{limit:1000}) : await (async()=>{
+        const rows: any[]=[];
+        for(let from=0;;from+=1000){const r=await supabase.from('companies').select('id,name,website,notes,created_at').order('id').range(from,from+999);if(r.error)throw r.error;rows.push(...(r.data??[]));if((r.data?.length??0)<1000)break;}
+        return rows;
+      })();
       const ids = (companies ?? []).map((c) => c.id);
       if (ids.length === 0) return [];
-      const { data: contacts } = await supabase
+      const { data: contacts, error: contactsError } = await supabase
         .from("contacts")
         .select("id,name,email,phone,company_id")
         .in("company_id", ids);
+      if(contactsError) throw contactsError;
       const byCompany = new Map<string, CampaignRow["contacts"]>();
       for (const k of contacts ?? []) {
         const arr = byCompany.get(k.company_id as string) ?? [];
@@ -103,15 +106,16 @@ function CampaignListPage() {
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
-    if (!s) return active;
-    return active.filter((r) => {
+    const source=scope==='all' ? q.data??[] : active;
+    if (!s) return source;
+    return source.filter((r) => {
       const hay = [
         r.name, r.website,
         r.contacts.map((k) => `${k.name ?? ""} ${k.email ?? ""} ${k.phone ?? ""}`).join(" "),
       ].filter(Boolean).join(" ").toLowerCase();
       return hay.includes(s);
     });
-  }, [active, search]);
+  }, [active, search,scope,q.data]);
 
   const total = active.length;
 
@@ -161,6 +165,7 @@ function CampaignListPage() {
         }
       />
       <div className="space-y-3 p-6">
+        <div className="flex gap-2"><Button variant={scope==='campaign'?'default':'outline'} onClick={()=>setScope('campaign')}>Aktív kampány</Button><Button variant={scope==='all'?'default':'outline'} onClick={()=>setScope('all')}>Minden cég</Button></div>
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -230,17 +235,17 @@ function CampaignListPage() {
                         <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{fmtDate(r.created_at)}</td>
                         <td className="px-3 py-2 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {k?.email && (
+                              {scope==='campaign' && k?.email && (
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => setComposer({ to: k.email!, company: r.name, companyId: r.id, contactId: k.id })}
+                                  onClick={() => setComposer({ to: k.email ?? "", company: r.name, companyId: r.id, contactId: k.id })}
                                   title="Egyszeri email küldése ennek a kapcsolattartónak"
                                 >
                                   <Send className="mr-1 h-3.5 w-3.5" /> Email
                                 </Button>
                               )}
-                              <Button
+                              {scope==='campaign' && <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => setRejecting({ id: r.id, name: r.name, notes: r.notes })}
@@ -248,7 +253,7 @@ function CampaignListPage() {
                                 aria-label="Elutasítás"
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                              </Button>
+                              </Button>}
                               <Link
                                 to="/customers/$id"
                                 params={{ id: r.id }}
@@ -284,7 +289,7 @@ function CampaignListPage() {
         contactId={composer?.contactId}
         onSent={() => {
           if (!composer) return;
-          const row = (q.data ?? []).find((r) => r.contacts.some((c) => c.email === composer.to));
+          const row = (q.data ?? []).find((r) => r.id === composer.companyId);
           if (row) void markEmailSent(row.id, row.notes);
           qc.invalidateQueries({ queryKey: ["mkt-home", "marketing-companies"] });
           setComposer(null);
