@@ -20,6 +20,7 @@ import { listQuoteRequests } from "@/lib/quote-requests.functions";
 import { receivedAt, isTestRequest } from "@/lib/quote-request-display";
 
 export const Route = createFileRoute("/_authenticated/web-quote-requests/")({
+  head:()=>({meta:[{title:'Webes érdeklődések | VIBA CRM'},{name:'description',content:'Weboldali megkeresések és ellenőrzött CRM-felvétel a VIBA csapatnak.'},{property:'og:title',content:'Webes érdeklődések | VIBA CRM'},{property:'og:description',content:'Beérkezett webes igények és kézi minősítés.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),
   component: WebQuoteRequestsPage,
 });
 
