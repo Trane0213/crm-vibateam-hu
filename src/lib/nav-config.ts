@@ -98,6 +98,7 @@ export const MORE_GROUPS: NavGroup[] = [
     label: "Tulajdonos",
     items: [
       { title: "Adatellenőrzés", url: "/import-review", icon: ShieldCheck },
+      { title: "Levél–cég ellenőrzés", url: "/import-review/mail", icon: ShieldCheck },
       { title: "Adott fizetések", url: "/attendance/payouts", icon: Wallet, hideForRoles: ["sales", "marketing", "project_manager"] },
     ],
   },
