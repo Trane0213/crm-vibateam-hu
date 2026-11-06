@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { formatDateTime } from "@/lib/format";
 import { getQuoteRequest } from "@/lib/quote-requests.functions";
 import { receivedAt, isTestRequest, payloadEntries } from "@/lib/quote-request-display";
+import { WebRequestIntakeCard } from "@/components/web-requests/web-request-intake-card";
 
 export const Route = createFileRoute("/_authenticated/web-quote-requests/$id")({
   component: WebQuoteRequestDetail,
@@ -121,6 +122,8 @@ function WebQuoteRequestDetail() {
                 <Field label="ID" value={<span className="font-mono text-xs">{data.id}</span>} />
               </CardContent>
             </Card>
+
+            <WebRequestIntakeCard req={data} isTest={isTestRequest(data)} />
 
             <Card>
               <CardHeader className="pb-3">
