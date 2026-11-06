@@ -17,6 +17,7 @@
 - [ ] Ügyfélküldés és időzítés aktiválás: külön tulajdonosi kapu; hiányos történet feloldása és indításmód nincs jóváhagyva.
 - [x] 4–5. kör célzott javítás: jóváhagyott részleges webes felvétel ismétlésvédelme/friss egyezés; átadás közös frissítés; Scarlet DRAFT/mentett marketingállapot/kontaktproveniencia; napi tiltás/hibás email/telefon és közös callback elkülönítés. 706 teszt, AI 21 scenario, desktop/mobil TESZT-megjelenítés/build PASS; nincs migráció/éles írás/küldés/publikálás. Jelentés docs/system-map/napi-marketing-scarlet-javitas-2026-11-06.md; STOP.
 - [ ] 4–5. kör teljes elfogadás: hitelesített munkanap/átadás/readback és Scarlet modellválasz external_unmanaged miatt nem elérhető; webes tartós konkurens idempotencia külön tranzakciós jóváhagyást igényel. Teljes kampány/válasz/Sales-átvétel NEM TESZTELT.
+- [ ] Következő jóváhagyott előkészítés (16:22 UTC): webes igény tartós, tranzakciós ismétlésvédelmének friss séma/írási út ellenőrzése és összevont hatás/visszaállítási terv; migráció és éles adatfelvétel külön kapu.
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
 - [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
 - [x] Marketing Ma közös napi adatforrás, saját külső válaszmutató, visszahívás és utánkövetés; minden cég keresése külön a kampánytól, cégazonosító szerinti küldés-visszajelzés.
