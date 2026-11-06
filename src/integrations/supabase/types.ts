@@ -3076,6 +3076,10 @@ export type Database = {
           entry_page: string | null
           form_type: string | null
           id: string
+          intake_at: string | null
+          intake_by: string | null
+          intake_company_id: string | null
+          intake_contact_id: string | null
           message: string | null
           name: string
           origin_page: string | null
@@ -3103,6 +3107,10 @@ export type Database = {
           entry_page?: string | null
           form_type?: string | null
           id?: string
+          intake_at?: string | null
+          intake_by?: string | null
+          intake_company_id?: string | null
+          intake_contact_id?: string | null
           message?: string | null
           name: string
           origin_page?: string | null
@@ -3130,6 +3138,10 @@ export type Database = {
           entry_page?: string | null
           form_type?: string | null
           id?: string
+          intake_at?: string | null
+          intake_by?: string | null
+          intake_company_id?: string | null
+          intake_contact_id?: string | null
           message?: string | null
           name?: string
           origin_page?: string | null
@@ -3145,7 +3157,36 @@ export type Database = {
           synced_at?: string | null
           utm?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quote_requests_intake_company_id_fkey"
+            columns: ["intake_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_requests_intake_company_id_fkey"
+            columns: ["intake_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_360_v"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "quote_requests_intake_company_id_fkey"
+            columns: ["intake_company_id"]
+            isOneToOne: false
+            referencedRelation: "customer_kpi_v"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "quote_requests_intake_contact_id_fkey"
+            columns: ["intake_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quote_sends: {
         Row: {
@@ -4974,6 +5015,10 @@ export type Database = {
       }
       sales_update_approved_next_step: {
         Args: { p_action_id: string }
+        Returns: Json
+      }
+      website_request_intake: {
+        Args: { p_request: string; p_user: string }
         Returns: Json
       }
     }
