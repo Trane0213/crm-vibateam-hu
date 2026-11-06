@@ -87,7 +87,7 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
             <Button size="sm" onClick={() => create.mutate()} disabled={create.isPending}>
               <UserPlus className="mr-1.5 h-4 w-4" />Felvétel a CRM-be: „{d.companyName}”
             </Button>
-          ) : d ? <p className="text-warning-foreground">{d.reason}</p> : null}
+          ) : d ? <p className="text-destructive">{d.reason}</p> : null}
       </CardContent>
     </Card>
   );
