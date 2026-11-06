@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,7 +35,6 @@ export function CompanyCampaigns({ companyId, contactIds, enabled = true }: { co
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <span className="text-sm text-muted-foreground">{new Set(rows.map(r => r.campaign_id)).size} látható kampány · {rows.length} mentett kontaktkapcsolat</span>
-      <Button variant="outline" size="sm" asChild><Link to="/campaign-list">Kampányok megnyitása</Link></Button>
     </div>
     {!rows.length ? <p className="text-sm text-muted-foreground">Nincs számodra látható, mentett kampánytagság.</p> : <ul className="divide-y border-y">
       {rows.slice(currentPage * 25, (currentPage + 1) * 25).map(row => <li key={row.id} className="space-y-1 py-3 text-sm">
