@@ -69,12 +69,14 @@ function extractJson(text: string): string {
   return text;
 }
 
+const RESEARCH_DISABLED: boolean = true;
+
 export const researchCompanies = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(validate)
   .handler(async ({ data, context }) => {
     // Letiltva (2026-11-06): ellenőrizetlen, modell által generált cégkutatás nem futtatható.
-    if (data || context) throw new Error("Az AI-cégkutatás jelenleg nem elérhető.");
+    if (RESEARCH_DISABLED) throw new Error("Az AI-cégkutatás jelenleg nem elérhető.");
     const { ensureBootstrapped } = await import("./bootstrap.server");
     const { runAgent } = await import("./runtime.server");
     const { getAdminClient } = await import("@/integrations/supabase/server");
