@@ -33,7 +33,7 @@ function ContactsPage() {
   return (
     <ResourcePage
       title="Kapcsolattartók"
-      description="Cégekhez tartozó személyek — döntéshozók, beszerzők, kivitelezők."
+      description="Ügyfelekhez tartozó kapcsolattartók · név, email, telefon és ellenőrzöttség."
       emptyTitle="Még nincs kapcsolattartó."
       emptyDescription={`A „Új kapcsolattartó” gombbal vehetsz fel egy új személyt — köthető céghez és projektekhez.`}
       newButtonLabel="Új kapcsolattartó"

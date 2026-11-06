@@ -8,6 +8,7 @@ import {
   useLookup,
 } from "@/components/resource/resource-page";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   bucketFollowup,
   BUCKET_LABEL,
@@ -24,27 +25,26 @@ function FollowupsPage() {
   ];
   return (
     <div>
-    <div className="flex flex-wrap gap-1.5 border-b bg-background px-6 py-2">
+    <div aria-label="Utánkövetések esedékessége" className="flex flex-wrap gap-1.5 border-b bg-background px-4 py-2 sm:px-6">
       {buckets.map((b) => (
-        <button
+        <Button
           key={b}
+          type="button"
+          size="sm"
+          variant={active === b ? "default" : "outline"}
+          aria-pressed={active === b}
           onClick={() => setActive(b)}
-          className={`rounded-full border px-3 py-1 text-xs transition ${
-            active === b
-              ? "bg-primary text-primary-foreground border-primary"
-              : "text-muted-foreground hover:bg-muted"
-          }`}
         >
-          {b === "all" ? "Mind" : BUCKET_LABEL[b]}
-        </button>
+          {b === "all" ? "Összes" : BUCKET_LABEL[b]}
+        </Button>
       ))}
     </div>
     <ResourcePage
-      title="Utókövetés"
-      description="Itt kezelheted az ajánlatok és projektek utánkövetését."
+      title="Utánkövetések"
+      description="Visszahívások, ajánlat-emlékeztetők és egyeztetések · esedékesség és lezárási eredmény."
       emptyTitle="Itt kezelheted az utánkövetéseket."
       emptyDescription={`Még nincs felvett utókövetés. A „Új utókövetés” gombbal rögzíthetsz egyet (pl. visszahívás, ajánlat-emlékeztető).`}
-      newButtonLabel="Új utókövetés"
+      newButtonLabel="Új utánkövetés"
       icon={BellRing}
       table="followups"
       order="due_date"
@@ -168,5 +168,12 @@ const FOLLOWUP_TYPE_HU: Record<string, string> = { call: "Telefon", email: "E-ma
 const QUOTE_STATUS_HU: Record<string, string> = { draft: "Készül", sent: "Kiküldve", negotiation: "Tárgyalás", won: "Megnyert", lost: "Elveszett" };
 
 export const Route = createFileRoute("/_authenticated/followups")({
+  head: () => ({ meta: [
+    { title: "Utánkövetések | VIBA CRM" },
+    { name: "description", content: "Visszahívások, ajánlat-emlékeztetők és egyeztetések esedékessége és eredménye." },
+    { property: "og:title", content: "Utánkövetések | VIBA CRM" },
+    { property: "og:description", content: "Ügyfél- és projektutánkövetések, határidők és lezárások." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: FollowupsPage,
 });

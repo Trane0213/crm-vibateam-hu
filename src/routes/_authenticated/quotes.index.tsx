@@ -4,6 +4,7 @@ import { FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,24 +34,25 @@ function QuotesPage() {
   const shown = rows.slice(page * PAGE, page * PAGE + PAGE);
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       <PageHeader
         title="Ajánlatok"
-        description="Minden ajánlat, amihez hozzáférsz: ügyfél, felelős, állapot, kiküldés, összeg és következő utánkövetés."
+        description="Kapott költségvetések és saját VIBA-ajánlatok · verziók, nettó összegek, kiküldés és utánkövetés."
         actions={<NewQuoteButton variant="default" />}
       />
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Input className="w-72" placeholder="Keresés: cím, ügyfél, ügy, projekt" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
+        <Input className="w-72 max-w-full" aria-label="Ajánlat keresése" placeholder="Keresés: cím, ügyfél, ügy, projekt" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
         <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
-          <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
+          <SelectTrigger aria-label="Ajánlat állapota" className="w-56 max-w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Minden állapot</SelectItem>
             {QUOTE_STATUSES.map((s) => <SelectItem key={s} value={s}>{QUOTE_STATUS_LABEL[s]}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button size="sm" variant={currentOnly ? "default" : "outline"} onClick={() => { setCurrentOnly(!currentOnly); setPage(0); }}>
-          {currentOnly ? "Csak aktuális verziók" : "Minden verzió"}
-        </Button>
+        <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm">
+          <Checkbox checked={currentOnly} onCheckedChange={(checked) => { setCurrentOnly(checked === true); setPage(0); }} />
+          Csak aktuális verziók
+        </label>
         <span className="text-xs text-muted-foreground">{rows.length} találat</span>
       </div>
       {list.isLoading ? (
@@ -80,7 +82,7 @@ function QuotesPage() {
               <TableBody>
                 {shown.map((r) => (
                   <TableRow key={r.id} className="cursor-pointer" onClick={() => navigate({ to: "/quotes/$id", params: { id: r.id } })}>
-                    <TableCell className="max-w-[220px] truncate font-medium">{r.title?.trim() || <span className="text-muted-foreground">— (címzetlen)</span>}</TableCell>
+                    <TableCell className="max-w-[220px] font-medium"><Link to="/quotes/$id" params={{ id: r.id }} onClick={(e) => e.stopPropagation()} className="block truncate text-primary hover:underline" title={r.title?.trim() || "Címzetlen ajánlat"}>{r.title?.trim() || "Címzetlen ajánlat"}</Link></TableCell>
                     <TableCell>
                       {r.company_id ? (
                         <Link to="/customers/$id" params={{ id: r.company_id }} onClick={(e) => e.stopPropagation()} className="text-primary hover:underline">{r.company_name ?? "—"}</Link>

@@ -22,7 +22,7 @@ function ProjectsPage() {
   return (
     <ResourcePage
       title="Projektek"
-      description="A rendszer központja — ügyfél, ajánlatok, feladatok, dokumentumok és kommunikáció egy helyen."
+      description="Kivitelezési munkák · helyszínek, projektállapotok és határidők."
       emptyTitle="Itt jelennek meg a projektjeink."
       emptyDescription={`A „Új projekt” gombbal indíthatsz új munkát. Minden ajánlat, feladat és dokumentum a projekt köré szerveződik.`}
       newButtonLabel="Új projekt"
@@ -39,6 +39,7 @@ function ProjectsPage() {
             type="button"
             size="sm"
             variant={onlyMine ? "default" : "outline"}
+            aria-pressed={onlyMine}
             onClick={() => setOnlyMine((v) => !v)}
             disabled={!user?.id}
           >
@@ -134,5 +135,12 @@ function ProjectsPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/projects/")({
+  head: () => ({ meta: [
+    { title: "Kivitelezési projektek | VIBA CRM" },
+    { name: "description", content: "VIBA kivitelezési munkák, helyszínek, projektállapotok és határidők." },
+    { property: "og:title", content: "Kivitelezési projektek | VIBA CRM" },
+    { property: "og:description", content: "Kivitelezési munkák, projektfelelősök és határidők." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: ProjectsPage,
 });
