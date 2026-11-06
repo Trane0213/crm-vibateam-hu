@@ -31,3 +31,17 @@ it("missing bearer is rejected before any network read", async () => {
   await expect(authenticateRequest(new Request("https://test.example.invalid"))).rejects.toMatchObject({ status: 401 });
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it("validates bearer through Auth without sending opaque apikey as a JWT", async () => {
+  vi.stubEnv("SUPABASE_URL", "https://auth.example.invalid");
+  vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
+  let sent: Headers | undefined;
+  vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    sent = new Headers(init?.headers);
+    return new Response(JSON.stringify({ id: "TESZT-user", aud: "authenticated" }), { headers: { "Content-Type": "application/json" } });
+  }));
+  const result = await authenticateRequest(new Request("https://test.example.invalid", { headers: { authorization: "Bearer TESZT-caller-token" } }));
+  expect(result.userId).toBe("TESZT-user");
+  expect(sent?.get("authorization")).toBe("Bearer TESZT-caller-token");
+  expect(sent?.get("apikey")).toBe("sb_publishable_test");
+});
