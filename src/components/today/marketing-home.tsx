@@ -179,10 +179,13 @@ export function MarketingHome() {
           </p>
         )}
         {dailyQ.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            A napi marketingfeladatok nem tölthetők be.
-          </p>
+          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md border border-destructive/30 p-3 text-sm text-destructive">
+            A napi marketingfeladatok nem tölthetők be; ez nem üres munkalista.
+            <Button size="sm" variant="outline" onClick={() => dailyQ.refetch()}>Napi lista újrapróbálása</Button>
+          </div>
         )}
+        {dailyQ.isLoading && <p role="status" className="text-sm text-muted-foreground">Saját teendők és visszahívások betöltése…</p>}
+        {daily?.partial && <p role="status" className="rounded-md border border-status-warning/30 p-3 text-sm text-muted-foreground">A napi lista részleges. A látható tételek megnyithatók, de a hiányzó adatok nem jelentenek nulla teendőt.</p>}
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
@@ -240,7 +243,7 @@ export function MarketingHome() {
                       <td className="p-3 font-medium">{row.title}</td>
                       <td className="p-3">{row.kind}</td>
                       <td className="whitespace-nowrap p-3">{fmtDate(row.due ?? undefined)}</td>
-                      <td className="p-3">{profile?.full_name ?? "Saját"}</td>
+                      <td className="p-3">{row.id.startsWith("callback-") ? "Közös visszahívás" : row.id.startsWith("task-") || row.id.startsWith("followup-") ? profile?.full_name ?? "Saját" : "—"}</td>
                       <td className="p-3">
                         <Button asChild size="sm" variant="outline">
                           {row.companyId ? (
@@ -259,7 +262,7 @@ export function MarketingHome() {
               {!priorityRows.length && (
                 <p className="p-4 text-sm text-muted-foreground">
                   {dailyQ.isSuccess
-                    ? "Nincs látható esedékes tétel."
+                    ? daily?.partial ? "A részleges listában nincs látható esedékes tétel." : "Nincs látható esedékes tétel. Az átadásra váró ügyfeleket lent ellenőrizheted."
                     : "A napi lista még nem elérhető."}
                 </p>
               )}
@@ -268,7 +271,8 @@ export function MarketingHome() {
           <WorkspacePanel title="Gyors műveletek">
             {" "}
             <div className="grid gap-2 p-4 [&_a]:justify-start">
-              <Button size="sm" variant="default" asChild>
+              <Button size="sm" variant="default" asChild><Link to="/customers"><Building2 />Ügyfél keresése · átadás előkészítése</Link></Button>
+              <Button size="sm" variant="secondary" asChild>
                 <Link to="/campaign-list">
                   <ListPlus className="mr-1 h-3.5 w-3.5" />
                   Kampánylista
@@ -286,6 +290,7 @@ export function MarketingHome() {
                   Webes érdeklődések
                 </Link>
               </Button>
+              <details className="border-t pt-2"><summary className="cursor-pointer text-xs text-muted-foreground">Ellenőrzés és segítség</summary><div className="grid gap-2 pt-2">
               <Button size="sm" variant="ghost" asChild>
                 <Link to="/data-quality">
                   <Radar className="mr-1 h-3.5 w-3.5" />
@@ -299,6 +304,7 @@ export function MarketingHome() {
                   Marketing súgó
                 </Link>
               </Button>
+              </div></details>
             </div>
           </WorkspacePanel>
         </div>
@@ -343,7 +349,8 @@ export function MarketingHome() {
               </div>
             </section>
           </div>
-          <WorkspacePanel title="Átadás Salesnek">
+          <WorkspacePanel title="Átadás előkészítése Salesnek">
+            <p className="px-4 pt-3 text-xs text-muted-foreground">Nyisd meg az ügyféladatlapot, ellenőrizd az összefoglalót és a felelőst. A lista megnyitása nem adja át az ügyet.</p>
             <CompanyColumn
               tone="success"
               icon={ArrowRightCircle}
@@ -495,7 +502,7 @@ export function MarketingHome() {
         {/* ───────── 1. Marketing minősítési pipeline ───────── */}
         <section className="min-w-0 border-y">
           <SectionHeader
-            title="Marketing pipeline"
+            title="Marketing feldolgozási állapotok"
             subtitle="Cégek állapota a kampánylistán. Lead csak manuális átadásból jön létre."
           />
           <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-5">
@@ -511,7 +518,7 @@ export function MarketingHome() {
                   {k === "qualified"
                     ? "átadásra vár"
                     : k === "handoff"
-                      ? "sales pipeline-ban"
+                      ? "Salesnek átadva · mentett állapot"
                       : k === "contacted"
                         ? "megkeresésként jelölve"
                         : k === "rejected"
