@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ListPlus, Radar, Mail, Phone, Building2, Search, Send, Trash2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,8 +154,8 @@ function CampaignListPage() {
   return (
     <div className="flex flex-col">
       <PageHeader
-        title="Kampánylista"
-        description="Aktív kampánylista — a marketing workflow Új állapotú cégei. Lead csak manuális döntésből jöhet létre."
+        title="Kampányok"
+        description="Címzettek, kampányüzenet és ütemezés."
         actions={
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="tabular-nums">
@@ -166,8 +165,7 @@ function CampaignListPage() {
         }
       />
       <div className="space-y-3 p-6">
-        <CampaignDraftPrecheck companyIds={selectedCompanies} entryContactId={entry.contactId} entryCompanyId={entry.companyId} candidates={(q.data ?? []).filter(r => selectedCompanies.includes(r.id)).flatMap(r => r.contacts.map(c => ({...c,company_id:r.id,company_name:r.name})))} />
-        {entry.companyId && !q.isLoading && !q.error && !q.data?.some(r => r.id === entry.companyId) && <p role="alert" className="text-sm text-destructive">A kiválasztott cég nem elérhető; kampánytagság nem lett mentve.</p>}
+<CampaignDraftPrecheck companyIds={selectedCompanies} entryContactId={entry.contactId} entryCompanyId={entry.companyId} candidates={(q.data ?? []).filter(r => selectedCompanies.includes(r.id)).flatMap(r => r.contacts.map(c => ({...c,company_id:r.id,company_name:r.name})))} recipientBrowser={<>
         <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{selectedCompanies.length} kijelölt cég</Badge><Button variant="outline" size="sm" onClick={() => setSelectedCompanies(prev => [...new Set([...prev,...filtered.map(r=>r.id)])])}>Találatok kijelölése</Button><Button variant="ghost" size="sm" disabled={!selectedCompanies.length} onClick={()=>setSelectedCompanies([])}>Kijelölés törlése</Button></div>
         <div className="flex gap-2"><Button variant={scope==='campaign'?'default':'outline'} onClick={()=>setScope('campaign')}>Aktív kampány</Button><Button variant={scope==='all'?'default':'outline'} onClick={()=>setScope('all')}>Minden cég</Button></div>
         <div className="relative max-w-sm">
@@ -191,8 +189,7 @@ function CampaignListPage() {
               : "Próbálj más keresőszót, vagy ürítsd a mezőt."}
           />
         ) : (
-          <Card>
-            <CardContent className="overflow-x-auto p-0">
+          <div className="max-h-[480px] min-w-0 overflow-auto rounded-md border">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>
@@ -274,9 +271,11 @@ function CampaignListPage() {
                   })}
                 </tbody>
               </table>
-            </CardContent>
-          </Card>
+          </div>
         )}
+
+</>} />
+        {entry.companyId && !q.isLoading && !q.error && !q.data?.some(r => r.id === entry.companyId) && <p role="alert" className="text-sm text-destructive">A kiválasztott cég nem elérhető; kampánytagság nem lett mentve.</p>}
 
         <p className="text-xs text-muted-foreground">
           Az aktív lista a marketing univerzum azon cégeit mutatja, amelyek marketing státusza
