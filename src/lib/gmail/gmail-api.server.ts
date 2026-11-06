@@ -22,6 +22,16 @@ async function call<T>(accessToken: string, path: string, init: RequestInit = {}
 export type GmailListItem = { id: string; threadId: string };
 export type GmailListResp = { messages?: GmailListItem[]; nextPageToken?: string; resultSizeEstimate?: number };
 
+export type GmailDraft = { id: string; message: GmailMessage };
+export function listDrafts(accessToken: string, pageToken?: string) {
+  const params = new URLSearchParams({ maxResults: '20' });
+  if (pageToken) params.set('pageToken', pageToken);
+  return call<{ drafts?: GmailDraft[]; nextPageToken?: string; resultSizeEstimate?: number }>(accessToken, `/drafts?${params}`);
+}
+export function getDraft(accessToken: string, id: string) {
+  return call<GmailDraft>(accessToken, `/drafts/${encodeURIComponent(id)}?format=full`);
+}
+
 export function listMessages(
   accessToken: string,
   opts: { q?: string; labelIds?: string[]; maxResults?: number; pageToken?: string } = {},
