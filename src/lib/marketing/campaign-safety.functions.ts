@@ -18,7 +18,11 @@ export const getContactSuppression = createServerFn({method:'POST'}).middleware(
 
 export const setContactSuppression=createServerFn({method:'POST'}).middleware([requireSupabaseAuth])
  .inputValidator(suppressionInput).handler(async({data,context})=>{
-  const saved=await context.supabase.rpc('contact_set_marketing_suppression' as any,{p_contact:data.contactId,p_email:data.expectedEmail,p_revision:data.expectedRevision,p_blocked:data.blocked,p_reference:data.reference} as any);
+  const role=await context.supabase.rpc('crm_role_of',{_auth_user:context.userId});
+  const contact=await context.supabase.from('contacts').select('id,email').eq('id',data.contactId).single();
+  if(role.error || !['owner','marketing'].includes(role.data) || contact.error || contact.data.email?.trim().toLowerCase()!==data.expectedEmail.trim().toLowerCase()) throw new Error('Nincs jogosultság vagy a kontakt megváltozott.');
+  const {supabaseAdmin:db}=await import('@/integrations/supabase/client.server');
+  const saved=await db.rpc('contact_set_marketing_suppression' as any,{p_user:context.userId,p_contact:data.contactId,p_email:data.expectedEmail,p_revision:data.expectedRevision,p_blocked:data.blocked,p_reference:data.reference} as any);
   if(saved.error) throw new Error(saved.error.message);
   const row=saved.data as {email_norm:string;blocked:boolean;revision:string}|null;
   if(!row || row.email_norm!==data.expectedEmail.trim().toLowerCase() || row.blocked!==data.blocked) throw new Error('A tiltás mentése nem igazolt.');
