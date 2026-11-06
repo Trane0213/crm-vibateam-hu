@@ -4,22 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { listOwnGmailDrafts, readOwnGmailDraft } from '@/lib/marketing/gmail-drafts.functions';
 import { draftTextCopy, type DraftSource } from '@/lib/marketing/gmail-draft-source';
+import { Checkbox } from '@/components/ui/checkbox';
+import { importGmailCampaignSource } from '@/lib/marketing/gmail-drafts.functions';
 
-export function GmailDraftPicker({ disabled, onCopy }: { disabled: boolean; onCopy: (copy: { subject: string; body: string }) => void }) {
+export function GmailDraftPicker({ disabled, onCopy, campaign, onImported, plainCopyDisabled }: { disabled: boolean; plainCopyDisabled?: boolean; campaign?: { id: string; revision: string }; onImported?: () => void; onCopy: (copy: { subject: string; body: string }) => void }) {
   const listFn = useServerFn(listOwnGmailDrafts);
   const readFn = useServerFn(readOwnGmailDraft);
   const [page, setPage] = useState<Awaited<ReturnType<typeof listFn>> | null>(null);
-  const [source, setSource] = useState<DraftSource | null>(null);
+  const [source, setSource] = useState<(DraftSource & { hash: string }) | null>(null);
+  const importFn = useServerFn(importGmailCampaignSource);
+  const [confirmed, setConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [draftId, setDraftId] = useState('');
   async function load(token?: string) {
-    setBusy(true); setError(''); setSource(null); setDraftId(''); setPage(null);
+    setBusy(true); setError(''); setSource(null); setConfirmed(false); setDraftId(''); setPage(null);
     try { setPage(await listFn({ data: { pageToken: token } })); }
     catch { setError('A saját Gmail-piszkozatok nem olvashatók. Ellenőrizd a bejelentkezést és a saját fiók állapotát.'); } finally { setBusy(false); }
   }
   async function read(copy: boolean) {
-    setBusy(true); setError(''); setSource(null);
+    setBusy(true); setError(''); setSource(null); setConfirmed(false);
     try {
       const fresh = await readFn({ data: { draftId } });
       setSource(fresh);
@@ -47,8 +51,17 @@ export function GmailDraftPicker({ disabled, onCopy }: { disabled: boolean; onCo
       <Textarea aria-label="Piszkozat szöveges változata" readOnly value={source.text ?? ''} rows={5} />
       {source.html !== null && <details><summary className="cursor-pointer">Eredeti HTML-forrás</summary><Textarea aria-label="Piszkozat eredeti HTML-forrása" readOnly value={source.html} rows={5} /></details>}
       {source.attachments > 0 && <p className="text-destructive">Mellékletes piszkozat · {source.attachments} melléklet · másolás tiltott</p>}
-      <Button size="sm" variant="outline" disabled={blocked || source.attachments > 0 || !source.text?.trim()} onClick={() => read(true)}>Szöveges változat átvétele</Button>
+      <Button size="sm" variant="outline" disabled={blocked || plainCopyDisabled || source.attachments > 0 || !source.text?.trim()} onClick={() => read(true)}>Szöveges változat átvétele</Button>
       <p className="text-xs text-muted-foreground">Csak a szöveges változat kerül a nem mentett tervezetbe. A HTML és az eredeti Gmail-piszkozat változatlan marad.</p>
+      {campaign && <div className="space-y-2">
+        <label className="flex items-start gap-2"><Checkbox checked={confirmed} disabled={blocked} onCheckedChange={value => setConfirmed(value === true)} />A kampány mentett üzenetét erre a teljes piszkozatmásolatra cserélem</label>
+        <Button size="sm" variant="outline" disabled={blocked || !confirmed || source.attachments > 0} onClick={async () => {
+          if (!campaign) return;
+          setBusy(true); setError('');
+          try { await importFn({ data: { campaignId: campaign.id, revision: campaign.revision, draftId: source.draftId, expectedHash: source.hash, confirmed: true } }); setSource(null); setConfirmed(false); onImported?.(); }
+          catch (e) { setError((e as Error).message); setConfirmed(false); } finally { setBusy(false); }
+        }}>Teljes piszkozatmásolat mentése kampányba</Button>
+      </div>}
     </div>}
     {busy && <p className="text-muted-foreground">Piszkozat olvasása…</p>}
     {error && <p role="alert" className="text-destructive">{error}</p>}
