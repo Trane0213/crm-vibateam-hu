@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Irányadó Marketing/Sales UI/UX-sorrend – 2026-11-06 19:19 UTC
+- [x] 19:38 UTC közös UX-folytatás: kétoszlopos desktop/egyoszlopos mobil adatfelvitel, helyben megmaradó mentési hiba és értékek, Hozzáadás/adatkereső felirat, mobil aktív AI-menü. 779 teszt/build PASS; négy szerepkör menü és Owner/Marketing/PM kontaktmentés elutasítás/értékmegőrzés/Mégse 1440/390 TESZT-próba PASS. Hitelesített mentés NEM TESZTELT, jogosultság és üzleti út változatlan, publikálás nincs.
 - [x] 19:31 UTC közös vizuális egységesítés mind a négy szerepkörre: közös munkasáv/Továbbiak, oldalsáv egyetlen nyitásra csoportosított ritka oldalak, összecsukott oldalsáv overflow, mobil olvasható listás menü, közös rekordmenü és listahiba/újrapróba. 779 regresszió/build PASS; négy szerepkör 1440/390 TESZT-navigáció és három szerepkör rekordmenü/Mégse/törlésmegerősítés PASS, nincs éles írás/publikálás.
 - [ ] Közös vizuális teljes elfogadás: hitelesített mentés/CRM/Gmail/R2 NEM TESZTELT (external_unmanaged); oldalankénti összes speciális művelet és korábbi funkcionális hiány nem lezárt. A közös keret ellenőrzése nem teljes CRM-végigpróba.
 - [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.

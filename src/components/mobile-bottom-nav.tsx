@@ -10,10 +10,11 @@ import { aiItems, isNavActive, moreGroups, primaryItems, type NavItem } from "@/
 /** Mobil alsó menü: 4 fő munkafelület + „Továbbiak” lap (csempés rács). */
 export function MobileBottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const { role } = usePermissions();
   const { visibleAgentIds } = useVisibleAgents();
   const [open, setOpen] = useState(false);
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => setOpen(false), [pathname, searchStr]);
 
   const primary = primaryItems(role);
   const tabs = primary.slice(0, 4);
@@ -23,10 +24,13 @@ export function MobileBottomNav() {
     { label: "AI asszisztensek", items: aiItems(role, visibleAgentIds) },
     ...moreGroups(role),
   ].filter((g) => g.items.length > 0);
-  const moreActive = !tabs.some((t) => isNavActive(pathname, t.url));
+  const active = (item: NavItem) => item.search?.agent
+    ? pathname === "/ai-assistant" && new URLSearchParams(searchStr).get("agent") === item.search.agent
+    : isNavActive(pathname, item.url);
+  const moreActive = groups.some(g => g.items.some(active)) && !tabs.some(active);
 
   const tab = (i: NavItem) => {
-    const a = isNavActive(pathname, i.url);
+    const a = active(i);
     return (
       <Link
         key={i.url}
@@ -71,7 +75,7 @@ export function MobileBottomNav() {
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{g.label}</h3>
                 <div className="grid gap-1 sm:grid-cols-2">
                   {g.items.map((i) => {
-                    const a = isNavActive(pathname, i.url);
+                    const a = active(i);
                     return (
                       <Link
                         key={i.url + (i.search?.agent ?? "")}

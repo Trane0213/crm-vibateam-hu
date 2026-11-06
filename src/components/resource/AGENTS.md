@@ -1,1 +1,2 @@
 - All role resource-list row actions use one menu with existing confirmations and mutations; presentation never changes write permissions or payloads.
+- RecordDialog displays rejected saves inline and retains form values; successful close and audit remain owned by the existing mutation path.
