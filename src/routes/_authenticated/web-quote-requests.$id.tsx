@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { formatDateTime } from "@/lib/format";
 import { getQuoteRequest } from "@/lib/quote-requests.functions";
 import { receivedAt, isTestRequest, payloadEntries } from "@/lib/quote-request-display";
+import { WebRequestIntakeCard } from "@/components/web-requests/web-request-intake-card";
 
 export const Route = createFileRoute("/_authenticated/web-quote-requests/$id")({
   component: WebQuoteRequestDetail,
@@ -41,7 +42,7 @@ function WebQuoteRequestDetail() {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Ajánlatkérés részletei"
-        description="Beérkezett weboldali ajánlatkérés — csak olvasható nézet."
+        description="Beérkezett weboldali ajánlatkérés — az eredeti adatok nem módosíthatók."
         actions={
           <Button asChild variant="outline" size="sm">
             <Link to="/web-quote-requests">
@@ -121,6 +122,8 @@ function WebQuoteRequestDetail() {
                 <Field label="ID" value={<span className="font-mono text-xs">{data.id}</span>} />
               </CardContent>
             </Card>
+
+            <WebRequestIntakeCard req={data} isTest={isTestRequest(data)} />
 
             <Card>
               <CardHeader className="pb-3">
