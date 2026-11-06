@@ -753,6 +753,11 @@ export type Database = {
           company_type: string | null
           created_at: string | null
           id: string
+          marketing_block_changed_at: string | null
+          marketing_block_changed_by: string | null
+          marketing_block_reason: string | null
+          marketing_block_revision: string | null
+          marketing_blocked: boolean | null
           marketing_handoff_lead_id: string | null
           marketing_status: string | null
           marketing_status_changed_at: string | null
@@ -767,6 +772,11 @@ export type Database = {
           company_type?: string | null
           created_at?: string | null
           id?: string
+          marketing_block_changed_at?: string | null
+          marketing_block_changed_by?: string | null
+          marketing_block_reason?: string | null
+          marketing_block_revision?: string | null
+          marketing_blocked?: boolean | null
           marketing_handoff_lead_id?: string | null
           marketing_status?: string | null
           marketing_status_changed_at?: string | null
@@ -781,6 +791,11 @@ export type Database = {
           company_type?: string | null
           created_at?: string | null
           id?: string
+          marketing_block_changed_at?: string | null
+          marketing_block_changed_by?: string | null
+          marketing_block_reason?: string | null
+          marketing_block_revision?: string | null
+          marketing_blocked?: boolean | null
           marketing_handoff_lead_id?: string | null
           marketing_status?: string | null
           marketing_status_changed_at?: string | null
@@ -4888,6 +4903,15 @@ export type Database = {
       company_marketing_from_sent: {
         Args: { p_company: string; p_email: string; p_user: string }
         Returns: boolean
+      }
+      company_set_marketing_block: {
+        Args: {
+          p_blocked: boolean
+          p_company: string
+          p_expected_revision: string
+          p_reason: string
+        }
+        Returns: Json
       }
       company_set_marketing_status: {
         Args: {
