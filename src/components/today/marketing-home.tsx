@@ -243,7 +243,7 @@ export function MarketingHome() {
                       <td className="p-3 font-medium">{row.title}</td>
                       <td className="p-3">{row.kind}</td>
                       <td className="whitespace-nowrap p-3">{fmtDate(row.due ?? undefined)}</td>
-                      <td className="p-3">{profile?.full_name ?? "Saját"}</td>
+                      <td className="p-3">{row.id.startsWith("callback-") ? "Közös visszahívás" : row.id.startsWith("task-") || row.id.startsWith("followup-") ? profile?.full_name ?? "Saját" : "—"}</td>
                       <td className="p-3">
                         <Button asChild size="sm" variant="outline">
                           {row.companyId ? (
