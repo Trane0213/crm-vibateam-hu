@@ -1,0 +1,11 @@
+# Marketingállapot – összevont szakaszjegyzet, 2026-11-06
+
+A jóváhagyott egyfunkciós átkötés elkészült: companies strukturált állapot/módosító/szerveridő/forrás/átadásazonosító, user-RLS mentés zárolt előállapot-ellenőrzéssel, atomikus activities audit. Közös olvasó és minden meglévő olvasási/mentési út átkötve; jegyzetmarkerek olvasási fallback, új markerírás adatbázisban tiltott. Hiány/régi/strukturált állapot a közös cégösszefoglalóban elkülönítve. Gmail ugyanazon transporton, service-only saját mentett SENT/pontos kontaktbizonyíték alapján; utólagos marketinghiba nem teszi újraküldhető hibává az elfogadott levelet.
+
+Séma alkalmazva két migrációban; a második a felülvizsgálatban talált legacy-marker jogmegkerülést és átadáskori konkurens jegyzetfelülírást védi. Meglévő cégpolicyk nem változtak. Nincs visszatöltés, markertörlés, üzleti adatmódosítás, levélküldés, új Sales-lead vagy publikálás. Éles előtte/utána: 664 cég, 701 kontakt, 8 lead, strukturált sor 0; teljes id+jegyzet hash `ba76d01b3569ab26d7f84100ffae031f` változatlan.
+
+Ellenőrzés: elkülönített PostgreSQL öt állapot, owner/Marketing, Sales/PM/no-role tiltás, friss előállapot, metadatahamisítás, same-company átadás, audit rollback, user-RLS láthatatlanság, SENT/DRAFT, legacy írásvédelem és konkurens átadási jegyzet TESZT. Teljes Vitest regresszió futtatva, végleges eredmény a roadmapben. Build OK. Cégoldal böngészőpróba belépésre irányított, runtime error 0; ez **nem** hitelesített mentés/végigpróba. Külső Supabase miatt owner/Marketing/Sales/PM UI mentés, hosted szerepkör és Gmail end-to-end **NEM TESZTELT**.
+
+SQL és adatvesztés nélküli leállítási/visszaállítási kapu: database/company_marketing_state_2026-11-06.sql, company_marketing_hardening_2026-11-06.sql, rollback_company_marketing_state_2026-11-06.sql. A rollback megőrzi az új mezőket és auditot, nem nyit jogot vissza, vak legacy-visszaállás tilos. A migráció 16 korábbi biztonsági jelzést mutatott, új jelzést nem okozott; ezek külön ellenőrzési körben kezelhetők, itt nem módosultak.
+
+STOP. Kontaktforrás/személyazonosság ellenőrzöttsége még nem készült el, következő külön funkció; kampányküldési vagy automatikus adatkapu nem nyílt.

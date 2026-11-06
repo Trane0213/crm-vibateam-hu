@@ -4713,6 +4713,16 @@ export type Database = {
           p_company: string
           p_expected: Json
           p_handoff_lead?: string
+          p_lead_source?: string
+          p_status: string
+        }
+        Returns: Json
+      }
+      company_set_marketing_status_legacy_internal: {
+        Args: {
+          p_company: string
+          p_expected: Json
+          p_handoff_lead?: string
           p_status: string
         }
         Returns: Json
