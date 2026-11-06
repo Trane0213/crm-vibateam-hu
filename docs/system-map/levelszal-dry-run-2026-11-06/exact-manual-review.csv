@@ -1,0 +1,9 @@
+thread_id,old_company_id,suggested_company_id,matched_contact_id,mailbox,own_messages,all_access_rows,decision
+14ebffd0-2093-435d-98c6-705e9d281064,b454cd40-3473-4653-9424-9cc5bbebe527,13929dcd-43e2-4263-893e-d82b452cfe51,90fdcad9-7bd8-443c-8c8d-ff5f71561bc9,pretor.laszlo@vibateam.hu,1,1,manual_review_only
+3c23909b-2993-484f-89f3-a84b02862db8,b454cd40-3473-4653-9424-9cc5bbebe527,13929dcd-43e2-4263-893e-d82b452cfe51,90fdcad9-7bd8-443c-8c8d-ff5f71561bc9,ramon.dencsi@vibateam.hu,1,1,manual_review_only
+5253bfb8-7587-40c3-9bf2-c405e4a0b9d7,b454cd40-3473-4653-9424-9cc5bbebe527,77cbdbab-8d0f-41dc-afbf-2d004d29d043,87ec6825-dcfb-4975-bd67-0b1b1cc4a609,info@vibateam.hu,1,1,manual_review_only
+98f4bcfa-4652-438f-a2ce-9ff3a1ed2338,b454cd40-3473-4653-9424-9cc5bbebe527,77cbdbab-8d0f-41dc-afbf-2d004d29d043,87ec6825-dcfb-4975-bd67-0b1b1cc4a609,pretor.laszlo@vibateam.hu,1,1,manual_review_only
+9ed07633-eb57-471e-bf02-1c530a493f58,b454cd40-3473-4653-9424-9cc5bbebe527,13929dcd-43e2-4263-893e-d82b452cfe51,90fdcad9-7bd8-443c-8c8d-ff5f71561bc9,info@vibateam.hu,1,1,manual_review_only
+a0ba96cf-1adc-41f3-9c4a-dfbd58cd263d,b454cd40-3473-4653-9424-9cc5bbebe527,ab0810fe-6432-4891-9706-e23de1f76d13,534f9e3f-2c36-40fb-a868-8d9d0213da09,info@vibateam.hu,1,1,manual_review_only
+b5967b74-d809-473a-9758-8df8d63e0ec7,b454cd40-3473-4653-9424-9cc5bbebe527,ab0810fe-6432-4891-9706-e23de1f76d13,534f9e3f-2c36-40fb-a868-8d9d0213da09,pretor.laszlo@vibateam.hu,1,1,manual_review_only
+cba273d7-42ee-437f-89d3-215abdcba016,b454cd40-3473-4653-9424-9cc5bbebe527,77cbdbab-8d0f-41dc-afbf-2d004d29d043,87ec6825-dcfb-4975-bd67-0b1b1cc4a609,ramon.dencsi@vibateam.hu,1,1,manual_review_only
