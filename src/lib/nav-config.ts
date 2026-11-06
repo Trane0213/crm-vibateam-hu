@@ -44,8 +44,6 @@ export const WORKSPACES_BY_ROLE: Record<RoleSlug, NavItem[]> = {
     { title: "Emailek", url: "/emails", icon: Mail },
     { title: "Hívások", url: "/calls", icon: Phone },
     { title: "Utánkövetések", short: "Teendők", url: "/followups", icon: CheckSquare },
-    { title: "Feladatok", url: "/tasks", icon: CheckSquare },
-    { title: "Cégek", url: "/companies", icon: Building2 },
   ],
   project_manager: [
     { title: "Projektek", url: "/projects", icon: Briefcase },
