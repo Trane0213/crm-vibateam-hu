@@ -12,7 +12,7 @@ DECLARE changed boolean; service_write boolean;
 BEGIN
  service_write := current_user = 'service_role' AND current_setting('app.marketing_sent_write',true) = '1';
  IF TG_OP='INSERT' THEN
-  changed := NEW.marketing_status IS NOT NULL;
+  changed := NEW.marketing_status IS NOT NULL OR NEW.marketing_handoff_lead_id IS NOT NULL;
   IF NEW.marketing_status_changed_by IS NOT NULL OR NEW.marketing_status_changed_at IS NOT NULL OR NEW.marketing_status_source IS NOT NULL THEN
    RAISE EXCEPTION 'Marketing metadata is server controlled' USING ERRCODE='42501';
   END IF;
@@ -71,7 +71,9 @@ BEGIN
  IF p_status IS NULL OR p_status NOT IN ('new','contacted','qualified','handoff','rejected') THEN RAISE EXCEPTION 'Invalid marketing status'; END IF;
  SELECT * INTO c FROM public.companies WHERE id=p_company FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Company not accessible' USING ERRCODE='42501'; END IF;
- IF p_expected IS DISTINCT FROM jsonb_build_object('marketing_status',c.marketing_status,'marketing_status_changed_at',c.marketing_status_changed_at,'notes',c.notes) THEN
+ IF p_expected IS NULL OR NOT (p_expected ?& ARRAY['marketing_status','marketing_status_changed_at','notes'])
+  OR (p_expected->>'marketing_status',nullif(p_expected->>'marketing_status_changed_at','')::timestamptz,p_expected->>'notes')
+  IS DISTINCT FROM (c.marketing_status,c.marketing_status_changed_at,c.notes) THEN
   RAISE EXCEPTION 'A cég állapota megváltozott. Frissítsd az adatlapot.' USING ERRCODE='40001';
  END IF;
  UPDATE public.companies SET marketing_status=p_status,marketing_handoff_lead_id=p_handoff_lead WHERE id=c.id RETURNING * INTO c;
