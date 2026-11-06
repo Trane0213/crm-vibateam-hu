@@ -37,6 +37,7 @@ export const saveCampaignDraft = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return row;
     }
+    if (!data.expectedUpdatedAt) throw new Error("Nyisd újra a tervezetet.");
     const { data: rows, error } = await context.supabase.from("email_campaigns").update({ name: data.name, target_group: data.target_group || null, message_subject: data.message_subject, message_body: data.message_body } as any).eq("updated_at", data.expectedUpdatedAt).eq("id", data.id).neq("status", "archived").select("id,status");
     if (error) throw new Error(error.message);
     if (rows?.length !== 1) throw new Error("A kampány nem található, archivált, vagy nincs jogosultságod.");

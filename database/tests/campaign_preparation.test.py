@@ -6,7 +6,7 @@ def sql(q,fail=False):
  return r.stdout.strip()
 cid='11111111-1111-4111-8111-111111111111';uid='22222222-2222-4222-8222-222222222222';kid='33333333-3333-4333-8333-333333333333';co='44444444-4444-4444-8444-444444444444'
 def act(role='marketing',user=uid):return f"set role authenticated;set test.uid='{user}';set test.crm_role='{role}';set test.jwt_role='authenticated';"
-sql(f"insert into email_campaigns(id,name,created_by) values('{cid}','TESZT','{uid}');insert into contacts values('{kid}','{co}','teszt@example.invalid')")
+sql(f"set test.jwt_role='service_role';insert into email_campaigns(id,name,created_by) values('{cid}','TESZT','{uid}');insert into contacts values('{kid}','{co}','teszt@example.invalid')")
 for role in ['sales','pm','']:
  assert sql(act(role)+f"update email_campaigns set message_body='FORBIDDEN' where id='{cid}' returning id")==''
 assert sql(act('marketing','55555555-5555-4555-8555-555555555555')+f"update email_campaigns set message_body='FORBIDDEN' where id='{cid}' returning id")==''
