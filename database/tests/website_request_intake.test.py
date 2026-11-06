@@ -17,6 +17,7 @@ grant usage on schema auth to service_role,authenticated,anon;grant execute on a
 alter table quote_requests enable row level security;
 """)
 sql(Path('database/website_request_intake_2026-11-06.sql').read_text())
+sql(Path('database/intake_unlinked_guard_2026-11-06.sql').read_text())
 u='11111111-1111-4111-8111-111111111111'
 def req(n,email=None,name=None):
  id=f'22222222-2222-4222-8222-{n:012d}'
@@ -47,4 +48,10 @@ assert json.loads(call(r3))['kind']=='ambiguous'
 assert sql(f"select intake_company_id is null from quote_requests where id='{r3}'")=='t'
 assert sql("select has_function_privilege('authenticated','website_request_intake(uuid,uuid)','execute')")=='f'
 assert sql("select relrowsecurity from pg_class where relname='quote_requests'")=='t'
+mixed=req(8,'mixed@example.invalid')
+sql("insert into contacts(company_id,name,email) select id,'TESZT linked','mixed@example.invalid' from companies limit 1;insert into contacts(name,email) values('TESZT unlinked','mixed@example.invalid')")
+before=sql('select count(*) from companies')
+assert json.loads(call(mixed))['kind']=='ambiguous'
+assert sql('select count(*) from companies')==before
+assert sql(f"select intake_company_id is null from quote_requests where id='{mixed}'")=='t'
 print('PASS: roles, exact replay, concurrent same/different request, atomic contact/audit/receipt rollback, legacy no repair, RLS/no client execute')
