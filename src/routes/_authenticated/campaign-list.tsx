@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ListPlus, Radar, Mail, Phone, Building2, Search, Send, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { readMarketingMeta, marketingExpected, MARKETING_STATE_SELECT, type CompanyMarketingState } from "@/lib/marketing-status";
 import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { selectMarketingCompanies } from "@/lib/marketing-universe";
+import { campaignEntrySearch } from '@/lib/marketing/campaign-entry';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/campaign-list")({
+  validateSearch: campaignEntrySearch,
   head:()=>({meta:[{title:'Kampánylista | VIBA CRM'},{name:'description',content:'Kijelölt marketingkampány és kereshető CRM-cégek.'},{property:'og:title',content:'Kampánylista | VIBA CRM'},{property:'og:description',content:'Marketingcégek és kapcsolattartók a VIBA CRM-ben.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),
   component: CampaignListPage,
 });
@@ -64,9 +66,15 @@ function isActiveCampaign(row: CampaignRow): boolean {
 }
 
 function CampaignListPage() {
-  const [scope,setScope]=useState<"campaign"|"all">("campaign");
+  const entry = Route.useSearch();
+  const [scope,setScope]=useState<"campaign"|"all">(entry.companyId ? "all" : "campaign");
   const [search, setSearch] = useState("");
-  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>(entry.companyId ? [entry.companyId] : []);
+  useEffect(() => {
+    if (!entry.companyId) return;
+    setScope('all');
+    setSelectedCompanies(previous => [...new Set([...previous, entry.companyId].filter((id): id is string => !!id))]);
+  }, [entry.companyId]);
   const [composer, setComposer] = useState<{ to: string; company: string; companyId: string; contactId?: string } | null>(null);
   const [rejecting, setRejecting] = useState<CampaignRow | null>(null);
   const qc = useQueryClient();
@@ -158,7 +166,8 @@ function CampaignListPage() {
         }
       />
       <div className="space-y-3 p-6">
-        <CampaignDraftPrecheck companyIds={selectedCompanies} candidates={(q.data ?? []).filter(r => selectedCompanies.includes(r.id)).flatMap(r => r.contacts.map(c => ({...c,company_id:r.id,company_name:r.name})))} />
+        <CampaignDraftPrecheck companyIds={selectedCompanies} entryContactId={entry.contactId} entryCompanyId={entry.companyId} candidates={(q.data ?? []).filter(r => selectedCompanies.includes(r.id)).flatMap(r => r.contacts.map(c => ({...c,company_id:r.id,company_name:r.name})))} />
+        {entry.companyId && !q.isLoading && !q.error && !q.data?.some(r => r.id === entry.companyId) && <p role="alert" className="text-sm text-destructive">A kiválasztott cég nem elérhető; kampánytagság nem lett mentve.</p>}
         <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{selectedCompanies.length} kijelölt cég</Badge><Button variant="outline" size="sm" onClick={() => setSelectedCompanies(prev => [...new Set([...prev,...filtered.map(r=>r.id)])])}>Találatok kijelölése</Button><Button variant="ghost" size="sm" disabled={!selectedCompanies.length} onClick={()=>setSelectedCompanies([])}>Kijelölés törlése</Button></div>
         <div className="flex gap-2"><Button variant={scope==='campaign'?'default':'outline'} onClick={()=>setScope('campaign')}>Aktív kampány</Button><Button variant={scope==='all'?'default':'outline'} onClick={()=>setScope('all')}>Minden cég</Button></div>
         <div className="relative max-w-sm">
@@ -171,7 +180,7 @@ function CampaignListPage() {
           />
         </div>
 
-        {q.isLoading ? (
+        {q.error ? <p role="alert" className="p-6 text-sm text-destructive">A cégek nem tölthetők be. <Button variant="outline" size="sm" onClick={() => q.refetch()}>Újrapróbálás</Button></p> : q.isLoading ? (
           <p className="p-6 text-sm text-muted-foreground">Betöltés…</p>
         ) : filtered.length === 0 ? (
           <EmptyState
