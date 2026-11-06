@@ -21,15 +21,16 @@ const MARKETING_SOURCE_TEXT_RX = /Forrás:\s*Scarlet kampány/i;
 
 /** PostgREST `or=` szűrő része — minden marketinghez tartozó cégre matchel. */
 export const MARKETING_OR_FILTER =
-  "notes.ilike.*[MKT:*,notes.ilike.*[KAMPANY:*,notes.ilike.*Forrás: Scarlet kampány*";
+  "marketing_status.not.is.null,notes.ilike.*[MKT:*,notes.ilike.*[KAMPANY:*,notes.ilike.*Forrás: Scarlet kampány*";
 
 /** JavaScript-oldali predikátum ugyanezzel a definícióval. */
 export function isMarketingCompany(row: {
   company_type?: string | null;
   notes?: string | null;
+  marketing_status?: string | null;
 }): boolean {
   const n = row.notes ?? "";
-  return /\[MKT:/.test(n) || /\[KAMPANY:/.test(n) || MARKETING_SOURCE_TEXT_RX.test(n);
+  return !!row.marketing_status || /\[MKT:/.test(n) || /\[KAMPANY:/.test(n) || MARKETING_SOURCE_TEXT_RX.test(n);
 }
 
 /**

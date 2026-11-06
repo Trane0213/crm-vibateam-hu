@@ -1,8 +1,8 @@
 /**
  * Marketing workflow markerek a `companies.notes` szabad szöveg mezőben.
  *
- * SZIGORÚAN nincs séma-módosítás — minden marketing állapotot a meglévő
- * `companies.notes` mező tárol fenced markerekkel. Ezeket a markereket a
+ * Az új állapotok companies.marketing_status mezőből olvasandók; a régi
+ * `companies.notes` markerek csak kompatibilitási források. Ezeket a markereket a
  * UI nem mutatja a tartalomban (a sales note régió kibontásra kerül,
  * a státusz markerek pedig kiszűrésre).
  *
@@ -96,7 +96,36 @@ export function stripMarkers(notes: string | null): string {
     .trim();
 }
 
-export function readMarketingMeta(notes: string | null): MarketingMeta {
+export type CompanyMarketingState = {
+  marketing_status?: string | null;
+  marketing_status_changed_at?: string | null;
+  marketing_status_changed_by?: string | null;
+  marketing_status_source?: string | null;
+  marketing_handoff_lead_id?: string | null;
+};
+
+export const MARKETING_STATE_SELECT = 'marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id';
+
+export function marketingExpected(company: CompanyMarketingState & { notes?: string | null }) {
+  return { marketing_status: company.marketing_status ?? null, marketing_status_changed_at: company.marketing_status_changed_at ?? null, notes: company.notes ?? null };
+}
+
+/** Provenance is separate from workflow and never a Gmail delivery claim. */
+export function marketingStateOrigin(notes: string | null, company?: CompanyMarketingState): 'structured' | 'legacy' | 'missing' {
+  if (company?.marketing_status && company.marketing_status in MARKETING_STATUS_LABEL) return 'structured';
+  return /\[MKT:STATUS:|\[KAMPANY:(EMAIL_SENT|REJECTED):/.test(notes ?? '') ? 'legacy' : 'missing';
+}
+
+export function readMarketingMeta(notes: string | null, company?: CompanyMarketingState): MarketingMeta {
+  const legacy = readLegacyMarketingMeta(notes);
+  if (!company?.marketing_status || !(company.marketing_status in MARKETING_STATUS_LABEL)) return legacy;
+  return { ...legacy, status: company.marketing_status as MarketingStatus,
+    statusDate: company.marketing_status_changed_at ? new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Budapest' }).format(new Date(company.marketing_status_changed_at)) : null,
+    handoffLeadId: company.marketing_status === 'handoff' ? company.marketing_handoff_lead_id ?? null : null,
+  };
+}
+
+function readLegacyMarketingMeta(notes: string | null): MarketingMeta {
   if (!notes) return { status: "new", statusDate: null, handoffLeadId: null, salesNote: "", leadSource: null };
   // Legutoljára felvett MKT:STATUS marker érvényes (időrendileg új).
   STATUS_RX.lastIndex = 0;
