@@ -698,7 +698,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           setContactDialogOpen(open);
           if (!open) setEditingContact(null);
         }}
-        initial={editingContact}
+        initial={(contacts.data ?? []).find(c => c.id === editingContact?.id) ?? editingContact}
         saving={saveContact.isPending}
         onSave={(data: { id?: string; name: string; email: string; phone: string; position: string }) => saveContact.mutate(data)}
       />

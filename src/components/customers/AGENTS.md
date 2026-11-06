@@ -1,1 +1,1 @@
-- Company campaign membership is shared between role-specific company views and reads persisted recipient/contact IDs through user RLS, never current search filters or mail content; this preserves one company identity without expanding campaign access.
+- Contact provenance controls are shared by existing contact editors; verification is independent of contact field saves and uses user-RLS contact_set_provenance with stale-state checks, while database triggers invalidate all name/email/company edits across other paths.
