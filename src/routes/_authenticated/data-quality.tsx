@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePermissions } from "@/hooks/use-permissions";
 import { WorkspacePanel } from "@/components/dashboard/workspace-panel";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ export const Route = createFileRoute("/_authenticated/data-quality")({
 });
 
 function DataQualityCenter() {
+  const { role } = usePermissions();
   const [tab, setTab] = useState("all");
   const incomplete = useQuery({
     queryKey: ["dq", "incomplete"],
@@ -214,9 +216,9 @@ function DataQualityCenter() {
               <p className="text-sm text-muted-foreground">
                 Ezen a nézeten nincs igazolt, összesített javítási előzmény.
               </p>
-              <Button variant="outline" size="sm" asChild>
+                {role === "owner" && <Button variant="outline" size="sm" asChild>
                 <Link to="/import-review">Adatellenőrzés megnyitása</Link>
-              </Button>
+                </Button>}
             </div>
           </WorkspacePanel>
         </aside>
