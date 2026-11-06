@@ -39,3 +39,5 @@
 - Both chats correlate runs by UUID and display only own-run content-free audit progress; risk QA distinguishes deterministic, model and authenticated results — progress is not execution proof or measured reliability.
 - AI OS agent model/provider/api/reasoning come only from `src/lib/ai-os/model-config.ts` (spread into each agent) — one place to switch models.
 - Marketing: own followups/tasks only (`*_marketing_own_*` RLS); meetings read-only.
+
+- Company marketing status writes use company_set_marketing_status with user RLS, immutable server metadata and atomic activities audit; Gmail uses service-only company_marketing_from_sent. All readers prefer structured company state, with notes as read-only legacy fallback, to avoid two writable workflow sources.

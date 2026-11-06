@@ -43,7 +43,7 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
     enabled: !!companyId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("companies").select("id,name,notes,website,created_at").eq("id", companyId!).maybeSingle();
+        .from("companies").select("id,name,notes,website,created_at,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id").eq("id", companyId!).maybeSingle();
       if (error) throw error;
       return data as any;
     },
@@ -98,7 +98,7 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
   if (!lead.data) return <div className="p-4 text-sm text-muted-foreground">Nem található.</div>;
 
   const l = lead.data;
-  const meta = readMarketingMeta(company.data?.notes ?? null);
+  const meta = readMarketingMeta(company.data?.notes ?? null, company.data);
   const primaryContactName = l.contact_id ? contactLookup(l.contact_id) : null;
   // Betöltés közben ne írjuk ki tévesen, hogy a leadhez nincs cég.
   const companyName = company.data?.name ?? (companyId && company.isLoading ? "Betöltés…" : "Cég nélkül");
@@ -296,11 +296,11 @@ function Empty({ children }: { children: React.ReactNode }) {
 function Timeline({
   company, contacts, emails, docs,
 }: {
-  company: { name?: string; notes?: string | null; created_at?: string } | null | undefined;
+  company: { name?: string; notes?: string | null; created_at?: string; marketing_status?: string | null; marketing_status_changed_at?: string | null; marketing_handoff_lead_id?: string | null } | null | undefined;
   contacts: any[]; emails: any[]; docs: any[];
 }) {
   if (!company?.created_at) return <Empty>Nincs cég — nincs idővonal.</Empty>;
-  const meta = readMarketingMeta(company.notes ?? null);
+  const meta = readMarketingMeta(company.notes ?? null, company);
   const events = buildTimeline(
     {
       company: { name: company.name ?? "—", created_at: company.created_at },

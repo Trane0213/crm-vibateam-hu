@@ -114,7 +114,7 @@ export function LeadDetailColumn({
     enabled: !!companyId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("companies").select("id,name,notes,created_at,website").eq("id", companyId!).maybeSingle();
+        .from("companies").select("id,name,notes,created_at,website,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id").eq("id", companyId!).maybeSingle();
       if (error) throw error;
       return data as any;
     },
@@ -450,7 +450,7 @@ export function LeadDetailColumn({
         <TabsContent value="overview" className="space-y-4 p-5 pt-3">
         {/* Marketing által hagyott sales-jegyzet — kiemelten, ha van. */}
         {(() => {
-          const meta = readMarketingMeta(company.data?.notes ?? null);
+          const meta = readMarketingMeta(company.data?.notes ?? null, company.data);
           if (!meta.salesNote) return null;
           return (
             <section className="rounded-md border border-primary/40 bg-primary/5 p-3">
@@ -721,7 +721,7 @@ export function LeadDetailColumn({
             if (!companyId || !company.data) {
               return <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Cég nincs hozzárendelve.</div>;
             }
-            const meta = readMarketingMeta(company.data?.notes ?? null);
+            const meta = readMarketingMeta(company.data?.notes ?? null, company.data);
             const events = buildTimeline({
               company: { name: company.data.name, created_at: company.data.created_at },
               contacts: (companyContacts.data ?? []) as any[],

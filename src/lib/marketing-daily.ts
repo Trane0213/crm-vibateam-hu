@@ -4,7 +4,7 @@ import { isMarketingCompany } from './marketing-universe';
 import { readMarketingMeta } from './marketing-status';
 export async function loadMarketingDaily(sb: SupabaseClient, userId: string, now = new Date()) {
   const [companies, contacts, emails, followups, calls, profile] = await Promise.all([
-    sb.from('companies').select('id,name,notes').order('id').limit(1001),
+    sb.from('companies').select('id,name,notes,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id').order('id').limit(1001),
     sb.from('contacts').select('id,name,email,phone,company_id,email_invalid').order('id').limit(1001),
     sb.from('emails').select('id,thread_id,company_id,owner_user_id,gmail_message_id,gmail_label_ids,from_email,to_emails,cc_emails,bcc_emails,is_outbound,internal_date,created_at').eq('owner_user_id',userId).order('internal_date',{ascending:false}).limit(1001),
     sb.from('followups').select('id,company_id,followup_type,due_date,result').eq('assigned_to',userId).eq('completed',false).order('due_date').limit(1001),
@@ -14,7 +14,7 @@ export async function loadMarketingDaily(sb: SupabaseClient, userId: string, now
   for (const result of [companies,contacts,emails,followups,calls,profile]) if (result.error) throw result.error;
   // Conservative coverage flag: PostgREST may cap limit(1001) at 1000.
   const partial = [companies,contacts,emails,followups,calls].some(r => (r.data?.length ?? 0) >= 1000);
-  const campaign = (companies.data ?? []).filter(isMarketingCompany).map(c => ({...c,meta:readMarketingMeta(c.notes)}));
+  const campaign = (companies.data ?? []).filter(isMarketingCompany).map(c => ({...c,meta:readMarketingMeta(c.notes, c)}));
   const campaignIds = new Set(campaign.map(c=>c.id));
   const recent = new Date(now.getTime()-7*86400000).toISOString();
   const facts = marketingMailFacts(((emails.data ?? []) as MarketingMail[]).filter(e=>e.company_id&&campaignIds.has(e.company_id)),contacts.data ?? [],recent,profile.data?.[0]?.gmail_email ?? '');

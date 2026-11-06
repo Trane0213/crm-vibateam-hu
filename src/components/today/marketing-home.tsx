@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
-  readMarketingMeta, type MarketingStatus,
+  readMarketingMeta, type MarketingStatus, type CompanyMarketingState,
 } from "@/lib/marketing-status";
 import { selectMarketingCompanies } from "@/lib/marketing-universe";
 import { getMarketingDaily } from '@/lib/marketing-daily.functions';
@@ -35,12 +35,12 @@ export function MarketingHome() {
     queryFn: async () => {
       const rows = await selectMarketingCompanies(
         supabase,
-        "id,name,notes,created_at",
+        "id,name,notes,created_at,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id",
         { limit: 500 },
       );
-      return rows as {
+      return rows as (CompanyMarketingState & {
         id: string; name: string; notes: string | null; created_at: string;
-      }[];
+      })[];
     },
   });
 
@@ -52,14 +52,14 @@ export function MarketingHome() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("companies")
-        .select("id,name,notes,created_at")
+        .select("id,name,notes,created_at,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id")
         .gte("created_at", monthAgo)
         .order("created_at", { ascending: false })
         .limit(1000);
       if (error) throw error;
-      return (data ?? []) as {
+      return (data ?? []) as (CompanyMarketingState & {
         id: string; name: string; notes: string | null; created_at: string;
-      }[];
+      })[];
     },
   });
 
@@ -96,7 +96,7 @@ export function MarketingHome() {
   const threads   = threadsQ.data ?? [];
 
   // Marketing státusz dekorálás a notes-ból.
-  const decorated = companies.map((c) => ({ ...c, meta: readMarketingMeta(c.notes) }));
+  const decorated = companies.map((c) => ({ ...c, meta: readMarketingMeta(c.notes, c) }));
   const byStatus = (s: MarketingStatus) => decorated.filter((c) => c.meta.status === s);
 
   const pipeline: Record<MarketingStatus, number> = {
@@ -110,7 +110,7 @@ export function MarketingHome() {
   const qualified  = byStatus("qualified");
   // Minden ma létrehozott cég — Scarlet és manuális is ide tartozik.
   const allDecorated = (allCompaniesQ.data ?? []).map((c) => ({
-    ...c, meta: readMarketingMeta(c.notes),
+    ...c, meta: readMarketingMeta(c.notes, c),
   }));
   const newToday   = allDecorated.filter(
     (c) =>

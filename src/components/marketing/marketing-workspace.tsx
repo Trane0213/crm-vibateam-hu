@@ -40,7 +40,7 @@ import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
   LEAD_SOURCE_LABEL, LEAD_SOURCE_OPTIONS,
   readMarketingMeta, stripMarkers,
-  withMarketingStatus, withSalesNote, withLeadSource,
+  marketingExpected, withSalesNote, withLeadSource,
   type MarketingStatus, type LeadSource,
 } from "@/lib/marketing-status";
 import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/marketing-workflow";
@@ -48,15 +48,14 @@ import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
 import { canSubmitHandoff, openLeads } from "@/lib/marketing-handoff-guard";
+import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
 import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
  *
- * NINCS séma-módosítás. Minden marketing állapot a meglévő
- * `companies.notes` mezőben tárolódik fenced markerekkel
- * (`src/lib/marketing-status.ts`). A "Saleshez átadás" gomb a
+ * Marketingállapot strukturált cégmezőből; legacy notes csak olvasási fallback. A "Saleshez átadás" gomb a
  * meglévő `leads` táblába szúr egy sort és átállítja a state-et
  * `handoff`-ra — innentől a sales látja a leadet a saját pipeline-jában.
  */
@@ -171,20 +170,21 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     },
   });
 
-  const meta = useMemo(() => readMarketingMeta(cust.data?.notes ?? null), [cust.data?.notes]);
+  const meta = useMemo(() => readMarketingMeta(cust.data?.notes ?? null, cust.data), [cust.data]);
   const visibleNotes = useMemo(() => stripMarkers(cust.data?.notes ?? null), [cust.data?.notes]);
 
   const setStatus = useMutation({
     mutationFn: async (status: MarketingStatus) => {
-      const next = withMarketingStatus(cust.data?.notes ?? null, status);
-      const { error } = await supabase.from("companies").update({ notes: next }).eq("id", companyId);
-      if (error) throw error;
+      if (!cust.data) throw new Error("A cég nem tölthető be.");
+      return setCompanyMarketingStatus({ data: { companyId, status, handoffLeadId: null, expected: marketingExpected(cust.data) } });
     },
     onSuccess: (_d, status) => {
       toast.success(`Státusz: ${MARKETING_STATUS_LABEL[status]}`);
-      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+      qc.invalidateQueries({ queryKey: ["mkt-home"] });
+      qc.invalidateQueries({ queryKey: ["campaign-list"] });
     },
-    onError: (e: any) => toast.error("Státusz mentése sikertelen", { description: humanizeSupabaseError(e) }),
+    onError: (e: any) => { qc.invalidateQueries({ queryKey: ["customers"] }); toast.error("Státusz mentése sikertelen", { description: humanizeSupabaseError(e) }); },
   });
 
   const saveSalesNote = useMutation({
@@ -252,7 +252,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
-      const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
       let leadId = partialHandoffLeadId.current;
       if (!leadId) {
         const payload: any = {
@@ -270,9 +269,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         leadId = (data as any).id as string;
         partialHandoffLeadId.current = leadId;
       }
-      const nextNotes = withMarketingStatus(withSrc, "handoff", leadId);
-      const { error: e2 } = await supabase.from("companies").update({ notes: nextNotes }).eq("id", companyId);
-      if (e2) {
+      try {
+        await setCompanyMarketingStatus({ data: { companyId, status: "handoff", handoffLeadId: leadId, leadSource: input.lead_source, expected: marketingExpected(cust.data ?? {}) } });
+      } catch {
         const err: any = new Error(
           `A lead létrejött (#${leadId.slice(0, 8)}), de a cég marketingstátusza nem mentődött. Az újbóli „Átadás” csak a státuszt pótolja, új leadet nem hoz létre.`,
         );
@@ -490,7 +489,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
       {/* ───── Tartalom ───── */}
       <div className="p-6">
-        <CompanyMarketingSummary notes={c.notes ?? null} />
+        <CompanyMarketingSummary notes={c.notes ?? null} company={c} />
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>

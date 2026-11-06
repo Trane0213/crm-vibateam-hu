@@ -6,11 +6,9 @@ import { getValidAccessToken } from "@/lib/gmail/oauth.server";
 import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "@/lib/gmail/gmail-api.server";
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
-import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
 import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment } from "@/lib/quotes/send-policy";
 import {validateCrmLink} from './validate-crm-link';
 import {resolveThreadLink} from './crm-association';
-import {isMarketingCompany} from '@/lib/marketing-universe';
 
 
 export type SendHooks = {
@@ -244,17 +242,15 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
       })
       .eq("id", threadDbId);
 
+    let marketingWarning: string | undefined;
     if (body.company_id) {
-      const { data: company } = await admin
-        .from("companies")
-        .select("notes")
-        .eq("id", body.company_id)
-        .maybeSingle();
-      const currentNotes = (company as any)?.notes ?? null;
-      const meta = readMarketingMeta(currentNotes);
-      if (isMarketingCompany({notes:currentNotes}) && meta.status === "new") {
-        const nextNotes = withMarketingStatus(currentNotes, "contacted");
-        await admin.from("companies").update({ notes: nextNotes }).eq("id", body.company_id);
+      try {
+        const stateResult = await admin.rpc("company_marketing_from_sent", {
+          p_company: body.company_id, p_email: insEmail.id, p_user: userId,
+        });
+        if (stateResult.error) throw stateResult.error;
+      } catch {
+        marketingWarning = "A levél kiment, de a marketingállapot frissítése nem igazolt. Ne küldd újra; frissítsd a cégadatlapot.";
       }
     }
 
@@ -285,9 +281,9 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
       const { error: quoteError } = await (admin as any).from("quotes").update({ status: "sent", sent_at: now, ...(qcur?.locked_at ? {} : { locked_at: now }) }).eq("id", body.quote_id);
       if (quoteError) return Response.json({ ok: true, warning: "A levél kiment és a napló rögzült, de az ajánlat állapotának mentése nem sikerült. Ne küldd újra; ellenőrizd a kiküldési naplót.", id: sent.id, threadId: sent.threadId });
     }
-    return Response.json({ ok: true, id: sent.id, threadId: sent.threadId });
+    return Response.json({ ok: true, warning: marketingWarning, id: sent.id, threadId: sent.threadId });
   } catch (e: any) {
-    if (hooks && sentEvidence) return Response.json({ok:true,...sentEvidence,warning:'A levél Gmail-azonosítója megvan, de a teljes eredmény nem igazolt. Ne küldd újra.'});
+    if (sentEvidence) return Response.json({ok:true,...sentEvidence,warning:'A levél Gmail-azonosítója megvan, de a teljes eredmény nem igazolt. Ne küldd újra.'});
     if (e instanceof Response) return e;
     console.error("[gmail/send] error", e);
     return Response.json({ error: e?.message ?? String(e) }, { status: 500 });
