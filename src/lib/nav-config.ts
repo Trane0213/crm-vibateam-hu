@@ -38,7 +38,7 @@ export const WORKSPACES_BY_ROLE: Record<RoleSlug, NavItem[]> = {
     { title: "Projektek", url: "/projects", icon: Briefcase },
   ],
   marketing: [
-    { title: "Marketing munkafelület", short: "Leadek", url: "/leads", icon: Sparkles },
+    { title: "Marketing munkafelület", short: "Ügyek", url: "/leads", icon: Sparkles },
     { title: "Weboldali igények", short: "Igények", url: "/web-quote-requests", icon: Inbox },
     { title: "Kampánylista", short: "Kampány", url: "/campaign-list", icon: ListPlus },
     { title: "Emailek", url: "/emails", icon: Mail },
@@ -67,7 +67,7 @@ export const MORE_GROUPS: NavGroup[] = [
     label: "Ügyfelek",
     items: [
       { title: "Lead munkafelület", url: "/leads", icon: Sparkles },
-      { title: "Ügyfelek", url: "/customers", icon: Users },
+      { title: "Ügyfelek és magánszemélyek", short: "Ügyfelek", url: "/customers", icon: Users },
       { title: "Cégek", url: "/companies", icon: Building2 },
       { title: "Kapcsolattartók", url: "/contacts", icon: UserPlus },
       { title: "Kampánylista", url: "/campaign-list", icon: ListPlus },
@@ -120,7 +120,7 @@ const allowed = (role: RoleSlug) => (i: NavItem) =>
   canAccessRoute(role, i.url) && !(i.hideForRoles?.includes(role) ?? false);
 
 export function primaryItems(role: RoleSlug): NavItem[] {
-  const home = { ...HOME, title: role === "owner" ? "Vezetői áttekintés" : role === "sales" ? "Ma · feladataim" : HOME.title };
+  const home = { ...HOME, short: "Ma", title: role === "owner" ? "Vezetői áttekintés" : role === "sales" ? "Ma · feladataim" : role === "project_manager" ? "Mai projektmunka" : "Mai munka" };
   return [home, ...(WORKSPACES_BY_ROLE[role] ?? WORKSPACES_BY_ROLE.owner)].filter(allowed(role));
 }
 

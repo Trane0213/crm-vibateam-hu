@@ -1,3 +1,4 @@
+import { WorkspacePanel } from "@/components/dashboard/workspace-panel";
 import { Link } from "@tanstack/react-router";
 import { Briefcase, ListChecks, AlertTriangle, Hammer, Plus, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,16 @@ import { PROJECT_STATUS_LABEL, ACTIVE_PROJECT_STATUSES } from "@/lib/viba-consta
 import { useAuth } from "@/hooks/use-auth";
 
 const isoNow = () => new Date().toISOString();
-const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
-const isoEndOfDay = () => { const d = new Date(); d.setHours(23,59,59,999); return d.toISOString(); };
+const isoStartOfDay = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+};
+const isoEndOfDay = () => {
+  const d = new Date();
+  d.setHours(23, 59, 59, 999);
+  return d.toISOString();
+};
 
 export function PmHome() {
   const now = isoNow();
@@ -34,14 +43,28 @@ export function PmHome() {
     },
     `active-pm:${uid ?? "anon"}`,
   );
-  const todayTasks = useCount("tasks", (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd), "today");
-  const overdueTasks = useCount("tasks", (q) => q.neq("status", "done").lt("due_date", now), "overdue");
-  const overdueFu = useCount("followups", (q) => q.eq("completed", false).lt("due_date", now), "overdue-fu");
+  const todayTasks = useCount(
+    "tasks",
+    (q) => q.neq("status", "done").gte("due_date", todayStart).lte("due_date", todayEnd),
+    "today",
+  );
+  const overdueTasks = useCount(
+    "tasks",
+    (q) => q.neq("status", "done").lt("due_date", now),
+    "overdue",
+  );
+  const overdueFu = useCount(
+    "followups",
+    (q) => q.eq("completed", false).lt("due_date", now),
+    "overdue-fu",
+  );
 
   const tasks = useList<any>("tasks", { order: "due_date", ascending: true });
   const projects = useList<any>("projects", { order: "created_at", ascending: false });
 
-  const taskList = (tasks.data ?? []).filter((t: any) => t.status !== "done" && t.due_date).slice(0, 8);
+  const taskList = (tasks.data ?? [])
+    .filter((t: any) => t.status !== "done" && t.due_date)
+    .slice(0, 8);
   const projectList = (projects.data ?? [])
     .filter((p: any) => ACTIVE_PROJECT_STATUSES.includes(p.status as any))
     .filter((p: any) => !uid || (p?.handoff_payload?.project_manager_user_id ?? null) === uid)
@@ -49,60 +72,141 @@ export function PmHome() {
 
   return (
     <div className="crm-today flex flex-col">
-      <WelcomeHeader title="Mai projektmunka" subtitle="Mai projekt-teendők és a kivitelezés állapota." />
-
-      <QuickActions>
-        <Button size="sm" asChild><Link to="/projects" search={{ new: 1 } as any}><Plus className="mr-1 h-3.5 w-3.5" />Új projekt</Link></Button>
-        <Button size="sm" variant="secondary" asChild><Link to="/tasks" search={{ new: 1 } as any}><Plus className="mr-1 h-3.5 w-3.5" />Új feladat</Link></Button>
-        <Button size="sm" variant="outline" asChild><Link to="/ai-assistant" search={{ agent: "pm" } as any}><Bot className="mr-1 h-3.5 w-3.5" />Boss</Link></Button>
-      </QuickActions>
+      <WelcomeHeader
+        title="Mai projektmunka"
+        subtitle="Mai projekt-teendők és a kivitelezés állapota."
+      />
 
       <div className="px-6 pt-3">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <HeroStat to="/projects" tone="primary" icon={Briefcase}     label="Aktív projektek"   value={activeProjects.data ?? 0} sub="folyamatban" />
-          <HeroStat to="/tasks"    tone="warning" icon={ListChecks}    label="Ma esedékes feladat" value={todayTasks.data ?? 0} sub="mai határidős" />
-          <HeroStat to="/tasks"    tone="danger"  icon={AlertTriangle} label="Lejárt feladat"    value={overdueTasks.data ?? 0} sub="határidőn túl" />
-          <HeroStat to="/followups"tone="danger"  icon={Hammer}        label="Lejárt utókövetés" value={overdueFu.data ?? 0} sub="haladéktalanul" />
+          <HeroStat
+            to="/projects"
+            tone="primary"
+            icon={Briefcase}
+            label="Aktív projektek"
+            value={activeProjects.isSuccess ? (activeProjects.data ?? 0) : "—"}
+            sub="folyamatban"
+          />
+          <HeroStat
+            to="/tasks"
+            tone="warning"
+            icon={ListChecks}
+            label="Ma esedékes feladat"
+            value={todayTasks.isSuccess ? (todayTasks.data ?? 0) : "—"}
+            sub="mai határidős"
+          />
+          <HeroStat
+            to="/tasks"
+            tone="danger"
+            icon={AlertTriangle}
+            label="Lejárt feladat"
+            value={overdueTasks.isSuccess ? (overdueTasks.data ?? 0) : "—"}
+            sub="határidőn túl"
+          />
+          <HeroStat
+            to="/followups"
+            tone="danger"
+            icon={Hammer}
+            label="Lejárt utókövetés"
+            value={overdueFu.isSuccess ? (overdueFu.data ?? 0) : "—"}
+            sub="haladéktalanul"
+          />
         </div>
       </div>
 
-      <SectionLabel title="Mai feladatok" />
-      <div className="grid gap-4 px-6 pb-6 lg:grid-cols-2">
-        <ListCard
-          title="Nyitott feladatok"
-          description="esedékesség szerint"
-          to="/tasks"
-          empty={{ icon: ListChecks, title: "Nincs nyitott feladat" }}
-          items={taskList.map((t: any) => {
-            const overdue = new Date(t.due_date) < new Date();
-            return (
-              <li key={t.id} className="flex items-center justify-between gap-3">
-                <span className="truncate font-medium">{t.title}</span>
-                <span className="flex items-center gap-2">
-                  <Badge variant="outline" className="font-normal">{tStatus("priority", t.priority)}</Badge>
-                  <span className={`tabular-nums ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}>
-                    {fmtDateTime(t.due_date)}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        />
+      <div className="grid min-w-0 gap-5 px-6 pt-5 pb-6 xl:grid-cols-[minmax(0,3fr)_minmax(240px,1fr)]">
+        <div className="min-w-0 space-y-5">
+          <div className="grid min-w-0 gap-5">
+            <ListCard
+              title="Nyitott feladatok"
+              description="esedékesség szerint"
+              to="/tasks"
+              empty={{ icon: ListChecks, title: "Nincs nyitott feladat" }}
+              items={taskList.map((t: any) => {
+                const overdue = new Date(t.due_date) < new Date();
+                return (
+                  <li key={t.id} className="flex flex-wrap items-center justify-between gap-3">
+                    <Link
+                      to="/tasks"
+                      className="min-w-0 flex-1 break-words font-medium text-primary hover:underline"
+                    >
+                      {t.title}
+                    </Link>
+                    <span className="flex items-center gap-2">
+                      <Badge variant="outline" className="font-normal">
+                        {tStatus("priority", t.priority)}
+                      </Badge>
+                      <span
+                        className={`tabular-nums ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}
+                      >
+                        {fmtDateTime(t.due_date)}
+                      </span>
+                    </span>
+                  </li>
+                );
+              })}
+            />
 
-        <ListCard
-          title="Aktív projektek"
-          description="legutóbb frissítve"
-          to="/projects"
-          empty={{ icon: Briefcase, title: "Nincs aktív projekt" }}
-          items={projectList.map((p: any) => (
-            <li key={p.id} className="flex items-center justify-between gap-3">
-              <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
-                {p.title ?? p.name ?? "—"}
-              </Link>
-              <Badge variant="outline" className="font-normal">{PROJECT_STATUS_LABEL[p.status] ?? p.status ?? "—"}</Badge>
-            </li>
-          ))}
-        />
+            <ListCard
+              title="Aktív projektek"
+              description="legutóbb frissítve"
+              to="/projects"
+              empty={{ icon: Briefcase, title: "Nincs aktív projekt" }}
+              items={projectList.map((p: any) => (
+                <li key={p.id} className="flex flex-wrap items-center justify-between gap-3">
+                  <Link
+                    to="/projects/$id"
+                    params={{ id: p.id }}
+                    className="truncate text-primary hover:underline"
+                  >
+                    {p.title ?? p.name ?? "—"}
+                  </Link>
+                  <Badge variant="outline" className="font-normal">
+                    {PROJECT_STATUS_LABEL[p.status] ?? p.status ?? "—"}
+                  </Badge>
+                </li>
+              ))}
+            />
+          </div>
+        </div>
+        <aside className="min-w-0 space-y-5">
+          <WorkspacePanel title="Gyors műveletek">
+            {" "}
+            <div className="grid gap-2 p-4 [&_a]:justify-start">
+              <Button size="sm" asChild>
+                <Link to="/projects" search={{ new: 1 } as any}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  Új projekt
+                </Link>
+              </Button>
+              <Button size="sm" variant="secondary" asChild>
+                <Link to="/tasks" search={{ new: 1 } as any}>
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  Új feladat
+                </Link>
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/ai-assistant" search={{ agent: "pm" } as any}>
+                  <Bot className="mr-1 h-3.5 w-3.5" />
+                  Boss
+                </Link>
+              </Button>
+            </div>
+          </WorkspacePanel>
+          <WorkspacePanel title="Projektmunkához">
+            <div className="grid gap-2 p-4">
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/documents">Dokumentumok</Link>
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/meetings">Találkozók</Link>
+              </Button>
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/attendance">Jelenlét</Link>
+              </Button>
+            </div>
+          </WorkspacePanel>
+        </aside>
       </div>
     </div>
   );

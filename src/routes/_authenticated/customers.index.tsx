@@ -3,9 +3,15 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Users, Building2, User, Sparkles, RotateCcw } from "lucide-react";
 import { Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,10 +20,24 @@ import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
 import { FilterBar, relativeTime } from "@/components/marketing-ui";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
+  head: () => ({
+    meta: [
+      { title: "Ügyfelek és magánszemélyek | VIBA CRM" },
+      {
+        name: "description",
+        content: "Cégek, magánszemélyek és kapcsolattartók a meglévő CRM-ben.",
+      },
+      { property: "og:title", content: "Ügyfelek és magánszemélyek | VIBA CRM" },
+      { property: "og:description", content: "Ügyfélkapcsolatok és aktivitás a VIBA CRM-ben." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: CustomersIndex,
 });
 
 function CustomersIndex() {
+  const [kind, setKind] = useState<"all" | "company" | "person">("all");
   const [search, setSearch] = useState("");
   const [segment, setSegment] = useState<"all" | "active" | "new" | "reactivatable">("all");
   const companies = useQuery({
@@ -37,7 +57,9 @@ function CustomersIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("customer_kpi_v")
-        .select("customer_id,active_projects,total_projects,open_quotes,overdue_followups,last_activity_at");
+        .select(
+          "customer_id,active_projects,total_projects,open_quotes,overdue_followups,last_activity_at",
+        );
       if (error) throw error;
       return data ?? [];
     },
@@ -108,7 +130,10 @@ function CustomersIndex() {
       const lastActMs = lastActivity ? new Date(lastActivity).getTime() : 0;
       const isNew = createdMs >= sevenDaysAgo;
       const isReactivatable =
-        !isNew && totalProjects > 0 && active === 0 && leads === 0 &&
+        !isNew &&
+        totalProjects > 0 &&
+        active === 0 &&
+        leads === 0 &&
         (lastActMs === 0 || lastActMs < ninetyDaysAgo);
       return {
         ...c,
@@ -123,38 +148,67 @@ function CustomersIndex() {
       };
     });
     const s = search.trim().toLowerCase();
-    const searched = s ? all.filter((r) => r.name?.toLowerCase().includes(s)) : all;
+    const typed = all.filter(
+      (r) =>
+        kind === "all" ||
+        (kind === "person" ? r.company_type === "maganszemely" : r.company_type !== "maganszemely"),
+    );
+    const searched = s ? typed.filter((r) => r.name?.toLowerCase().includes(s)) : typed;
     if (segment === "active") return searched.filter((r) => r.activeProjects > 0 || r.leads > 0);
     if (segment === "new") return searched.filter((r) => r.isNew);
     if (segment === "reactivatable") return searched.filter((r) => r.isReactivatable);
     return searched;
-  }, [companies.data, kpis.data, surface, search, segment, pipeline.data, lastEmail.data]);
+  }, [companies.data, kpis.data, surface, search, segment, pipeline.data, lastEmail.data, kind]);
 
   return (
     <div className="flex flex-col">
       <PageHeader
         title="Ügyfelek"
-        description="Cégek és magánszemélyek — marketing nézet a fontos mezőkkel."
+        description="Ügyfélkapcsolatok és aktivitás"
+        actions={
+          <Button asChild size="sm" variant="outline">
+            <Link to="/contacts">
+              <Users className="mr-2 h-4 w-4" />
+              Kapcsolattartók
+            </Link>
+          </Button>
+        }
       />
-      <div className="p-6">
+      <div className="space-y-4 p-6">
+        <div className="flex flex-wrap gap-2" aria-label="Ügyféltípus">
+          {(
+            [
+              { v: "all", label: "Összes ügyfél", icon: Users },
+              { v: "company", label: "Cégek", icon: Building2 },
+              { v: "person", label: "Magánszemélyek", icon: User },
+            ] as const
+          ).map(({ v, label, icon: Icon }) => (
+            <Button
+              key={v}
+              variant={kind === v ? "default" : "outline"}
+              size="sm"
+              onClick={() => setKind(v)}
+            >
+              <Icon className="mr-2 h-4 w-4" />
+              {label}
+            </Button>
+          ))}
+        </div>
         <div className="mb-3 flex flex-wrap gap-1.5">
-          {([
-            { v: "all" as const,            label: "Mind" },
-            { v: "active" as const,         label: "Aktív" },
-            { v: "new" as const,            label: "Új (7 nap)" },
-            { v: "reactivatable" as const,  label: "Reaktiválható" },
-          ]).map((s) => (
-            <button
+          {[
+            { v: "all" as const, label: "Mind" },
+            { v: "active" as const, label: "Aktív" },
+            { v: "new" as const, label: "Új (7 nap)" },
+            { v: "reactivatable" as const, label: "Reaktiválható" },
+          ].map((s) => (
+            <Button
               key={s.v}
+              size="sm"
+              variant={segment === s.v ? "secondary" : "ghost"}
               onClick={() => setSegment(s.v)}
-              className={`rounded-full border px-3 py-1 text-xs transition ${
-                segment === s.v
-                  ? "border-primary bg-primary/10 text-primary font-medium"
-                  : "border-border bg-card hover:bg-muted/50 text-muted-foreground"
-              }`}
             >
               {s.label}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="mb-3">
@@ -163,13 +217,28 @@ function CustomersIndex() {
             onSearch={setSearch}
             searchPlaceholder="Keresés ügyfélnév…"
             resultCount={rows.length}
-            onReset={search || segment !== "all" ? () => { setSearch(""); setSegment("all"); } : undefined}
+            onReset={
+              search || segment !== "all"
+                ? () => {
+                    setSearch("");
+                    setSegment("all");
+                  }
+                : undefined
+            }
           />
         </div>
-        {companies.isLoading ? (
+        {companies.isError ? (
+          <p role="alert" className="text-sm text-destructive">
+            Az ügyféllista nem tölthető be.
+          </p>
+        ) : companies.isLoading ? (
           <p className="text-sm text-muted-foreground">Betöltés…</p>
         ) : rows.length === 0 ? (
-          <EmptyState icon={Users} title="Nincs ügyfél" description="Először vegyél fel egy céget vagy magánszemélyt." />
+          <EmptyState
+            icon={Users}
+            title="Nincs ügyfél"
+            description="Először vegyél fel egy céget vagy magánszemélyt."
+          />
         ) : (
           <div className="rounded-md border bg-card">
             <Table>
@@ -198,7 +267,9 @@ function CustomersIndex() {
                             {r.name}
                           </Link>
                           <span className="text-[11px] text-muted-foreground">
-                            {isPersonal ? "Magánszemély" : (COMPANY_TYPE_LABEL[r.company_type] ?? "Cég")}
+                            {isPersonal
+                              ? "Magánszemély"
+                              : (COMPANY_TYPE_LABEL[r.company_type] ?? "Cég")}
                           </span>
                         </div>
                       </TableCell>
@@ -218,11 +289,13 @@ function CustomersIndex() {
                       <TableCell>
                         {r.isNew ? (
                           <Badge className="border-[color:var(--status-info)]/40 bg-[color:var(--status-info)]/10 text-[color:var(--status-info)]">
-                            <Sparkles className="mr-1 h-3 w-3" />Új
+                            <Sparkles className="mr-1 h-3 w-3" />
+                            Új
                           </Badge>
                         ) : r.isReactivatable ? (
                           <Badge className="border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]">
-                            <RotateCcw className="mr-1 h-3 w-3" />Reaktiválható
+                            <RotateCcw className="mr-1 h-3 w-3" />
+                            Reaktiválható
                           </Badge>
                         ) : r.activeProjects > 0 || r.leads > 0 ? (
                           <Badge variant="secondary">Aktív</Badge>
