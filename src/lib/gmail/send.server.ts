@@ -8,6 +8,9 @@ import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
 import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
 import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment } from "@/lib/quotes/send-policy";
+import {validateCrmLink} from './validate-crm-link';
+import {resolveThreadLink} from './crm-association';
+import {isMarketingCompany} from '@/lib/marketing-universe';
 
 
 export type SendHooks = {
@@ -61,6 +64,17 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     }
     const bearer = (request.headers.get("authorization") ?? "").slice(7);
     const caller = getUserClient(bearer);
+    try {
+      let link=await validateCrmLink(caller,body);
+      if(body.threadId){
+        const previous=await caller.from('email_threads').select('company_id,contact_id,lead_id').eq('gmail_thread_id',body.threadId).maybeSingle();
+        if(previous.error||!previous.data)throw new Error('A válasz szála nem olvasható.');
+        const resolved=resolveThreadLink(previous.data,link);
+        if(resolved.conflict)throw new Error('A válasz eltérő céghez vagy ügyhöz lenne kapcsolva; ellenőrizd a szálat.');
+        link=await validateCrmLink(caller,resolved.link);
+      }
+      body.company_id=link.company_id??undefined;body.contact_id=link.contact_id??undefined;body.lead_id=link.lead_id??undefined;
+    } catch(error) {return Response.json({error:error instanceof Error?error.message:'Hibás CRM-kapcsolat.'},{status:409});}
     for (const [table, id] of [["companies", body.company_id], ["contacts", body.contact_id], ["leads", body.lead_id], ["projects", body.project_id]] as const) {
       if (!id) continue;
       const { data: linked, error: linkedError } = await caller.from(table).select("id").eq("id", id).maybeSingle();
@@ -235,7 +249,7 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
         .maybeSingle();
       const currentNotes = (company as any)?.notes ?? null;
       const meta = readMarketingMeta(currentNotes);
-      if (meta.status === "new") {
+      if (isMarketingCompany({notes:currentNotes}) && meta.status === "new") {
         const nextNotes = withMarketingStatus(currentNotes, "contacted");
         await admin.from("companies").update({ notes: nextNotes }).eq("id", body.company_id);
       }

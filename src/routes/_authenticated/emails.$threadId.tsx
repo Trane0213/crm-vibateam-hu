@@ -19,6 +19,7 @@ import { EmailThreadProjectPicker } from "@/components/emails/email-thread-proje
 import { AttachmentGrid } from "@/components/emails/attachment-grid";
 import { usePermissions } from "@/hooks/use-permissions";
 import { getMailboxes } from "@/lib/gmail/mailbox.functions";
+import {EmailThreadCompanyPicker} from '@/components/emails/email-thread-company-picker';
 
 export const Route = createFileRoute("/_authenticated/emails/$threadId")({
   validateSearch: (search: Record<string, unknown>): { mailbox?: string } => ({ mailbox: typeof search.mailbox === "string" ? search.mailbox : undefined }),
@@ -279,6 +280,7 @@ function EmailThread() {
       </div>
 
       <div className="mx-auto w-full max-w-[1400px] px-3 py-3 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_280px] gap-4">
+        {thread.data && <div className="lg:col-span-2"><EmailThreadCompanyPicker threadId={threadId} companyId={thread.data.company_id}/></div>}
         {/* Bal: email olvasó */}
         <div className="min-w-0 space-y-2">
           {emails.isLoading ? (
