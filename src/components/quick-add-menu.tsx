@@ -38,12 +38,12 @@ export function QuickAddMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" className="gap-1">
+        <Button size="sm" className="gap-1" aria-label="Új adat hozzáadása" title="Új adat hozzáadása">
           <Plus className="h-3.5 w-3.5" />
-          Új…
+          <span className="hidden sm:inline">Hozzáadás</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="min-w-60 max-w-[calc(100vw-2rem)]">
         <DropdownMenuLabel>Gyors hozzáadás</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {items.map((i) => (

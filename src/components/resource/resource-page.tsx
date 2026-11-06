@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pencil, Plus, Trash2, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePermissions } from "@/hooks/use-permissions";
+import { humanizeSupabaseError } from "@/lib/db-hooks";
 
 const OWNER_ONLY_DELETE = new Set(["companies", "contacts", "phone_calls", "meetings", "tasks"]);
 import { Button } from "@/components/ui/button";
@@ -329,7 +330,7 @@ export function RecordDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Töltsd ki a kötelező mezőket, majd kattints a Mentés gombra.
+            {defaults ? "A mentés a megnyitott rekordot módosítja." : "A mentés új rekordot hoz létre."} A csillaggal jelölt mezők kötelezők.
           </DialogDescription>
         </DialogHeader>
         {open ? (
@@ -368,9 +369,11 @@ function RecordDialogForm({
     return init;
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaveError(null);
     const errs: Record<string, string> = {};
     for (const f of fields) {
       if (f.required) {
@@ -382,23 +385,31 @@ function RecordDialogForm({
     }
     setErrors(errs);
     if (Object.keys(errs).length) return;
-    const out: Record<string, any> = {};
-    for (const f of fields) out[f.name] = fromInput(values[f.name], f.type);
-    await onSubmit(out);
+    try {
+      const out: Record<string, any> = {};
+      for (const f of fields) out[f.name] = fromInput(values[f.name], f.type);
+      await onSubmit(out);
+    } catch (error) {
+      setSaveError(humanizeSupabaseError(error));
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <form onSubmit={handleSubmit} className="space-y-4" aria-busy={submitting}>
+      {saveError && <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"><p className="font-medium">A mentés nem sikerült.</p><p className="mt-1">{saveError}</p><p className="mt-2 text-muted-foreground">A beírt értékek megmaradtak. Ellenőrizd őket, majd próbáld újra a mentést.</p></div>}
+      <fieldset disabled={submitting} className="grid gap-4 sm:grid-cols-2">
       {fields.map((f) => (
+        <div key={f.name} className={f.type === "textarea" ? "sm:col-span-2" : "min-w-0"}>
         <FieldRow
-          key={f.name}
           field={f}
           value={values[f.name]}
           error={errors[f.name]}
           onChange={(v) => setValues((s) => ({ ...s, [f.name]: v }))}
         />
+        </div>
       ))}
-      <DialogFooter>
+      </fieldset>
+      <DialogFooter className="gap-2 border-t pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Mégse
         </Button>
@@ -428,7 +439,7 @@ function FieldRow({
         {field.required && <span className="text-destructive"> *</span>}
       </Label>
       <FieldInput field={field} value={value} onChange={onChange} />
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }

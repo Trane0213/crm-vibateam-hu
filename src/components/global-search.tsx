@@ -94,7 +94,7 @@ export function GlobalSearch() {
 
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-2 text-muted-foreground" onClick={() => setOpen(true)}>
+      <Button variant="outline" size="sm" className="gap-2 text-muted-foreground" aria-label="Keresés a CRM-ben" title="Keresés a CRM-ben" onClick={() => setOpen(true)}>
         <Search className="h-3.5 w-3.5" />
         <span className="hidden md:inline">Keresés…</span>
         <kbd className="hidden md:inline-flex h-5 items-center rounded border bg-muted px-1.5 text-[10px] font-mono text-muted-foreground">⌘K</kbd>
