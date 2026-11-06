@@ -33,3 +33,24 @@ A régi audit az UPDATES-címkét és noreply-feladót is bizonyosságnak tekint
 - Kód, séma és éles adat nem módosult. Az export CLI user-managed backendnél nem elérhető; SELECT eszköz eredményéből csak a célzott 168 ID és 8 jelölt metaadata került auditfájlba.
 - Nincs teljes 4543-szálas snapshot vagy végrehajtási rollback: ebben a körben nem írunk, és az előszűrés nem jóváhagyott javítás. Írás előtt külön friss snapshot kell szál+üzenet+kontakt és minden érintett kapcsolat régi/új értékeiről, változásvédett rollback és pontos darabszám; owner tételes jóváhagyással. Sem a 168-as, sem a 8-as lista nem engedély íróműveletre.
 - Hosted tulajdonosi, saját postafiókos kézi előzményvizsgálat NEM TESZTELT: external_unmanaged, nincs átadható session. STOP.
+
+## Tételes második ellenőrzés – 2026-11-06 16:52–16:54 UTC
+
+A nyolc jelölt újraolvasva, három csoport. A címzett-, tárgy- és törzsmezők adatbázison belüli hash-egyezése azonos csoporton belül azonos tárolt tartalmat mutat; nem exportáltunk tárgyat vagy törzset. Ez tárolt másolatok egyezése, nem Gmail-szálazonosság és nem összevonási engedély. Mind a nyolcnál a saját owner és hozzáférési mailbox megfelel a jelenlegi profil Gmail-címének, a legacy to_email megfelel az első to_emails értéknek.
+
+| Célcég / egyező tárolt levélcsoport | Szálak | Saját fiók szerinti bizonyíték | Döntési állapot |
+|---|---|---|---|
+| Szabó-Galambos Fővállalkozó Kft. | 3 | Ramon 1 SENT; info és Pretor azonos tartalmú, belső feladótól érkezett CC-példány | Cégkapcsolat kézi jóváhagyására vár |
+| Petrov és Társa Zrt. | 3 | Ramon 1 SENT; info és Pretor azonos tartalmú, belső feladótól érkezett CC-példány | Cégkapcsolat kézi jóváhagyására vár |
+| KÉSZ Group / KÉSZ Építő | 2 | info és Pretor belső feladótól érkezett CC-példány; e két szálon nincs SENT-bizonyíték | Hiányos küldési bizonyíték; nem állítjuk, hogy nem küldték el |
+
+**Fontos pontosítás:** a hat `is_outbound=false` üzenet nem külső ügyfélválasz: a feladó belső, a külső kontakt címzett/CC. Ezeket nem lehet hat érdeklődésnek vagy válasznak számítani. A nyolc szál nem nyolc független megkeresés bizonyítéka.
+
+Megnyitható jelöltek (a felhasználó saját CRM-jogosultságával):
+- Szabó-Galambos: [Ramon SENT](https://crm-vibateam-hu.lovable.app/emails/3c23909b-2993-484f-89f3-a84b02862db8), [info példány](https://crm-vibateam-hu.lovable.app/emails/9ed07633-eb57-471e-bf02-1c530a493f58), [Pretor példány](https://crm-vibateam-hu.lovable.app/emails/14ebffd0-2093-435d-98c6-705e9d281064).
+- Petrov: [Ramon SENT](https://crm-vibateam-hu.lovable.app/emails/cba273d7-42ee-437f-89d3-215abdcba016), [info példány](https://crm-vibateam-hu.lovable.app/emails/5253bfb8-7587-40c3-9bf2-c405e4a0b9d7), [Pretor példány](https://crm-vibateam-hu.lovable.app/emails/98f4bcfa-4652-438f-a2ce-9ff3a1ed2338).
+- KÉSZ: [info példány](https://crm-vibateam-hu.lovable.app/emails/a0ba96cf-1adc-41f3-9c4a-dfbd58cd263d), [Pretor példány](https://crm-vibateam-hu.lovable.app/emails/b5967b74-d809-473a-9758-8df8d63e0ec7).
+
+A 168-as listából az első öt ID szerinti minta: négy promóciós címke és egy legalább nyolccímzettes szál. Háromnak mentett kontaktja van; mind az öt üzenetnek is van company_id-ja. Egyik sem kapott automatikus leválasztási minősítést. Ez öt mintatétel, nem a teljes 168 cégkapcsolatának tételes tartalmi elfogadása.
+
+Ebben a második körben továbbra csak SELECT történt. Nincs új kód/séma/RLS, nincs küldés, átírás vagy publikálás. Következő kapu: a fenti három célcég kapcsolatának tulajdonosi ellenőrzése; utána lehet külön pontos, szál+üzenet konzisztenciát megőrző módosítási javaslatot és friss snapshot/rollbacket készíteni. KÉSZ-küldést és teljes történetet nem igazoltunk, reklámszálak leválasztását nem engedélyeztük.
