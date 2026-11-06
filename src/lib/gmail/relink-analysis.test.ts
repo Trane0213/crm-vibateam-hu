@@ -61,3 +61,28 @@ describe("szinkron checkpoint", () => {
     expect(isPermanentMessageError("fetch timeout")).toBe(false);
   });
 });
+
+describe("saját (Viba-Team) céghez mentett szálak", () => {
+  const S = new Set(["SELF"]);
+  const i2 = buildContactIndex([{ id: "c1", email: "anna@acme.hu", company_id: "A" }, { id: "c2", email: "bela@beta.hu", company_id: "B" }, { id: "s", email: "ramon.dencsi@vibateam.hu", company_id: "SELF" }]);
+  it("külső megkeresés nem számít helyesen kapcsoltnak; pontos kontakt → másik cég javaslat", () => {
+    const r = analyzeThread(T("SELF"), [out(["anna@acme.hu"])], MB, i2, S);
+    expect(r.category).toBe("self_other_company");
+    expect(r.suggested_company_id).toBe("A");
+  });
+  it("csak belső → self_internal", () => {
+    expect(analyzeThread(T("SELF"), [out(["ramon.dencsi@vibateam.hu"])], MB, i2, S).category).toBe("self_internal");
+  });
+  it("két ügyfélcég → self_conflict, nincs javaslat", () => {
+    const r = analyzeThread(T("SELF"), [out(["anna@acme.hu", "bela@beta.hu"])], MB, i2, S);
+    expect(r.category).toBe("self_conflict");
+    expect(r.suggested_company_id).toBeNull();
+  });
+  it("ismeretlen cím → self_no_contact; domain → self_conflict", () => {
+    expect(analyzeThread(T("SELF"), [out(["x@ismeretlen.hu"])], MB, i2, S).category).toBe("self_no_contact");
+    expect(analyzeThread(T("SELF"), [out(["uj@acme.hu"])], MB, i2, S).category).toBe("self_conflict");
+  });
+  it("promóció → self_bulk", () => {
+    expect(analyzeThread(T("SELF"), [inn("news@shop.hu")].map(m => ({ ...m, gmail_label_ids: ["CATEGORY_PROMOTIONS"] })), MB, i2, S).category).toBe("self_bulk");
+  });
+});

@@ -8,7 +8,13 @@ export type RelinkCategory =
   | "review"        // csak domain-egyezés, körlevél, gyűjtőcím, hiányos kontakt → kézi ellenőrzés
   | "conflict"      // több cég vagy mentett cégtől eltérő egyezés
   | "no_contact"    // külső résztvevő van, de nincs CRM-kontakt
-  | "internal";     // csak belső / tesztcím, nem ügyfélkommunikáció
+  | "internal"      // csak belső / tesztcím, nem ügyfélkommunikáció
+  // Saját (Viba-Team) céghez mentett szálak – NEM számítanak helyesen kapcsoltnak:
+  | "self_internal"       // valóban belső levelezés
+  | "self_other_company"  // egyértelmű külső kontakt → létező másik cég (javítási javaslat)
+  | "self_conflict"       // több szereplő / ellentmondás / csak domain / céghez nem kötött kontakt
+  | "self_no_contact"     // külső cím, nincs CRM-kontakt
+  | "self_bulk";          // körlevél / promóció / gyűjtőcím
 
 export type RelinkContact = { id: string; email: string | null; company_id: string | null };
 export type RelinkMessage = {
@@ -50,7 +56,7 @@ export function buildContactIndex(contacts: RelinkContact[]) {
 }
 export type ContactIndex = ReturnType<typeof buildContactIndex>;
 
-export function analyzeThread(thread: RelinkThread, messages: RelinkMessage[], mailbox: string, idx: ContactIndex): RelinkResult {
+export function analyzeThread(thread: RelinkThread, messages: RelinkMessage[], mailbox: string, idx: ContactIndex, selfCompanyIds: ReadonlySet<string> = new Set()): RelinkResult {
   const me = normEmail(mailbox);
   const external = new Set<string>();
   let outbound = 0, inbound = 0, firstOut: number | null = null, replied = false, bulk = false, promo = false;
@@ -70,16 +76,30 @@ export function analyzeThread(thread: RelinkThread, messages: RelinkMessage[], m
   const subject = (sorted.map(m => m.subject).find(s => s && s.trim()) ?? thread.subject ?? "").trim() || "(nincs tárgy)";
   const evidence: string[] = [];
   const base = { thread_id: thread.id, subject, saved_company_id: thread.company_id, external: [...external], outbound, inbound, replied, last_at: thread.last_message_at };
-  if (external.size === 0) return { ...base, category: "internal", suggested_company_id: null, matched_contact_ids: [], evidence: ["Csak belső vagy tesztcím résztvevő."] };
+  const isSelf = !!thread.company_id && selfCompanyIds.has(thread.company_id);
+  if (external.size === 0) return { ...base, category: isSelf ? "self_internal" : "internal", suggested_company_id: null, matched_contact_ids: [], evidence: ["Csak belső vagy tesztcím résztvevő."] };
 
   const matched: RelinkContact[] = [];
   const unlinkedContact: string[] = [];
   for (const e of external) for (const c of idx.byEmail.get(e) ?? []) { matched.push(c); if (!c.company_id) unlinkedContact.push(e); }
-  const companies = new Set(matched.map(c => c.company_id).filter((x): x is string => !!x));
+  // A saját cég kontaktja nem bizonyít ügyfélcéget.
+  const companies = new Set(matched.map(c => c.company_id).filter((x): x is string => !!x && !selfCompanyIds.has(x)));
   for (const c of matched) evidence.push(`Pontos kontakt-email: ${normEmail(c.email)}`);
   const result = (category: RelinkCategory, suggested: string | null, extra: string[] = []) =>
     ({ ...base, category, suggested_company_id: suggested, matched_contact_ids: [...new Set(matched.map(c => c.id))], evidence: [...evidence, ...extra] });
 
+  if (isSelf) {
+    const collective = matched.some(c => COLLECTIVE.test(normEmail(c.email)));
+    const only = [...companies][0] ?? null;
+    if (bulk || promo) return result("self_bulk", null, ["Saját céghez mentve; körlevél/promóció gyanú."]);
+    if (companies.size > 1) return result("self_conflict", null, [`Saját céghez mentve; ${companies.size} különböző ügyfélcég kontaktja.`]);
+    if (only && !collective && !unlinkedContact.length) return result("self_other_company", only, ["Saját céghez mentve, de pontos kontakt-email egyetlen másik céget bizonyít."]);
+    if (only || unlinkedContact.length) return result("self_conflict", only, ["Saját céghez mentve; gyűjtőcím vagy céghez nem kötött kontakt — kézi döntés."]);
+    const dom = new Set<string>();
+    for (const e of external) for (const id of idx.byDomain.get(domainOf(e)) ?? []) if (!selfCompanyIds.has(id)) dom.add(id);
+    if (dom.size) return result("self_conflict", dom.size === 1 ? [...dom][0]! : null, ["Saját céghez mentve; csak domain-egyezés — nem bizonyíték."]);
+    return result("self_no_contact", null, ["Saját céghez mentve; a külső címekhez nincs CRM-kontakt."]);
+  }
   if (companies.size > 1) return result("conflict", null, [`${companies.size} különböző cég kontaktja szerepel a szálban.`]);
   const only = [...companies][0] ?? null;
   if (thread.company_id && only && only !== thread.company_id) return result("conflict", only, ["A mentett cég eltér a pontos kontakt-egyezéstől."]);
