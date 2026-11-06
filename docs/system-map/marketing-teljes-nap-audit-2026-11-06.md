@@ -26,3 +26,10 @@ Semmi nem módosult. Forrás: éles RLS-szabályok, éles darabszámok, kód.
 
 ## Nem tesztelhető
 Bejelentkezett marketinges munkanap-próba: a projekt munkamenete nem injektált (`external_unmanaged`), marketinges TESZT-fiók jelszavát nem kérem chatben. Gmail-csatlakozás szerepkörönként nem ellenőrizhető a token-oszlopok védelme miatt.
+
+## Újravizsgálat (2026-11-06 13:45, javítások után)
+Javítva: saját utánkövetés/feladat írás, Hívások a főmenüben, weboldali igény → cég/kontakt felvétel, ellenőrizetlen AI-cégkutató kivezetve.
+Éles adat (read-only): 3 marketinges, mindhárom Gmail-címe beállítva; szál-hozzáférés 210 / 119 / 570.
+Utolsó 30 nap aktivitás: 0 / 23 / 0; saját nyitott utánkövetés és feladat: 0 mindenkinél.
+Állomány: 446 cég, ebből 128 kapcsolattartó nélkül (nem adható át Sales-nek). 439 kontakt, ebből 321 telefonszám nélkül, 6 email nélkül. 2427 cég nélküli levélszál; email_campaigns 0 sor.
+Maradék akadályok: (1) hívható/átadható célcég kevés az adathiány miatt; (2) levélszál-tisztítás nem történt; (3) találkozó nem rögzíthető; (4) napi lista 1000 soros korlátja; (5) bejelentkezett marketinges próba nem történt.
