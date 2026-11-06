@@ -15,7 +15,7 @@
 - [x] 3. kör küldési védelem: jóváhagyott címhez kötött igazolt tiltás + service-only audit/claim, napi 40/fiók Budapest, két engedélyezett TESZT-cím és shared Gmail pontos proof. 696 teszt, izolált concurrent SQL, desktop/mobil TESZT-megjelenítés/build PASS; éles audit/tiltás 0, ügyfélküldés/publikálás nincs. Jelentés docs/system-map/kampanykuldes-vedelem-2026-11-06.md; STOP.
 - [ ] Engedélyezett valódi TESZT-küldés és hosted kampány/tiltás E2E: external_unmanaged saját munkamenet hiányzik, kampány mentett szövege üres; NEM TESZTELT. Nincs másik feladóval kerülőút.
 - [ ] Ügyfélküldés és időzítés aktiválás: külön tulajdonosi kapu; hiányos történet feloldása és indításmód nincs jóváhagyva.
-- [ ] 4–5. kör: napi munkafolyamat, Scarlet és végigpróba; csak az előző kör elfogadása után, adatjavítás/RLS/küldés külön kapuval.
+- [ ] 4–5. kör: 2026-11-06 16:13 UTC folytatási jóváhagyás alapján napi munkafolyamat és Scarlet célzott, olvasási ellenőrzése; bizonyított hibák hatókörének kijelölése. Hitelesített végigpróba external_unmanaged miatt nem elérhető; adatjavítás/RLS/küldés külön kapuval.
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
 - [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
 - [x] Marketing Ma közös napi adatforrás, saját külső válaszmutató, visszahívás és utánkövetés; minden cég keresése külön a kampánytól, cégazonosító szerinti küldés-visszajelzés.
