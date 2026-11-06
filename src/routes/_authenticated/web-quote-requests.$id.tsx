@@ -42,7 +42,7 @@ function WebQuoteRequestDetail() {
     <div className="flex h-full flex-col">
       <PageHeader
         title="Ajánlatkérés részletei"
-        description="Beérkezett weboldali ajánlatkérés — csak olvasható nézet."
+        description="Beérkezett weboldali ajánlatkérés — az eredeti adatok nem módosíthatók."
         actions={
           <Button asChild variant="outline" size="sm">
             <Link to="/web-quote-requests">
