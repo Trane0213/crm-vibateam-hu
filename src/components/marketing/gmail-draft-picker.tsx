@@ -16,7 +16,7 @@ export function GmailDraftPicker({ disabled, onCopy }: { disabled: boolean; onCo
   async function load(token?: string) {
     setBusy(true); setError(''); setSource(null); setDraftId(''); setPage(null);
     try { setPage(await listFn({ data: { pageToken: token } })); }
-    catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+    catch { setError('A saját Gmail-piszkozatok nem olvashatók. Ellenőrizd a bejelentkezést és a saját fiók állapotát.'); } finally { setBusy(false); }
   }
   async function read(copy: boolean) {
     setBusy(true); setError(''); setSource(null);
@@ -24,7 +24,7 @@ export function GmailDraftPicker({ disabled, onCopy }: { disabled: boolean; onCo
       const fresh = await readFn({ data: { draftId } });
       setSource(fresh);
       if (copy) onCopy(draftTextCopy(fresh));
-    } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
+    } catch (e) { setError(e instanceof Error && !/unauthorized|authorization|token|fetch/i.test(e.message) ? e.message : 'A piszkozat nem olvasható. Jelentkezz be újra; másolás nem történt.'); } finally { setBusy(false); }
   }
   const blocked = disabled || busy;
   return <section className="space-y-2 border-y py-3">
