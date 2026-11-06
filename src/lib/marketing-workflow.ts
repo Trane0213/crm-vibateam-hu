@@ -76,12 +76,12 @@ export function computeNextStep(input: WorkflowInput): NextStep {
     return {
       id: "handoff-done",
       tone: "done",
-      title: "Átadva sales-nek",
+      title: "Átadva a Sales-előkészítésbe",
       description: meta.statusDate
-        ? `A cég ${meta.statusDate}-én átkerült a sales pipeline-ba. A marketing minősítés lezárult.`
-        : "A cég átkerült a sales pipeline-ba. A marketing minősítés lezárult.",
+        ? `Mentett marketingállapot: átadva (${meta.statusDate}). Az ügy a kijelölt értékesítő Sales-előkészítéséhez tartozik; a Pipeline-ba léptetés külön Sales-művelet.`
+        : "Mentett marketingállapot: átadva. Az ügy a kijelölt értékesítő Sales-előkészítéséhez tartozik; a Pipeline-ba léptetés külön Sales-művelet.",
       primary: meta.handoffLeadId
-        ? { label: "Lead megnyitása", action: "open-lead" }
+        ? { label: "Átadott ügy megnyitása", action: "open-lead" }
         : { label: "Folyamat lezárva", action: "none" },
       why: ["Marketing státusz: Átadva sales-nek"],
     };
@@ -92,7 +92,7 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       id: "needs-contact",
       tone: "action",
       title: "Kapcsolattartó felvétele szükséges",
-      description: "A salesnek átadáshoz legalább egy kapcsolattartó kell. Vegyél fel egyet a Kapcsolattartók fülön.",
+      description: "A felület előkészítési sorrendjében először a kapcsolattartót rögzítsd. Ez még nem hoz létre Sales-ügyet.",
       primary: { label: "Kapcsolattartó hozzáadása", action: "add-contact", targetTab: "contacts" },
       why: ["Nincs kapcsolattartó rögzítve a céghez"],
     };
@@ -114,7 +114,7 @@ export function computeNextStep(input: WorkflowInput): NextStep {
       id: "needs-lead-source",
       tone: "action",
       title: "Lead érkezési csatorna megjelölése szükséges",
-      description: "Válaszd ki, honnan érkezett a lead. Ez kötelező a Saleshez átadáshoz.",
+      description: "Válaszd ki, honnan érkezett az érdeklődés. A csatorna mentése még nem adja át az ügyet a Salesnek.",
       primary: { label: "Csatorna kiválasztása", action: "select-lead-source" },
       secondary: { label: "Email küldése (opcionális)", action: "send-email" },
       why: ["Még nincs megjelölt érkezési csatorna"],
@@ -148,9 +148,9 @@ export function computeNextStep(input: WorkflowInput): NextStep {
   return {
     id: "ready-handoff",
     tone: "ready",
-    title: "Átadható sales-nek",
-    description: "Minden adat megvan: kapcsolattartó, érkezési csatorna és sales jegyzet. Hozz létre leadet és add át.",
-    primary: { label: "Saleshez átadás", action: "open-handoff" },
+    title: "Sales-átadás előkészítése",
+    description: "Nyisd meg az átadás ellenőrzését: összefoglaló, csatorna, felelős és meglévő nyitott ügyek. Az átadás csak a megerősítő gombbal történik; email nem indul.",
+    primary: { label: "Átadás ellenőrzése", action: "open-handoff" },
     secondary: { label: "Jegyzet ellenőrzése", action: "write-sales-note", targetTab: "sales-note" },
     why: [
       "Van kapcsolattartó",
