@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { useServerFn } from '@tanstack/react-start';
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Building2, UserPlus } from "lucide-react";
@@ -7,10 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
-import { logActivity } from "@/lib/activity-log";
 import { decideIntake, normalizeEmail } from "@/lib/web-request-intake";
 import type { QuoteRequest } from "@/lib/quote-requests.functions";
-import { saveIntakeOnce, type IntakeProgress } from '@/lib/web-request-intake-save';
+import { createWebsiteIntake, readWebsiteIntake } from '@/lib/web-request-intake.functions';
 import { refreshMarketingWork } from '@/lib/marketing-refresh';
 
 const esc = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -23,7 +23,9 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
   const { role } = usePermissions();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const progress = useRef(new Map<string, IntakeProgress>());
+  const saveFn=useServerFn(createWebsiteIntake);
+  const checkFn=useServerFn(readWebsiteIntake);
+  const [savedCompany, setSavedCompany]=useState<Record<string,string>>({});
   const [attemptedIds, setAttemptedIds] = useState<string[]>([]);
   const email = normalizeEmail(req.email);
   const companyBase = (req.company_name ?? "").trim() || (req.name ?? "").trim();
@@ -48,34 +50,23 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
 
   const create = useMutation({
     mutationFn: async () => {
-      const entry = progress.current.get(req.id) ?? { companyId: null, started: false };
-      progress.current.set(req.id, entry);
-      if (entry.started) throw new Error('A korábbi felvételt ellenőrizd a céglistában.');
-      const refreshed = await match.refetch();
-      if (refreshed.error) throw refreshed.error;
-      const d = refreshed.data;
-      if (d?.kind !== "create") throw new Error("A felvétel nem engedélyezett ennél az igénynél.");
       setAttemptedIds(ids => [...ids, req.id]);
-      return saveIntakeOnce(entry, async () => {
-        const { data: co, error: e1 } = await supabase.from("companies")
-        .insert({ name: d.companyName, notes: `Weboldali ajánlatkérésből: ${req.id}` })
-        .select("id").single();
-      if (e1) throw e1;
-      return co.id;
-      }, async (companyId) => {
-      const { error: e2 } = await supabase.from("contacts").insert({
-        company_id: companyId, name: d.contactName, email, phone: req.phone?.trim() || null,
-      });
-      if (e2) throw new Error(`A cég létrejött, de a kapcsolattartó nem mentődött: ${e2.message}`);
-      }, async (companyId) => { await logActivity("quote_requests", "create", req.id, { company_id: companyId, intake: "web_request" }); });
+      return saveFn({data:{id:req.id}});
     },
-    onSuccess: (companyId) => {
+    onSuccess: (result) => {
       void refreshMarketingWork(qc);
-      toast.success("Felvéve a CRM-be", { description: "A céges munkafelületen minősítsd és add át a Sales-nek." });
-      navigate({ to: "/customers/$id", params: { id: companyId } });
+      if(result.kind !== 'saved' && result.kind !== 'existing') { toast.error('Felvétel nem igazolt teljesként',{description:result.reason}); return; }
+      setSavedCompany(rows=>({...rows,[req.id]:result.companyId}));
+      toast.success(result.kind==='saved'?'Felvéve a CRM-be':'Meglévő cég ellenőrizve');
+      navigate({ to: "/customers/$id", params: { id: result.companyId } });
     },
     onError: (e: Error) => { void refreshMarketingWork(qc); toast.error("Felvétel nem igazolt teljesként", { description: e.message }); },
   });
+  const check=useMutation({mutationFn:()=>checkFn({data:{id:req.id}}),onSuccess:(result)=>{
+    if(result.kind==='saved' || result.kind==='existing') {setSavedCompany(rows=>({...rows,[req.id]:result.companyId}));toast.success('Mentett felvétel ellenőrizve');}
+    else toast.error('Eredmény nem igazolt',{description:result.reason});
+    void refreshMarketingWork(qc);
+  },onError:(e:Error)=>toast.error('Ellenőrzés sikertelen',{description:e.message})});
 
   if (role !== "marketing" && role !== "owner") return null;
   const d = match.data;
@@ -90,8 +81,9 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
           Az igényből nem lesz automatikusan lead. Vedd fel cégként, majd a céges munkafelületen add át a Sales-nek.
         </p>
         {attemptedIds.includes(req.id) && !create.isPending ? <div className="space-y-2">
-          <p role="alert" className="text-destructive">A felvétel eredményét ellenőrizd; újabb automatikus felvétel tiltott.</p>
-          {progress.current.get(req.id)?.companyId ? <Button asChild size="sm" variant="outline"><Link to="/customers/$id" params={{ id: progress.current.get(req.id)?.companyId ?? '' }}>Létrejött cég megnyitása</Link></Button> : <Button asChild size="sm" variant="outline"><Link to="/customers">Céglista megnyitása</Link></Button>}
+          <p role="alert" className="text-muted-foreground">A felvétel eredményét ellenőrizd; újabb automatikus felvétel tiltott.</p>
+          <Button size="sm" variant="outline" disabled={check.isPending} onClick={()=>check.mutate()}>Mentett eredmény ellenőrzése</Button>
+          {savedCompany[req.id] ? <Button asChild size="sm" variant="outline"><Link to="/customers/$id" params={{ id: savedCompany[req.id] ?? '' }}>Létrejött cég megnyitása</Link></Button> : <Button asChild size="sm" variant="outline"><Link to="/customers">Céglista megnyitása</Link></Button>}
         </div> : match.isLoading ? <p className="text-muted-foreground">Egyezés keresése…</p>
           : match.error ? <p className="text-destructive">{(match.error as Error).message}</p>
           : d?.kind === "existing" ? (
