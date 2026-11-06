@@ -18,7 +18,8 @@ export const setCompanyBlock = createServerFn({ method: 'POST' }).middleware([re
     const role = await context.supabase.rpc('crm_role_of', { _auth_user: context.userId });
     if (role.error || !companyBlockAllows(String(role.data), data.blocked)) throw new Error('Nincs jogosultság a tiltás módosításához.');
     const saved = await context.supabase.rpc('company_set_marketing_block', {
-      p_company: data.companyId, p_blocked: data.blocked, p_reason: data.reason, p_expected_revision: data.expectedRevision,
+      // Generated RPC argument types omit SQL nullability; SQL explicitly accepts null for an initial revision.
+      p_company: data.companyId, p_blocked: data.blocked, p_reason: data.reason, p_expected_revision: data.expectedRevision as string,
     });
     if (saved.error) throw new Error(saved.error.message);
     const read = await context.supabase.from('companies').select(COLUMNS).eq('id', data.companyId).maybeSingle();
