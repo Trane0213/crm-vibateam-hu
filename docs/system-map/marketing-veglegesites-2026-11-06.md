@@ -1,6 +1,15 @@
 # A hátralévő marketingmunka – közös állapot
 
-A 17:01 UTC feltöltött kérés az eredeti 0–5. terv folytatása, nem új rendszerterv. Kész funkciók ismétlése nincs; megengedett kód/izolált teszt köztes STOP nélkül, éles adatok/jogosultság/küldés/publikálás kapui megmaradnak. E dokumentum a folytatás közös rövid jegyzete, nem teljes elfogadási jelentés.
+A 17:40 UTC feltöltött hat szakaszos utasítás az irányadó: most kizárólag az 1. szakasz engedélyezett, utána kötelező STOP. Felülírja a 17:01 UTC köztes megállás nélküli szakaszváltást. Az alábbi korábbi állapotjegyzetek történetiek; a későbbi bejegyzések felülírják a már megszüntetett hiányokat. Nem teljes elfogadási jelentés.
+
+## 1. SZAKASZ – RÉSZBEN KÉSZ · 17:42 UTC
+- Ellenőrizve: közös cég/kontaktolvasás, strukturált marketingállapot, tartós kampánytagság és Gmail-küldési bizonyíték elkülönítése; három saját céges postafiók szerinti olvasás; DRAFT kizárása és belső CC-példány nem ügyfélválasz; kézi review változatlan. A célzott forrásaudit nem talált új, igazolt kódhibát; kész funkciót nem építettünk újra.
+- Friss éles, csak olvasásos állapot: 664 cég, 701 kontakt, 8 lead, 1 kampány, 18 webes igény, 74 nyitott review. Tárolt saját üzenetek: info 9829, Pretor 718, Ramon 282; mindhárom profil active=true, auth_error=false. Ez tárolt profilállapot, nem élő Gmail-kapcsolat vagy teljes történet igazolása. SENT+DRAFT tárolt üzenet 0.
+- Célzott Vitest: két külön kör, 14 fájl/128 és 5 fájl/44 PASS (összesen 19 külön fájl/172 teszt). AI acceptance 5 agent/21 forgatókönyv PASS. A legfrissebb harness build bejegyzés OK (17:41:13 UTC); kézi build nem indult.
+- Valódi böngészős hozzáférési próba: /campaign-list, /customers, /today, /import-review → /auth, 0 pageerror. Bejelentkezett Owner/Marketing cégadatlap, mentés, review és saját Gmail végigpróba **NEM TESZTELT**, external_unmanaged; a signed-out próba nem helyettesíti.
+- Kód/séma/jogosultság/üzleti adat/Gmail nem módosult; csak irányadó memória, roadmap és jelen jegyzet. Küldés, import, relink, újracsatlakoztatás és publikálás nincs.
+- Nyitott: marketinges adatreview-hozzáférés és visszaállítható relink külön jogosultsági/döntési kapu; 39+8 kézi döntés változatlan. A napi olvasó jelzett részleges lefedettsége nem teljes adathalmaz. Az email_drafts meglévő authenticated_full_access szabályát nem bővítettük és új funkció nem épül rá. Korábbi 16 biztonsági jelzés ebben a körben nem újramért és nem javított.
+- Credit ebben a körben nem mért. Az 1. szakasz teljes elfogadása nem állítható a bejelentkezett ellenőrzés és review-jog döntés hiányában. Következő: 2. szakasz, csak új tulajdonosi engedéllyel; a kihagyott aláírás/Gmail-terv nem jogosít migrációra.
 
 ## Elkészült kapcsolódások
 - Az importellenőrzés a title mezőben mentett szál-UUID-t is megnyitja; kizárólag email_thread típusú tételnél, szigorú UUID-ellenőrzéssel. Meglévő levél–cég ellenőrzésre belépő, új felület/automatikus relink nélkül.
