@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { OwnerWorkspace } from "@/components/dashboard/owner-workspace";
 import { CustomerKpiWidgets } from "@/components/dashboard/customer-kpi-widgets";
+import { ExecutiveWidgets } from "@/components/dashboard/exec-widgets";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { ArrowLeft, CalendarDays } from "lucide-react";
@@ -25,5 +26,6 @@ function Dashboard() {
     </header>
     <div className="space-y-4 px-4 py-4 sm:px-6"><Button asChild variant="ghost" size="sm"><Link to="/today"><ArrowLeft />Mai vezetői döntések</Link></Button><OwnerWorkspace detail period={period} /></div>
     <section aria-label="Ügyfélaktivitás és kapcsolódó ügyek"><div className="px-4 py-3 sm:px-6"><h2 className="font-display text-lg font-semibold">Ügyfelek és aktivitás</h2><p className="text-xs text-muted-foreground">Aktuális állapot és legutóbbi mentett események; az időszakválasztó a felső Sales-állományt szűri.</p></div><CustomerKpiWidgets /></section>
+    <details className="mx-4 mb-6 border-t pt-4 sm:mx-6"><summary className="cursor-pointer text-sm font-semibold">Részletes projekt-, terheltség- és utánkövetési riportok</summary><div className="pt-4"><ExecutiveWidgets /></div></details>
   </div>;
 }

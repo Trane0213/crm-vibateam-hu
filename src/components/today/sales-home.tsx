@@ -35,7 +35,7 @@ export function SalesHome() {
           {!!view && view.focus.length > 8 && <Link to="/sales/todo" search={{ bucket: "today" }} className="block border-t p-3 text-xs text-primary">Összes teendő ({view.focus.length}) →</Link>}
         </WorkspacePanel>
         <WorkspacePanel title={`Értékesítési pipeline${d ? ` (${d.overview?.pipeline ?? 0})` : ""}`} subtitle="Meglévő szakaszok · saját ügyek" to="/sales/leads">
-          <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
             {(view?.stages ?? []).map(stage => <div key={stage.key} className="min-w-0">
               <div data-tone={stage.tone} className="crm-stat mb-2 rounded-md border px-2 py-2 text-xs font-semibold">{stage.title} ({stage.rows.length})</div>
               <ul className="space-y-2">{stage.rows.slice(0, 4).map(lead => <li key={lead.id}><Link to="/leads" search={{ lead: lead.id }} className="block rounded-md border bg-background p-2 text-xs transition hover:bg-muted"><span className="block break-words font-semibold">{salesLeadName(lead)}</span><span className="mt-1 block text-muted-foreground">{NEXT_STEP_LABEL[lead.next_step_type as NextStepType] ?? "Következő lépés hiányzik"}</span></Link></li>)}</ul>
