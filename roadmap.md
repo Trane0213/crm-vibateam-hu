@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
+- [ ] 19:09 UTC engedélyezett közös UX-kör: egyértelmű munkautak/oldalnevek, hozzáférhető fókusz és finom mozgás, Marketing/Sales elsőbbséggel; változatlan üzleti út/jog, nincs publikálás. Összevont regresszió és 1440/390 képernyőpróba.
 - [x] 19:05 UTC használhatósági kör: közös Marketing/Sales munkasáv minden oldalon, levelezés mappasáv/kereső/lista, Előkészítés elnevezés; meglévő jog/üzleti út. 779 regresszió/build OK; eredeti útvonalakon két szerepkör TESZT-levél/mappa/kereső/Ma navigáció 1440/390 PASS, 0 pageerror/túlfutás. docs/system-map/ui-napi-hasznalhatosag-2026-11-06.md; nincs küldés/publikálás.
 - [ ] Használhatósági teljes elfogadás: authenticated CRM/Gmail external_unmanaged miatt NEM TESZTELT; a részletes munkafelületek további elrendezése és korábbi funkcionális hiányok nem teljesen lezártak. STOP.
 - [x] UI–3 megjelenítési kör: adatminőségi munkasor/szűrés/jobb ellenőrzési sáv, PM napi irányító, ügyféltípus/kontakt navigáció; 1440/390 eredeti útvonalak TESZT-betöltése és képek összevetése PASS (5 szerepkör/oldal páros, 0 pageerror/túlfutás), 779 regresszió/AI 21/build OK; végső nav 8 PASS. docs/system-map/ui3-zarojelentes-2026-11-06.md. Adat/jog/üzleti út változatlan, nincs publikálás/küldés.
