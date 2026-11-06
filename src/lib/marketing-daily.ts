@@ -10,12 +10,12 @@ export async function loadMarketingDaily(sb: SupabaseClient, userId: string, now
     sb.from('followups').select('id,company_id,followup_type,due_date,result').eq('assigned_to',userId).eq('completed',false).order('due_date').limit(1001),
     sb.from('phone_calls').select('id,company_id,contact_id,outcome,callback_date,summary,created_at').eq('outcome','callback').not('callback_date','is',null).order('callback_date').limit(1001),
     sb.from('users_profile').select('gmail_email').eq('auth_user_id',userId).limit(1),
-    sb.from('marketing_email_suppressions').select('email_normalized').eq('blocked',true).order('email_normalized').limit(1001),
+    sb.from('marketing_email_suppressions').select('email_norm').eq('blocked',true).order('email_norm').limit(1001),
   ]);
   for (const result of [companies,contacts,emails,followups,calls,profile,suppressions]) if (result.error) throw result.error;
   // Conservative coverage flag: PostgREST may cap limit(1001) at 1000.
   const partial = [companies,contacts,emails,followups,calls,suppressions].some(r => (r.data?.length ?? 0) >= 1000);
-  const blockedEmails = new Set((suppressions.data ?? []).map(s => s.email_normalized));
+  const blockedEmails = new Set((suppressions.data ?? []).map(s => s.email_norm));
   const suppressionComplete = (suppressions.data?.length ?? 0) < 1000;
   const contactState = (companyId: string) => {
     const rows = (contacts.data ?? []).filter(c => c.company_id === companyId);
