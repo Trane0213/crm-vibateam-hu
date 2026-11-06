@@ -21,6 +21,10 @@ import { GmailDraftPicker } from './gmail-draft-picker';
 import { CampaignHtmlPreview } from './campaign-html-preview';
 import { detachGmailCampaignSource } from '@/lib/marketing/gmail-drafts.functions';
 import { savedDraftSource } from '@/lib/marketing/gmail-draft-source';
+import {MailHtmlEditor} from '@/components/emails/mail-html-editor';
+import {saveCampaignMessage} from '@/lib/marketing/campaign-delivery.functions';
+import {withCampaignSignature} from '@/lib/marketing/campaign-message';
+import {CampaignDeliveryControl} from './campaign-delivery-control';
 
 const LABEL: Record<EligibilityStatus | "all", string> = {
   all: "Mind", ready: "Kész előkészítésre", contacted: "Már megkeresett", replied: "Válasz érkezett",
@@ -38,6 +42,8 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const getFn = useServerFn(getCampaignDraft);
   const addTargetFn = useServerFn(addCampaignTargetCompany);
   const detachFn = useServerFn(detachGmailCampaignSource);
+  const messageFn=useServerFn(saveCampaignMessage);
+  const [html,setHtml]=useState<string|null>(null),[signatureHtml,setSignatureHtml]=useState<string|null>(null),[signatureText,setSignatureText]=useState<string|null>(null);
   const [detachConfirmed, setDetachConfirmed] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -68,7 +74,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
     entryApplied.current = key;
     setContactIds(previous => [...new Set([...previous, ...ids])]);
   }, [entryContactId, entryCompanyId, candidates, selected]);
-  useEffect(() => { if (camp) { setName(camp.name); setTarget(camp.target_group ?? ""); setSubject(camp.message_subject ?? ""); setBody(camp.message_body ?? ""); } }, [camp?.id, camp?.updated_at]);
+  useEffect(() => { if (camp) { setName(camp.name); setTarget(camp.target_group ?? ""); setSubject(camp.message_subject ?? ""); setBody(camp.message_body ?? "");setHtml(camp.message_html);setSignatureHtml(camp.signature_html);setSignatureText(camp.signature_text); } }, [camp?.id, camp?.updated_at]);
   const refresh = () => { qc.invalidateQueries({ queryKey: ["campaign-drafts"] }); qc.invalidateQueries({ queryKey: ["campaign-draft"] }); };
   const act = async (f: () => Promise<unknown>, ok: string) => {
     setBusy(true);
@@ -80,18 +86,19 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const archived = camp?.status === "archived";
   const sourceLocked = !!camp?.gmail_draft_source;
   const savedSource = savedDraftSource(camp?.gmail_draft_source);
-  const dirty = !!camp && (name.trim() !== camp.name || (target.trim() || null) !== (camp.target_group ?? null) || subject !== (camp.message_subject ?? "") || body !== (camp.message_body ?? ""));
+  const dirty = !!camp && (name.trim() !== camp.name || (target.trim() || null) !== (camp.target_group ?? null) || subject !== (camp.message_subject ?? "") || body !== (camp.message_body ?? "") || html!==camp.message_html || signatureHtml!==camp.signature_html || signatureText!==camp.signature_text);
   const picked = explicitContactIds(contactIds,choices.map(c=>c.id));
   const selectedCompanyIds = [...new Set(choices.filter(c=>picked.includes(c.id)).map(c=>c.company_id))];
   const previewRow = d?.rows.find(r=>r.contact_id===previewId);
-  const preview = camp && previewRow ? campaignPreview(camp.message_subject ?? "",camp.message_body ?? "",previewRow,camp.message_html ?? null) : null;
+  const complete=camp?withCampaignSignature(camp.message_body??'',camp.message_html,camp.signature_html,camp.signature_text):null;
+  const preview = camp && previewRow && complete ? campaignPreview(camp.message_subject ?? "",complete.body,previewRow,complete.html) : null;
 
   return (
     <Card><CardContent className="space-y-3 p-4 text-sm">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium">Kampánytervezetek</span>
         <Badge variant="destructive">Kiküldés tiltott</Badge>
-        <select disabled={busy} className="h-8 max-w-full rounded-md border bg-background px-2" value={selected ?? ""} onChange={e => { initialized.current=null;setContactIds([]);setSelected(e.target.value || null); setPage(1); setElig("all"); setPreviewId(null); if (!e.target.value) { setName(""); setTarget(""); setSubject(""); setBody(""); } }} aria-label="Kampánytervezet">
+        <select disabled={busy} className="h-8 max-w-full rounded-md border bg-background px-2" value={selected ?? ""} onChange={e => { initialized.current=null;setContactIds([]);setSelected(e.target.value || null); setPage(1); setElig("all"); setPreviewId(null); if (!e.target.value) { setName(""); setTarget(""); setSubject(""); setBody("");setHtml(null);setSignatureHtml(null);setSignatureText(null); } }} aria-label="Kampánytervezet">
           <option value="">+ Új tervezet</option>
           {(list.data?.campaigns ?? []).map(c => <option key={c.id} value={c.id}>{c.name} · {STATUS[c.status] ?? c.status}{list.data?.role === "owner" && c.created_by !== list.data.userId ? " · más felhasználóé" : ""}</option>)}
         </select>
@@ -116,7 +123,11 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
       </div>
       <div className="space-y-2">
         <label className="block">Tárgy<Input aria-label="Kampányüzenet tárgya" value={subject} maxLength={500} disabled={archived || busy || sourceLocked} onChange={e=>setSubject(e.target.value)} /></label>
-        <label className="block">Üzenet<Textarea aria-label="Kampányüzenet szövege" value={body} maxLength={20000} disabled={archived || busy || sourceLocked} rows={5} onChange={e=>setBody(e.target.value)} /></label>
+        {!camp ? <label className="block">Üzenet<Textarea aria-label="Kampányüzenet szövege" value={body} maxLength={20000} disabled={archived || busy || sourceLocked} rows={5} onChange={e=>setBody(e.target.value)} /></label> : <>
+        <MailHtmlEditor label="Kampányüzenet" html={html??body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')} disabled={!!archived||busy||sourceLocked} onChange={(h,t)=>{setHtml(h);setBody(t);}}/>
+        <MailHtmlEditor label="HTML-aláírás" html={signatureHtml??''} disabled={!!archived||busy} onChange={(h,t)=>{setSignatureHtml(h||null);setSignatureText(t||null);}}/>
+        <Button size="sm" variant="outline" disabled={busy||archived||!dirty||name.trim()!==camp.name||(target.trim()||null)!==camp.target_group} onClick={()=>act(()=>messageFn({data:{campaignId:camp.id,revision:camp.updated_at,subject,body,html,signatureHtml,signatureText}}),'Formázott üzenet és aláírás mentve.')}>Üzenet és aláírás mentése</Button>
+        </>}
       </div>
       {sourceLocked && camp && <section className="space-y-2 border-y py-3">
         <h3 className="font-medium">Mentett Gmail-piszkozatmásolat</h3>
@@ -183,6 +194,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
         </div>
       </>)}
       {camp && <CampaignTestControl key={`${camp.id}:${camp.updated_at}`} campaignId={camp.id} revision={camp.updated_at} disabled={busy || archived || dirty || !camp.message_subject?.trim() || !camp.message_body?.trim()} />}
+      {camp&&<CampaignDeliveryControl key={`${camp.id}:${camp.updated_at}`} campaignId={camp.id} revision={camp.updated_at} state={camp.delivery_state} disabled={busy||!!archived||dirty}/>}
     </CardContent></Card>
   );
 }
