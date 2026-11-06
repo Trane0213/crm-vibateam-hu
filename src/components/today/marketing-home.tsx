@@ -9,9 +9,9 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   MARKETING_STATUS_LABEL, MARKETING_STATUS_TONE,
-  readMarketingMeta, type MarketingStatus, type CompanyMarketingState,
+  type MarketingStatus,
 } from "@/lib/marketing-status";
-import { selectMarketingCompanies } from "@/lib/marketing-universe";
+import { readMarketingHomeCompanies, countMarketingHomeEmails, marketingHomeSummary } from '@/lib/marketing-home-read';
 import { getMarketingDaily } from '@/lib/marketing-daily.functions';
 import { budapestDayBounds } from '@/lib/owner-kpis';
 import { usePermissions } from '@/hooks/use-permissions';
@@ -33,14 +33,7 @@ export function MarketingHome() {
   const companiesQ = useQuery({
     queryKey: ["mkt-home", "marketing-companies"],
     queryFn: async () => {
-      const rows = await selectMarketingCompanies(
-        supabase,
-        "id,name,notes,created_at,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id",
-        { limit: 500 },
-      );
-      return rows as (CompanyMarketingState & {
-        id: string; name: string; notes: string | null; created_at: string;
-      })[];
+      return readMarketingHomeCompanies(supabase, { marketing: true });
     },
   });
 
@@ -50,16 +43,7 @@ export function MarketingHome() {
   const allCompaniesQ = useQuery({
     queryKey: ["mkt-home", "all-companies-30d"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
-        .select("id,name,notes,created_at,marketing_status,marketing_status_changed_at,marketing_status_changed_by,marketing_status_source,marketing_handoff_lead_id")
-        .gte("created_at", monthAgo)
-        .order("created_at", { ascending: false })
-        .limit(1000);
-      if (error) throw error;
-      return (data ?? []) as (CompanyMarketingState & {
-        id: string; name: string; notes: string | null; created_at: string;
-      })[];
+      return readMarketingHomeCompanies(supabase, { since: monthAgo });
     },
   });
 
@@ -81,14 +65,7 @@ export function MarketingHome() {
   const emailsQ = useQuery({
     queryKey: ["mkt-home", "recent-emails"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("emails")
-        .select("id,thread_id,internal_date,created_at")
-        .gte("created_at", monthAgo)
-        .order("internal_date", { ascending: false, nullsFirst: false })
-        .limit(1000);
-      if (error) throw error;
-      return (data ?? []) as any[];
+      return countMarketingHomeEmails(supabase, monthAgo, weekAgo);
     },
   });
 
@@ -96,7 +73,10 @@ export function MarketingHome() {
   const threads   = threadsQ.data ?? [];
 
   // Marketing státusz dekorálás a notes-ból.
-  const decorated = companies.map((c) => ({ ...c, meta: readMarketingMeta(c.notes, c) }));
+  const localDay = (iso: string) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Budapest' }).format(new Date(iso));
+  const { decorated, newToday, handoffToday, newCompanies7, newCompanies30, handoff30 } = marketingHomeSummary(companies, allCompaniesQ.data ?? [], {
+    today: todayStart, week: weekAgo, todayDay: localDay(todayStart), monthDay: localDay(monthAgo),
+  });
   const byStatus = (s: MarketingStatus) => decorated.filter((c) => c.meta.status === s);
 
   const pipeline: Record<MarketingStatus, number> = {
@@ -108,31 +88,9 @@ export function MarketingHome() {
   };
 
   const qualified  = byStatus("qualified");
-  // Minden ma létrehozott cég — Scarlet és manuális is ide tartozik.
-  const allDecorated = (allCompaniesQ.data ?? []).map((c) => ({
-    ...c, meta: readMarketingMeta(c.notes, c),
-  }));
-  const newToday   = allDecorated.filter(
-    (c) =>
-      c.created_at >= todayStart &&
-      c.meta.status !== "handoff" &&
-      c.meta.status !== "rejected",
-  );
-  const handoffToday = decorated.filter(
-    (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= todayStart.slice(0, 10),
-  );
-
-  const newCompanies7  = allDecorated.filter((c) => c.created_at >= weekAgo).length;
-  const newCompanies30 = allDecorated.length;
-  const handoff30 = decorated.filter(
-    (c) => c.meta.status === "handoff" && c.meta.statusDate && c.meta.statusDate >= monthAgo.slice(0, 10),
-  ).length;
-  const handoffRate30 = newCompanies30 > 0 ? Math.round((handoff30 / newCompanies30) * 100) : 0;
-  const recentEmails = (emailsQ.data ?? []).filter((e: any) =>
-    (e.internal_date ?? e.created_at) >= weekAgo,
-  );
-  const emails7 = recentEmails.length;
-  const replied7 = dailyQ.data?.partial ? null : dailyQ.data?.mail.rate;
+  const companiesReady = companiesQ.isSuccess && !companiesQ.isError;
+  const allReady = allCompaniesQ.isSuccess && !allCompaniesQ.isError;
+  const replied7 = dailyQ.isError || dailyQ.data?.partial ? null : dailyQ.data?.mail.rate;
 
   const loading = companiesQ.isLoading || allCompaniesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
 
@@ -148,6 +106,7 @@ export function MarketingHome() {
       </QuickActions>
 
       <div className="space-y-4 p-6 pt-3">
+        {(companiesQ.isError || allCompaniesQ.isError || emailsQ.isError || threadsQ.isError) && <p role="alert" className="text-sm text-destructive">Egyes marketingadatok nem tölthetők be teljesen; az érintett összesítők nem igazoltak.</p>}
         {dailyQ.isError && <p role="alert" className="text-sm text-destructive">A napi marketingfeladatok nem tölthetők be.</p>}
         {dailyQ.data && <section className="border bg-card">
           <SectionHeader title="Mai marketingfeladatok" />
@@ -172,11 +131,11 @@ export function MarketingHome() {
                 className={`rounded-lg border p-3 ${MARKETING_STATUS_TONE[k]}`}
               >
                 <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{MARKETING_STATUS_LABEL[k]}</div>
-                <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{pipeline[k]}</div>
+                <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{companiesReady ? pipeline[k] : '—'}</div>
                 <div className="mt-1 text-[11px] opacity-70">
                   {k === "qualified" ? "átadásra vár"
                     : k === "handoff" ? "sales pipeline-ban"
-                    : k === "contacted" ? "email kiment / felvettük"
+                    : k === "contacted" ? "megkeresésként jelölve"
                     : k === "rejected" ? "kampánylistából eltávolítva"
                     : "aktív kampánylistán"}
                 </div>
@@ -193,24 +152,24 @@ export function MarketingHome() {
               tone="success"
               icon={ArrowRightCircle}
               title="Átadásra váró cégek"
-              count={qualified.length}
-              empty="Nincs minősített cég átadásra."
+              count={companiesReady ? qualified.length : null}
+              empty={companiesReady ? "Nincs minősített cég átadásra." : "Az összesítő még nem igazolt."}
               items={qualified.slice(0, 6)}
             />
             <CompanyColumn
               tone="info"
               icon={Sparkles}
               title="Új cégek (ma)"
-              count={newToday.length}
-              empty="Ma még nem került fel új cég."
+              count={allReady ? newToday.length : null}
+              empty={allReady ? "Ma még nem került fel új cég." : "Az összesítő még nem igazolt."}
               items={newToday.slice(0, 6)}
             />
             <CompanyColumn
               tone="success"
               icon={Building2}
               title="Ma átadva"
-              count={handoffToday.length}
-              empty="Ma még nem adtál át céget."
+              count={companiesReady ? handoffToday.length : null}
+              empty={companiesReady ? "Ma még nem adtál át céget." : "Az összesítő még nem igazolt."}
               items={handoffToday.slice(0, 6)}
             />
           </div>
@@ -221,7 +180,7 @@ export function MarketingHome() {
           <SectionHeader title="Friss email szálak" subtitle="Az utolsó 30 nap aktív szálai." />
           <div className="p-4">
             {threads.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nincs email az elmúlt 30 napban.</p>
+              <p className="text-sm text-muted-foreground">{threadsQ.isSuccess && !threadsQ.isError ? 'Nincs email az elmúlt 30 napban.' : 'A levéllista még nem igazolt.'}</p>
             ) : (
               <ul className="divide-y">
                 {threads.slice(0, 8).map((t: any) => (
@@ -248,11 +207,11 @@ export function MarketingHome() {
         <section className="rounded-lg border bg-card">
           <SectionHeader title="Marketing teljesítmény" subtitle="Heti és havi mérőszámok." />
           <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
-            <PerfTile label="Új cég · 7 nap"  value={newCompanies7} />
-            <PerfTile label="Új cég · 30 nap" value={newCompanies30} />
-            <PerfTile label="Átadási arány · 30 nap" value={`${handoffRate30}%`} sub="átadott / új cég" />
-            <PerfTile label="Email aktivitás · 7 nap" value={emails7} sub="email db" />
-            <PerfTile label="Válaszadási arány · 7 nap" value={replied7 == null ? '—' : `${replied7}%`} sub={`${dailyQ.data?.mail.replied ?? 0} külső válasz / ${dailyQ.data?.mail.contacted ?? 0} saját megkeresés`} />
+            <PerfTile label="Új cég · 7 nap" value={allReady ? newCompanies7 : '—'} />
+            <PerfTile label="Új cég · 30 nap" value={allReady ? newCompanies30 : '—'} />
+            <PerfTile label="Átadott cégek · 30 nap" value={companiesReady ? handoff30 : '—'} sub="átadott cég db" />
+            <PerfTile label="Email aktivitás · 7 nap" value={emailsQ.isSuccess && !emailsQ.isError ? emailsQ.data : '—'} sub="tárolt email db" />
+            <PerfTile label="Tárolt válaszarány · 7 nap" value={replied7 == null ? '—' : `${replied7}%`} sub={replied7 == null ? 'A saját tárolt levelezés aránya nem igazolt.' : `${dailyQ.data?.mail.replied ?? 0} külső válasz / ${dailyQ.data?.mail.contacted ?? 0} saját megkeresés · nem teljes Gmail-történet`} />
           </div>
         </section>
 
@@ -281,7 +240,7 @@ function CompanyColumn({
   tone: "danger" | "warning" | "info" | "success";
   icon: React.ComponentType<{ className?: string }>;
   title: string;
-  count: number;
+  count: number | null;
   empty: string;
   items: { id: string; name: string; meta: { status: MarketingStatus; statusDate: string | null } }[];
 }) {
@@ -297,7 +256,7 @@ function CompanyColumn({
           <Icon className="h-3.5 w-3.5" />
           <span>{title}</span>
         </div>
-        <Badge variant="outline" className={`tabular-nums ${count > 0 ? `border-current ${toneText}` : ""}`}>{count}</Badge>
+        <Badge variant="outline" className={`tabular-nums ${count != null && count > 0 ? `border-current ${toneText}` : ""}`}>{count ?? '—'}</Badge>
       </div>
       {items.length === 0 ? (
         <p className="text-xs text-muted-foreground">{empty}</p>
@@ -320,7 +279,7 @@ function CompanyColumn({
           ))}
         </ul>
       )}
-      {count > items.length && (
+      {count != null && count > items.length && (
         <p className="mt-2 text-[11px] text-muted-foreground">
           + még {count - items.length} elem
         </p>
