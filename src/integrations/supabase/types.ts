@@ -4874,6 +4874,7 @@ export type Database = {
           p_email: string
           p_reference: string
           p_revision: string
+          p_user: string
         }
         Returns: Json
       }
