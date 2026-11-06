@@ -8,6 +8,7 @@
 - Viba-szálhoz mentett kontakt: 3910; lead és projekt: 0. A kontaktkapcsolatot egy későbbi company_id változásnál nem lehet figyelmen kívül hagyni.
 - Három céges postafiók, kizárólag email_thread_access + saját owner_user_id szerinti üzenetek: info 4102 hozzáférhető Viba-szál / 6027 saját üzenet; Pretor 226 / 308; Ramon 118 / 145. A számsorok megosztott hozzáférés miatt nem feltétlen diszjunktak. Nem résztvevőből következtetett postafiók.
 - Import review továbbra 14 cég, 39 vitatott szál, 21 hibás cím, mind open; a 39 szálreview továbbra nem tartalmaz thread_id/email_thread_id kulcsot.
+  **Utólagos helyesbítés:** a details kulcshiány nem jelent azonosítóhiányt: a title mező mind a 39 tételnél egyedi, létező szál-UUID (2026-11-06 16:55 UTC SELECT).
 
 ## Konzervatív SQL előszűrés – 4543 diszjunkt szál
 | Előszűrés | Db | Döntés |
@@ -54,3 +55,8 @@ Megnyitható jelöltek (a felhasználó saját CRM-jogosultságával):
 A 168-as listából az első öt ID szerinti minta: négy promóciós címke és egy legalább nyolccímzettes szál. Háromnak mentett kontaktja van; mind az öt üzenetnek is van company_id-ja. Egyik sem kapott automatikus leválasztási minősítést. Ez öt mintatétel, nem a teljes 168 cégkapcsolatának tételes tartalmi elfogadása.
 
 Ebben a második körben továbbra csak SELECT történt. Nincs új kód/séma/RLS, nincs küldés, átírás vagy publikálás. Következő kapu: a fenti három célcég kapcsolatának tulajdonosi ellenőrzése; utána lehet külön pontos, szál+üzenet konzisztenciát megőrző módosítási javaslatot és friss snapshot/rollbacket készíteni. KÉSZ-küldést és teljes történetet nem igazoltunk, reklámszálak leválasztását nem engedélyeztük.
+
+## A 39 vitatott importtétel azonosítói – 16:55 UTC
+Friss SELECT: 39/39 title UUID, 39/39 létező és különböző thread. 11 Viba-Teamhez kapcsolt, 25 más céghez kapcsolt, 3 cég nélküli; 6 mentett kontakt. A postafiókhozzáférésből 29 info, 1 Pretor, 0 Ramon, 9 egyik három céges fiókhoz sem tartozik jelenleg. Ez utóbbi nem törölhető/újracsatlakoztatható indok és nem jelenti, hogy mindenki számára elérhetetlen.
+
+Tételes, tartalommentes lista: `levelszal-dry-run-2026-11-06/import-thread-review.csv`, review_id + thread_id + jelenlegi company/contact + saját jogot megkövetelő szállink. Nincs cégnévből automatikus megfeleltetés, review lezárás vagy cégkapcsolat-írás. A korábbi jelentés téves azonosítóhiány-állítását helyesbítettük; a tulajdonos nyolc jelölttel kapcsolatos „Még kézzel ellenőrzöm” döntése változatlanul érvényes. Hosted tartalmi/jogosultsági ellenőrzés nem történt.

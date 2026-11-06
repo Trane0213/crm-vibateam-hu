@@ -42,7 +42,7 @@ A pontos egyezések között a legtöbb szál a Begavillhez tartozik (8 db, `564
 
 Tömeges, 4000 szálas átkötés **nem** javasolt.
 
-**A 39 vitatott szál:** a review-tételek nem tartalmaznak szálazonosítót, csak cégnév-javaslatot (pl. „Iconicteam.kft”). Ezért a döntés kizárólag kézi, cégenkénti egyeztetéssel hozható meg.
+**Helyesbítés (2026-11-06, friss SELECT):** a 39 vitatott tétel details mezőjében valóban nincs thread_id kulcs, de mind a 39 `title` mező szál-UUID, és mind a 39 egyedi, létező email_threads sorra mutat. A korábbi „nem tartalmaznak szálazonosítót” állítás téves volt. A címmezőből tételesen megnyithatók; a cégnév-javaslat továbbra nem kapcsolati bizonyíték, semmilyen átírás nem történt.
 
 **Postafiókok:**
 - A `gmail_accounts` tábla 0 soros. A szálak 5 tulajdonos-fiókra oszlanak: 6017 + 446 + 187 + 65 szál, továbbá 63 tulajdonos nélküli.
