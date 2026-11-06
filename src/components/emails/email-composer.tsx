@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Paperclip, Send, X, Bold, Italic, Link as LinkIcon, List, ListOrdered } from "lucide-react";
+import { Paperclip, Send, X } from "lucide-react";
+import { MailFormatToolbar } from './mail-format-toolbar';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -202,19 +203,7 @@ export function EmailComposer({
             <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
           </div>
           <div className="rounded-md border">
-            <div className="flex items-center gap-1 border-b bg-muted/30 px-2 py-1">
-              <Button type="button" size="sm" variant="ghost" onClick={() => exec("bold")} title="Félkövér"><Bold className="h-3.5 w-3.5" /></Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => exec("italic")} title="Dőlt"><Italic className="h-3.5 w-3.5" /></Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => exec("insertUnorderedList")} title="Lista"><List className="h-3.5 w-3.5" /></Button>
-              <Button type="button" size="sm" variant="ghost" onClick={() => exec("insertOrderedList")} title="Számozott lista"><ListOrdered className="h-3.5 w-3.5" /></Button>
-              <Button
-                type="button" size="sm" variant="ghost" title="Link"
-                onClick={() => {
-                  const u = window.prompt("URL:", "https://");
-                  if (u) exec("createLink", u);
-                }}
-              ><LinkIcon className="h-3.5 w-3.5" /></Button>
-            </div>
+            <MailFormatToolbar onCommand={exec}/>
             <div
               ref={editorRef}
               contentEditable
