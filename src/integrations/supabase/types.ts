@@ -1013,6 +1013,7 @@ export type Database = {
           id: string
           last_history_at: string | null
           reasons: Json
+          selected: boolean | null
         }
         Insert: {
           campaign_id: string
@@ -1024,6 +1025,7 @@ export type Database = {
           id?: string
           last_history_at?: string | null
           reasons?: Json
+          selected?: boolean | null
         }
         Update: {
           campaign_id?: string
@@ -1035,6 +1037,7 @@ export type Database = {
           id?: string
           last_history_at?: string | null
           reasons?: Json
+          selected?: boolean | null
         }
         Relationships: [
           {
@@ -1058,6 +1061,8 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          message_body: string | null
+          message_subject: string | null
           name: string
           prechecked_at: string | null
           status: string
@@ -1068,6 +1073,8 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          message_body?: string | null
+          message_subject?: string | null
           name: string
           prechecked_at?: string | null
           status?: string
@@ -1078,6 +1085,8 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           id?: string
+          message_body?: string | null
+          message_subject?: string | null
           name?: string
           prechecked_at?: string | null
           status?: string
@@ -4713,6 +4722,16 @@ export type Database = {
       ai_os_email_dispatch_claim: {
         Args: { p_action: string; p_args: Json; p_user: string }
         Returns: boolean
+      }
+      campaign_store_preparation: {
+        Args: {
+          p_campaign: string
+          p_complete: boolean
+          p_expected: string
+          p_rows: Json
+          p_user: string
+        }
+        Returns: Json
       }
       can_access_email_thread: {
         Args: { _thread_id: string; _user_id: string }
