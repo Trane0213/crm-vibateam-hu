@@ -1,0 +1,13 @@
+# Kapcsolattartók adatforrása és ellenőrzöttsége – összevont jegyzet
+
+A jóváhagyott egyfunkciós kör elkészült. Meglévő contacts nullable mezők: contact_kind, data_source, verification_state, verification_reference, verified_by, verified_at. Nincs default, backfill vagy automatikus email-nevesítés. Személy/gyűjtőcím/ismeretlen és négy adatforrás, külön emberi ellenőrzés. Emailből következtetett forrás önmagában nem igazolás; emberi ellenőrzéshez nem ismeretlen besorolás és explicit hivatkozás kell. Ez nem email-kézbesítés vagy küldési engedély.
+
+Mentés: user-RLS contact_set_provenance, teljes friss sor ellenőrzése zárolás alatt, owner/Marketing, szerveridő/hitelesített ellenőrző, atomikus meglévő activities audit (referenciaszöveg és levelezés nélkül). Közvetlen metadatahamisítás tiltva. Bármely meglévő név/email/cég módosítás érvényteleníti a korábbi ellenőrzést; telefon/beosztás nem. Ez a többi kontakteditorra és enrichment/import útvonalra is érvényes, azok jogát és írási payloadját nem változtattuk. Régi és más útvonalon létrejövő rekordok besorolás/forrás hiányosak maradnak, nem kapnak találgatott provenienciát.
+
+Közös megjelenítés a kontaktlistán és Marketing cégoldali kontaktokon; külön mentési szakasz a meglévő kontaktadatlapon és Marketing szerkesztőablakban. Nem mentett normál mezőváltozás mellett ellenőrzés nem indítható. Nyitott marketingablak a frissített kontaktsort követi, nem a régi befagyasztott példányt.
+
+Ellenőrzés: 673 Vitest PASS, elkülönített PostgreSQL user-RLS/owner/Marketing/Sales/PM/no-role, három besorolás, forrás, explicit bizonyíték, név/email/cég érvénytelenítés, telefon/beosztás, metadatahamisítás, konkurens módosítás és audit rollback PASS. Build OK. Valódi kontaktútvonal belépésre irányít; elkülönített TESZT-komponens desktop/mobil, hivatkozás nélkül tiltott és hivatkozással engedett mentési gomb, 0 runtime hiba. A TESZT-felületi próba nem küldött mentést, nem valódi bejelentkezés: hosted owner/Marketing/Sales/PM végigpróba továbbra **NEM TESZTELT**, külső Supabase munkamenetkorlát.
+
+Éles read-only előtte/utána: 701 kontakt, besorolt sor 0; eredeti kilenc oszlop teljes hash `f3f306821706e79fe3324f9dee0bd294` változatlan. Meglévő négy contacts policy nem módosult. SQL és adatvesztés nélküli safe-stop rollback a database/contact_provenance_2026-11-06.sql és rollback_contact_provenance_2026-11-06.sql fájlban; a mezők, védő trigger és audit megmaradnak, jogot nem nyitunk vissza.
+
+A migráció 16 korábbi biztonsági jelzést mutatott, új jelzést nem okozott; ezek külön körben vizsgálhatók. Üzleti kontakt/cég/lead átírás, küldés, Gmail-jog vagy publikálás nem történt. STOP, kampánykör külön jóváhagyással.
