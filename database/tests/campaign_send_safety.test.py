@@ -9,7 +9,7 @@ def act(role='marketing',svc=False):return f"set role {'service_role' if svc els
 sql(f"truncate campaign_send_audit,marketing_email_suppressions;insert into users_profile values('{uid}','info@vibateam.hu',true,null);update contacts set email='info@vibateam.hu' where id='{contact}'")
 def suppress(blocked,role='marketing',revision=None,fail=False):
  rev='null' if revision is None else "'"+revision+"'"
- return sql(act(role)+f"select contact_set_marketing_suppression('{contact}','info@vibateam.hu',{rev},{str(blocked).lower()},'TESZT explicit evidence')",fail)
+ return sql(act(role,True)+f"select contact_set_marketing_suppression('{uid}','{contact}','info@vibateam.hu',{rev},{str(blocked).lower()},'TESZT explicit evidence')",fail)
 for role in ['sales','pm','']:suppress(True,role,fail=True)
 r=json.loads(suppress(True));assert r['blocked'] is True
 suppress(False,'marketing',r['revision'],True)
