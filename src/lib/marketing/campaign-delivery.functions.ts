@@ -30,13 +30,13 @@ export const scheduleCampaign=createServerFn({method:'POST'}).middleware([requir
  const c=await scope(context.supabase,context.userId,data.campaignId,data.revision);
  const {ownDraftMailbox}=await import('./gmail-drafts.server');
  const account=await ownDraftMailbox(context.supabase,context.userId);
- const {createHash}=await import('node:crypto');
+ const {campaignSnapshotHash}=await import('./campaign-snapshot.server');
  const complete=withCampaignSignature(c.message_body??'',c.message_html,c.signature_html,c.signature_text);
  const rows:any[]=[];
  if(data.mode==='test'){
   if(!data.recipient)throw new Error('TESZT-címzett szükséges.');
   const snapshot=campaignTestCopy(c.message_subject??'',complete.body,complete.html);
-  rows.push({recipient_email:data.recipient,mode:'test',scheduled_at:data.at,snapshot,snapshot_hash:createHash('sha256').update(JSON.stringify(snapshot)).digest('hex')});
+  rows.push({recipient_email:data.recipient,mode:'test',scheduled_at:data.at,snapshot,snapshot_hash:campaignSnapshotHash(snapshot)});
  }else{
   const recipients=await context.supabase.from('email_campaign_recipients').select('contact_id,contacts(id,company_id,name,contact_kind,verification_state,verified_by,verified_at,companies(name))').eq('campaign_id',c.id).eq('selected',true).limit(41);
   if(recipients.error || !recipients.data?.length || recipients.data.length>40)throw new Error('1–40 mentett címzett ütemezhető egyszerre.');
@@ -49,7 +49,7 @@ export const scheduleCampaign=createServerFn({method:'POST'}).middleware([requir
    const k=row.contacts as any;
    const copy=campaignPreview(c.message_subject??'',complete.body,{...k,company_name:k.companies?.name},complete.html);
    const snapshot={subject:copy.subject,body:copy.body,html:copy.html};
-   rows.push({contact_id:row.contact_id,company_id:k.company_id,recipient_email:fresh.norm,mode:'customer',scheduled_at:data.at,snapshot,snapshot_hash:createHash('sha256').update(JSON.stringify(snapshot)).digest('hex')});
+   rows.push({contact_id:row.contact_id,company_id:k.company_id,recipient_email:fresh.norm,mode:'customer',scheduled_at:data.at,snapshot,snapshot_hash:campaignSnapshotHash(snapshot)});
   }
  }
  const {supabaseAdmin:db}=await import('@/integrations/supabase/client.server');

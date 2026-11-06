@@ -1,5 +1,5 @@
 import {beforeEach,expect,it,vi} from 'vitest';
-import {createHash} from 'node:crypto';
+import {campaignSnapshotHash} from './campaign-snapshot.server';
 const snapshot={subject:'[TESZT] TESZT',body:'Body',html:'<b>Body</b>'};
 const m=vi.hoisted(()=>({send:vi.fn(),rpc:vi.fn(),mode:'test',hash:'',saved:true}));
 vi.mock('@/integrations/supabase/client.server',()=>({supabaseAdmin:{from:()=>{const q:any={select:()=>q,eq:()=>q,single:async()=>({data:{id:'item',user_id:'own',campaign_id:'campaign',mode:m.mode,snapshot:{subject:'[TESZT] TESZT',body:'Body',html:'<b>Body</b>'},snapshot_hash:m.hash,mailbox:'info@vibateam.hu',recipient_email:'viktor.csotai@gmail.com'},error:null})};return q;},rpc:m.rpc}}));
@@ -7,7 +7,8 @@ vi.mock('@/lib/gmail/send.server',()=>({handleGmailSend:m.send}));
 vi.mock('@/lib/gmail/gmail-api.server',()=>({getProfile:async()=>({emailAddress:'info@vibateam.hu'}),getMessage:async()=>({id:'gmail',labelIds:['SENT'],payload:{headers:[{name:'to',value:'viktor.csotai@gmail.com'}]}}),headerOf:(m:any,k:string)=>m.payload.headers.find((h:any)=>h.name===k)?.value??''}));
 import {processCampaignTestItem} from './campaign-delivery.server';
 function sb(){return {rpc:async()=>({data:'marketing'}),from:()=>{const q:any={select:()=>q,eq:()=>q,single:async()=>({data:{id:'campaign',created_by:'own'},error:null}),maybeSingle:async()=>({data:m.saved?{id:'saved',...snapshot,company_id:null,contact_id:null,lead_id:null,project_id:null,body:snapshot.html}:null,error:null})};return q;}} as any;}
-beforeEach(()=>{m.mode='test';m.hash=createHash('sha256').update(JSON.stringify(snapshot)).digest('hex');m.saved=true;m.send.mockReset();m.rpc.mockReset();m.rpc.mockImplementation(async(name:string)=>({data:name==='campaign_delivery_claim'?{claimed:true,token:'claim'}:{state:'verified'},error:null}));});
+beforeEach(()=>{m.mode='test';m.hash=campaignSnapshotHash(snapshot);m.saved=true;m.send.mockReset();m.rpc.mockReset();m.rpc.mockImplementation(async(name:string)=>({data:name==='campaign_delivery_claim'?{claimed:true,token:'claim'}:{state:'verified'},error:null}));});
+it('hash remains exact after JSONB object key reordering',()=>expect(campaignSnapshotHash({html:snapshot.html,body:snapshot.body,subject:snapshot.subject})).toBe(campaignSnapshotHash(snapshot)));
 it('never activates customer dispatch through the TESZT processor',async()=>{m.mode='customer';await expect(processCampaignTestItem(sb(),'own','Bearer synthetic','item')).rejects.toThrow('ügyfélküldés');expect(m.send).not.toHaveBeenCalled();});
 it('requires exact immutable snapshot hash before the provider call',async()=>{m.hash='b'.repeat(64);await expect(processCampaignTestItem(sb(),'own','Bearer synthetic','item')).rejects.toThrow('megváltozott');expect(m.send).not.toHaveBeenCalled();});
 it('verifies a simulated schedule-to-Gmail-to-CRM result through the shared send service',async()=>{m.send.mockImplementation(async(request,h)=>{expect(await request.json()).toMatchObject({to:'viktor.csotai@gmail.com',...snapshot});await h.beforeSend();await h.verifySent('synthetic',{id:'gmail'});return Response.json({ok:true,id:'gmail'});});expect(await processCampaignTestItem(sb(),'own','Bearer synthetic','item')).toEqual({state:'verified'});expect(m.rpc).toHaveBeenLastCalledWith('campaign_delivery_finish',expect.objectContaining({p_verified:true,p_email:'saved'}));});
