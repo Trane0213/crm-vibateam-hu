@@ -1,3 +1,4 @@
+import { nextHistoryCheckpoint, isPermanentMessageError } from "./relink-analysis";
 import { matchCrmAddresses, resolveThreadLink, type CrmLink } from "./crm-association";
 /**
  * Inkrementális Gmail szinkron a History API segítségével.
@@ -142,6 +143,11 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
     throw e;
   }
 
+  // Félbeszakadt history-lapozás: a h.historyId a postafiók aktuális értéke, nem a lap vége → nem léphet előre.
+  const historyIncomplete = !!pageToken;
+  if (historyIncomplete) latestHistoryId = startHistoryId;
+  let pending = 0, transientErrors = 0;
+
   // Üres futás → csak frissítjük a historyId-t és kilépünk.
   if (newMessageIds.size === 0) {
     if (latestHistoryId && latestHistoryId !== startHistoryId) {
@@ -212,8 +218,8 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
     return inserted.id;
   }
 
-  for (const mid of toFetch) {
-    if (Date.now() > deadline) break;
+  for (const [i, mid] of toFetch.entries()) {
+    if (Date.now() > deadline) { pending = toFetch.length - i; break; }
     result.fetched++;
     try {
       const m = await getMessage(accessToken, mid, "full");
@@ -270,12 +276,15 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
           result.skipped++;
         } else {
           result.errors.push(`${mid}: ${insErr.message}`);
+          transientErrors++;
         }
       } else {
         result.inserted++;
       }
     } catch (e: any) {
-      result.errors.push(`${mid}: ${e?.message ?? String(e)}`);
+      const msg = String(e?.message ?? e);
+      result.errors.push(`${mid}: ${msg}`);
+      if (!isPermanentMessageError(msg)) transientErrors++;
     }
   }
 
@@ -309,10 +318,13 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
     }
   }
 
+  // Hiba vagy határidő esetén a checkpoint marad: a következő futás újra megpróbálja (a meglévő üzenetek kiszűrése idempotens).
+  const checkpoint = nextHistoryCheckpoint({ start: startHistoryId, latest: latestHistoryId, pending: pending + (historyIncomplete ? 1 : 0), transientErrors });
+  if (checkpoint === startHistoryId && latestHistoryId !== startHistoryId) result.errors.push("Checkpoint visszatartva: feldolgozatlan vagy hibás üzenet, újrapróba a következő futásban.");
   await admin
     .from("users_profile")
-    .update({ gmail_history_id: latestHistoryId, gmail_last_sync_at: new Date().toISOString() })
+    .update({ gmail_history_id: checkpoint, gmail_last_sync_at: new Date().toISOString() })
     .eq("auth_user_id", userId);
-  result.history_after = latestHistoryId;
+  result.history_after = checkpoint;
   return result;
 }
