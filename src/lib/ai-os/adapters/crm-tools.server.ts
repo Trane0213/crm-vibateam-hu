@@ -11,7 +11,8 @@
 
 import { registerTool } from "../tool-registry";
 import { toolError } from "../tool-errors";
-import { CRM_PAGE_PROPERTIES, LEAD_CONTEXT_SELECT, crmReadPage, readWindow, leadTimeline } from "./crm-read-page";
+import { CRM_PAGE_PROPERTIES, LEAD_CONTEXT_SELECT, CONTACT_CONTEXT_SELECT, crmReadPage, readWindow, leadTimeline } from "./crm-read-page";
+import { MARKETING_STATE_SELECT } from '@/lib/marketing-status';
 import { OWNER_ROLES } from "../roles";
 import { safeMailText } from "./gmail-context";
 import { registerQuoteTools } from "./quote-tools.server";
@@ -67,8 +68,8 @@ export function registerCrmTools() {
       const like = `%${q}%`;
       const sb = ctx.supabaseUser;
       const [companies, contacts, leads, projects] = await Promise.all([
-        sb.from("companies").select("id,name,website,company_type,tax_number,notes").or(`name.ilike.${like},website.ilike.${like}`).limit(limit),
-        sb.from("contacts").select("id,name,email,company_id").or(`name.ilike.${like},email.ilike.${like}`).limit(limit),
+        sb.from("companies").select(`id,name,website,company_type,tax_number,notes,${MARKETING_STATE_SELECT}`).or(`name.ilike.${like},website.ilike.${like}`).limit(limit),
+        sb.from("contacts").select(`${CONTACT_CONTEXT_SELECT},company_id`).or(`name.ilike.${like},email.ilike.${like}`).limit(limit),
         sb.from("leads").select("id,company_id,status,summary,assigned_to").or(`summary.ilike.${like}`).limit(limit),
         sb.from("projects").select("id,title,status").or(`title.ilike.${like}`).limit(limit),
       ]);
@@ -97,7 +98,7 @@ export function registerCrmTools() {
       const window = readWindow(args);
       let q = ctx.supabaseUser
         .from("companies")
-        .select("id,name,website,company_type,created_at", { count: "exact" })
+        .select(`id,name,website,company_type,created_at,notes,${MARKETING_STATE_SELECT}`, { count: "exact" })
         .order("created_at", { ascending: false })
         .order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
       if (args.name_like) q = q.ilike("name", `%${String(args.name_like)}%`);
@@ -119,7 +120,7 @@ export function registerCrmTools() {
     async (args, ctx) => {
       const id = String(args.company_id);
       const sb = ctx.supabaseUser;
-      const company = await sb.from("companies").select("id,name,website,company_type,tax_number,notes").eq("id", id).maybeSingle();
+      const company = await sb.from("companies").select(`id,name,website,company_type,tax_number,notes,${MARKETING_STATE_SELECT}`).eq("id", id).maybeSingle();
       if (company.error) return fail(company.error.message);
       if (!company.data) return fail("Nem található hozzáférhető cég.");
       const section = String(args.section ?? "summary");
@@ -128,7 +129,7 @@ export function registerCrmTools() {
       const sections = section === "summary" ? ["contacts", "leads", "projects", "quotes"] : [section];
       const results = await Promise.all(sections.map(async (name) => {
         if (name === "quotes") return [name, await readQuoteList({ ...args, company_id: id, limit: window.limit }, ctx, window.limit, section === "summary" ? 3500 : 10000)] as const;
-        let query = sb.from(name).select(name === "contacts" ? "id,name,email,phone,position,email_invalid,created_at" : name === "leads" ? LEAD_CONTEXT_SELECT : "id,lead_id,company_id,title,status,created_at", { count: "exact" }).eq("company_id", id);
+        let query = sb.from(name).select(name === "contacts" ? CONTACT_CONTEXT_SELECT : name === "leads" ? LEAD_CONTEXT_SELECT : "id,lead_id,company_id,title,status,created_at", { count: "exact" }).eq("company_id", id);
         query = query.order("created_at", { ascending: false, nullsFirst: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
         const result = await query;
         if (result.error) throw result.error;
@@ -180,7 +181,7 @@ export function registerCrmTools() {
       const company=await ctx.supabaseUser.from('companies').select('id').eq('id',companyId).maybeSingle();
       if(company.error || !company.data)return fail('A cégazonosítóhoz nem található hozzáférhető cég. A lead company_id mezőjét használd; üres keresés nem kontakt-hiány bizonyítéka.');
       const { data, error, count } = await ctx.supabaseUser.from("contacts")
-        .select("id,name,email,phone,position,email_invalid,created_at", { count: "exact" }).eq("company_id", companyId)
+        .select(CONTACT_CONTEXT_SELECT, { count: "exact" }).eq("company_id", companyId)
         .order("created_at", { ascending: false }).order("id", { ascending: true }).range(window.offset, window.offset + window.limit - 1);
       if (error) return fail(error.message);
       return ok(crmReadPage(data ?? [], count, window, "contacts"));

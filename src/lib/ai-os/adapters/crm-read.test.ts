@@ -180,6 +180,15 @@ describe("Timothy P1/A CRM reads", () => {
 });
 
 describe("Explicit completeness and chronology", () => {
+  it('structured marketing status wins over legacy notes and is not delivery proof', () => {
+    const facts = crmRecordFacts({id:'TESZT',notes:'[MKT:STATUS:contacted:2026-11-01]',marketing_status:'new'},'companies');
+    expect(facts.marketing_interpretation).toMatchObject({status:'new',origin:'structured',workflow_is_not_delivery_proof:true});
+  });
+  it('email-inferred shared mailbox cannot become verified identity', () => {
+    const facts = crmRecordFacts({id:'TESZT',name:'TESZT',email:'teszt@example.invalid',contact_kind:'shared_mailbox',data_source:'email_inferred',verification_state:'unverified'},'contacts');
+    expect(facts.identity_interpretation).toBe('Gyűjtőcím · Nem ellenőrzött');
+    expect(facts.email_verification).toBe('not_verified');
+  });
   it('renders saved UTC 09:00 as Budapest 10:00 in November', () => {
     expect(crmRecordFacts({next_step_due_at:'2026-11-03T09:00:00Z'}, 'leads').budapest_times).toEqual({next_step_due_at:'2026. 11. 03. 10:00 (Europe/Budapest)'});
   });

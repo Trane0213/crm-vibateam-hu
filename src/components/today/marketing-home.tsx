@@ -153,10 +153,11 @@ export function MarketingHome() {
           <SectionHeader title="Mai marketingfeladatok" />
           {dailyQ.data.partial && <p className="p-3 text-sm text-muted-foreground">Részleges adatok; a lista nem teljes.</p>}
           <div className="grid gap-4 p-4 md:grid-cols-3">
-            <DailyList title="Visszahívások" rows={dailyQ.data.callbacks.filter(c=>c.callback_date && c.callback_date<=budapestDayBounds().end).map(c=>({id:c.id,companyId:c.company_id??'',name:`${c.company_name} · ${fmtDate(c.callback_date??undefined)}`}))}/>
+            <DailyList title="Közös visszahívások" rows={dailyQ.data.callbacks.filter(c=>c.callback_date && c.callback_date<=budapestDayBounds().end).map(c=>({id:c.id,companyId:c.company_id??'',name:`${c.company_name} · ${fmtDate(c.callback_date??undefined)}`}))}/>
             <DailyList title="Esedékes / lejárt utánkövetés" rows={dailyQ.data.followups.filter(f=>f.due_date && f.due_date<=budapestDayBounds().end).map(f=>({id:f.id,companyId:f.company_id ?? '',name:`${f.company_name} · ${f.followup_type==='call'?'Telefon':'Utánkövetés'} · ${fmtDate(f.due_date ?? undefined)}`}))} />
             <DailyList title="Válaszra reagálni" rows={dailyQ.data.reply_pending.map(c=>({...c,companyId:c.id}))} />
             <DailyList title="Tárolt megkeresés válasz nélkül" rows={dailyQ.data.awaiting_reply.map(c=>({...c,companyId:c.id}))} />
+            <DailyList title="Ellenőrizendő emailadat" rows={dailyQ.data.contact_warnings.map(c=>({id:c.id,companyId:c.id,name:`${c.name} · ${c.contact_state.blocked_email?'Tiltott email':c.contact_state.invalid_email?'Hibás email':'Hiányos tiltásellenőrzés'}${c.contact_state.phone_available?' · Telefon megadva':''}`}))} />
           </div>
           <p className="px-4 pb-3 text-xs text-muted-foreground">Saját tárolt postafiókadatok; a válaszhiány és a levél tartalma ellenőrizendő.</p>
         </section>}

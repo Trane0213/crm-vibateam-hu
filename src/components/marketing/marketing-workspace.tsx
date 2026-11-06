@@ -48,6 +48,7 @@ import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
 import { canSubmitHandoff, openLeads } from "@/lib/marketing-handoff-guard";
+import { refreshMarketingWork } from '@/lib/marketing-refresh';
 import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
 import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
@@ -251,6 +252,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const partialHandoffLeadId = useRef<string | null>(null);
   const handoff = useMutation({
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
+      if (!cust.data || cust.isFetching) throw new Error('A friss cégállapot betöltése után ellenőrizd az átadást.');
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
       let leadId = partialHandoffLeadId.current;
@@ -289,13 +291,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     },
     onSuccess: () => {
       toast.success("Átadva a Sales-előkészítésbe", { description: "A lead a kiválasztott értékesítő Sales-előkészítő munkafelületén jelent meg. A Pipeline-ba az értékesítő lépteti." });
-      qc.invalidateQueries({ queryKey: ["customers", "detail", companyId] });
-      qc.invalidateQueries({ queryKey: ["leads", "by_company", companyId] });
-      qc.invalidateQueries({ queryKey: ["leads"] });
+      void refreshMarketingWork(qc);
       setHandoffOpen(false);
     },
     onError: (e: any) => {
-      qc.invalidateQueries({ queryKey: ["leads", "by_company", companyId] });
+      void refreshMarketingWork(qc);
       toast.error(e?.partial ? "Átadás részben sikerült" : "Átadás sikertelen", { description: e?.partial ? e.message : humanizeSupabaseError(e) });
     },
   });
@@ -713,7 +713,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         defaultLeadSource={meta.leadSource}
         salesUsers={salesUsers.data ?? []}
         existingOpenLeads={openLeads(companyLeads.data ?? [])}
-        submitting={handoff.isPending}
+        submitting={handoff.isPending || cust.isFetching || companyLeads.isFetching}
         onSubmit={(d) => handoff.mutate(d)}
       />
 
