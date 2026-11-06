@@ -8,7 +8,7 @@ export type EligibilityStatus = "ready" | "contacted" | "replied" | "uncertain" 
 export type CampaignCandidate = { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null };
 /** Szerveren minősített előzmény, tartalom nélkül. */
 export type HistoryHit = { email: string; direction: "out" | "in"; at: string | null; mailbox: string };
-export type CompanyHistory = { company_id: string; threads: number; selfLinkedThreads: number; last_at: string | null };
+export type CompanyHistory = { company_id: string; threads: number; last_at: string | null };
 export type EligibilityRow = CampaignCandidate & { norm: string; status: EligibilityStatus; reasons: string[]; last_at: string | null; mailboxes: string[] };
 
 const VALID = /^[^\s@<>()",;]+@[a-z0-9.-]+\.[a-z]{2,}$/;
@@ -47,7 +47,6 @@ export function classifyCandidates(
     if (c.company_id && touchedCompanies.has(c.company_id)) reasons.push("A cég másik kontaktja már kapott/küldött levelet.");
     const ch = c.company_id ? coHist.get(c.company_id) : undefined;
     if (ch && ch.threads > 0) reasons.push(`A céghez ${ch.threads} tárolt levélszál kötődik.`);
-    if (ch && ch.selfLinkedThreads > 0) reasons.push("A címhez saját Viba-Team céghez kötött szál tartozik.");
     return row(reasons.length ? "uncertain" : "ready");
   });
 }

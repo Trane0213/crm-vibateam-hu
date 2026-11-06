@@ -18,11 +18,10 @@ describe("kampány előtti alkalmasság", () => {
   it("bejövő levél → válasz érkezett", () => {
     expect(run([C("1", "anna@acme.hu")], [{ email: "anna@acme.hu", direction: "out", at: "1", mailbox: "info@vibateam.hu" }, { email: "anna@acme.hu", direction: "in", at: "2", mailbox: "info@vibateam.hu" }])[0]!.status).toBe("replied");
   });
-  it("bizonytalan előzmény soha nem kész: hiányos vizsgálat, céghez nem kötött, cégszintű szál, saját céges szál", () => {
+  it("bizonytalan előzmény soha nem kész: hiányos vizsgálat, céghez nem kötött, cégszintű szál", () => {
     expect(run([C("1", "anna@acme.hu")], [], [], false)[0]!.status).toBe("uncertain");
     expect(run([C("1", "anna@acme.hu", null)])[0]!.status).toBe("uncertain");
-    expect(run([C("1", "anna@acme.hu")], [], [{ company_id: "A", threads: 3, selfLinkedThreads: 0, last_at: null }])[0]!.status).toBe("uncertain");
-    expect(run([C("1", "anna@acme.hu")], [], [{ company_id: "A", threads: 0, selfLinkedThreads: 1, last_at: null }])[0]!.status).toBe("uncertain");
+    expect(run([C("1", "anna@acme.hu")], [], [{ company_id: "A", threads: 3, last_at: null }])[0]!.status).toBe("uncertain");
   });
   it("több kontaktos cég: a megkeresett kolléga miatt a másik is blokkolt", () => {
     const r = run([C("1", "anna@acme.hu"), C("2", "bela@acme.hu")], [{ email: "anna@acme.hu", direction: "out", at: "1", mailbox: "info@vibateam.hu" }]);
