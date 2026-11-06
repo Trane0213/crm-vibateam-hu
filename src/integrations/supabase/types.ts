@@ -695,6 +695,89 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_delivery_items: {
+        Row: {
+          budapest_day: string | null
+          campaign_id: string
+          campaign_revision: string
+          claim_token: string | null
+          claimed_at: string | null
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          email_id: string | null
+          finished_at: string | null
+          gmail_message_id: string | null
+          id: string
+          mailbox: string
+          mode: string
+          reason: string | null
+          recipient_email: string
+          scheduled_at: string
+          snapshot: Json
+          snapshot_hash: string
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budapest_day?: string | null
+          campaign_id: string
+          campaign_revision: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          email_id?: string | null
+          finished_at?: string | null
+          gmail_message_id?: string | null
+          id?: string
+          mailbox: string
+          mode: string
+          reason?: string | null
+          recipient_email: string
+          scheduled_at: string
+          snapshot: Json
+          snapshot_hash: string
+          state?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budapest_day?: string | null
+          campaign_id?: string
+          campaign_revision?: string
+          claim_token?: string | null
+          claimed_at?: string | null
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          email_id?: string | null
+          finished_at?: string | null
+          gmail_message_id?: string | null
+          id?: string
+          mailbox?: string
+          mode?: string
+          reason?: string | null
+          recipient_email?: string
+          scheduled_at?: string
+          snapshot?: Json
+          snapshot_hash?: string
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_delivery_items_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_send_audit: {
         Row: {
           budapest_day: string
@@ -1126,8 +1209,12 @@ export type Database = {
       }
       email_campaigns: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_revision: string | null
           created_at: string | null
           created_by: string | null
+          delivery_state: string | null
           gmail_draft_source: Json | null
           id: string
           message_body: string | null
@@ -1135,14 +1222,20 @@ export type Database = {
           message_subject: string | null
           name: string
           prechecked_at: string | null
+          signature_html: string | null
+          signature_text: string | null
           status: string
           target_company_ids: string[] | null
           target_group: string | null
           updated_at: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_revision?: string | null
           created_at?: string | null
           created_by?: string | null
+          delivery_state?: string | null
           gmail_draft_source?: Json | null
           id?: string
           message_body?: string | null
@@ -1150,14 +1243,20 @@ export type Database = {
           message_subject?: string | null
           name: string
           prechecked_at?: string | null
+          signature_html?: string | null
+          signature_text?: string | null
           status?: string
           target_company_ids?: string[] | null
           target_group?: string | null
           updated_at?: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_revision?: string | null
           created_at?: string | null
           created_by?: string | null
+          delivery_state?: string | null
           gmail_draft_source?: Json | null
           id?: string
           message_body?: string | null
@@ -1165,6 +1264,8 @@ export type Database = {
           message_subject?: string | null
           name?: string
           prechecked_at?: string | null
+          signature_html?: string | null
+          signature_text?: string | null
           status?: string
           target_company_ids?: string[] | null
           target_group?: string | null
@@ -4875,6 +4976,30 @@ export type Database = {
         Args: { p_campaign: string; p_company: string; p_expected: string }
         Returns: Json
       }
+      campaign_delivery_claim: {
+        Args: { p_hash: string; p_item: string; p_user: string }
+        Returns: Json
+      }
+      campaign_delivery_control: {
+        Args: {
+          p_action: string
+          p_campaign: string
+          p_expected: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      campaign_delivery_finish: {
+        Args: {
+          p_email: string
+          p_gmail: string
+          p_item: string
+          p_token: string
+          p_user: string
+          p_verified: boolean
+        }
+        Returns: Json
+      }
       campaign_detach_gmail_source: {
         Args: { p_campaign: string; p_expected: string; p_user: string }
         Returns: Json
@@ -4887,6 +5012,29 @@ export type Database = {
           p_source: Json
           p_subject: string
           p_text: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      campaign_save_message: {
+        Args: {
+          p_body: string
+          p_campaign: string
+          p_expected: string
+          p_html: string
+          p_signature_html: string
+          p_signature_text: string
+          p_subject: string
+          p_user: string
+        }
+        Returns: Json
+      }
+      campaign_schedule: {
+        Args: {
+          p_campaign: string
+          p_expected: string
+          p_mailbox: string
+          p_rows: Json
           p_user: string
         }
         Returns: Json
