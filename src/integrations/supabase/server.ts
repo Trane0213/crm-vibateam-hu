@@ -4,10 +4,12 @@
  * body-ban vagy `*.server.ts` modulokban.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ?? "https://uepqejecsiuhodegbcff.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY =
-  process.env.SUPABASE_PUBLISHABLE_KEY ?? "sb_publishable_rSXwIJI7nXcp12wzqOlODw_PLBdBvvs";
+function connection() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) throw new Error("A szerver Supabase-kapcsolata nincs beállítva.");
+  return { url, key };
+}
 
 function requireServiceKey(): string {
   const key =
@@ -23,7 +25,7 @@ function requireServiceKey(): string {
 
 /** Service role — bypassolja az RLS-t. Csak megbízható szerver kontextusban. */
 export function getAdminClient(): SupabaseClient {
-  return createClient(SUPABASE_URL, requireServiceKey(), {
+  return createClient(connection().url, requireServiceKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
@@ -33,9 +35,21 @@ export function getAdminClient(): SupabaseClient {
  * A bearer token a request `Authorization` headeréből jön.
  */
 export function getUserClient(accessToken: string): SupabaseClient {
-  return createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  const { url, key } = connection();
+  return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    global: {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      fetch: (input, init) => {
+        const headers = new Headers(input instanceof Request ? input.headers : undefined);
+        new Headers(init?.headers).forEach((value, name) => headers.set(name, value));
+        if (key.startsWith("sb_") && headers.get("Authorization") === `Bearer ${key}`) {
+          headers.delete("Authorization");
+        }
+        headers.set("apikey", key);
+        return fetch(input, { ...init, headers });
+      },
+    },
   });
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertSenderIdentity, defaultMailbox, type Mailbox } from "./mailbox-model";
+import { assertSenderIdentity, defaultMailbox, mailboxResult, type Mailbox } from "./mailbox-model";
 
 const mailboxes: Mailbox[] = [
   { userId: "info", email: "info@vibateam.hu", name: null, active: true, authError: false, lastSync: null },
@@ -27,5 +27,18 @@ describe("Postafiókok alapértelmezése és küldőazonosság", () => {
   });
   it("saját Gmail-azonosságot elfogad", () => {
     expect(() => assertSenderIdentity("INFO@vibateam.hu", "info@vibateam.hu", "info@vibateam.hu")).not.toThrow();
+  });
+  it("401 Response nem kerül sikeres postafióklistaként a képernyőre", async () => {
+    await expect(mailboxResult(Promise.resolve(new Response("Unauthorized: invalid token", { status: 401 })), "mailboxes")).rejects.toThrow("munkamenet");
+  });
+  it("hibás lista és hibás lap nem lesz sikeres vagy üres adat", async () => {
+    await expect(mailboxResult(Promise.resolve({ error: "failed" }), "mailboxes")).rejects.toThrow("hibás");
+    await expect(mailboxResult(Promise.resolve({ rows: [], total: 0 }), "page")).rejects.toThrow("hibás");
+  });
+  it("érvényes lista, üres lista és postafióklap változatlanul megmarad", async () => {
+    expect(await mailboxResult(Promise.resolve(mailboxes), "mailboxes")).toEqual(mailboxes);
+    expect(await mailboxResult(Promise.resolve([]), "mailboxes")).toEqual([]);
+    const page = { rows: [], total: 0, counts: { all: 0 } };
+    expect(await mailboxResult(Promise.resolve(page), "page")).toEqual(page);
   });
 });

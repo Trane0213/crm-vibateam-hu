@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { EmailComposer } from "@/components/emails/email-composer";
 import { usePermissions } from "@/hooks/use-permissions";
 import { getMailboxes, getMailboxPage } from "@/lib/gmail/mailbox.functions";
-import { defaultMailbox, type MailFolder } from "@/lib/gmail/mailbox-model";
+import { defaultMailbox, mailboxResult, type MailFolder } from "@/lib/gmail/mailbox-model";
 
 const folders: { key: MailFolder; label: string; icon: typeof Mail }[] = [
   { key: "inbox", label: "Beérkezett", icon: Inbox },
@@ -34,7 +34,7 @@ function EmailsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(0);
   const [composeOpen, setComposeOpen] = useState(false);
-  const mailboxes = useQuery({ queryKey: ["emails", "mailboxes", userId], queryFn: () => getMailboxes(), enabled: !!userId });
+  const mailboxes = useQuery({ queryKey: ["emails", "mailboxes", userId], queryFn: () => mailboxResult(getMailboxes(), "mailboxes"), enabled: !!userId });
   const mailbox = mailboxChoice === undefined ? defaultMailbox(mailboxes.data ?? [], userId) : mailboxChoice;
   const selected = mailboxes.data?.find(m => m.email === mailbox);
   const ownAccount = mailboxes.data?.find(m => m.userId === userId && m.email === myMailbox);
@@ -45,7 +45,7 @@ function EmailsPage() {
   }, [search]);
   const messages = useQuery({
     queryKey: ["emails", "mailbox-page", userId, mailbox, folder, debouncedSearch, page],
-    queryFn: () => getMailboxPage({ data: { mailbox, folder, search: debouncedSearch, page } }),
+    queryFn: () => mailboxResult(getMailboxPage({ data: { mailbox, folder, search: debouncedSearch, page } }), "page"),
     enabled: !!userId && !!mailboxes.data?.length && !permissionsLoading,
     refetchInterval: 60_000,
   });
