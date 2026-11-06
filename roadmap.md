@@ -3,7 +3,7 @@
 - [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.
 - [x] 19:21 UTC 1. szakasz célzott folytatása: összecsukható Marketing→Sales folyamat-térkép mindkét szerepkörben; átadás gomb = ellenőrzés megnyitása, mentés/új ügy/felelős/automatikus Pipeline-kizárás egyértelmű; átadási hiba tartósan az ablakban, ügyfélbetöltés/hiba/újrapróba; korábbi téves Pipeline-szöveg javítva. 779 teszt/build PASS, meglévő marketing/Sales betöltési regresszió és folyamat 1440/390 PASS. docs/system-map/ui1-sales-atadas-folyamat-2026-11-06.md.
 - [ ] 1. Teljes elfogadás: folyamat-térkép és célzott átadási visszajelzések kész; minden oldal következmény/állapotleltára és hitelesített mentés/readback external_unmanaged miatt NEM TESZTELT. Átadási ablak új visszajelzéseinek teljes UI-végigpróbája hiányzik; nincs teljes szakaszlezárás. STOP.
-- [ ] 2. Marketing Ma és ügyféladatlap: meglévő megjelenítési részek megőrzése, részletes ügyfélmunka hiányainak célzott lezárása.
+- [ ] 2. Marketing Ma és ügyféladatlap: 19:24 UTC engedélyezve; meglévő megjelenítési részek megőrzése, részletes ügyfélmunka és betöltési/hiba visszajelzés célzott lezárása, Sales-átadáshoz igazítva.
 - [ ] 3. Kampányszerkesztés és ütemezés: meglévő szerkesztő/előnézet/ütemezési védelem, következmények és visszajelzések.
 - [ ] 4. Marketing–Sales átadás és Sales Ma: meglévő átadási út, felelős és forráshű visszajelzés.
 - [ ] 5. Sales Pipeline, ajánlat és utánkövetés: kizárólag vizuális kezelés, változatlan üzleti szabályok.
