@@ -18,7 +18,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { COMPANY_TYPE_LABEL } from "@/lib/viba-constants";
 import { loadCompanySurfaceMap } from "@/lib/crm/crm-surface";
 import { FilterBar, relativeTime } from "@/components/marketing-ui";
-import { usePermissions } from "@/hooks/use-permissions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/customers/")({
@@ -39,7 +38,6 @@ export const Route = createFileRoute("/_authenticated/customers/")({
 });
 
 function CustomersIndex() {
-  const { role } = usePermissions();
   const [kind, setKind] = useState<"all" | "company" | "person">("all");
   const [search, setSearch] = useState("");
   const [segment, setSegment] = useState<"all" | "active" | "new" | "reactivatable">("all");
