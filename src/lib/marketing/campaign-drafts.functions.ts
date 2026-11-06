@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { EligibilityStatus } from "./campaign-eligibility";
 import { campaignCopyInput } from "./campaign-preparation";
+import { z } from 'zod';
 
 /**
  * Kampánytervezetek (Owner/Marketing). Kampány-írás a felhasználó klienssel (RLS + guard trigger),
@@ -25,6 +26,17 @@ export const listCampaignDrafts = createServerFn({ method: "POST" })
     const { data, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,status,created_by,created_at,updated_at,prechecked_at").order("updated_at", { ascending: false }).limit(200);
     if (error) throw new Error(error.message);
     return { role, userId: context.userId, campaigns: data ?? [] };
+  });
+
+export const addCampaignTargetCompany = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ campaignId: z.string().uuid(), companyId: z.string().uuid(), expectedUpdatedAt: z.string().min(1) }))
+  .handler(async ({ data, context }) => {
+    await requireCampaignRole(context.supabase, context.userId);
+    const result = await context.supabase.rpc('campaign_add_target_company', { p_campaign: data.campaignId, p_company: data.companyId, p_expected: data.expectedUpdatedAt });
+    if (result.error) throw new Error(result.error.message);
+    const read = await context.supabase.from('email_campaigns').select('id,target_company_ids').eq('id', data.campaignId).maybeSingle();
+    if (read.error || !read.data?.target_company_ids?.includes(data.companyId)) throw new Error('A célcég mentése nem igazolt; nyisd újra a kampányt.');
+    return { campaignId: data.campaignId, companyId: data.companyId };
   });
 
 export const saveCampaignDraft = createServerFn({ method: "POST" })
@@ -108,9 +120,17 @@ export const getCampaignDraft = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     await requireCampaignRole(context.supabase, context.userId);
-    const { data: camp, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,message_subject,message_body,status,created_by,prechecked_at,updated_at").eq("id", data.id).maybeSingle();
+    const { data: camp, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,message_subject,message_body,status,created_by,prechecked_at,updated_at,target_company_ids").eq("id", data.id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!camp) throw new Error("A kampány nem található vagy nincs jogosultságod.");
+    const targetCompanies: { id: string; name: string; marketing_blocked: boolean | null }[] = [];
+    const targetIds = camp.target_company_ids ?? [];
+    for (let offset = 0; offset < targetIds.length; offset += 200) {
+      const result = await context.supabase.from('companies').select('id,name,marketing_blocked').in('id', targetIds.slice(offset, offset + 200));
+      if (result.error) throw new Error(result.error.message);
+      targetCompanies.push(...result.data);
+    }
+    if (targetCompanies.length !== targetIds.length) throw new Error('A mentett célcéglista részlegesen elérhető; ellenőrzés szükséges.');
     // Összes tárolt címzett (lapozva, 1000 felett is) a számlálókhoz és az elavulás-vizsgálathoz.
     const all: { contact_id: string; email_norm: string | null; eligibility: string }[] = [];
     for (let from = 0; ; from += 1000) {
@@ -134,7 +154,7 @@ export const getCampaignDraft = createServerFn({ method: "POST" })
     const { campaignStaleness } = await import("./campaign-precheck.server");
     const staleness = await campaignStaleness(all, camp.prechecked_at);
     return {
-      campaign: camp, savedCandidates, counts, total: count ?? 0, page: data.page, pageSize: PAGE, staleness,
+      campaign: camp, savedCandidates, targetCompanies, counts, total: count ?? 0, page: data.page, pageSize: PAGE, staleness,
       rows: (page ?? []).map((r: any) => ({ contact_id: r.contact_id, email: r.email_norm, eligibility: r.eligibility as EligibilityStatus, reasons: (r.reasons ?? []) as string[], last_at: r.last_history_at, name: r.contacts?.name ?? null, contact_kind: r.contacts?.contact_kind, data_source: r.contacts?.data_source, verification_state: r.contacts?.verification_state, verified_by: r.contacts?.verified_by, verified_at: r.contacts?.verified_at, company_id: r.contacts?.company_id ?? null, company_name: r.contacts?.companies?.name ?? null })),
     };
   });

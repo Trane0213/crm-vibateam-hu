@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { campaignPreview, explicitContactIds } from "@/lib/marketing/campaign-preparation";
 import { ContactProvenanceSummary } from "@/components/customers/contact-provenance";
-import { listCampaignDrafts, saveCampaignDraft, setCampaignArchived, precheckAndStoreCampaign, getCampaignDraft } from "@/lib/marketing/campaign-drafts.functions";
+import { listCampaignDrafts, saveCampaignDraft, setCampaignArchived, precheckAndStoreCampaign, getCampaignDraft, addCampaignTargetCompany } from "@/lib/marketing/campaign-drafts.functions";
 import { CampaignTestControl } from "@/components/marketing/campaign-test-control";
 import type { EligibilityStatus } from "@/lib/marketing/campaign-eligibility";
 import { campaignEntryContacts } from '@/lib/marketing/campaign-entry';
@@ -32,6 +32,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const archFn = useServerFn(setCampaignArchived);
   const checkFn = useServerFn(precheckAndStoreCampaign);
   const getFn = useServerFn(getCampaignDraft);
+  const addTargetFn = useServerFn(addCampaignTargetCompany);
   const [selected, setSelected] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
@@ -87,6 +88,13 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
           {(list.data?.campaigns ?? []).map(c => <option key={c.id} value={c.id}>{c.name} · {STATUS[c.status] ?? c.status}{list.data?.role === "owner" && c.created_by !== list.data.userId ? " · más felhasználóé" : ""}</option>)}
         </select>
       </div>
+      {camp && entryCompanyId && <Button size="sm" variant="outline" disabled={busy || archived || dirty || camp.target_company_ids?.includes(entryCompanyId)} onClick={() => act(async () => {
+        await addTargetFn({ data: { campaignId: camp.id, companyId: entryCompanyId, expectedUpdatedAt: camp.updated_at } });
+        qc.invalidateQueries({ queryKey: ['email_campaign_recipients'] });
+      }, 'Cég mentve a kampány célcégei közé; címzettküldés nem történt.')}>
+        {camp.target_company_ids?.includes(entryCompanyId) ? 'Cég már mentett kampánycél' : 'Kiválasztott cég mentése kampánycélként'}
+      </Button>}
+      {!!d?.targetCompanies?.length && <section className="space-y-1 border-y py-2"><h3 className="font-medium">Mentett célcégek · {d.targetCompanies.length}</h3>{d.targetCompanies.map(company => <p key={company.id} className="text-xs"><Link to="/customers/$id" params={{ id: company.id }} className="text-primary underline">{company.name}</Link>{company.marketing_blocked && ' · Cégszintű marketingtiltás'} · A célcég nem küldési jogosultság.</p>)}</section>}
       <div className="flex flex-wrap items-center gap-2">
         <Input className="max-w-xs" placeholder="Kampány neve" value={name} disabled={archived || busy} onChange={e => setName(e.target.value)} />
         <Input className="max-w-xs" placeholder="Célcsoport" value={target} disabled={archived || busy} onChange={e => setTarget(e.target.value)} />

@@ -11,6 +11,19 @@ const ELIGIBILITY: Record<string, string> = { ready: 'Kész', contacted: 'Koráb
 /** Persisted contact membership only; user-RLS enforces campaign and contact visibility. */
 export function CompanyCampaigns({ companyId, contactIds, enabled = true }: { companyId: string; contactIds: string[]; enabled?: boolean }) {
   const [page, setPage] = useState(0);
+  const targets = useQuery({
+    queryKey: ['email_campaign_recipients', 'company-targets', companyId], enabled,
+    queryFn: async () => {
+      const rows: { id: string; name: string; status: string }[] = [];
+      for (let from = 0; ; from += 1000) {
+        const result = await supabase.from('email_campaigns').select('id,name,status').contains('target_company_ids', [companyId]).order('id').range(from, from + 999);
+        if (result.error) throw result.error;
+        rows.push(...result.data);
+        if (result.data.length < 1000) break;
+      }
+      return rows;
+    },
+  });
   const query = useQuery({
     queryKey: ['email_campaign_recipients', 'company', companyId, contactIds.join(',')],
     enabled,
@@ -29,15 +42,16 @@ export function CompanyCampaigns({ companyId, contactIds, enabled = true }: { co
       return rows;
     },
   });
-  if (query.isPending) return <p className="text-sm text-muted-foreground">Kampánykapcsolatok betöltése…</p>;
-  if (query.error) return <p role="alert" className="text-sm text-destructive">A kampánykapcsolatok nem tölthetők be.</p>;
+  if (query.isPending || targets.isPending) return <p className="text-sm text-muted-foreground">Kampánykapcsolatok betöltése…</p>;
+  if (query.error || targets.error) return <p role="alert" className="text-sm text-destructive">A kampánykapcsolatok nem tölthetők be.</p>;
   const rows = query.data ?? [];
   const currentPage = Math.min(page, Math.max(0, Math.ceil(rows.length / 25) - 1));
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <span className="text-sm text-muted-foreground">{new Set(rows.map(r => r.campaign_id)).size} látható kampány · {rows.length} mentett kontaktkapcsolat</span>
+      <span className="text-sm text-muted-foreground">{new Set([...rows.map(r => r.campaign_id), ...(targets.data ?? []).map(r => r.id)]).size} látható kampány · {rows.length} mentett kontaktkapcsolat</span>
       <CampaignEntryAction companyId={companyId} />
     </div>
+    {(targets.data ?? []).map(target => <p key={target.id} className="text-sm">{target.name} · Mentett célcég · {STATUS[target.status] ?? target.status}</p>)}
     {!rows.length ? <p className="text-sm text-muted-foreground">Nincs számodra látható, mentett kampánytagság.</p> : <ul className="divide-y border-y">
       {rows.slice(currentPage * 25, (currentPage + 1) * 25).map(row => <li key={row.id} className="space-y-1 py-3 text-sm">
         <div className="flex flex-wrap items-center gap-2"><span className="font-medium">{row.email_campaigns?.name}</span><Badge variant="outline">{STATUS[row.email_campaigns?.status ?? ''] ?? 'Ismeretlen állapot'}</Badge></div>
