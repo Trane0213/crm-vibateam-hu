@@ -32,7 +32,7 @@ export function SalesHome() {
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1.35fr)_minmax(230px,.8fr)]">
         <WorkspacePanel title={`Mai teendők${view ? ` (${view.focus.length})` : ""}`} subtitle="Lejárt, mai, új és ellenőrizendő ügyek" to="/sales/todo">
           {!view ? <p className="p-4 text-sm text-muted-foreground">{query.isError ? "A teendők nem érhetők el." : "Betöltés…"}</p> : !view.focus.length ? <div className="flex gap-3 p-5 text-sm"><CheckCircle2 className="h-5 w-5 shrink-0 text-status-success" /><div>Nincs mai teendőd.<p className="mt-1 text-xs text-muted-foreground">A következő egyeztetéseket külön láthatod.</p></div></div> : <DailyLeadRows leads={view.focus.slice(0, 8)} />}
-          {!!view && view.focus.length > 8 && <Link to="/sales/todo" className="block border-t p-3 text-xs text-primary">Összes teendő ({view.focus.length}) →</Link>}
+          {!!view && view.focus.length > 8 && <Link to="/sales/todo" search={{ bucket: "today" }} className="block border-t p-3 text-xs text-primary">Összes teendő ({view.focus.length}) →</Link>}
         </WorkspacePanel>
         <WorkspacePanel title={`Értékesítési pipeline${d ? ` (${d.overview?.pipeline ?? 0})` : ""}`} subtitle="Meglévő szakaszok · saját ügyek" to="/sales/leads">
           <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4 xl:grid-cols-2 2xl:grid-cols-4">
