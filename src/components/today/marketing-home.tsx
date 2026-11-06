@@ -22,7 +22,7 @@ const isoMonthAgo = () => { const d = new Date(); d.setDate(d.getDate()-30); ret
 
 export function MarketingHome() {
   const {profile}=usePermissions();
-  const dailyQ=useQuery({queryKey:['mkt-home','daily',profile?.auth_user_id],queryFn:()=>getMarketingDaily(),enabled:!!profile?.auth_user_id});
+  const dailyQ=useQuery({queryKey:['mkt-home','daily','tasks','followups','phone_calls',profile?.auth_user_id],queryFn:()=>getMarketingDaily(),enabled:!!profile?.auth_user_id});
   const todayStart = isoStartOfDay();
   const weekAgo = isoWeekAgo();
   const monthAgo = isoMonthAgo();
@@ -101,6 +101,8 @@ export function MarketingHome() {
       <QuickActions>
         <Button size="sm" variant="default" asChild><Link to="/campaign-list"><ListPlus className="mr-1 h-3.5 w-3.5" />Kampánylista</Link></Button>
         <Button size="sm" variant="secondary" asChild><Link to="/emails"><Mail className="mr-1 h-3.5 w-3.5" />Levelek</Link></Button>
+        <Button size="sm" variant="secondary" asChild><Link to="/web-quote-requests"><Mail className="mr-1 h-3.5 w-3.5" />Webes érdeklődések</Link></Button>
+        <Button size="sm" variant="ghost" asChild><Link to="/data-quality"><Radar className="mr-1 h-3.5 w-3.5" />Adatellenőrzés</Link></Button>
 
         <Button size="sm" variant="ghost" asChild><Link to="/help/marketing"><BookOpen className="mr-1 h-3.5 w-3.5" />Marketing súgó</Link></Button>
       </QuickActions>
