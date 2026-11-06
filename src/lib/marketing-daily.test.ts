@@ -40,3 +40,8 @@ it('invalid only email is not a usable contact and callbacks retain shared scope
   expect(out.to_contact[0]?.contact_state.email_available).toBe(false);expect(out.contact_warnings[0]?.contact_state.invalid_email).toBe(true);
   expect(out.callbacks[0]?.visibility_scope).toBe('shared_visible_not_own');
 });
+it('a failed daily source is an error, not an empty successful workday',async()=>{
+ const sb=client(),from=sb.from;
+ sb.from=(table:string)=>{if(table!=='followups')return from(table);const q:any={select:()=>q,eq:()=>q,order:()=>q,limit:()=>q,then:(fn:any)=>Promise.resolve({data:null,error:new Error('TESZT read failure')}).then(fn)};return q;};
+ await expect(loadMarketingDaily(sb,'user')).rejects.toThrow('TESZT read failure');
+});
