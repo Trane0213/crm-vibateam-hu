@@ -1,6 +1,7 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Irányadó Marketing/Sales UI/UX-sorrend – 2026-11-06 19:19 UTC
 - [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.
+- [ ] 19:21 UTC: az 1. szakasz engedélyezett folytatása a meglévő Marketing→Sales átadási út köré rendezett folyamat-térképpel és állapot/következmény visszajelzésekkel; üzleti logika/jog/küldés változatlan.
 - [ ] 1. Közös navigáció, visszajelzések és munkafolyamat-térkép: kész munkasáv/menü/fókusz/animáció megőrzése; hiányos a következmény- és hibaállapotok teljes leltára, szerepkörös folyamat-térkép és hitelesített elfogadás (external_unmanaged). Első folytatandó szakasz; a futó kör jelentése után jóváhagyásra STOP.
 - [ ] 2. Marketing Ma és ügyféladatlap: meglévő megjelenítési részek megőrzése, részletes ügyfélmunka hiányainak célzott lezárása.
 - [ ] 3. Kampányszerkesztés és ütemezés: meglévő szerkesztő/előnézet/ütemezési védelem, következmények és visszajelzések.
