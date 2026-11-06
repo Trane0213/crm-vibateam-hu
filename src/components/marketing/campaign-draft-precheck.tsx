@@ -20,6 +20,7 @@ import { campaignEntryContacts } from '@/lib/marketing/campaign-entry';
 import { GmailDraftPicker } from './gmail-draft-picker';
 import { CampaignHtmlPreview } from './campaign-html-preview';
 import { detachGmailCampaignSource } from '@/lib/marketing/gmail-drafts.functions';
+import { savedDraftSource } from '@/lib/marketing/gmail-draft-source';
 
 const LABEL: Record<EligibilityStatus | "all", string> = {
   all: "Mind", ready: "Kész előkészítésre", contacted: "Már megkeresett", replied: "Válasz érkezett",
@@ -78,6 +79,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const pages = d ? Math.max(1, Math.ceil(d.total / d.pageSize)) : 1;
   const archived = camp?.status === "archived";
   const sourceLocked = !!camp?.gmail_draft_source;
+  const savedSource = savedDraftSource(camp?.gmail_draft_source);
   const dirty = !!camp && (name.trim() !== camp.name || (target.trim() || null) !== (camp.target_group ?? null) || subject !== (camp.message_subject ?? "") || body !== (camp.message_body ?? ""));
   const picked = explicitContactIds(contactIds,choices.map(c=>c.id));
   const selectedCompanyIds = [...new Set(choices.filter(c=>picked.includes(c.id)).map(c=>c.company_id))];
@@ -118,7 +120,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
       </div>
       {sourceLocked && camp && <section className="space-y-2 border-y py-3">
         <h3 className="font-medium">Mentett Gmail-piszkozatmásolat</h3>
-        <p className="break-all text-xs text-muted-foreground">{String(camp.gmail_draft_source?.mailbox ?? '')} · {String(camp.gmail_draft_source?.draft_id ?? '')} · {fmt(String(camp.gmail_draft_source?.read_at ?? ''))}</p>
+        <p className="break-all text-xs text-muted-foreground">{savedSource?.mailbox ?? 'Ismeretlen forrás'} · {savedSource?.draft_id ?? ''} · {fmt(savedSource?.read_at ?? null)}</p>
         {camp.message_html && <CampaignHtmlPreview html={camp.message_html} />}
         <label className="flex items-start gap-2"><Checkbox checked={detachConfirmed} disabled={busy || archived || dirty || !body.trim()} onCheckedChange={v => setDetachConfirmed(v === true)} />Csak a szöveges változatot tartom meg, a HTML és forráskapcsolat leválasztását jóváhagyom</label>
         <Button size="sm" variant="outline" disabled={busy || archived || dirty || !detachConfirmed || !body.trim()} onClick={() => act(async () => { await detachFn({ data: { campaignId: camp.id, revision: camp.updated_at, confirmed: true } }); setDetachConfirmed(false); }, 'Szöveges tervezetre váltva; a Gmail-piszkozat változatlan.')}>Váltás szöveges tervezetre</Button>

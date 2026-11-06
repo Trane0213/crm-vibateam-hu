@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { readOwnDraft } from './gmail-drafts.server';
 import type { DraftSource } from './gmail-draft-source';
 import { createHash } from 'node:crypto';
+import type { Database } from '@/integrations/supabase/types';
 
 export function sourceHash(source: Pick<DraftSource, 'draftId' | 'messageId' | 'mailbox' | 'subject' | 'text' | 'html' | 'attachments'>) {
   return createHash('sha256').update(JSON.stringify([source.draftId, source.messageId, source.mailbox, source.subject, source.text, source.html, source.attachments])).digest('hex');
@@ -19,11 +20,14 @@ export async function importCampaignSource(sb: SupabaseClient, userId: string, i
   if (source.attachments || !source.subject.trim() || source.subject.length > 500 || (source.text?.length ?? 0) > 20000 || (source.html?.length ?? 0) > 200000 || (!source.text?.trim() && !source.html?.trim())) throw new Error('A teljes piszkozat nem menthető veszteség nélkül.');
   const metadata = { draft_id: source.draftId, message_id: source.messageId, mailbox: source.mailbox, read_at: source.readAt, imported_by: userId, sha256: hash };
   const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
-  const save = await supabaseAdmin.rpc('campaign_import_gmail_source', { p_campaign: input.campaignId, p_user: userId, p_expected: input.revision, p_subject: source.subject, p_text: source.text ?? '', p_html: source.html, p_source: metadata });
+  // PostgreSQL accepts nullable text args; generated RPC types omit argument nullability.
+  const args = { p_campaign: input.campaignId, p_user: userId, p_expected: input.revision, p_subject: source.subject, p_text: source.text ?? '', p_html: source.html, p_source: metadata } as Database['public']['Functions']['campaign_import_gmail_source']['Args'];
+  const save = await supabaseAdmin.rpc('campaign_import_gmail_source', args);
   if (save.error) throw new Error('A mentés nem igazolt; nyisd újra a kampányt, ne ismételd vakon.');
   const read = await sb.from('email_campaigns').select('id,message_subject,message_body,message_html,gmail_draft_source').eq('id', input.campaignId).maybeSingle();
   const row = read.data;
-  if (read.error || !row || row.message_subject !== source.subject || row.message_body !== (source.text ?? '') || row.message_html !== source.html || JSON.stringify(row.gmail_draft_source?.sha256) !== JSON.stringify(hash) || row.gmail_draft_source?.draft_id !== source.draftId || row.gmail_draft_source?.imported_by !== userId) throw new Error('A mentett forrás visszaolvasása nem igazolt; nyisd újra a kampányt.');
+  const proof = row?.gmail_draft_source;
+  if (read.error || !row || row.message_subject !== source.subject || row.message_body !== (source.text ?? '') || row.message_html !== source.html || !proof || typeof proof !== 'object' || Array.isArray(proof) || proof.sha256 !== hash || proof.draft_id !== source.draftId || proof.message_id !== source.messageId || proof.mailbox !== source.mailbox || proof.read_at !== source.readAt || proof.imported_by !== userId) throw new Error('A mentett forrás visszaolvasása nem igazolt; nyisd újra a kampányt.');
   return { campaignId: input.campaignId };
 }
 export async function detachCampaignSource(sb: SupabaseClient, userId: string, id: string, revision: string) {

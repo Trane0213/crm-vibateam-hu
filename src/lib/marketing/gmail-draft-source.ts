@@ -5,6 +5,11 @@ export type DraftSource = {
   draftId: string; messageId: string; mailbox: string; subject: string;
   text: string | null; html: string | null; attachments: number; readAt: string;
 };
+export function savedDraftSource(value: unknown): { mailbox: string; draft_id: string; read_at: string } | null {
+  const schema = z.object({ mailbox: z.string(), draft_id: z.string(), read_at: z.string() });
+  const result = schema.safeParse(value);
+  return result.success ? result.data : null;
+}
 /** Plain campaign path cannot silently flatten HTML or discard attachments. */
 export function draftTextCopy(source: DraftSource) {
   if (source.attachments) throw new Error('A mellékletes piszkozat nem másolható a szöveges kampányba.');
