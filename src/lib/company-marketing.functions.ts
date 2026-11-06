@@ -17,7 +17,7 @@ export const setCompanyMarketingStatus = createServerFn({ method: 'POST' })
   .handler(async ({ data, context }) => {
     const result = await context.supabase.rpc('company_set_marketing_status', {
       p_company: data.companyId, p_status: data.status,
-      p_expected: data.expected, p_handoff_lead: data.handoffLeadId,
+      p_expected: data.expected, p_handoff_lead: data.handoffLeadId ?? undefined,
     });
     if (result.error) throw new Error(result.error.message);
     const saved = await context.supabase.from('companies').select('*').eq('id', data.companyId).single();
