@@ -29,6 +29,7 @@ export function messageAssociation(row: Record<string, unknown>, companyId: stri
 export function mailDirection(row: Record<string, unknown>, mailbox: string, customerEmails: string[]) {
   const labels = Array.isArray(row.gmail_label_ids) ? row.gmail_label_ids.map(String) : [];
   const sender = String(row.from_email ?? "").trim().toLowerCase();
+  if (labels.includes('DRAFT')) return "unknown_or_automated";
   if (labels.includes("SENT")) return "sent";
   if (!labels.length || labels.some((l) => ["DRAFT", "SPAM", "TRASH", "CATEGORY_PROMOTIONS", "CATEGORY_UPDATES", "CATEGORY_SOCIAL", "CATEGORY_FORUMS"].includes(l))) return "unknown_or_automated";
   if (sender !== mailbox.toLowerCase() && customerEmails.includes(sender)) return "customer_inbound";

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Building2, UserPlus } from "lucide-react";
@@ -9,6 +10,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { logActivity } from "@/lib/activity-log";
 import { decideIntake, normalizeEmail } from "@/lib/web-request-intake";
 import type { QuoteRequest } from "@/lib/quote-requests.functions";
+import { saveIntakeOnce, type IntakeProgress } from '@/lib/web-request-intake-save';
+import { refreshMarketingWork } from '@/lib/marketing-refresh';
 
 const esc = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 
@@ -20,6 +23,8 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
   const { role } = usePermissions();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const progress = useRef(new Map<string, IntakeProgress>());
+  const [attemptedIds, setAttemptedIds] = useState<string[]>([]);
   const email = normalizeEmail(req.email);
   const companyBase = (req.company_name ?? "").trim() || (req.name ?? "").trim();
 
@@ -43,26 +48,33 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
 
   const create = useMutation({
     mutationFn: async () => {
-      const d = match.data;
+      const entry = progress.current.get(req.id) ?? { companyId: null, started: false };
+      progress.current.set(req.id, entry);
+      if (entry.started) throw new Error('A korábbi felvételt ellenőrizd a céglistában.');
+      const refreshed = await match.refetch();
+      if (refreshed.error) throw refreshed.error;
+      const d = refreshed.data;
       if (d?.kind !== "create") throw new Error("A felvétel nem engedélyezett ennél az igénynél.");
-      const { data: co, error: e1 } = await supabase.from("companies")
+      setAttemptedIds(ids => [...ids, req.id]);
+      return saveIntakeOnce(entry, async () => {
+        const { data: co, error: e1 } = await supabase.from("companies")
         .insert({ name: d.companyName, notes: `Weboldali ajánlatkérésből: ${req.id}` })
         .select("id").single();
       if (e1) throw e1;
+      return co.id;
+      }, async (companyId) => {
       const { error: e2 } = await supabase.from("contacts").insert({
-        company_id: co.id, name: d.contactName, email, phone: req.phone?.trim() || null,
+        company_id: companyId, name: d.contactName, email, phone: req.phone?.trim() || null,
       });
       if (e2) throw new Error(`A cég létrejött, de a kapcsolattartó nem mentődött: ${e2.message}`);
-      await logActivity("quote_requests", "create", req.id, { company_id: co.id, intake: "web_request" });
-      return co.id as string;
+      }, async (companyId) => { await logActivity("quote_requests", "create", req.id, { company_id: companyId, intake: "web_request" }); });
     },
     onSuccess: (companyId) => {
-      qc.invalidateQueries({ queryKey: ["companies"] });
-      qc.invalidateQueries({ queryKey: ["contacts"] });
+      void refreshMarketingWork(qc);
       toast.success("Felvéve a CRM-be", { description: "A céges munkafelületen minősítsd és add át a Sales-nek." });
       navigate({ to: "/customers/$id", params: { id: companyId } });
     },
-    onError: (e: Error) => toast.error("Felvétel sikertelen", { description: e.message }),
+    onError: (e: Error) => { void refreshMarketingWork(qc); toast.error("Felvétel nem igazolt teljesként", { description: e.message }); },
   });
 
   if (role !== "marketing" && role !== "owner") return null;
@@ -77,7 +89,10 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
         <p className="text-muted-foreground">
           Az igényből nem lesz automatikusan lead. Vedd fel cégként, majd a céges munkafelületen add át a Sales-nek.
         </p>
-        {match.isLoading ? <p className="text-muted-foreground">Egyezés keresése…</p>
+        {attemptedIds.includes(req.id) && !create.isPending ? <div className="space-y-2">
+          <p role="alert" className="text-destructive">A felvétel eredményét ellenőrizd; újabb automatikus felvétel tiltott.</p>
+          {progress.current.get(req.id)?.companyId ? <Button asChild size="sm" variant="outline"><Link to="/customers/$id" params={{ id: progress.current.get(req.id)?.companyId ?? '' }}>Létrejött cég megnyitása</Link></Button> : <Button asChild size="sm" variant="outline"><Link to="/customers">Céglista megnyitása</Link></Button>}
+        </div> : match.isLoading ? <p className="text-muted-foreground">Egyezés keresése…</p>
           : match.error ? <p className="text-destructive">{(match.error as Error).message}</p>
           : d?.kind === "existing" ? (
             <Button asChild size="sm" variant="outline">

@@ -9,14 +9,14 @@ import { supabase } from "@/integrations/supabase/client";
 // (nincs lekérdezés-vihar), és csak az aktív (képernyőn lévő) lekérdezéseket.
 const TABLES = ["leads", "quotes", "followups", "projects", "tasks", "emails", "email_threads", "quote_sends", "phone_calls", "companies", "contacts", "email_campaigns", "email_campaign_recipients"] as const;
 const EXTRA_KEYS: Record<string, string[]> = {
-  leads: ["pipeline", "pulse", "sales-watch"],
+  leads: ["pipeline", "pulse", "sales-watch", "mkt-home", "campaign-list"],
   quotes: ["pipeline", "pulse", "sales-watch"],
   followups: ["pipeline", "pulse", "sales-watch", "mkt-home"],
   emails: ["sales-watch", "mkt-home"],
   email_threads: ["sales-watch", "mkt-home"],
   phone_calls:["mkt-home"],
-  companies:["mkt-home","campaign-list","customers"],
-  contacts:["mkt-home","campaign-list"],
+  companies:["mkt-home","campaign-list","customers","web-request-intake"],
+  contacts:["mkt-home","campaign-list","web-request-intake"],
   quote_sends: ["sales-watch"],
   projects: [],
   tasks: ["pulse"],
