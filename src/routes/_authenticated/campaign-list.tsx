@@ -277,11 +277,9 @@ function CampaignListPage() {
         contactId={composer?.contactId}
         onSent={() => {
           if (!composer) return;
-          const row = (q.data ?? []).find((r) => r.id === composer.companyId);
           qc.invalidateQueries({ queryKey: ["campaign-list"] });
           qc.invalidateQueries({ queryKey: ["mkt-home"] });
           qc.invalidateQueries({ queryKey: ["customers"] });
-          qc.invalidateQueries({ queryKey: ["mkt-home", "marketing-companies"] });
           setComposer(null);
         }}
       />

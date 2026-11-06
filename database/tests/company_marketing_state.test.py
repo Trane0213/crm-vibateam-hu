@@ -11,6 +11,7 @@ def sql(query, fail=False):
  return r.stdout.strip()
 cid='11111111-1111-4111-8111-111111111111'; uid='22222222-2222-4222-8222-222222222222'; lid='33333333-3333-4333-8333-333333333333'; eid='44444444-4444-4444-8444-444444444444'
 sql(f"insert into companies(id,notes) values('{cid}','TESZT állapot'); insert into leads values('{lid}','{cid}');")
+sql("alter table companies enable row level security; create policy fixture_company_access on companies for all to authenticated using (current_setting('test.visible',true) is distinct from 'no') with check (current_setting('test.visible',true) is distinct from 'no'); grant bypassrls to service_role;".replace('grant bypassrls to service_role','alter role service_role bypassrls'))
 def acting(role): return f"set role authenticated; set test.uid='{uid}'; set test.role='{role}'; "
 for role in ['sales','pm','project_manager','']:
  sql(acting(role)+f"update companies set marketing_status='qualified' where id='{cid}'",fail=True)
@@ -40,4 +41,10 @@ sql(acting('marketing')+f"select company_marketing_from_sent('{cid}','{eid}','{u
 assert sql(f"set role service_role; select company_marketing_from_sent('{cid}','{eid}','{uid}')")=='t'
 assert sql(f"select marketing_status||':'||marketing_status_source from companies where id='{cid}'")=='contacted:gmail_sent'
 assert sql(f"set role service_role; select company_marketing_from_sent('{cid}','{eid}','{uid}')")=='f'
+expected=sql(f"select jsonb_build_object('marketing_status',marketing_status,'marketing_status_changed_at',marketing_status_changed_at,'notes',notes) from companies where id='{cid}'")
+sql(acting('marketing')+f"set test.visible='no'; select company_set_marketing_status('{cid}','qualified','{expected}'::jsonb)",True)
+sql("create function test_audit_failure() returns trigger language plpgsql as $$begin raise exception 'TESZT audit failure'; end$$; create trigger test_audit_failure before insert on activities for each row execute function test_audit_failure();")
+sql(acting('marketing')+f"select company_set_marketing_status('{cid}','qualified','{expected}'::jsonb)",True)
+assert sql(f"select marketing_status from companies where id='{cid}'")=='contacted'
+sql("drop trigger test_audit_failure on activities; drop function test_audit_failure();")
 print('PASS: five statuses, owner/marketing, sales/PM/no-role denial, metadata protection, stale input, handoff scope, notes independence, atomic audit and SENT/DRAFT guard')
