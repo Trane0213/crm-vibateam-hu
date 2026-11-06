@@ -88,6 +88,16 @@ describe("Timothy per-account email context", () => {
     for (const role of ["marketing", "pm", null]) expect(toolsForAgent({ agentId: "timothy", agentDomains: ["crm.emails"], userRole: role }).some((t) => t.name === "crm_read_email_thread")).toBe(false);
     expect(toolsForAgent({ agentId: "scarlet", agentDomains: ["crm.emails"], userRole: "owner" }).some((t) => t.name === "crm_read_email_thread")).toBe(false);
   });
+  it('Scarlet marketing reuses scoped cached reads without granting Sales tools', async () => {
+    const available=toolsForAgent({agentId:'scarlet',agentDomains:['crm.emails'],userRole:'marketing'}).map(t=>t.name);
+    expect(available).toContain('scarlet_read_email_thread');
+    expect(available).not.toContain('crm_read_email_thread');
+    expect(available).not.toContain('crm_sales_daily_priorities');
+    const tool=getTool('scarlet_read_email_thread'); if(!tool) throw new Error('Missing Scarlet reader');
+    const f=fixture();
+    const out=await tool.execute({company_id:company,thread_id:thread,mailbox:'own@example.com'}, {...f.ctx,agentId:'scarlet'}) as any;
+    expect(out.data.items[0].content.text).toBe('Kérem az ajánlatot.');
+  });
 });
 describe("Email content safety and freshness", () => {
   it("strips executable HTML but marks hostile text as untrusted data", async () => {

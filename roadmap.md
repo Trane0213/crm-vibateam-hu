@@ -1,4 +1,9 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Marketing és Scarlet — első összevont kör (2026-11-06)
+- [ ] Biztonságos Gmail–cég/kontakt hozzárendelés; ütközés nem írható felül, történeti átkötés csak ellenőrzéssel.
+- [ ] Meglévő Marketing Ma/munkafelület, külső válaszmutató, hívás/átadás célzott javítása.
+- [ ] Scarlet meglévő AI OS-en: marketingadatok, napi prioritás és javaslat; önálló küldés nélkül.
+- [ ] Célzott tesztek és rövid igazolt eredmény; éles ügyféllevél/adatátírás/publikálás nélkül.
 ## Timothy kockázatalapú minőségbiztosítás és segítőkész működés
 - [x] Közös terv és teljes lánc kockázattérkép; 300 változatos katalóguseset előre rögzített elvárással: docs/qa/timothy-risk-catalog.json.
 - [x] Közös ID/cégkapcsolat/állapot/idő/válaszvédelmek, saját auditfutás állapotjelzés mindkét chatben; P0/RLS és memóriajog változatlan. 242 érintett teszt/21 AI acceptance/build OK.

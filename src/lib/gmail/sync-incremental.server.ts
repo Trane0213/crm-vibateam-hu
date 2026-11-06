@@ -1,3 +1,4 @@
+import { matchCrmAddresses, resolveThreadLink, type CrmLink } from "./crm-association";
 /**
  * Inkrementális Gmail szinkron a History API segítségével.
  *
@@ -83,50 +84,17 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
   // CRM cache (kicsi tábla, ritkán fut, percenkénti hívásnak ez bőven elég).
   // A leads tábla nem tárol email mezőt; lead → email kapcsolatot a contact_id-n
   // keresztül oldjuk meg (contacts.email → leads via contact_id).
-  const [contactsRes, companiesRes, leadsRes] = await Promise.all([
-    admin.from("contacts").select("id,email").not("email", "is", null),
-    admin.from("companies").select("id,website").not("website", "is", null),
-    admin.from("leads").select("id,contact_id").not("contact_id", "is", null),
+  const [contactsRes, leadsRes] = await Promise.all([
+    admin.from("contacts").select("id,email,company_id").not("email", "is", null).order("id").limit(1000),
+    admin.from("leads").select("id,contact_id,company_id").not("contact_id", "is", null).order("id").limit(1000),
   ]);
-  const contactByEmail = new Map<string, string>();
-  for (const c of (contactsRes.data ?? []) as any[]) {
-    const e = String(c.email ?? "").toLowerCase().trim();
-    if (e) contactByEmail.set(e, c.id);
-  }
-  const companyByDomain = new Map<string, string>();
-  for (const c of (companiesRes.data ?? []) as any[]) {
-    const d = String(c.website ?? "")
-      .toLowerCase()
-      .trim()
-      .replace(/^https?:\/\//, "")
-      .replace(/^www\./, "")
-      .split("/")[0];
-    if (d) companyByDomain.set(d, c.id);
-  }
-  const leadByContactId = new Map<string, string>();
-  for (const l of (leadsRes.data ?? []) as any[]) {
-    if (l.contact_id) leadByContactId.set(l.contact_id, l.id);
-  }
-  const leadByEmail = new Map<string, string>();
-  for (const [email, contactId] of contactByEmail.entries()) {
-    const leadId = leadByContactId.get(contactId);
-    if (leadId) leadByEmail.set(email, leadId);
-  }
-  function matchCrm(addresses: string[]): { contact_id: string | null; company_id: string | null; lead_id: string | null } {
-    let contact_id: string | null = null;
-    let company_id: string | null = null;
-    let lead_id: string | null = null;
-    for (const a of addresses) {
-      const addr = a.toLowerCase();
-      if (!contact_id && contactByEmail.has(addr)) contact_id = contactByEmail.get(addr)!;
-      if (!lead_id && leadByEmail.has(addr)) lead_id = leadByEmail.get(addr)!;
-      if (!company_id) {
-        const dom = addr.split("@")[1];
-        if (dom && companyByDomain.has(dom)) company_id = companyByDomain.get(dom)!;
-      }
-      if (contact_id && company_id && lead_id) break;
-    }
-    return { contact_id, company_id, lead_id };
+  if (contactsRes.error || leadsRes.error) throw new Error("A CRM-hozzárendelés nem ellenőrizhető.");
+  const completeLookup = (contactsRes.data?.length ?? 0) < 1000 && (leadsRes.data?.length ?? 0) < 1000;
+  function matchCrm(addresses: string[]): CrmLink {
+    if (!completeLookup) { result.errors.push("CRM-hozzárendelés: részleges címjegyzék, kézi ellenőrzés szükséges."); return { company_id:null,contact_id:null,lead_id:null }; }
+    const matched = matchCrmAddresses(addresses, contactsRes.data ?? [], leadsRes.data ?? []);
+    if (matched.review) result.errors.push("Bizonytalan CRM-hozzárendelés: kézi ellenőrzés szükséges.");
+    return matched.link;
   }
 
   // Lapozzunk a history-n max ~50 mp deadline-nal.
@@ -203,6 +171,7 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
 
   // thread cache
   const threadCache = new Map<string, string>();
+  const threadLinks = new Map<string, CrmLink>();
   async function ensureThread(
     gmailThreadId: string,
     subject: string | null,
@@ -213,11 +182,12 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
     if (cached) return cached;
     const { data: found } = await admin
       .from("email_threads")
-      .select("id")
+      .select("id,company_id,contact_id,lead_id")
       .eq("gmail_thread_id", gmailThreadId)
       .maybeSingle();
     if (found?.id) {
       threadCache.set(gmailThreadId, found.id);
+      threadLinks.set(found.id, found);
       return found.id;
     }
     const { data: inserted, error } = await admin
@@ -234,6 +204,7 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
       .single();
     if (error || !inserted) throw new Error(`email_threads insert: ${error?.message ?? "unknown"}`);
     threadCache.set(gmailThreadId, inserted.id);
+    threadLinks.set(inserted.id, crm);
     await admin.from("email_thread_access").upsert(
       { thread_id: inserted.id, user_id: userId, mailbox_email: myMailbox },
       { onConflict: "thread_id,user_id" },
@@ -265,6 +236,10 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
       ].filter((a) => a && a.toLowerCase() !== myMailbox);
       const crm = matchCrm(allAddrs);
       const threadDbId = await ensureThread(m.threadId, subject, crm);
+      const resolved = resolveThreadLink(threadLinks.get(threadDbId) ?? crm, crm);
+      if (resolved.conflict) result.errors.push(`Szál ${threadDbId}: eltérő CRM-kapcsolat, kézi ellenőrzés szükséges.`);
+      const effective = resolved.conflict ? {company_id:null,contact_id:null,lead_id:null} : resolved.link;
+      await admin.from("email_thread_access").upsert({thread_id:threadDbId,user_id:userId,mailbox_email:myMailbox},{onConflict:"thread_id,user_id"});
       const labels = (m.labelIds ?? []) as string[];
       const isOutbound =
         labels.includes("SENT") ||
@@ -285,9 +260,9 @@ export async function syncInboxIncremental(userId: string): Promise<IncrementalR
         gmail_label_ids: labels,
         is_outbound: isOutbound,
         owner_user_id: userId,
-        contact_id: crm.contact_id,
-        company_id: crm.company_id,
-        lead_id: crm.lead_id,
+        contact_id: effective.contact_id,
+        company_id: effective.company_id,
+        lead_id: effective.lead_id,
       };
       const { error: insErr } = await admin.from("emails").insert(row);
       if (insErr) {

@@ -348,7 +348,7 @@ export async function runAgent(
           input: { ...args, __approval: approvalLevel, __mode: effectiveMode, ...(idCorrected ? { __lead_id_as_company_corrected: true } : {}) },
           // A teljes (technical_reason-nel együtt) output kerül auditba,
           // a `retry_attempts` mező jelzi ha volt retry.
-          output: { ...(tool.name === "crm_read_email_thread" ? emailToolAudit(output) as Record<string, unknown> : tool.name === "crm_read_document" ? documentToolAudit(output) : typeof output === "object" && output ? output : { value: output }), __attempts: attempts },
+          output: { ...(["crm_read_email_thread", "scarlet_read_email_thread"].includes(tool.name) ? emailToolAudit(output) as Record<string, unknown> : tool.name === "crm_read_document" ? documentToolAudit(output) : typeof output === "object" && output ? output : { value: output }), __attempts: attempts },
           error: errMsg,
           durationMs: Date.now() - tStart,
         });
