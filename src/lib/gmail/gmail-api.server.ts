@@ -28,8 +28,8 @@ export function listDrafts(accessToken: string, pageToken?: string) {
   if (pageToken) params.set('pageToken', pageToken);
   return call<{ drafts?: GmailDraft[]; nextPageToken?: string; resultSizeEstimate?: number }>(accessToken, `/drafts?${params}`);
 }
-export function getDraft(accessToken: string, id: string) {
-  return call<GmailDraft>(accessToken, `/drafts/${encodeURIComponent(id)}?format=full`);
+export function getDraft(accessToken: string, id: string, format: 'full' | 'metadata' = 'full') {
+  return call<GmailDraft>(accessToken, `/drafts/${encodeURIComponent(id)}?format=${format}`);
 }
 
 export function listMessages(

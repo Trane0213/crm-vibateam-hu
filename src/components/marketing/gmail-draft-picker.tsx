@@ -35,7 +35,7 @@ export function GmailDraftPicker({ disabled, onCopy }: { disabled: boolean; onCo
     {page && <div className="flex flex-wrap gap-2">
       <select className="h-8 max-w-full rounded-md border bg-background px-2 text-sm" aria-label="Saját Gmail-piszkozat" value={draftId} disabled={blocked} onChange={e => { setDraftId(e.target.value); setSource(null); setError(''); }}>
         <option value="">Piszkozat kiválasztása</option>
-        {page.drafts.map(d => <option key={d.id} value={d.id}>Gmail · {d.id}</option>)}
+        {page.drafts.map(d => <option key={d.id} value={d.id}>{d.subject || '(Üres tárgy)'} · {d.id}</option>)}
       </select>
       <Button size="sm" variant="outline" disabled={blocked || !draftId} onClick={() => read(false)}>Megtekintés</Button>
       {page.nextPageToken && <Button size="sm" variant="outline" disabled={blocked} onClick={() => load(page.nextPageToken ?? undefined)}>Következő oldal</Button>}

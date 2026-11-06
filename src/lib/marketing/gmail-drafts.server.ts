@@ -27,12 +27,17 @@ export function inspectDraftMessage(message: GmailMessage) {
     total += Number(part.body?.size ?? 0);
     if (total > 200000 || (part.body?.data?.length ?? 0) > 280000) throw new Error('A piszkozat túl nagy; nem csonkítjuk.');
     const disposition = (part.headers ?? []).find((h: { name: string }) => h.name?.toLowerCase() === 'content-disposition')?.value ?? '';
+    const contentType = (part.headers ?? []).find((h: { name: string }) => h.name?.toLowerCase() === 'content-type')?.value ?? '';
+    const charset = /charset\s*=\s*["']?([^\s;"']+)/i.exec(contentType)?.[1]?.toLowerCase();
+    if (['text/plain', 'text/html'].includes(part.mimeType) && charset && !['utf-8', 'utf8', 'us-ascii'].includes(charset)) throw new Error('A piszkozat karakterkódolása nem támogatott; nem alakítjuk át veszteséggel.');
+    if (part.body?.data && !/^[A-Za-z0-9_-]*={0,2}$/.test(part.body.data)) throw new Error('A piszkozat tartalma hibásan kódolt.');
     if (part.filename || /attachment/i.test(disposition) || (!['text/plain', 'text/html'].includes(part.mimeType) && part.body?.attachmentId)) attachments++;
     if (['text/plain', 'text/html'].includes(part.mimeType) && part.body?.attachmentId && !part.body?.data) throw new Error('A teljes levélszöveg külön letöltést igényel; másolás nem engedélyezett.');
     for (const child of part.parts ?? []) walk(child, depth + 1);
   };
   walk(message.payload, 0);
   const bodies = extractBodies(message);
+  if (bodies.text?.includes('\uFFFD') || bodies.html?.includes('\uFFFD')) throw new Error('A piszkozat szövege nem olvasható veszteség nélkül.');
   if ((bodies.html?.length ?? 0) + (bodies.text?.length ?? 0) > 200000) throw new Error('A piszkozat túl nagy; nem csonkítjuk.');
   return { ...bodies, attachments, subject: headerOf(message, 'subject') };
 }
@@ -40,8 +45,14 @@ export function inspectDraftMessage(message: GmailMessage) {
 export async function listOwnDrafts(sb: SupabaseClient, userId: string, pageToken?: string) {
   const account = await ownDraftMailbox(sb, userId);
   const page = await listDrafts(account.accessToken, pageToken);
-  // Gmail draft list only contains IDs: no body reads until explicit selection.
-  return { mailbox: account.mailbox, drafts: (page.drafts ?? []).map(d => ({ id: d.id })), nextPageToken: page.nextPageToken ?? null, estimate: page.resultSizeEstimate ?? null };
+  if ((page.drafts?.length ?? 0) > 20) throw new Error('A piszkozatoldal túl nagy.');
+  // Metadata only for readable choices; full body reads require explicit selection.
+  const drafts = await Promise.all((page.drafts ?? []).map(async d => {
+    const metadata = await getDraft(account.accessToken, d.id, 'metadata');
+    if (metadata.id !== d.id || !metadata.message.labelIds?.includes('DRAFT') || metadata.message.labelIds.some(l => ['SENT', 'TRASH', 'SPAM'].includes(l))) throw new Error('A piszkozatlista megváltozott; töltsd újra.');
+    return { id: d.id, subject: headerOf(metadata.message, 'subject') };
+  }));
+  return { mailbox: account.mailbox, drafts, nextPageToken: page.nextPageToken ?? null, estimate: page.resultSizeEstimate ?? null };
 }
 
 export async function readOwnDraft(sb: SupabaseClient, userId: string, draftId: string): Promise<DraftSource> {

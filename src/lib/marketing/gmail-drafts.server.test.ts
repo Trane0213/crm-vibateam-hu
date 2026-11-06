@@ -17,9 +17,9 @@ beforeEach(() => {
   mocks.get.mockResolvedValue({ id: 'draft', message: message() });
 });
 describe('own Gmail draft source', () => {
-  it('binds token lookup to authenticated user and lists one page without content reads', async () => {
+  it('binds token lookup to authenticated user and lists only metadata on one page', async () => {
     expect(await listOwnDrafts(sb(), 'own-user', 'page')).toMatchObject({ drafts: [{ id: 'draft' }], nextPageToken: 'next' });
-    expect(mocks.token).toHaveBeenCalledWith('own-user'); expect(mocks.list).toHaveBeenCalledWith('synthetic', 'page'); expect(mocks.get).not.toHaveBeenCalled();
+    expect(mocks.token).toHaveBeenCalledWith('own-user'); expect(mocks.list).toHaveBeenCalledWith('synthetic', 'page'); expect(mocks.get).toHaveBeenCalledExactlyOnceWith('synthetic', 'draft', 'metadata');
   });
   it.each(['sales', 'pm', 'admin', 'user'])('rejects %s before accessing tokens', async role => {
     await expect(listOwnDrafts(sb(role), 'user')).rejects.toThrow(); expect(mocks.token).not.toHaveBeenCalled(); expect(mocks.admin).not.toHaveBeenCalled();
@@ -60,5 +60,14 @@ describe('own Gmail draft source', () => {
   it('does not allow selecting another user or mailbox', () => {
     expect(() => ownDraftInput.parse({ draftId: 'draft', userId: 'foreign' })).toThrow();
     expect(() => ownDraftInput.parse({ draftId: 'draft', mailbox: 'ramon.dencsi@vibateam.hu' })).toThrow();
+  });
+  it('rejects unsupported charset, invalid base64 and broken UTF8', () => {
+    const draft = message();
+    draft.payload.parts = [{ mimeType: 'text/plain', headers: [{ name: 'Content-Type', value: 'text/plain; charset=iso-8859-2' }], body: { data: encoded('TESZT') } }] as any;
+    expect(() => inspectDraftMessage(draft)).toThrow();
+    draft.payload.parts = [{ mimeType: 'text/plain', body: { data: '%%%' } }] as any;
+    expect(() => inspectDraftMessage(draft)).toThrow();
+    draft.payload.parts = [{ mimeType: 'text/plain', body: { data: Buffer.from([0xff]).toString('base64url') } }] as any;
+    expect(() => inspectDraftMessage(draft)).toThrow();
   });
 });
