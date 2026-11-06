@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const uuid = z.string().uuid();
 /** URL selections are preparation intent only, never persisted membership or send permission. */
-export function campaignEntrySearch(input: Record<string, unknown>) {
+export function campaignEntrySearch(input: Record<string, unknown>): { companyId?: string; contactId?: string } {
   const company = uuid.safeParse(input.companyId);
   const contact = uuid.safeParse(input.contactId);
   return {
