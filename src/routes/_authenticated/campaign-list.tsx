@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
+import { CampaignDraftPrecheck } from "@/components/marketing/campaign-draft-precheck";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
@@ -162,6 +163,7 @@ function CampaignListPage() {
         }
       />
       <div className="space-y-3 p-6">
+        <CampaignDraftPrecheck companyIds={filtered.map((r) => r.id)} />
         <div className="flex gap-2"><Button variant={scope==='campaign'?'default':'outline'} onClick={()=>setScope('campaign')}>Aktív kampány</Button><Button variant={scope==='all'?'default':'outline'} onClick={()=>setScope('all')}>Minden cég</Button></div>
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
