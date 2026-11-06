@@ -260,6 +260,20 @@
 .crm-mail-editor:empty::before { content: attr(data-placeholder); color: var(--muted-foreground); pointer-events: none; }
 .crm-mail-editor img, .crm-mail-editor table { max-width: 100%; }
 .crm-mail-editor { overflow-wrap: anywhere; }
+.crm-page-header { animation: crm-content-enter 180ms ease-out; }
+.crm-tab-content[data-state="active"] { animation: crm-content-enter 150ms ease-out; }
+.crm-work-nav { scrollbar-width: thin; scroll-padding-inline: 1rem; }
+.crm-work-nav a { scroll-margin-inline: 1rem; }
+.crm-workspace :is(a, button, input, select, textarea):focus-visible { outline-offset: 3px; }
+.crm-workspace [role="dialog"] { max-height: calc(100dvh - 2rem); overflow-y: auto; }
+@keyframes crm-content-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .crm-page-header, .crm-tab-content[data-state="active"] { animation: none; }
+  .crm-work-nav { scroll-behavior: auto; }
+}
 @media (max-width: 639px) {
   .crm-today > .px-6, .crm-today > section.px-6 { padding-left: 1rem; padding-right: 1rem; }
   .crm-today > .p-6 { padding-left: 1rem; padding-right: 1rem; }

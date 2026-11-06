@@ -38,9 +38,9 @@ export const WORKSPACES_BY_ROLE: Record<RoleSlug, NavItem[]> = {
     { title: "Projektek", url: "/projects", icon: Briefcase },
   ],
   marketing: [
-    { title: "Marketing munkafelület", short: "Ügyek", url: "/leads", icon: Sparkles },
+    { title: "Érdeklődők feldolgozása", short: "Ügyek", url: "/leads", icon: Sparkles },
     { title: "Weboldali igények", short: "Igények", url: "/web-quote-requests", icon: Inbox },
-    { title: "Kampánylista", short: "Kampány", url: "/campaign-list", icon: ListPlus },
+    { title: "Kampányok", short: "Kampány", url: "/campaign-list", icon: ListPlus },
     { title: "Emailek", url: "/emails", icon: Mail },
     { title: "Hívások", url: "/calls", icon: Phone },
   ],

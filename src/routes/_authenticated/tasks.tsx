@@ -110,5 +110,12 @@ function TasksPage() {
 }
 
 export const Route = createFileRoute("/_authenticated/tasks")({
+  head: () => ({ meta: [
+    { title: "Feladatok és határidők | VIBA CRM" },
+    { name: "description", content: "Napi és projektfeladatok, határidők, prioritások és felelősök." },
+    { property: "og:title", content: "Feladatok és határidők | VIBA CRM" },
+    { property: "og:description", content: "Nyitott és lezárt VIBA-feladatok, felelősök és határidők." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: TasksPage,
 });
