@@ -50,7 +50,7 @@ export const precheckCampaign = createServerFn({ method: "POST" })
     for (const part of chunks(addrs, 100)) {
       if (Date.now() > deadline) { historyComplete = false; break; }
       const queries = [
-        { col: "to_emails", out: true }, { col: "cc_emails", out: true }, { col: "from_email", out: false },
+        { col: "to_emails" }, { col: "cc_emails" }, { col: "from_email" },
       ] as const;
       for (const q of queries) {
         for (let from = 0; ; from += 1000) {
@@ -62,7 +62,7 @@ export const precheckCampaign = createServerFn({ method: "POST" })
             const mailbox = mailboxOf.get(r.owner_user_id) ?? "ismeretlen postafiók";
             const set = new Set(part.map(a => a.toLowerCase()));
             const list = q.col === "from_email" ? [r.from_email] : (r[q.col] as string[] | null) ?? [];
-            for (const a of list) if (a && set.has(a.toLowerCase())) hits.push({ email: a, direction: q.out && r.is_outbound ? "out" : q.out ? "in" : r.is_outbound ? "out" : "in", at: r.internal_date, mailbox });
+            for (const a of list) if (a && set.has(a.toLowerCase())) hits.push({ email: a, direction: r.is_outbound ? "out" : "in", at: r.internal_date, mailbox });
           }
           if (!rows || rows.length < 1000) break;
         }
