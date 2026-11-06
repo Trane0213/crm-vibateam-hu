@@ -15,6 +15,6 @@ function HelpHome() {
   const { from } = Route.useSearch();
   return <div><PageHeader title="Segítség / Probléma jelzése" /><div className="mx-auto grid max-w-4xl gap-6 p-4 sm:grid-cols-2 sm:p-6">
     <section className="space-y-4 border-t py-4"><BookOpen className="h-6 w-6 text-primary" /><h2 className="text-lg font-semibold">Nem értem, hogyan kell</h2><Button asChild><Link to={HELP_PATHS[role]}>Saját szerepkörsúgó megnyitása</Link></Button><Button asChild variant="outline"><Link to="/ai-assistant" search={{ agent: "crm" }}><Sparkles />Kérdés George-nak</Link></Button></section>
-    <section className="space-y-4 border-t py-4"><AlertTriangle className="h-6 w-6 text-status-warning" /><h2 className="text-lg font-semibold">Nem működik / hibát tapasztaltam</h2><IssueCenter sourcePath={from} /></section>
+    <section className="space-y-4 border-t py-4"><AlertTriangle className="h-6 w-6 text-status-warning" /><h2 className="text-lg font-semibold">Mit tapasztaltál? Min változtatnál?</h2><IssueCenter sourcePath={from} /></section>
   </div></div>;
 }
