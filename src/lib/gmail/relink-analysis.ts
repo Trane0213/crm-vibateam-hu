@@ -20,6 +20,7 @@ export type RelinkContact = { id: string; email: string | null; company_id: stri
 export type RelinkMessage = {
   from_email: string | null; to_emails: string[] | null; cc_emails: string[] | null;
   is_outbound: boolean | null; internal_date: string | null; subject: string | null; gmail_label_ids: string[] | null;
+  gmail_message_id?: string | null; owner_user_id?: string | null; thread_id?: string | null; bcc_emails?: string[] | null;
 };
 export type RelinkThread = { id: string; company_id: string | null; contact_id: string | null; subject: string | null; last_message_at: string | null };
 export type RelinkResult = {
@@ -42,6 +43,16 @@ export const normEmail = (a: string | null | undefined) => {
 const domainOf = (e: string) => e.split("@")[1] ?? "";
 export const isInternal = (e: string) => INTERNAL_DOMAINS.includes(domainOf(e)) || TEST_ADDRESSES.includes(e);
 
+export const BUSINESS_MAILBOXES = ["info@vibateam.hu", "ramon.dencsi@vibateam.hu", "pretor.laszlo@vibateam.hu"] as const;
+export const isBusinessMailbox = (email: string) => BUSINESS_MAILBOXES.some(m => m === normEmail(email));
+/** Cached evidence only: direction or sender alone is never proof of delivery. */
+export function isVerifiedSent(message: Pick<RelinkMessage, "from_email" | "is_outbound" | "internal_date" | "gmail_label_ids" | "gmail_message_id">, mailbox: string) {
+  return isBusinessMailbox(mailbox) && normEmail(message.from_email) === normEmail(mailbox)
+    && message.is_outbound === true && !!message.gmail_message_id
+    && !!message.internal_date && Number.isFinite(Date.parse(message.internal_date))
+    && !!message.gmail_label_ids?.includes("SENT") && !message.gmail_label_ids.includes("DRAFT");
+}
+
 export function buildContactIndex(contacts: RelinkContact[]) {
   const byEmail = new Map<string, RelinkContact[]>();
   const byDomain = new Map<string, Set<string>>();
@@ -59,17 +70,25 @@ export type ContactIndex = ReturnType<typeof buildContactIndex>;
 export function analyzeThread(thread: RelinkThread, messages: RelinkMessage[], mailbox: string, idx: ContactIndex, selfCompanyIds: ReadonlySet<string> = new Set()): RelinkResult {
   const me = normEmail(mailbox);
   const external = new Set<string>();
-  let outbound = 0, inbound = 0, firstOut: number | null = null, replied = false, bulk = false, promo = false;
+  let outbound = 0, inbound = 0, replied = false, bulk = false, promo = false;
+  const sentTo = new Map<string, number>();
   const sorted = [...messages].sort((a, b) => (a.internal_date ?? "").localeCompare(b.internal_date ?? ""));
   for (const m of sorted) {
     const from = normEmail(m.from_email);
-    const rcpt = [...(m.to_emails ?? []), ...(m.cc_emails ?? [])].map(normEmail).filter(Boolean);
+    const rcpt = [...(m.to_emails ?? []), ...(m.cc_emails ?? []), ...(m.bcc_emails ?? [])].map(normEmail).filter(Boolean);
     if (rcpt.length >= BULK_RECIPIENTS) bulk = true;
     if ((m.gmail_label_ids ?? []).some(l => l === "CATEGORY_PROMOTIONS" || l === "CATEGORY_SOCIAL" || l === "CATEGORY_FORUMS")) promo = true;
-    const out = !!m.is_outbound || from === me;
-    const t = m.internal_date ? Date.parse(m.internal_date) : 0;
-    if (out) { outbound++; if (firstOut === null) firstOut = t; }
-    else { inbound++; if (firstOut !== null && t >= firstOut && from && !isInternal(from)) replied = true; }
+    const t = m.internal_date ? Date.parse(m.internal_date) : NaN;
+    if (isVerifiedSent(m, me)) {
+      outbound++;
+      for (const a of rcpt) if (!isInternal(a)) sentTo.set(a, Math.min(sentTo.get(a) ?? Infinity, t));
+    } else if (m.is_outbound === false && !m.gmail_label_ids?.includes("DRAFT") && from && !isInternal(from)) {
+      inbound++;
+      const previous = sentTo.get(from);
+      const matches = idx.byEmail.get(from) ?? [];
+      if (previous !== undefined && t > previous && matches.length > 0 && matches.every(c => !!c.company_id)
+        && new Set(matches.map(c => c.company_id)).size === 1 && rcpt.includes(me)) replied = true;
+    }
     for (const a of [from, ...rcpt]) if (a && a !== me && !isInternal(a)) external.add(a);
   }
   // Üres üzenet-tárgy esetén a szál tárgya a forrás.
@@ -93,19 +112,21 @@ export function analyzeThread(thread: RelinkThread, messages: RelinkMessage[], m
     const only = [...companies][0] ?? null;
     if (bulk || promo) return result("self_bulk", null, ["Saját céghez mentve; körlevél/promóció gyanú."]);
     if (companies.size > 1) return result("self_conflict", null, [`Saját céghez mentve; ${companies.size} különböző ügyfélcég kontaktja.`]);
-    if (only && !collective && !unlinkedContact.length) return result("self_other_company", only, ["Saját céghez mentve, de pontos kontakt-email egyetlen másik céget bizonyít."]);
+    if (only && external.size === 1 && !collective && !unlinkedContact.length) return result("self_other_company", only, ["Saját céghez mentve, de pontos kontakt-email egyetlen másik céget bizonyít."]);
     if (only || unlinkedContact.length) return result("self_conflict", only, ["Saját céghez mentve; gyűjtőcím vagy céghez nem kötött kontakt — kézi döntés."]);
     const dom = new Set<string>();
     for (const e of external) for (const id of idx.byDomain.get(domainOf(e)) ?? []) if (!selfCompanyIds.has(id)) dom.add(id);
-    if (dom.size) return result("self_conflict", dom.size === 1 ? [...dom][0]! : null, ["Saját céghez mentve; csak domain-egyezés — nem bizonyíték."]);
+    if (dom.size) return result("self_conflict", dom.size === 1 ? [...dom][0] ?? null : null, ["Saját céghez mentve; csak domain-egyezés — nem bizonyíték."]);
     return result("self_no_contact", null, ["Saját céghez mentve; a külső címekhez nincs CRM-kontakt."]);
   }
   if (companies.size > 1) return result("conflict", null, [`${companies.size} különböző cég kontaktja szerepel a szálban.`]);
   const only = [...companies][0] ?? null;
   if (thread.company_id && only && only !== thread.company_id) return result("conflict", only, ["A mentett cég eltér a pontos kontakt-egyezéstől."]);
-  if (thread.company_id) return result("linked", thread.company_id, ["Korábban mentett cégkapcsolat, ellentmondás nélkül."]);
+  if (thread.company_id && only === thread.company_id && external.size === 1 && !bulk && !promo && !unlinkedContact.length && !matched.some(c => COLLECTIVE.test(normEmail(c.email)))) return result("linked", thread.company_id, ["Mentett cég és pontos kontakt-email egyezik."]);
+  if (thread.company_id) return result("review", only, ["A mentett cégkapcsolat önmagában nem bizonyíték; kézi ellenőrzés szükséges."]);
   if (only) {
     const flags: string[] = [];
+    if (external.size > 1) flags.push("Több külső résztvevő — kézi ellenőrzés szükséges.");
     if (unlinkedContact.length) flags.push("Céghez nem kötött kontakt is egyezik.");
     if (bulk) flags.push(`Körlevélgyanú (≥${BULK_RECIPIENTS} címzett).`);
     if (promo) flags.push("Gmail promóció/közösségi címke.");
@@ -116,7 +137,7 @@ export function analyzeThread(thread: RelinkThread, messages: RelinkMessage[], m
   if (unlinkedContact.length) return result("review", null, ["Kontakt létezik, de nincs céghez kötve."]);
   const domainCompanies = new Set<string>();
   for (const e of external) for (const id of idx.byDomain.get(domainOf(e)) ?? []) domainCompanies.add(id);
-  if (domainCompanies.size === 1) return result("review", [...domainCompanies][0]!, ["Csak domain-egyezés — nem bizonyíték."]);
+  if (domainCompanies.size === 1) return result("review", [...domainCompanies][0] ?? null, ["Csak domain-egyezés — nem bizonyíték."]);
   if (domainCompanies.size > 1) return result("review", null, ["Domain több céghez is illik — nem bizonyíték."]);
   return result("no_contact", null, [promo || bulk ? "Nincs CRM-kontakt; körlevél/promóció gyanú." : "Nincs CRM-kontakt a külső címekhez."]);
 }

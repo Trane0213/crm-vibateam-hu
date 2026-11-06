@@ -8,30 +8,36 @@ const run = (cs: CampaignCandidate[], hits = [] as Parameters<typeof classifyCan
 
 describe("kampány előtti alkalmasság", () => {
   it("érintetlen, céghez kötött személyes cím → kész", () => {
-    expect(run([C("1", "Anna@Acme.hu")])[0]!.status).toBe("ready");
+    expect(run([C("1", "Anna@Acme.hu")])[0]?.status).toBe("ready");
   });
   it("másik céges postafiók kimenő levele is számít", () => {
-    const r = run([C("1", "anna@acme.hu")], [{ email: "ANNA@acme.hu", direction: "out", at: "2026-09-01", mailbox: "pretor.laszlo@vibateam.hu" }])[0]!;
-    expect(r.status).toBe("contacted");
-    expect(r.mailboxes).toEqual(["pretor.laszlo@vibateam.hu"]);
+    const r = run([C("1", "anna@acme.hu")], [{ email: "ANNA@acme.hu", direction: "out", verifiedSent: true, at: "2026-09-01", mailbox: "pretor.laszlo@vibateam.hu" }])[0];
+    expect(r?.status).toBe("contacted");
+    expect(r?.mailboxes).toEqual(["pretor.laszlo@vibateam.hu"]);
   });
   it("bejövő levél → válasz érkezett", () => {
-    expect(run([C("1", "anna@acme.hu")], [{ email: "anna@acme.hu", direction: "out", at: "1", mailbox: "info@vibateam.hu" }, { email: "anna@acme.hu", direction: "in", at: "2", mailbox: "info@vibateam.hu" }])[0]!.status).toBe("replied");
+    expect(run([C("1", "anna@acme.hu")], [{ email: "anna@acme.hu", direction: "out", verifiedSent: true, at: "1", mailbox: "info@vibateam.hu" }, { email: "anna@acme.hu", direction: "in", verifiedReply: true, at: "2", mailbox: "info@vibateam.hu" }])[0]?.status).toBe("replied");
   });
   it("bizonytalan előzmény soha nem kész: hiányos vizsgálat, céghez nem kötött, cégszintű szál", () => {
-    expect(run([C("1", "anna@acme.hu")], [], [], false)[0]!.status).toBe("uncertain");
-    expect(run([C("1", "anna@acme.hu", null)])[0]!.status).toBe("uncertain");
-    expect(run([C("1", "anna@acme.hu")], [], [{ company_id: "A", threads: 3, last_at: null }])[0]!.status).toBe("uncertain");
+    expect(run([C("1", "anna@acme.hu")], [], [], false)[0]?.status).toBe("uncertain");
+    expect(run([C("1", "anna@acme.hu", null)])[0]?.status).toBe("uncertain");
+    expect(run([C("1", "anna@acme.hu")], [], [{ company_id: "A", threads: 3, last_at: null }])[0]?.status).toBe("uncertain");
   });
   it("több kontaktos cég: a megkeresett kolléga miatt a másik is blokkolt", () => {
-    const r = run([C("1", "anna@acme.hu"), C("2", "bela@acme.hu")], [{ email: "anna@acme.hu", direction: "out", at: "1", mailbox: "info@vibateam.hu" }]);
+    const r = run([C("1", "anna@acme.hu"), C("2", "bela@acme.hu")], [{ email: "anna@acme.hu", direction: "out", verifiedSent: true, at: "1", mailbox: "info@vibateam.hu" }]);
     expect(r.map(x => x.status)).toEqual(["contacted", "uncertain"]);
   });
   it("gyűjtőcím → bizonytalan", () => {
-    expect(run([C("1", "info@acme.hu")])[0]!.status).toBe("uncertain");
+    expect(run([C("1", "info@acme.hu")])[0]?.status).toBe("uncertain");
   });
   it("hibás, jelölt-hibás, hiányzó, belső/teszt és duplikált cím → hibás/tiltott", () => {
     const r = run([C("1", "nem-email"), C("2", "x@acme.hu", "A", { email_invalid: true }), C("3", null), C("4", "ramon.dencsi@vibateam.hu"), C("5", "viktor.csotai@gmail.com"), C("6", "z@b.hu", "B"), C("7", "Z@B.hu", "B")]);
     expect(r.map(x => x.status)).toEqual(["invalid", "invalid", "invalid", "invalid", "invalid", "ready", "invalid"]);
   });
 });
+
+it('unverified outbound and incoming are uncertain',()=>{for(const direction of ['out','in','unverified'] as const) expect(run([C('1','anna@acme.hu')],[{email:'anna@acme.hu',direction,at:null,mailbox:'info@vibateam.hu'}])[0]?.status).toBe('uncertain');});
+it('personal mailbox evidence is never a business source',()=>expect(run([C('1','anna@acme.hu')],[{email:'anna@acme.hu',direction:'out',verifiedSent:true,at:null,mailbox:'viktor.csotai@gmail.com'}])[0]?.status).toBe('ready'));
+it('missing contact ID cannot be ready',()=>expect(run([C('','anna@acme.hu')])[0]?.status).toBe('uncertain'));
+it('same email in different companies blocks both',()=>expect(run([C('1','anna@acme.hu','A'),C('2','ANNA@acme.hu','B')]).map(r=>r.status)).toEqual(['uncertain','uncertain']));
+it('complete scan with unverified historical coverage cannot be ready',()=>expect(run([C('1','anna@acme.hu')],[],[],false)[0]?.status).toBe('uncertain'));
