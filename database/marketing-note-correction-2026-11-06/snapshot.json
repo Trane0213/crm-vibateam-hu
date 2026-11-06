@@ -1,0 +1,970 @@
+[
+  {
+    "id": "022cc259-723b-471d-8d8f-5544cd2ff5db",
+    "name": "ARRABONA KONSTRUKT Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@a-k.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@a-k.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@a-k.hu"
+  },
+  {
+    "id": "057b657a-aded-4193-aa07-139948c85de9",
+    "name": "TESZT – VIBA WEB CRM E2E 2026-11-01",
+    "notes": "Weboldali ajánlatkérésből: 7511bcd1-02f5-49ad-ad6f-be7aecd3fa2a\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-06-13\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu, pretor.laszlo@vibateam.hu, ramon.dencsi@vibateam.hu, toth.attila@vibateam.hu\nCímzett: info@vibateam.hu",
+    "old_notes": "Weboldali ajánlatkérésből: 7511bcd1-02f5-49ad-ad6f-be7aecd3fa2a\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-06-13\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu, pretor.laszlo@vibateam.hu, ramon.dencsi@vibateam.hu, toth.attila@vibateam.hu\nCímzett: info@vibateam.hu",
+    "new_notes": "Weboldali ajánlatkérésből: 7511bcd1-02f5-49ad-ad6f-be7aecd3fa2a\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Belső/TESZT-levél; nem külső üzleti megkeresés.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-06-13\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu, pretor.laszlo@vibateam.hu, ramon.dencsi@vibateam.hu, toth.attila@vibateam.hu\nCímzett: info@vibateam.hu"
+  },
+  {
+    "id": "09f6c7c1-5fdf-4d92-86ed-fbdd8f13a5cb",
+    "name": "QUALITY FIT OUT Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@qualityfitout.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@qualityfitout.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@qualityfitout.hu"
+  },
+  {
+    "id": "0a2251af-b577-4dbc-910d-4211116f75ba",
+    "name": "Global General Group Kft. (Korábbi Név: BDPST Bau Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@gggroup.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@gggroup.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@gggroup.hu"
+  },
+  {
+    "id": "0ad6f86c-f46e-4d01-a25d-058ea867eb8e",
+    "name": "Aliante Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@aliante.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@aliante.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@aliante.hu"
+  },
+  {
+    "id": "0bd14416-ea46-44cd-ba76-51b860a8fad0",
+    "name": "TRI-GER Consulting Kft. (Tri-Ger Bau)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@trigerbau.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@trigerbau.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@trigerbau.com"
+  },
+  {
+    "id": "0cf7b546-8c0c-4675-8421-ebe552057b93",
+    "name": "Cars-Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: carsbau0609@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: carsbau0609@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: carsbau0609@gmail.com"
+  },
+  {
+    "id": "0d018e02-f315-4650-a0c1-3508cc1f3a0c",
+    "name": "HERCEGBILD Építőipari Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@hercegbild.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@hercegbild.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@hercegbild.hu"
+  },
+  {
+    "id": "124ca12b-a8b8-4629-afa8-a8f4f95a5a04",
+    "name": "3K Engineering&More Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: elokeszites@3k-engineering.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: elokeszites@3k-engineering.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: elokeszites@3k-engineering.hu"
+  },
+  {
+    "id": "1366a8c8-f4a0-4ba6-8af9-86499e4428e8",
+    "name": "MEGATALENT Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: megatalent@megatalentkft.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: megatalent@megatalentkft.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: megatalent@megatalentkft.hu"
+  },
+  {
+    "id": "15b084d1-4934-449c-b5ad-a3dedd028b28",
+    "name": "Pallér Csarnok Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@pallercsarnok.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@pallercsarnok.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@pallercsarnok.hu"
+  },
+  {
+    "id": "21b14a8b-8f98-42f1-b70d-9224d179bd49",
+    "name": "ÉP-ENTERIŐR Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: office@epenterior.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: office@epenterior.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: office@epenterior.hu"
+  },
+  {
+    "id": "23674df4-d543-4c94-a91e-beb2410ac96a",
+    "name": "RENSZ Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@renszkft.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@renszkft.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@renszkft.hu"
+  },
+  {
+    "id": "2592eeb7-d121-40c7-b892-a6816cac5556",
+    "name": "Wrecker Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: mail@wrecker.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: mail@wrecker.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: mail@wrecker.hu"
+  },
+  {
+    "id": "27c379e9-9a12-4cb3-b101-4975030e7e83",
+    "name": "Gébex Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: gebexkft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: gebexkft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: gebexkft@gmail.com"
+  },
+  {
+    "id": "2cc39185-0f29-44be-bc47-62ec1c580ef0",
+    "name": "Kapitány Generálkivitelező Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kapitany.general@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kapitany.general@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kapitany.general@gmail.com"
+  },
+  {
+    "id": "302f0f61-695c-4c2a-84a8-11d8663fb440",
+    "name": "Working In Teams Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: wint.kft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: wint.kft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: wint.kft@gmail.com"
+  },
+  {
+    "id": "36dde488-07ec-4781-9339-ae31e8b7a240",
+    "name": "SHALPEM GROUP Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: meplas.kft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: meplas.kft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: meplas.kft@gmail.com"
+  },
+  {
+    "id": "3a385ada-e52c-440d-ae0d-af89ab02552e",
+    "name": "Masszív Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tothkrisztianev@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tothkrisztianev@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tothkrisztianev@gmail.com"
+  },
+  {
+    "id": "3e704b52-62b6-4edb-8fc4-8ef722829d32",
+    "name": "West-Line Group Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@west-line.eu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@west-line.eu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@west-line.eu"
+  },
+  {
+    "id": "3fe41772-ba4c-4064-8e1c-e2fac945021c",
+    "name": "Greenteco System Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: greentecosystem@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: greentecosystem@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: greentecosystem@gmail.com"
+  },
+  {
+    "id": "404fda0d-b53b-40c8-a144-ec3e3fd68f0c",
+    "name": "Minimal House Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: kapcsolat@minimalhouse.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: kapcsolat@minimalhouse.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: kapcsolat@minimalhouse.hu"
+  },
+  {
+    "id": "42113ebc-dd95-4dc4-b5c2-d53d9090c589",
+    "name": "Wandbau Kft. (\"Wandbau\" Építőipari Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@wandbau.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@wandbau.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@wandbau.hu"
+  },
+  {
+    "id": "43500724-641c-4651-8430-8dcea3471e3a",
+    "name": "Szent György Ház Építő Szolgáltató Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: szentgyorgy@hazepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: szentgyorgy@hazepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: szentgyorgy@hazepito.hu"
+  },
+  {
+    "id": "45084617-0a2b-414d-9631-5f1705c74c22",
+    "name": "Alappont Generál Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: alappontgeneral@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: alappontgeneral@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: alappontgeneral@gmail.com"
+  },
+  {
+    "id": "4680e9bf-b31d-459a-90fd-88f7aa90c130",
+    "name": "KR Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: krepito@krepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: krepito@krepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: krepito@krepito.hu"
+  },
+  {
+    "id": "47f6bee8-613f-49ca-ae5a-0d42c3ca03ed",
+    "name": "Szabados és Társa Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda.szabados@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda.szabados@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda.szabados@gmail.com"
+  },
+  {
+    "id": "49ec0dda-0ce1-4258-bc3c-0fdd0df0135e",
+    "name": "TAND Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: andras@tandbaukft.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: andras@tandbaukft.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: andras@tandbaukft.com"
+  },
+  {
+    "id": "4ad7fcc4-0074-4e40-b43c-14e46c5bc084",
+    "name": "Globál Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@epitonet.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@epitonet.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@epitonet.hu"
+  },
+  {
+    "id": "4d4543a4-16e6-4387-9d7e-afc60f8fa220",
+    "name": "WOY-BAU Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: woy@monornet.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: woy@monornet.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: woy@monornet.hu"
+  },
+  {
+    "id": "4e675fa3-8e7d-472d-aa9f-f1f5268f534f",
+    "name": "K-KONSTRUKT Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: epites@k-konstrukt.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: epites@k-konstrukt.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: epites@k-konstrukt.hu"
+  },
+  {
+    "id": "4e7554fc-2949-49db-a1a5-d47dd42ce4a8",
+    "name": "TELESIS Generál Kivitelező Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: nzoltan@telesisgeneralzrt.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: nzoltan@telesisgeneralzrt.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: nzoltan@telesisgeneralzrt.hu"
+  },
+  {
+    "id": "4f872487-e8fb-45b1-a730-e5ea662c1894",
+    "name": "Telaro Capital Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: telarocapital@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: telarocapital@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: telarocapital@gmail.com"
+  },
+  {
+    "id": "50bf0173-334b-46cc-b7c8-d17d9a845e4c",
+    "name": "Társas Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@tarsasepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@tarsasepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@tarsasepito.hu"
+  },
+  {
+    "id": "54db8879-0074-44a7-8970-f33002e7f227",
+    "name": "Officon Hungary Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: office@officon.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: office@officon.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: office@officon.hu"
+  },
+  {
+    "id": "572f3553-6b3e-4375-a9a2-44c7afec821b",
+    "name": "Deltacalor Home Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: deltacalorhome@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: deltacalorhome@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: deltacalorhome@gmail.com"
+  },
+  {
+    "id": "574902fd-3b70-4aaa-880d-74853f9b4817",
+    "name": "DÓZER-ÉP Kft. (DÓZER - ÉP Kereskedelmi és Szolgáltató Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@dozer-ep.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@dozer-ep.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@dozer-ep.hu"
+  },
+  {
+    "id": "58b1caec-0c6b-4a1a-9bf4-d07298890869",
+    "name": "RETICOLO ÉPÍTŐ Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: reticolo@reticolo.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: reticolo@reticolo.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: reticolo@reticolo.hu"
+  },
+  {
+    "id": "5b68db3d-952c-45ed-96e1-d0071a148db6",
+    "name": "Turagroup Kft. (Tura Group)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: murat.yildiz@tugra.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: murat.yildiz@tugra.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: murat.yildiz@tugra.hu"
+  },
+  {
+    "id": "5d03150b-7064-4d48-97ac-704d304e822f",
+    "name": "Dunaflat Hungary Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: dunaflat.2018@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: dunaflat.2018@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: dunaflat.2018@gmail.com"
+  },
+  {
+    "id": "61afce9d-558b-43a5-8a15-41e65e10bcdb",
+    "name": "SF GENERAL ÉPÍTŐ Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: sfgeneralepito@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: sfgeneralepito@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: sfgeneralepito@gmail.com"
+  },
+  {
+    "id": "62b43694-b5d8-4980-80ab-85adbfcdc37a",
+    "name": "Bartisok Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bartisbau@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bartisbau@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bartisbau@gmail.com"
+  },
+  {
+    "id": "64724d4a-30e9-41bb-97b8-bd88853ea1f0",
+    "name": "Bereg Generál Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bereggeneralkft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bereggeneralkft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bereggeneralkft@gmail.com"
+  },
+  {
+    "id": "651aaaa4-6366-4cca-ab1c-5650a06d9db5",
+    "name": "Vertian Építő Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@vertian.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@vertian.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@vertian.hu"
+  },
+  {
+    "id": "67768e82-de41-4e70-b1cd-1e1114dffac4",
+    "name": "BENATI - BAU Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: benatibau@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: benatibau@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: benatibau@gmail.com"
+  },
+  {
+    "id": "687fa5e8-2bc2-413b-a72c-ee419b90cfca",
+    "name": "Belotti Generál Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: general@belotti.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: general@belotti.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: general@belotti.hu"
+  },
+  {
+    "id": "6b453c04-1097-405e-9ba5-82e3b306d3d5",
+    "name": "Eco Horizont Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: csanalosi.istvan@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: csanalosi.istvan@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: csanalosi.istvan@gmail.com"
+  },
+  {
+    "id": "6be38845-9973-41f7-b7c5-ee583eefee68",
+    "name": "Triple Capital Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@triplecapital.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@triplecapital.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@triplecapital.hu"
+  },
+  {
+    "id": "6e460429-0981-4b9b-a66d-e4c6fca7083d",
+    "name": "MeroCon Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@merocon.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@merocon.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@merocon.hu"
+  },
+  {
+    "id": "70f70b14-78f8-471c-9588-412e87673577",
+    "name": "MESTER-ÉPÍTŐ Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@mesterepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@mesterepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@mesterepito.hu"
+  },
+  {
+    "id": "70fc31a9-766f-4486-880c-e167d587636d",
+    "name": "Garage Kft. (Garage Ingatlanfejlesztő Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: titkarsag@garagekft.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: titkarsag@garagekft.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: titkarsag@garagekft.hu"
+  },
+  {
+    "id": "7a358db5-3992-4e52-aa07-8ea5bc8afa0d",
+    "name": "ProMate Generál Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: hello@promate.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: hello@promate.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: hello@promate.hu"
+  },
+  {
+    "id": "7c5d5349-5799-4b91-b458-ab4418ab0eee",
+    "name": "Delta Hungária Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@deltahungariaepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@deltahungariaepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@deltahungariaepito.hu"
+  },
+  {
+    "id": "7fa89c1c-bd48-479c-8e47-b70621ddfd44",
+    "name": "BULLDOZER IC Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@bulldozer.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@bulldozer.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@bulldozer.hu"
+  },
+  {
+    "id": "88964a53-c687-4c8f-b984-bd958b70c2bb",
+    "name": "Human Bau Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@kornyezettudatos.eu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@kornyezettudatos.eu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@kornyezettudatos.eu"
+  },
+  {
+    "id": "8919342b-192c-4579-8371-e8854ada5558",
+    "name": "TESZ-97 Szerelő, Szolgáltató és Kereskedelmi Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@tesz97.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@tesz97.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@tesz97.hu"
+  },
+  {
+    "id": "89b3b2a0-d6d5-4101-bd04-f5094c006a1a",
+    "name": "Favourite Home General Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@fhgeneral.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@fhgeneral.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@fhgeneral.com"
+  },
+  {
+    "id": "8a4dce59-129f-491a-9fb4-d57cae0ffc37",
+    "name": "Bau-Flott Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bauflott@bauflott.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bauflott@bauflott.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bauflott@bauflott.hu"
+  },
+  {
+    "id": "8d246415-3e5c-473b-9917-e165bc7120ca",
+    "name": "LÉPSZER Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: lakasepitokft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: lakasepitokft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: lakasepitokft@gmail.com"
+  },
+  {
+    "id": "8e396cce-da0b-4918-9ca6-7133b0844f48",
+    "name": "FŐVÁROSI ÉPÍTŐ Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@fovep.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@fovep.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@fovep.hu"
+  },
+  {
+    "id": "8f7f5f05-5f4a-4e2c-8f2e-0051b4c2e259",
+    "name": "SIMI-ÉP Kft. (Teljes Név: SIMI-ÉP Kivitelező és Szolgáltató Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: simi.ep.kft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: simi.ep.kft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: simi.ep.kft@gmail.com"
+  },
+  {
+    "id": "90042640-1ee8-42cf-85aa-7601384a723c",
+    "name": "BAU-GÉP 2000 Kft. (BAU-GÉP 2000 Építőipari Szolgáltató, Karbantartó és Kereskedelmi Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: baugep2000@baugep2000.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: baugep2000@baugep2000.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: baugep2000@baugep2000.hu"
+  },
+  {
+    "id": "90a46246-b197-4668-82c2-fdf1a8c7030c",
+    "name": "Pepezol Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: pepezolbau@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: pepezolbau@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: pepezolbau@gmail.com"
+  },
+  {
+    "id": "94b6b7a7-9cf4-4bdf-92f6-b2820fc037ea",
+    "name": "GeneralTop Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: generaltop@generaltop.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: generaltop@generaltop.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: generaltop@generaltop.hu"
+  },
+  {
+    "id": "950328d9-ac59-456b-b7fa-e5945b1176f3",
+    "name": "ZELE-BAU Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: csirincsik.csaba@zelebau.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: csirincsik.csaba@zelebau.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: csirincsik.csaba@zelebau.hu"
+  },
+  {
+    "id": "956a2650-5f6e-48ed-b6ab-f0bbd31a858e",
+    "name": "BG Construkt Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: bgconstrukt@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: bgconstrukt@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: bgconstrukt@gmail.com"
+  },
+  {
+    "id": "968fcd05-5010-4d76-b3e9-04c503f0ee74",
+    "name": "SCHMIDT'64 Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: schmidt64iroda@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: schmidt64iroda@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: schmidt64iroda@gmail.com"
+  },
+  {
+    "id": "96994bcf-78f6-4620-bb54-963aca04e9d8",
+    "name": "K.F. Építőipari Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: k.f.epitoiparikft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: k.f.epitoiparikft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: k.f.epitoiparikft@gmail.com"
+  },
+  {
+    "id": "99156af9-e13f-4dc5-9171-2e05cbfa8764",
+    "name": "ETNA GENERAL Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@etnageneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@etnageneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@etnageneral.hu"
+  },
+  {
+    "id": "9c3b01c2-57fc-47cb-9314-9c4ce8531bd5",
+    "name": "TÉR Generál Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@tergeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@tergeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@tergeneral.hu"
+  },
+  {
+    "id": "9cb92278-bcab-4af6-a3da-faaefd867a04",
+    "name": "Térváz Csarnok Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vallalkozas@tervazcsarnok.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vallalkozas@tervazcsarnok.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vallalkozas@tervazcsarnok.hu"
+  },
+  {
+    "id": "9d9459b2-8cd3-4aa9-9bcc-9c72e52cfd77",
+    "name": "BÉTA-ÉP Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@betaep.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@betaep.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@betaep.hu"
+  },
+  {
+    "id": "9db14604-5b9a-4892-9f89-25e9c4752253",
+    "name": "GEPARD Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: licska.zoltan@gepardepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: licska.zoltan@gepardepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: licska.zoltan@gepardepito.hu"
+  },
+  {
+    "id": "9ea1906d-5f0d-415e-9349-f5e16812d0d8",
+    "name": "TREND Építő Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@trendzrt.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@trendzrt.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@trendzrt.hu"
+  },
+  {
+    "id": "a012c772-9fe7-46a4-a547-ef0695a1c83d",
+    "name": "PROFI GENERÁL Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: profigeneral@profigeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: profigeneral@profigeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: profigeneral@profigeneral.hu"
+  },
+  {
+    "id": "a3681c32-435f-4887-a8ad-fc6d2a898636",
+    "name": "GRT General Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: grtgroup@grtgroup.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: grtgroup@grtgroup.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: grtgroup@grtgroup.hu"
+  },
+  {
+    "id": "a8ec2fe0-b241-46a0-a078-8db092e4cfc7",
+    "name": "Best Bau Trade Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@bestbautrade.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@bestbautrade.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@bestbautrade.hu"
+  },
+  {
+    "id": "a943fdaf-795e-4767-b0a7-fe89e650cd40",
+    "name": "VIV Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: borza.timea@vivepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: borza.timea@vivepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: borza.timea@vivepito.hu"
+  },
+  {
+    "id": "ad505110-7168-43e9-93aa-fe804f4d23ab",
+    "name": "KIPSZER FT Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kipszer@kipszer.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kipszer@kipszer.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kipszer@kipszer.com"
+  },
+  {
+    "id": "afc48e69-7818-4f0d-8684-526ec92a99c7",
+    "name": "Minimál Ház Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: minimalhazkft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: minimalhazkft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: minimalhazkft@gmail.com"
+  },
+  {
+    "id": "b07ad8f8-cf8b-4564-8fc8-d9e469a87a1f",
+    "name": "Iosif Construct Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: hello@iosif.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: hello@iosif.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: hello@iosif.hu"
+  },
+  {
+    "id": "b140fec9-f10c-4dac-b7b3-575f638e52a4",
+    "name": "Wemat Hungary Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: officehu@wemat.global",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: officehu@wemat.global",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: officehu@wemat.global"
+  },
+  {
+    "id": "b6aa6525-dd45-4eb3-a8aa-f72de7e191a6",
+    "name": "International Construction Company Zrt. (ICC Zrt.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@icczrt.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@icczrt.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@icczrt.hu"
+  },
+  {
+    "id": "bdd294b8-1867-4249-95e9-6006aab5abf6",
+    "name": "Construction Project Hungary Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kovacsk@cphkft.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kovacsk@cphkft.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kovacsk@cphkft.hu"
+  },
+  {
+    "id": "befff992-1dde-46b9-8026-d5e6d41a0743",
+    "name": "Nova Bau Hungary Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: novabauhun@novabauhun.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: novabauhun@novabauhun.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: novabauhun@novabauhun.hu"
+  },
+  {
+    "id": "c00bbbc5-4dbb-468c-9f14-be7175643d66",
+    "name": "\"AGORA\" Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: agora@agorabp.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: agora@agorabp.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: agora@agorabp.hu"
+  },
+  {
+    "id": "c2087853-9bfe-4dc8-8fc7-885cc2a06d94",
+    "name": "FORT-BAU Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: fortbau@fortbau.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: fortbau@fortbau.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: fortbau@fortbau.hu"
+  },
+  {
+    "id": "c30ea20f-c90d-463c-bed5-c5ef2a3861a5",
+    "name": "Integral Holding Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: ifiandras@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: ifiandras@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: ifiandras@gmail.com"
+  },
+  {
+    "id": "c467b3ac-2212-47df-aca3-2078acfc6160",
+    "name": "Neural Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@neuralepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@neuralepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@neuralepito.hu"
+  },
+  {
+    "id": "c4fc9ec9-ecd0-425b-ae34-0dc1eeb288f7",
+    "name": "Varga Generál Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vargageneral@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vargageneral@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vargageneral@gmail.com"
+  },
+  {
+    "id": "c6bac763-ced0-425d-a953-efbc34861a58",
+    "name": "Prozity Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: elod.turkus@prozity.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: elod.turkus@prozity.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: elod.turkus@prozity.com"
+  },
+  {
+    "id": "cac56ee3-c2a9-41a4-8ae2-247f64981dc1",
+    "name": "F-Építő Generál Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@f-epito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@f-epito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@f-epito.hu"
+  },
+  {
+    "id": "cae87cbf-de93-4bf3-8406-d1a25a3a2214",
+    "name": "Tecton Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tecton@tecton.co.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tecton@tecton.co.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tecton@tecton.co.hu"
+  },
+  {
+    "id": "cd1886c1-0931-4b10-a906-1195d17d3a89",
+    "name": "KOVA-LINE Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: kovalinekft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: kovalinekft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: kovalinekft@gmail.com"
+  },
+  {
+    "id": "cd86b714-683d-4793-bfde-0751de5a3f8d",
+    "name": "T-Hof Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tamas@hofstadter.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tamas@hofstadter.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: tamas@hofstadter.hu"
+  },
+  {
+    "id": "ce667bcc-d169-47b7-b1ad-8eb1528df383",
+    "name": "TIM - BAUMONT Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@timbaumont.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@timbaumont.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@timbaumont.hu"
+  },
+  {
+    "id": "d13786f2-a168-40e9-a856-1cb63c90b686",
+    "name": "VIG és TÁRSA 2000 Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vig.zoltan@vigepito.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vig.zoltan@vigepito.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: vig.zoltan@vigepito.hu"
+  },
+  {
+    "id": "d872f84b-e76d-43e5-8603-203df5e01f9d",
+    "name": "ALTAN BETON HUNGÁRIA Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: budapest@altan.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: budapest@altan.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: budapest@altan.hu"
+  },
+  {
+    "id": "db9d118f-779c-43a3-8773-afdb21fdeb55",
+    "name": "Energet Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: daniel.pongracz@energetcsoport.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: daniel.pongracz@energetcsoport.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: daniel.pongracz@energetcsoport.hu"
+  },
+  {
+    "id": "dcbd53df-e25b-4a9c-b820-522ab2bf10eb",
+    "name": "FŐSZERÉP Szerelő-Építő Kft. (FŐSZERÉP Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: foszerep@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: foszerep@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: foszerep@gmail.com"
+  },
+  {
+    "id": "e2a416a9-b8b0-4f4c-bfef-ac41b09efc24",
+    "name": "NOVAKONCEPT Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: novakoncept@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: novakoncept@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: novakoncept@gmail.com"
+  },
+  {
+    "id": "e307375a-4cee-46fd-b5d3-445318a3c00f",
+    "name": "GANZ Generálkivitelező Zrt.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: pal.santha@ganzgeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: pal.santha@ganzgeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: pal.santha@ganzgeneral.hu"
+  },
+  {
+    "id": "e33c94c2-47dc-4245-9c9d-adecd37a0100",
+    "name": "Ki-Ko Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kikobau50@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kikobau50@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: kikobau50@gmail.com"
+  },
+  {
+    "id": "e34e05cf-84d6-403c-8eb9-e4120621103a",
+    "name": "GENÉV Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@genev.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@genev.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@genev.hu"
+  },
+  {
+    "id": "e4577413-7959-46a5-8d11-6ae0030b968a",
+    "name": "VÁR-BAU System Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@varbausystem.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@varbausystem.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@varbausystem.hu"
+  },
+  {
+    "id": "e5400835-dfee-4f08-b073-1758f711a635",
+    "name": "Alldone Hungary Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: varga-tamas@hotmail.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: varga-tamas@hotmail.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: varga-tamas@hotmail.hu"
+  },
+  {
+    "id": "e8f7f683-7e4e-48ac-908a-485f93a40095",
+    "name": "CSERKÚTI GENERÁL Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: csgeneral@csgeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: csgeneral@csgeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: csgeneral@csgeneral.hu"
+  },
+  {
+    "id": "e9207c4f-43ca-47f9-af6e-e69cb1f14458",
+    "name": "MZS Construct Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@mazas.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@mazas.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@mazas.hu"
+  },
+  {
+    "id": "ea94fd23-9340-424f-b6b7-21796dc7734b",
+    "name": "VisionTrend Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: gberecz@visiontrend.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: gberecz@visiontrend.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: gberecz@visiontrend.hu"
+  },
+  {
+    "id": "ec132a61-dd79-4b6f-a2ed-65f8ccee3f53",
+    "name": "Comp-Terv Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: compterv@compterv.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: compterv@compterv.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: compterv@compterv.hu"
+  },
+  {
+    "id": "ec395963-9dad-4f20-bd9d-4c08e112d48f",
+    "name": "UTI Kft. (Urbán Tibor és Társa Szolgáltató és Kereskedelmi Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@utikft.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@utikft.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@utikft.hu"
+  },
+  {
+    "id": "ecf96eab-c949-4b0b-9e37-ddddf9d1356d",
+    "name": "UniGeneral Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@unigeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@unigeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: info@unigeneral.hu"
+  },
+  {
+    "id": "ed1bf79d-a58b-4d6e-983d-62a4965988e1",
+    "name": "B-ZOLI Generál Group Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: bzoligeneralgroupkft@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: bzoligeneralgroupkft@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: bzoligeneralgroupkft@gmail.com"
+  },
+  {
+    "id": "ee7cee06-de74-4d15-83b3-67028ae429d9",
+    "name": "Ív Generál Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@ivgeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@ivgeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@ivgeneral.hu"
+  },
+  {
+    "id": "ef6fe5d9-99bc-4cb6-91e8-e8a1e29a5a2f",
+    "name": "Ker-Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: ker-epito@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: ker-epito@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: ker-epito@gmail.com"
+  },
+  {
+    "id": "f30c01b6-879e-4e1f-b039-fd56d7ef5510",
+    "name": "VZM GENERAL GROUP Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@vzmgeneral.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@vzmgeneral.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@vzmgeneral.hu"
+  },
+  {
+    "id": "f5f84b34-6909-4d51-adef-863d222fbf9d",
+    "name": "INETON Kft. (INETON Építő és Gyártó Kft.)",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@ineton.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@ineton.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@ineton.com"
+  },
+  {
+    "id": "fbd900b5-68e9-4e06-b284-929483da4139",
+    "name": "Salgó és Fia Szerelő és Építőipari Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: janos.salgo@chello.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: janos.salgo@chello.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: janos.salgo@chello.hu"
+  },
+  {
+    "id": "fd31e754-16a5-4f30-95ab-11aa6f9f7b02",
+    "name": "Value 4 Real Építő Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@value4real.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@value4real.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: info@value4real.com"
+  },
+  {
+    "id": "fdb5ec8e-9666-4314-ac3e-27f7d5eb7f21",
+    "name": "Valbo Garden & Bau Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bododavid90@gmail.com",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bododavid90@gmail.com",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-06\nKüldő postafiók: info@vibateam.hu\nCímzett: bododavid90@gmail.com"
+  },
+  {
+    "id": "fff0d394-6ea9-40dc-ad13-b509445b4386",
+    "name": "LTV Interior Kft.",
+    "notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@ltvinterior.hu",
+    "old_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@ltvinterior.hu",
+    "new_notes": "[MKT:STATUS:new]\nForrás: generálkivitelezői lista (VIBA_EMAIL_KIKULDES_ELLENORZES_2026-11-05.xlsx), import 2026-11-06\n\n[GMAIL_ELLENORZES_2026-11-06]\nKüldési bizonyíték: Csak tárolt piszkozat; külső Gmail SENT-küldés nem igazolt.\nA korábbi megkeresésjelölés javítva; a történeti lefedettség nem teljes.\nEllenőrzés: 2026-11-06; három céges postafiók tárolt adata.",
+    "old_block": "[GMAIL_MEGKERESES_2026-11-06]\nKapcsolati csoport: Megkeresett cég\nÁllapot: Megkeresett (hideg e-mail kiment)\nElső megkeresés: 2026-11-05\nUtolsó kiküldés: 2026-11-05\nKüldő postafiók: info@vibateam.hu\nCímzett: iroda@ltvinterior.hu"
+  }
+]
