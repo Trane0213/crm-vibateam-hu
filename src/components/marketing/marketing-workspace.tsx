@@ -317,9 +317,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const emailHint = emailVisibilityHint(emailFullAccess.data, emailCount);
   const leadRows = companyLeads.data ?? [];
 
-  if (cust.isLoading) return <div className="p-6 text-sm text-muted-foreground">Cég betöltése…</div>;
+  if (cust.isLoading) return <div role="status" className="p-6 text-sm text-muted-foreground">Ügyféladatok és átadási előzmények betöltése…</div>;
   if (cust.error || !cust.data) {
-    return <div className="p-6"><EmptyState icon={Building2} title="Cég nem található" description={(cust.error as any)?.message} /></div>;
+    return <div className="p-6"><EmptyState icon={Building2} title={cust.error ? "Az ügyféladatok nem tölthetők be" : "Az ügyfél nem elérhető"} description={cust.error ? humanizeSupabaseError(cust.error) : "Ellenőrizd a kiválasztott ügyfelet és a hozzáférésedet."} action={<Button variant="outline" onClick={() => cust.refetch()}>Újrapróbálás</Button>} /></div>;
   }
 
   const c = cust.data;
@@ -436,11 +436,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                   ? "A cég már átadva"
                   : step.id !== "ready-handoff"
                     ? 'Nézd meg a „Következő lépés" kártyát — még hiányoznak feltételek'
-                    : "Lead létrehozása és átadás a sales pipeline-nak"
+                    : "Átadási ablak megnyitása; mentés és emailküldés még nem történik"
               }
             >
               <ArrowRightCircle className="mr-1 h-4 w-4" />
-              Saleshez átadás
+              Átadás ellenőrzése
             </Button>
 
             {!isHandoff && (
@@ -720,6 +720,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         defaultLeadSource={meta.leadSource}
         salesUsers={salesUsers.data ?? []}
         existingOpenLeads={openLeads(companyLeads.data ?? [])}
+        error={handoff.error ? (handoff.error as Error).message : null}
         submitting={handoff.isPending || cust.isFetching || companyLeads.isFetching}
         onSubmit={(d) => handoff.mutate(d)}
       />
@@ -1001,9 +1002,10 @@ function SimpleTimeline({ events }: { events: TimelineEvent[] }) {
 }
 
 function HandoffDialog({
-  open, onOpenChange, companyName, companyId, contacts, defaultSummary, defaultLeadSource, salesUsers, existingOpenLeads, submitting, onSubmit,
+  open, onOpenChange, companyName, companyId, contacts, defaultSummary, defaultLeadSource, salesUsers, existingOpenLeads, submitting, onSubmit, error,
 }: {
   existingOpenLeads: any[];
+  error?: string | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
   companyName: string;
@@ -1048,6 +1050,8 @@ function HandoffDialog({
         </AlertDialogHeader>
 
         <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">Az átadás új értékesítési ügyet hoz létre; emailküldést, ajánlatot és projektet nem indít.</p>
+          {error && <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
           {existingOpenLeads.length > 0 && (
             <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-xs">
               <div className="font-semibold text-destructive">
@@ -1084,7 +1088,7 @@ function HandoffDialog({
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Lead összefoglaló</label>
-            <Textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="mt-1" />
+            <Textarea aria-label="Átadott ügy összefoglalója" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="mt-1" />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -1125,7 +1129,7 @@ function HandoffDialog({
               });
             }}
           >
-            {submitting ? "Átadás…" : "Lead létrehozása és átadás"}
+            {submitting ? "Átadás és mentett adatok ellenőrzése…" : "Ügy létrehozása és átadás a felelősnek"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

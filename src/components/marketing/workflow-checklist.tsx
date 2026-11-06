@@ -1,5 +1,6 @@
 import { Check, Circle } from "lucide-react";
 import type { ChecklistItem, StepActionKind } from "@/lib/marketing-workflow";
+import { Button } from "@/components/ui/button";
 
 export function WorkflowChecklist({
   items,
@@ -16,7 +17,7 @@ export function WorkflowChecklist({
     <div className="rounded-lg border bg-card p-3 sm:p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-          Hol tart a folyamat
+          Sales-átadás előkészítése
         </div>
         <div className="text-xs font-medium tabular-nums text-muted-foreground">
           {done}/{total}
@@ -43,13 +44,13 @@ export function WorkflowChecklist({
               {it.hint && <span className="ml-1 text-xs text-muted-foreground">· {it.hint}</span>}
             </span>
             {!it.done && it.action && (
-              <button
+              <Button variant="link" size="sm"
                 type="button"
                 className="ml-auto text-xs text-primary hover:underline"
-                onClick={() => onAction(it.action!.action, it.action!.targetTab)}
+                onClick={() => { if (it.action) onAction(it.action.action, it.action.targetTab); }}
               >
                 {it.action.label}
-              </button>
+              </Button>
             )}
           </li>
         ))}
