@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMailRelinkReview, RELINK_MAILBOXES } from "@/lib/gmail/relink-review.functions";
+import { getMailRelinkReview, previewMailboxBackfill, RELINK_MAILBOXES } from "@/lib/gmail/relink-review.functions";
 import type { RelinkCategory } from "@/lib/gmail/relink-analysis";
 
 export const Route = createFileRoute("/_authenticated/import-review_/mail")({
@@ -27,17 +27,47 @@ export const Route = createFileRoute("/_authenticated/import-review_/mail")({
 const LABEL: Record<RelinkCategory | "all", string> = {
   all: "Mind", certain: "Biztosan kapcsolható", review: "Ellenőrizendő", conflict: "Ütközés",
   no_contact: "CRM-kontakt hiányzik", linked: "Már kapcsolt", internal: "Belső / teszt",
+  self_other_company: "Viba-Team → másik cég", self_conflict: "Viba-Team, ellentmondásos",
+  self_no_contact: "Viba-Team, nincs kontakt", self_bulk: "Viba-Team, körlevél", self_internal: "Viba-Team, valóban belső",
 };
+
+function BackfillPreview({ mailbox, gaps }: { mailbox: string; gaps: string[] }) {
+  const fn = useServerFn(previewMailboxBackfill);
+  const [after, setAfter] = useState(gaps[0] ?? "2026-09-07");
+  const [before, setBefore] = useState("2026-10-30");
+  const [res, setRes] = useState<{ query: string; listed: number; stored: number; missing: number; estimate: number | null; nextPageToken: string | null } | null>(null);
+  const [tokens, setTokens] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const run = async (pageToken?: string) => {
+    setBusy(true); setErr(null);
+    try { const r = await fn({ data: { mailbox, after, before, pageToken } }); setRes(r); if (pageToken) setTokens(t => [...t, pageToken]); }
+    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  };
+  return (
+    <details className="text-sm"><summary className="cursor-pointer font-medium">Visszatöltési előnézet (DRY-RUN, Gmail-lekérdezés, semmit nem ment)</summary>
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <Input type="date" className="w-40" value={after} onChange={e => setAfter(e.target.value)} aria-label="Ettől" />
+        <Input type="date" className="w-40" value={before} onChange={e => setBefore(e.target.value)} aria-label="Eddig" />
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => { setTokens([]); run(); }}>Első 100 üzenet összevetése</Button>
+        {res?.nextPageToken && <Button size="sm" variant="outline" disabled={busy} onClick={() => run(res.nextPageToken!)}>Következő 100</Button>}
+      </div>
+      {err && <p className="text-destructive">{err}</p>}
+      {res && <p className="mt-1">Lap {tokens.length + 1}: Gmail {res.listed} üzenet (becslés összesen: {res.estimate ?? "—"}), ebből tárolt {res.stored}, <b>hiányzik {res.missing}</b>. Tényleges visszatöltés csak külön tulajdonosi jóváhagyással.</p>}
+    </details>
+  );
+}
 
 function MailRelinkPage() {
   const [mailbox, setMailbox] = useState<string>(RELINK_MAILBOXES[0]);
   const [category, setCategory] = useState<RelinkCategory | "all">("certain");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [sharedOnly, setSharedOnly] = useState(false);
   const fn = useServerFn(getMailRelinkReview);
   const q = useQuery({
-    queryKey: ["mail-relink", mailbox, category, page, search],
-    queryFn: () => fn({ data: { mailbox, category, page, search } }),
+    queryKey: ["mail-relink", mailbox, category, page, search, sharedOnly],
+    queryFn: () => fn({ data: { mailbox, category, page, search, sharedOnly } }),
     placeholderData: keepPreviousData, staleTime: 5 * 60_000,
   });
   const d = q.data;
@@ -58,10 +88,19 @@ function MailRelinkPage() {
           <Card>
             <CardHeader><CardTitle className="text-base">Állapot – {d.mailbox}</CardTitle></CardHeader>
             <CardContent className="text-sm space-y-1">
-              <p>{d.threads} szál, {d.messages} saját tárolt levél; {d.replied} szálban jött válasz kimenő megkeresésre.</p>
+              <p>{d.threads} szál, {d.messages} saját tárolt levél; {d.replied} szálban jött válasz kimenő megkeresésre; {d.selfLinked} szál a saját Viba-Team céghez mentve (nem számít helyes kapcsolásnak); {d.sharedThreads} szál másik céges postafiókban is.</p>
               <p>Utolsó szinkron: {d.lastSyncAt ? new Date(d.lastSyncAt).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" }) : "—"}{d.authError ? " · engedélyezési hiba!" : ""}. A friss szinkron nem bizonyít teljes történeti lefedettséget.</p>
               <p>Szinkronhibák (utolsó {d.syncErrors.runsChecked} futás): {d.syncErrors.total} valódi hiba, ebből {d.syncErrors.http404} db 404; {d.syncErrors.crmReviewNotes} csak CRM-ellenőrzési jelzés.</p>
               {d.syncErrors.latest.length > 0 && <details><summary className="cursor-pointer">Legutóbbi hibák</summary><ul className="text-xs">{d.syncErrors.latest.map((e, i) => <li key={i}>{new Date(e.at).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })}: {e.error}</li>)}</ul></details>}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader><CardTitle className="text-base">Történeti lefedettség (tárolt levelek hetente)</CardTitle></CardHeader>
+            <CardContent className="text-sm space-y-2">
+              <p>Első tárolt hét: {d.coverage.firstWeek ?? "—"} · utolsó: {d.coverage.lastWeek ?? "—"} · üres hetek: {d.coverage.gaps.length}. Üres hét a CRM-ben hiányt jelez; Gmail-oldali hiány csak az előnézettel igazolható.</p>
+              {d.coverage.gaps.length > 0 && <ul className="text-xs">{d.coverage.gaps.map(g => <li key={g.week}>{g.week}: 0 tárolt levél · szinkronminta {g.sampleRunAt ? new Date(g.sampleRunAt).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" }) : "nincs futás"}{g.invalidGrant ? " · invalid_grant (lejárt Google-engedély)" : ""}</li>)}</ul>}
+              <details><summary className="cursor-pointer text-xs">Heti bontás</summary><p className="text-xs">{d.coverage.weeks.map(w => `${w.week}: ${w.messages}`).join(" · ")}</p></details>
+              <BackfillPreview key={d.mailbox} mailbox={d.mailbox} gaps={d.coverage.gaps.map(g => g.week)} />
             </CardContent>
           </Card>
           <div className="flex flex-wrap gap-2 items-center">
@@ -71,6 +110,7 @@ function MailRelinkPage() {
               </Button>
             ))}
             <Input className="max-w-xs" placeholder="Keresés tárgyban / címben" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
+            <Button size="sm" variant={sharedOnly ? "default" : "outline"} onClick={() => { setSharedOnly(v => !v); setPage(1); }}>Csak több postafiókban közös</Button>
           </div>
           <div className="space-y-2">
             {d.rows.map(r => (
@@ -78,7 +118,7 @@ function MailRelinkPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">{LABEL[r.category]}</Badge>
                   {r.replied && <Badge>Válasz érkezett</Badge>}
-                  {r.shared_with_other_mailbox && <Badge variant="secondary">Másik postafiókban is</Badge>}
+                  {r.other_mailboxes.map(m => <Badge key={m} variant="secondary">{m} is</Badge>)}
                   <Link to="/emails/$threadId" params={{ threadId: r.thread_id }} className="font-medium underline">{r.subject}</Link>
                 </div>
                 <p className="text-muted-foreground">{r.outbound} kimenő / {r.inbound} bejövő · {r.external.join(", ")}</p>
