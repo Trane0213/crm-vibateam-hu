@@ -33,12 +33,12 @@ export const saveCampaignDraft = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireCampaignRole(context.supabase, context.userId);
     if (!data.id) {
-      const { data: row, error } = await context.supabase.from("email_campaigns").insert({ name: data.name, target_group: data.target_group || null, message_subject: data.message_subject, message_body: data.message_body } as any).select("id,status").single();
+      const { data: row, error } = await context.supabase.from("email_campaigns").insert({ name: data.name, target_group: data.target_group || null, message_subject: data.message_subject, message_body: data.message_body }).select("id,status").single();
       if (error) throw new Error(error.message);
       return row;
     }
     if (!data.expectedUpdatedAt) throw new Error("Nyisd újra a tervezetet.");
-    const { data: rows, error } = await context.supabase.from("email_campaigns").update({ name: data.name, target_group: data.target_group || null, message_subject: data.message_subject, message_body: data.message_body } as any).eq("updated_at", data.expectedUpdatedAt).eq("id", data.id).neq("status", "archived").select("id,status");
+    const { data: rows, error } = await context.supabase.from("email_campaigns").update({ name: data.name, target_group: data.target_group || null, message_subject: data.message_subject, message_body: data.message_body }).eq("updated_at", data.expectedUpdatedAt).eq("id", data.id).neq("status", "archived").select("id,status");
     if (error) throw new Error(error.message);
     if (rows?.length !== 1) throw new Error("A kampány megváltozott, archivált, vagy nem szerkeszthető; nyisd újra.");
     const saved = rows?.[0];
@@ -48,13 +48,14 @@ export const saveCampaignDraft = createServerFn({ method: "POST" })
 
 export const setCampaignArchived = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i: { id: string; archived: boolean }) => {
+  .inputValidator((i: { id: string; archived: boolean; expectedUpdatedAt: string }) => {
     if (!UUID.test(i.id)) throw new Error("Hibás kampányazonosító.");
-    return { id: i.id, archived: !!i.archived };
+    if (!i.expectedUpdatedAt) throw new Error("Nyisd újra a tervezetet.");
+    return { id: i.id, archived: !!i.archived, expectedUpdatedAt:i.expectedUpdatedAt };
   })
   .handler(async ({ data, context }) => {
     await requireCampaignRole(context.supabase, context.userId);
-    const { data: rows, error } = await context.supabase.from("email_campaigns").update({ status: data.archived ? "archived" : "draft" }).eq("id", data.id).select("id,status");
+    const { data: rows, error } = await context.supabase.from("email_campaigns").update({ status: data.archived ? "archived" : "draft" }).eq("updated_at",data.expectedUpdatedAt).eq("id", data.id).select("id,status");
     if (error) throw new Error(error.message);
     if (rows?.length !== 1) throw new Error("A kampány nem található vagy nincs jogosultságod.");
     const saved = rows?.[0];
@@ -89,9 +90,9 @@ export const precheckAndStoreCampaign = createServerFn({ method: "POST" })
     }).map(r => ({ contact_id: r.contact_id, company_id: r.company_id, email_norm: r.norm || null, eligibility: r.status, reasons: r.reasons, last_history_at: r.last_at, selected: true }));
     const skipped = selected.size - rows.length;
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
-    const { data: saved, error } = await db.rpc("campaign_store_preparation" as any, {
+    const { data: saved, error } = await db.rpc("campaign_store_preparation", {
       p_campaign: data.id, p_user: context.userId, p_expected: data.expectedUpdatedAt, p_rows: rows, p_complete: res.historyComplete,
-    } as any);
+    });
     if (error) throw new Error(error.message);
     const result = saved as { stored: number; status: string } | null;
     if (!result || result.stored !== rows.length) throw new Error("A címzettlista mentése nem igazolt.");

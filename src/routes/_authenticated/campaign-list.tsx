@@ -74,7 +74,7 @@ function CampaignListPage() {
   const q = useQuery({
     queryKey: ["campaign-list", "marketing-universe",scope],
     queryFn: async (): Promise<CampaignRow[]> => {
-      const companies = scope==='campaign' ? await selectMarketingCompanies(supabase,`id,name,website,notes,created_at,${MARKETING_STATE_SELECT}`,{limit:1000}) : await (async()=>{
+      const companies = scope==='campaign' ? await selectMarketingCompanies(supabase,`id,name,website,notes,created_at,${MARKETING_STATE_SELECT}`) : await (async()=>{
         const rows: any[]=[];
         for(let from=0;;from+=1000){const r=await supabase.from('companies').select(`id,name,website,notes,created_at,${MARKETING_STATE_SELECT}`).order('id').range(from,from+999);if(r.error)throw r.error;rows.push(...(r.data??[]));if((r.data?.length??0)<1000)break;}
         return rows;
@@ -183,7 +183,7 @@ function CampaignListPage() {
           />
         ) : (
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="overflow-x-auto p-0">
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>

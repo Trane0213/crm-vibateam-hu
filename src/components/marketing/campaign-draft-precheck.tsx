@@ -72,7 +72,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: 
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium">Kampánytervezetek</span>
         <Badge variant="destructive">Kiküldés tiltott</Badge>
-        <select disabled={busy} className="h-8 max-w-full rounded-md border bg-background px-2" value={selected ?? ""} onChange={e => { setSelected(e.target.value || null); setPage(1); setElig("all"); setPreviewId(null); if (!e.target.value) { setName(""); setTarget(""); setSubject(""); setBody(""); } }} aria-label="Kampánytervezet">
+        <select disabled={busy} className="h-8 max-w-full rounded-md border bg-background px-2" value={selected ?? ""} onChange={e => { initialized.current=null;setContactIds([]);setSelected(e.target.value || null); setPage(1); setElig("all"); setPreviewId(null); if (!e.target.value) { setName(""); setTarget(""); setSubject(""); setBody(""); } }} aria-label="Kampánytervezet">
           <option value="">+ Új tervezet</option>
           {(list.data?.campaigns ?? []).map(c => <option key={c.id} value={c.id}>{c.name} · {STATUS[c.status] ?? c.status}{list.data?.role === "owner" && c.created_by !== list.data.userId ? " · más felhasználóé" : ""}</option>)}
         </select>
@@ -107,7 +107,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: 
           }, "Címzettek ellenőrizve és mentve.")}>
             {picked.length} kijelölt kontakt ellenőrzése és mentése
           </Button>
-          <Button size="sm" variant="outline" disabled={busy} onClick={() => act(() => archFn({ data: { id: camp.id, archived: !archived } }), archived ? "Visszaállítva tervezetbe." : "Archiválva.")}>
+          <Button size="sm" variant="outline" disabled={busy} onClick={() => act(() => archFn({ data: { id: camp.id, archived: !archived, expectedUpdatedAt:camp.updated_at } }), archived ? "Visszaállítva tervezetbe." : "Archiválva.")}>
             {archived ? "Visszaállítás" : "Archiválás"}
           </Button>
         </div>
