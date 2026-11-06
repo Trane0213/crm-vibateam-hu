@@ -3,20 +3,21 @@ import { marketingMailFacts, type MarketingMail } from './marketing-mail';
 import { isMarketingCompany } from './marketing-universe';
 import { readMarketingMeta } from './marketing-status';
 export async function loadMarketingDaily(sb: SupabaseClient, userId: string, now = new Date()) {
-  const [companies, contacts, emails, followups, calls] = await Promise.all([
+  const [companies, contacts, emails, followups, calls, profile] = await Promise.all([
     sb.from('companies').select('id,name,notes').order('id').limit(1001),
     sb.from('contacts').select('id,name,email,phone,company_id,email_invalid').order('id').limit(1001),
-    sb.from('emails').select('id,thread_id,company_id,owner_user_id,from_email,to_emails,is_outbound,internal_date,created_at').eq('owner_user_id',userId).order('internal_date',{ascending:false}).limit(1001),
+    sb.from('emails').select('id,thread_id,company_id,owner_user_id,gmail_message_id,gmail_label_ids,from_email,to_emails,cc_emails,bcc_emails,is_outbound,internal_date,created_at').eq('owner_user_id',userId).order('internal_date',{ascending:false}).limit(1001),
     sb.from('followups').select('id,company_id,followup_type,due_date,result').eq('assigned_to',userId).eq('completed',false).order('due_date').limit(1001),
     sb.from('phone_calls').select('id,company_id,contact_id,outcome,callback_date,summary,created_at').eq('outcome','callback').not('callback_date','is',null).order('callback_date').limit(1001),
+    sb.from('users_profile').select('gmail_email').eq('auth_user_id',userId).limit(1),
   ]);
-  for (const result of [companies,contacts,emails,followups,calls]) if (result.error) throw result.error;
+  for (const result of [companies,contacts,emails,followups,calls,profile]) if (result.error) throw result.error;
   // Conservative coverage flag: PostgREST may cap limit(1001) at 1000.
   const partial = [companies,contacts,emails,followups,calls].some(r => (r.data?.length ?? 0) >= 1000);
   const campaign = (companies.data ?? []).filter(isMarketingCompany).map(c => ({...c,meta:readMarketingMeta(c.notes)}));
   const campaignIds = new Set(campaign.map(c=>c.id));
   const recent = new Date(now.getTime()-7*86400000).toISOString();
-  const facts = marketingMailFacts(((emails.data ?? []) as MarketingMail[]).filter(e=>e.company_id&&campaignIds.has(e.company_id)),contacts.data ?? [],recent);
+  const facts = marketingMailFacts(((emails.data ?? []) as MarketingMail[]).filter(e=>e.company_id&&campaignIds.has(e.company_id)),contacts.data ?? [],recent,profile.data?.[0]?.gmail_email ?? '');
   const open = (followups.data ?? []).filter(f=>f.company_id && campaignIds.has(f.company_id));
   const name = (id: string | null) => companies.data?.find(c=>c.id===id)?.name ?? 'Ismeretlen cég';
   const select = (ids: string[]) => campaign.filter(c=>ids.includes(c.id)).map(c=>({id:c.id,name:c.name,source_link:`/customers/${c.id}`}));
