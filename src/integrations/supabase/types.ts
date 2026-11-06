@@ -5243,7 +5243,12 @@ export type Database = {
       is_email_admin: { Args: { _user_id: string }; Returns: boolean }
       is_owner_role: { Args: { _auth_user: string }; Returns: boolean }
       issue_report_verdict: {
-        Args: { _feedback: string; _id: string; _verdict: string }
+        Args: {
+          _feedback: string
+          _id: string
+          _user: string
+          _verdict: string
+        }
         Returns: undefined
       }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
