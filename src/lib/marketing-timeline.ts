@@ -6,6 +6,7 @@
  * Kimenet: dátum szerint csökkenő sorrendű, egységes formátumú eseménylista.
  */
 import { MARKETING_STATUS_LABEL, type MarketingMeta } from "@/lib/marketing-status";
+import { isVerifiedSent } from './gmail/relink-analysis';
 
 export type TimelineEvent = {
   at: string;            // ISO timestamp
@@ -14,6 +15,8 @@ export type TimelineEvent = {
     | "contact_added"
     | "email_sent"
     | "email_received"
+    | "email_draft"
+    | "email_unverified"
     | "doc_uploaded"
     | "status_change"
     | "handoff"
@@ -36,6 +39,8 @@ type Input = {
     internal_date?: string | null;
     created_at?: string | null;
     is_outbound?: boolean | null;
+    gmail_label_ids?: string[] | null;
+    gmail_message_id?: string | null;
   }[];
   docs: { id: string; name: string | null; created_at: string }[];
   /** Lapozott céges levélszálak (2. szakasz) — szálanként egy esemény. */
@@ -74,10 +79,12 @@ export function buildTimeline(input: Input, notes: string | null): TimelineEvent
   for (const e of input.emails) {
     const at = e.internal_date ?? e.created_at;
     if (!at) continue;
+    const draft = e.gmail_label_ids?.includes('DRAFT') === true;
+    const sent = isVerifiedSent({ from_email: e.from_email ?? null, is_outbound: e.is_outbound ?? null, internal_date: e.internal_date ?? null, gmail_message_id: e.gmail_message_id, gmail_label_ids: e.gmail_label_ids ?? null }, e.from_email ?? '');
     events.push({
       at,
-      kind: e.is_outbound ? "email_sent" : "email_received",
-      label: e.is_outbound ? "Email elküldve" : "Email érkezett",
+      kind: draft ? 'email_draft' : sent ? 'email_sent' : e.is_outbound === false ? 'email_received' : 'email_unverified',
+      label: draft ? 'Email-piszkozat' : sent ? 'Email elküldve – tárolt SENT-bizonyíték' : e.is_outbound === false ? 'Email érkezett' : 'Email – küldés nem igazolt',
       detail: e.subject ?? (e.is_outbound ? e.to_email ?? "" : e.from_email ?? ""),
     });
   }
