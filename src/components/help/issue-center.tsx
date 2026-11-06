@@ -10,11 +10,11 @@ import { Label } from "@/components/ui/label";
 import { submitIssue, listIssues, updateIssue } from "@/lib/issue-reports.functions";
 import { issuePath, ISSUE_STATUS } from "@/lib/issue-reports-model";
 
-export function IssueCenter() {
+export function IssueCenter({ sourcePath }: { sourcePath?: string }) {
   const pathname = useRouterState({ select: s => s.location.pathname });
   const submit = useServerFn(submitIssue), list = useServerFn(listIssues), update = useServerFn(updateIssue);
   const [page, setPage] = useState(0), [description, setDescription] = useState(""), [expected, setExpected] = useState(""), [actual, setActual] = useState(""), [code, setCode] = useState("");
-  const [path, setPath] = useState(() => issuePath(pathname)), [key, setKey] = useState<string | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(""), [saved, setSaved] = useState<string | null>(null);
+  const [path, setPath] = useState(() => issuePath(sourcePath ?? pathname)), [key, setKey] = useState<string | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState(""), [saved, setSaved] = useState<string | null>(null);
   const q = useQuery({ queryKey: ["issue-reports", page], queryFn: () => list({ data: { page } }), retry: false });
   async function send() {
     const submissionKey = key ?? crypto.randomUUID(); setKey(submissionKey); setBusy(true); setError("");
