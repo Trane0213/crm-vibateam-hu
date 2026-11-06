@@ -56,7 +56,7 @@ export const getMailRelinkReview = createServerFn({ method: "POST" })
       all<{ id: string; email: string | null; company_id: string | null }>((f, t) => db.from("contacts").select("id,email,company_id").not("email", "is", null).order("id").range(f, t)),
       all<{ thread_id: string }>((f, t) => db.from("email_thread_access").select("thread_id").ilike("mailbox_email", data.mailbox).order("thread_id").range(f, t)),
       ownerId ? db.from("gmail_sync_runs").select("started_at,errors").eq("user_id", ownerId).order("started_at", { ascending: false }).limit(500) : Promise.resolve({ data: [] as { started_at: string; errors: unknown }[] }),
-      db.from("companies").select("id").or(`id.eq.${SELF_COMPANY_ID},name.ilike.viba%team%`),
+      db.from("companies").select("id").or(`id.eq.${SELF_COMPANY_ID},name.ilike.*viba*team*`),
       ownerId ? all<{ internal_date: string | null }>((f, t) => db.from("emails").select("internal_date").eq("owner_user_id", ownerId).order("id").range(f, t)) : Promise.resolve([]),
     ]);
     const selfIds = new Set<string>([SELF_COMPANY_ID, ...(selfCos.data ?? []).map(c => c.id)]);
