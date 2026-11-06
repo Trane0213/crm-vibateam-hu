@@ -38,3 +38,4 @@
 - Timothy read adapters attach saved-state interpretation (Budapest times, followup completion, unverified contact email, mailbox scope); open quote queries filter before pagination and runtime grounds quote URLs in observed record paths and role advice in the existing allowed-tool intersection — stabilizes answers without changing business writes or permissions.
 - Both chats correlate runs by UUID and display only own-run content-free audit progress; risk QA distinguishes deterministic, model and authenticated results — progress is not execution proof or measured reliability.
 - AI OS agent model/provider/api/reasoning come only from `src/lib/ai-os/model-config.ts` (spread into each agent) — one place to switch models.
+- Marketing: own followups/tasks only (`*_marketing_own_*` RLS); meetings read-only.

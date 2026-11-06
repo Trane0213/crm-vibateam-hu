@@ -42,6 +42,7 @@ export const WORKSPACES_BY_ROLE: Record<RoleSlug, NavItem[]> = {
     { title: "Weboldali igények", short: "Igények", url: "/web-quote-requests", icon: Inbox },
     { title: "Kampánylista", short: "Kampány", url: "/campaign-list", icon: ListPlus },
     { title: "Emailek", url: "/emails", icon: Mail },
+    { title: "Hívások", url: "/calls", icon: Phone },
   ],
   project_manager: [
     { title: "Projektek", url: "/projects", icon: Briefcase },
@@ -79,6 +80,7 @@ export const MORE_GROUPS: NavGroup[] = [
       { title: "Emailek", url: "/emails", icon: Mail },
       { title: "Hívások", url: "/calls", icon: Phone, hideForRoles: ["sales"] },
       { title: "Találkozók", url: "/meetings", icon: Calendar, hideForRoles: ["sales"] },
+      { title: "Utánkövetések", url: "/followups", icon: CheckSquare, hideForRoles: ["sales"] },
     ],
   },
   {

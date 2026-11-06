@@ -36,6 +36,10 @@ describe("navigáció", () => {
     expect(r.has("/tasks")).toBe(true);
     expect(r.has("/meetings")).toBe(true);
   });
+  it("marketing eléri a Hívásokat, Utánkövetéseket és Feladatokat", () => {
+    const r = reachable("marketing");
+    for (const u of ["/calls", "/followups", "/tasks"]) expect(r.has(u)).toBe(true);
+  });
   it("marketing továbbra is látja a weboldali igényeket", () => {
     expect(reachable("marketing").has("/web-quote-requests")).toBe(true);
   });
