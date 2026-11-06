@@ -38,7 +38,7 @@ export async function countMarketingHomeEmails(client: SupabaseClient, monthAgo:
   return count;
 }
 
-export function marketingHomeSummary(marketing: MarketingHomeCompany[], allRecent: MarketingHomeCompany[], bounds: { today: string; week: string; month: string }) {
+export function marketingHomeSummary(marketing: MarketingHomeCompany[], allRecent: MarketingHomeCompany[], bounds: { today: string; week: string; todayDay: string; monthDay: string }) {
   const decorated = marketing.map(c => ({ ...c, meta: readMarketingMeta(c.notes, c) }));
   const allDecorated = allRecent.map(c => ({ ...c, meta: readMarketingMeta(c.notes, c) }));
   return {
