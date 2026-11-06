@@ -2,6 +2,14 @@
 
 A 17:40 UTC feltöltött hat szakaszos utasítás az irányadó: egy szakasz, utána kötelező STOP. 17:59 UTC a tulajdonos külön engedélyezte a 3. szakaszt; a 2. szakasz fennmaradó hiányai ettől nem készültek el. Felülírja a 17:01 UTC köztes megállás nélküli szakaszváltást. Az alábbi korábbi állapotjegyzetek történetiek; a későbbi bejegyzések felülírják a már megszüntetett hiányokat. Nem teljes elfogadási jelentés.
 
+## 4. SZAKASZ – kapcsolódások céljavítása · RÉSZBEN IGAZOLT
+- Webes email-egyezésnél a cég nélküli kontakt nem tűnik el az értékelésből: frontend tiszta döntés és éles meglévő service-only RPC egyaránt kézi ellenőrzést kér. Egy migráció, nincs új tábla/jog/adatírás. Korábbi 16 linterjelzés változatlan, új nincs.
+- Részleges Marketing→Sales átadás folytatásakor a mentett lead cég/kontakt/összefoglaló/csatorna/projekttípus/felelős mezőit pontosan visszaolvassuk; eltérés vagy olvasási hiba nem pótolhat más bemenettel státuszt és nem jelezhet teljes sikert. A meglévő írási út/leadstátusz/üzleti triggerek változatlanok.
+- Scarlet meglévő napi read tool/prompt: saját feladat és Budapest-csoport, közös callback nem saját, reply_pending nem ügyféligény, qualified nem teljes átadhatósági bizonyíték. Pontos jogosult levélolvasó és meglévő cég/lead ellenőrzés szükséges. Modell/runtime/P0/jogok változatlanok, nem bővült íróeszköz.
+- 770 Vitest/76 fájl PASS; AI acceptance 21 PASS; izolált PostgreSQL teljes receipt/replay/concurrency/auditrollback és vegyes linked/unlinked email PASS. Valódi intake-komponens desktop/mobil TESZT-próba: kézi ellenőrzés, 0 automatikus create gomb/overflow/pageerror. Hosted bejelentkezett end-to-end és élő Scarlet modellpróba NEM TESZTELT, external_unmanaged.
+- Friss éles readback: 664 cég/701 kontakt/8 lead/18 igény/0 intake receipt; guard aktív, client execute=false/service=true. Nincs éles CRM-írás, Gmail/küldés/publikálás. Credit nem mért.
+- Nyitott nagyobb átadási szerződés: atomikus tartós átadási receipt és újrabelépésen átívelő ismétlésvédelem; konkrét következő teendő és forrásigény-ID releváns előzményekkel való átadása, igazolt Sales-átvétel. A jelenlegi best-effort marketing_handoff napló nem kötelező bizonyíték; a company státuszaudit már tranzakciós, de nem helyettesít teljes átadási receiptet. Ezekhez célzott szerver/DB hatásterv és külön jóváhagyási kapu szükséges, nem építettünk párhuzamos workflow-t. Ezért teljes 4. szakaszelfogadás nem állítható; STOP az 5. előtt.
+
 ## 3. SZAKASZ – célzott napi munkafolyamat · RÉSZBEN IGAZOLT
 ### 4. szakasz migrációs hatás/rollback kapu
 - website_request_intake meglévő service-only RPC: egyetlen cégazonosító mellett cég nélküli azonos emailkontakt esetén kézi ellenőrzés, nem automatikus existing. Több azonos céges kontakt önmagában nem változik. Forrás és pontos régi feltétel ellenőrzése pg_get_functiondef-fel, változott definíciónál abort.
