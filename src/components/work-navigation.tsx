@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
 import { isNavActive, moreGroups, primaryItems } from "@/lib/nav-config";
-import { MoreHorizontal, Route } from "lucide-react";
+import { MoreHorizontal, Route, CircleHelp } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 /** Shared shortcuts reuse the same role-filtered destinations as the main menu. */
@@ -39,6 +39,7 @@ export function WorkNavigation() {
           </div>)}
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button asChild size="sm" variant="ghost" className="shrink-0"><Link to="/help" title="Segítség / Probléma jelzése"><CircleHelp />Segítség</Link></Button>
     </nav>
     {(role === "marketing" || role === "sales") && <details className="border-t px-4 py-2 text-xs sm:px-6">
       <summary className="cursor-pointer font-medium text-muted-foreground"><Route className="mr-1.5 inline h-3.5 w-3.5" />{role === "marketing" ? "Folyamat · érdeklődéstől a Sales-átadásig" : "Folyamat · átvett ügytől az ajánlatig"}</summary>
