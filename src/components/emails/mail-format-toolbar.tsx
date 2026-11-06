@@ -1,0 +1,6 @@
+import { Bold, Italic, Link, List, ListOrdered } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+export function MailFormatToolbar({onCommand,disabled=false}:{onCommand:(command:string,value?:string)=>void;disabled?:boolean}) {
+ const tools=[['bold','Félkövér',Bold],['italic','Dőlt',Italic],['insertUnorderedList','Lista',List],['insertOrderedList','Számozott lista',ListOrdered]] as const;
+ return <div className="flex flex-wrap items-center gap-1 border-b bg-muted/30 px-2 py-1">{tools.map(([command,label,Icon])=><Button key={command} type="button" size="sm" variant="ghost" disabled={disabled} title={label} aria-label={label} onMouseDown={e=>e.preventDefault()} onClick={()=>onCommand(command)}><Icon className="h-3.5 w-3.5"/></Button>)}<Button type="button" size="sm" variant="ghost" disabled={disabled} title="Link" aria-label="Link" onMouseDown={e=>e.preventDefault()} onClick={()=>{const url=window.prompt('URL:','https://');if(url && /^(https?:\/\/|mailto:)/i.test(url))onCommand('createLink',url);}}><Link className="h-3.5 w-3.5"/></Button></div>;
+}

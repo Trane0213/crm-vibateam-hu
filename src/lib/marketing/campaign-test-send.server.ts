@@ -2,15 +2,17 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { campaignTestInput,campaignOutcome } from './campaign-send-policy';
 import { campaignTestCopy } from './campaign-test-copy';
 import { isBusinessMailbox, normEmail } from '@/lib/gmail/relink-analysis';
+import {withCampaignSignature} from './campaign-message';
 
 export async function executeCampaignTest(input: unknown,ctx:{supabase:SupabaseClient<any>;userId:string;authorization:string}) {
  const data=campaignTestInput.parse(input);
  const role=await ctx.supabase.rpc('crm_role_of',{_auth_user:ctx.userId});
  if(role.error || !['owner','marketing'].includes(role.data)) throw new Error('Csak Owner/Marketing küldhet TESZT-et.');
- const c=await ctx.supabase.from('email_campaigns').select('id,created_by,updated_at,status,message_subject,message_body,message_html').eq('id',data.campaignId).single();
+ const c=await ctx.supabase.from('email_campaigns').select('id,created_by,updated_at,status,message_subject,message_body,message_html,signature_html,signature_text').eq('id',data.campaignId).single();
  if(c.error || c.data.status==='archived' || c.data.updated_at!==data.expectedUpdatedAt) throw new Error('A kampány megváltozott; nyisd újra.');
  if(role.data==='marketing' && c.data.created_by!==ctx.userId) throw new Error('Csak saját kampány küldhető.');
- const copy=campaignTestCopy(c.data.message_subject ?? '',c.data.message_body ?? '',c.data.message_html ?? null);
+ const complete=withCampaignSignature(c.data.message_body??'',c.data.message_html??null,c.data.signature_html??null,c.data.signature_text??null);
+ const copy=campaignTestCopy(c.data.message_subject ?? '',complete.body,complete.html);
  const html=copy.html;
  const {supabaseAdmin:db}=await import('@/integrations/supabase/client.server');
  const profile=await db.from('users_profile').select('gmail_email,active,gmail_auth_error').eq('auth_user_id',ctx.userId).single();

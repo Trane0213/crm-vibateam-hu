@@ -1,0 +1,1 @@
+- Composer and campaign formatting reuse MailFormatToolbar; campaign content editing uses the same commands with sanitized paste and code entry, avoiding a second independent formatting command set.
