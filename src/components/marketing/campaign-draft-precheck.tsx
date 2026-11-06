@@ -16,6 +16,7 @@ import { ContactProvenanceSummary } from "@/components/customers/contact-provena
 import { listCampaignDrafts, saveCampaignDraft, setCampaignArchived, precheckAndStoreCampaign, getCampaignDraft } from "@/lib/marketing/campaign-drafts.functions";
 import { CampaignTestControl } from "@/components/marketing/campaign-test-control";
 import type { EligibilityStatus } from "@/lib/marketing/campaign-eligibility";
+import { campaignEntryContacts } from '@/lib/marketing/campaign-entry';
 
 const LABEL: Record<EligibilityStatus | "all", string> = {
   all: "Mind", ready: "Kész előkészítésre", contacted: "Már megkeresett", replied: "Válasz érkezett",
@@ -24,7 +25,7 @@ const LABEL: Record<EligibilityStatus | "all", string> = {
 const STATUS: Record<string, string> = { draft: "Tervezet", prechecked: "Ellenőrzött (nem küldési engedély)", archived: "Archivált" };
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" }) : "—");
 
-export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: string[]; candidates: { id:string; name:string|null; email:string|null; company_id:string; company_name:string }[] }) {
+export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, entryCompanyId }: { companyIds: string[]; entryContactId?: string; entryCompanyId?: string; candidates: { id:string; name:string|null; email:string|null; company_id:string; company_name:string }[] }) {
   const qc = useQueryClient();
   const listFn = useServerFn(listCampaignDrafts);
   const saveFn = useServerFn(saveCampaignDraft);
@@ -42,6 +43,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: 
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
   const initialized = useRef<string|null>(null);
+  const entryApplied = useRef<string | null>(null);
 
   const list = useQuery({ queryKey: ["campaign-drafts"], queryFn: () => listFn() });
   const detail = useQuery({
@@ -51,7 +53,14 @@ export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: 
   });
   const camp = detail.data?.campaign.id === selected ? detail.data.campaign : undefined;
   const choices = [...new Map([...(detail.data?.savedCandidates ?? []),...candidates].map(c=>[c.id,c])).values()];
-  useEffect(()=>{ if(camp && initialized.current!==camp.id){ initialized.current=camp.id;setContactIds((detail.data?.savedCandidates ?? []).map(c=>c.id)); } },[camp?.id]);
+  useEffect(()=>{ if(camp && initialized.current!==camp.id){ initialized.current=camp.id;setContactIds([...new Set([...(detail.data?.savedCandidates ?? []).map(c=>c.id), ...campaignEntryContacts(entryContactId, entryCompanyId, candidates)])]); } },[camp?.id]);
+  useEffect(() => {
+    const ids = campaignEntryContacts(entryContactId, entryCompanyId, candidates);
+    const key = `${selected ?? 'new'}:${entryContactId ?? ''}:${entryCompanyId ?? ''}`;
+    if (!ids.length || entryApplied.current === key) return;
+    entryApplied.current = key;
+    setContactIds(previous => [...new Set([...previous, ...ids])]);
+  }, [entryContactId, entryCompanyId, candidates, selected]);
   useEffect(() => { if (camp) { setName(camp.name); setTarget(camp.target_group ?? ""); setSubject(camp.message_subject ?? ""); setBody(camp.message_body ?? ""); } }, [camp?.id, camp?.updated_at]);
   const refresh = () => { qc.invalidateQueries({ queryKey: ["campaign-drafts"] }); qc.invalidateQueries({ queryKey: ["campaign-draft"] }); };
   const act = async (f: () => Promise<unknown>, ok: string) => {

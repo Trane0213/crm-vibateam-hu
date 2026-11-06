@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { toast } from "sonner";
 import { ContactProvenanceEditor } from '@/components/customers/contact-provenance';
+import { CampaignEntryAction } from '@/components/marketing/campaign-entry-action';
 
 export const Route = createFileRoute("/_authenticated/contacts/$id")({
   head: () => ({ meta: [{ title: 'Kapcsolattartó adatlap | VIBA CRM' }, { name: 'description', content: 'Kapcsolattartó adatai, adatforrása és emberi ellenőrzöttsége a VIBA CRM-ben.' }, { property: 'og:title', content: 'Kapcsolattartó adatlap | VIBA CRM' }, { property: 'og:description', content: 'Céges kapcsolattartó és ellenőrzöttség.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
@@ -87,6 +88,7 @@ function ContactDetail() {
           )}
           {q.data.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{q.data.email}</span>}
           {q.data.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{q.data.phone}</span>}
+          {q.data.company_id && <CampaignEntryAction companyId={q.data.company_id} contactId={id} disabled={dirty || save.isPending} />}
         </div>
       </div>
 

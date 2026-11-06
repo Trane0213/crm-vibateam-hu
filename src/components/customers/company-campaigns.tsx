@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { CampaignEntryAction } from '@/components/marketing/campaign-entry-action';
 
 const STATUS: Record<string, string> = { draft: 'Tervezet', prechecked: 'Előellenőrzött', archived: 'Archivált' };
 const ELIGIBILITY: Record<string, string> = { ready: 'Kész', contacted: 'Korábbi küldés igazolt', replied: 'Szálbeli válasz', uncertain: 'Ellenőrizendő', invalid: 'Hibás / tiltott' };
@@ -35,6 +36,7 @@ export function CompanyCampaigns({ companyId, contactIds, enabled = true }: { co
   return <div className="space-y-3">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <span className="text-sm text-muted-foreground">{new Set(rows.map(r => r.campaign_id)).size} látható kampány · {rows.length} mentett kontaktkapcsolat</span>
+      <CampaignEntryAction companyId={companyId} />
     </div>
     {!rows.length ? <p className="text-sm text-muted-foreground">Nincs számodra látható, mentett kampánytagság.</p> : <ul className="divide-y border-y">
       {rows.slice(currentPage * 25, (currentPage + 1) * 25).map(row => <li key={row.id} className="space-y-1 py-3 text-sm">

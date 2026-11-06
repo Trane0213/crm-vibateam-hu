@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { importReviewThreadId } from '@/lib/import-review-thread';
+import { Button } from '@/components/ui/button';
 
 const BATCH = "viba-excel-2026-10-29";
 
@@ -74,7 +76,7 @@ function ReviewList({ items, icon: Icon }: { items: Review[]; icon: React.Compon
   return (
     <div className="space-y-2">
       {items.map((r) => {
-        const threadId = typeof r.details?.szal_id === "string" ? r.details.szal_id : typeof r.details?.szal === "string" && /^[0-9a-f-]{36}$/.test(r.details.szal as string) ? (r.details.szal as string) : null;
+        const threadId = importReviewThreadId(r);
         return (
           <Card key={r.id}>
             <CardContent className="p-4">
@@ -116,6 +118,7 @@ function ImportReviewPage() {
         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Tulajdonos</div>
         <h1 className="mt-1 flex items-center gap-2 text-xl font-semibold"><ShieldCheck className="h-5 w-5 text-primary" /> Adatellenőrzés</h1>
         <p className="mt-1 text-sm text-muted-foreground">Az október 29-i adatimport tételei, amelyekről tulajdonosi döntés kell. Ezen az oldalon semmi nem módosul automatikusan.</p>
+        <Button variant="outline" size="sm" className="mt-3" asChild><Link to="/import-review/mail"><Mail className="mr-1.5 h-4 w-4" />Céges levélkapcsolatok ellenőrzése</Link></Button>
       </div>
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
         {tabs.map((t) => (
