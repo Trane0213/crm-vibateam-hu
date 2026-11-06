@@ -124,6 +124,7 @@ function DataQualityCenter() {
           tone="info"
         />
       </div>
+      <p className="text-xs text-muted-foreground">Korlátozott ellenőrzési minta; az összesítők nem bizonyítják a teljes állomány hibamentességét.</p>
 
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(230px,1fr)]">
         <div className="min-w-0">

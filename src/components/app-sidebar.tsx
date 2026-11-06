@@ -41,7 +41,7 @@ export function AppSidebar() {
       <SidebarMenuButton asChild isActive={active(i)} tooltip={i.title} className={itemCls}>
         <Link to={i.url} {...(i.search ? { search: i.search as never } : {})} className="flex items-center gap-2.5">
           <i.icon className="h-[18px] w-[18px] shrink-0" />
-          {!collapsed && <span className="truncate text-[13px]">{i.title}</span>}
+          {!collapsed && <span className="min-w-0 whitespace-normal text-[13px] leading-tight">{i.title}</span>}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
