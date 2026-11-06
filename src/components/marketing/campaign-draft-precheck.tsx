@@ -458,9 +458,6 @@ export function CampaignDraftPrecheck({
                 >
                   Következő
                 </Button>
-                <Button size="sm" disabled title="Ebben a körben a kiküldés tiltott">
-                  Kiküldés (tiltott)
-                </Button>
               </div>
             </>
           )}
@@ -567,7 +564,9 @@ export function CampaignDraftPrecheck({
                     setBody(t);
                   }}
                 />
-                <MailHtmlEditor
+                <details className="border-y py-3" open={!!signatureHtml}>
+                  <summary className="cursor-pointer font-medium text-primary">Aláírás</summary>
+                  <div className="pt-3"><MailHtmlEditor
                   label="HTML-aláírás"
                   html={signatureHtml ?? ""}
                   disabled={!!archived || busy}
@@ -575,7 +574,7 @@ export function CampaignDraftPrecheck({
                     setSignatureHtml(h || null);
                     setSignatureText(t || null);
                   }}
-                />
+                /></div></details>
                 <Button
                   size="sm"
                   variant="outline"
@@ -643,7 +642,9 @@ export function CampaignDraftPrecheck({
               </Button>
             </section>
           )}
-          <GmailDraftPicker
+          <details className="border-y py-3">
+          <summary className="cursor-pointer font-medium text-muted-foreground">Átvétel Gmail-piszkozatból</summary>
+          <div className="pt-3"><GmailDraftPicker
             key={`${selected ?? "new"}:${camp?.updated_at ?? ""}`}
             plainCopyDisabled={sourceLocked}
             campaign={camp ? { id: camp.id, revision: camp.updated_at } : undefined}
@@ -658,7 +659,7 @@ export function CampaignDraftPrecheck({
               setPreviewId(null);
               toast.info("Szöveges változat átvéve; a tervezet még nincs mentve.");
             }}
-          />
+          /></div></details>
         </section>
         <aside
           className="min-w-0 space-y-3 border-t pt-4 xl:border-l xl:border-t-0 xl:pl-4 xl:pt-0"
@@ -686,7 +687,9 @@ export function CampaignDraftPrecheck({
       </div>
       <section className="space-y-4 border-t pt-4" aria-label="Kampány küldési vezérlők">
         {" "}
-        {camp && (
+        {camp && (<details className="border-b pb-3">
+          <summary className="cursor-pointer font-medium text-muted-foreground">TESZT-küldés ellenőrzése</summary>
+          <div className="pt-3">
           <CampaignTestControl
             key={`${camp.id}:${camp.updated_at}`}
             campaignId={camp.id}
@@ -698,7 +701,7 @@ export function CampaignDraftPrecheck({
               !camp.message_subject?.trim() ||
               !camp.message_body?.trim()
             }
-          />
+          /></div></details>
         )}
         {camp && (
           <CampaignDeliveryControl

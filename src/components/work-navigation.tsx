@@ -1,7 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
-import { isNavActive, primaryItems } from "@/lib/nav-config";
+import { isNavActive, moreGroups, primaryItems } from "@/lib/nav-config";
+import { MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 /** Shared shortcuts reuse the same role-filtered destinations as the main menu. */
 export function WorkNavigation() {
@@ -27,6 +29,16 @@ export function WorkNavigation() {
           </Link>
         </Button>
       ))}
+      {role === "marketing" && <DropdownMenu>
+        <DropdownMenuTrigger asChild><Button size="sm" variant="outline" className="shrink-0" aria-label="További marketinges oldalak"><MoreHorizontal />Továbbiak</Button></DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="max-h-96 overflow-y-auto">
+          {moreGroups(role).map((group) => <div key={group.label}>
+            <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+            {group.items.map((item) => <DropdownMenuItem key={item.url} asChild><Link to={item.url}><item.icon className="h-4 w-4" />{item.title}</Link></DropdownMenuItem>)}
+            <DropdownMenuSeparator />
+          </div>)}
+        </DropdownMenuContent>
+      </DropdownMenu>}
     </nav>
   );
 }

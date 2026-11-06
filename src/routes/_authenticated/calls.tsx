@@ -26,10 +26,10 @@ function CallsPage() {
   return (
     <ResourcePage
       title="Hívások"
-      description="Itt rögzítheted az ügyfélhívásokat — projekthez vagy ügyfélhez kötve."
+      description="Ügyfélhívások, eredmények és következő visszahívások."
       emptyTitle="Itt rögzítheted az ügyfélhívásokat."
       emptyDescription={`A jobb felső „Új hívás” gombbal vehetsz fel egy bejövő vagy kimenő hívást, és kapcsolhatod ügyfélhez vagy projekthez.`}
-      newButtonLabel="Új hívás"
+      newButtonLabel="Hívás rögzítése"
       icon={Phone}
       table="phone_calls"
       order="created_at"
@@ -51,9 +51,9 @@ function CallsPage() {
       ]}
       columns={[
         { key: "created_at", label: "Időpont", className: "tabular-nums", render: (r) => fmtDateTime(r.created_at) },
-        { key: "direction", label: "Irány" },
-        { key: "call_type", label: "Típus" },
-        { key: "outcome", label: "Eredmény" },
+        { key: "direction", label: "Irány", render: r => ({ inbound: "Bejövő", outbound: "Kimenő" }[r.direction as string] ?? r.direction ?? "—") },
+        { key: "call_type", label: "Típus", render: r => CALL_TYPE.find(t => t.value === r.call_type)?.label ?? r.call_type ?? "—" },
+        { key: "outcome", label: "Eredmény", render: r => OUTCOME.find(o => o.value === r.outcome)?.label ?? r.outcome ?? "—" },
         { key: "callback_date", label: "Visszahívás", render:r=>fmtDateTime(r.callback_date) },
         { key: "contact", label: "Kapcsolattartó", render: (r) => contactLabel(r.contact_id) },
         {

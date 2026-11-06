@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ListPlus, Radar, Mail, Phone, Building2, Search, Send, Trash2 } from "lucide-react";
+import { ListPlus, Radar, Mail, Phone, Building2, Search, Send, Trash2, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,7 +231,7 @@ function CampaignListPage() {
           </div>
         }
       />
-      <div className="space-y-3 p-6">
+      <div className="space-y-3 p-4 sm:p-6">
         <CampaignDraftPrecheck
           companyIds={selectedCompanies}
           entryContactId={entry.contactId}
@@ -244,25 +245,23 @@ function CampaignListPage() {
             <>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="outline">{selectedCompanies.length} kijelölt cég</Badge>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
+                <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label="Cégkijelölés műveletei"><MoreHorizontal /></Button></DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onSelect={() =>
                     setSelectedCompanies((prev) => [
                       ...new Set([...prev, ...filtered.map((r) => r.id)]),
                     ])
                   }
                 >
                   Találatok kijelölése
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   disabled={!selectedCompanies.length}
-                  onClick={() => setSelectedCompanies([])}
+                  onSelect={() => setSelectedCompanies([])}
                 >
                   Kijelölés törlése
-                </Button>
+                </DropdownMenuItem></DropdownMenuContent></DropdownMenu>
               </div>
               <div className="flex gap-2">
                 <Button
@@ -414,17 +413,10 @@ function CampaignListPage() {
                                     <Send className="mr-1 h-3.5 w-3.5" /> Email
                                   </Button>
                                 )}
-                                {scope === "campaign" && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setRejecting(r)}
-                                    title="Elutasítás — kikerül az aktív kampánylistából (a cég és kontakt megmarad)"
-                                    aria-label="Elutasítás"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                                  </Button>
-                                )}
+                                {scope === "campaign" && (<DropdownMenu>
+                                  <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label={`${r.name} további műveletei`}><MoreHorizontal /></Button></DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end"><DropdownMenuItem onSelect={() => setRejecting(r)} className="text-destructive"><Trash2 />Elutasítás az aktív listából</DropdownMenuItem></DropdownMenuContent>
+                                </DropdownMenu>)}
                                 <Link
                                   to="/customers/$id"
                                   params={{ id: r.id }}
@@ -453,7 +445,7 @@ function CampaignListPage() {
             </p>
           )}
 
-        <p className="text-xs text-muted-foreground">
+        <details className="border-t pt-3 text-xs text-muted-foreground"><summary className="cursor-pointer">Az aktív lista feltételei</summary><p className="pt-2">
           Az aktív lista a marketing univerzum azon cégeit mutatja, amelyek marketing státusza
           <Badge variant="outline" className="mx-1">
             Új
@@ -461,7 +453,7 @@ function CampaignListPage() {
           . Email küldés, elutasítás vagy sales-átadás után a cég automatikusan kikerül az aktív
           listáról, de a marketing dashboardon és a riportokban tovább látszik a saját bucketjében.
           Lead automatikusan soha nem jön létre.
-        </p>
+        </p></details>
       </div>
       <EmailComposer
         open={!!composer}

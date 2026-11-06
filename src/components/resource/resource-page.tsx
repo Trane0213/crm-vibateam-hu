@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const OWNER_ONLY_DELETE = new Set(["companies", "contacts", "phone_calls", "meetings", "tasks"]);
@@ -132,6 +133,7 @@ export function ResourcePage({
   const canDelete = !OWNER_ONLY_DELETE.has(table) || role === "owner";
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const rows = filter && data ? filter(data) : (data ?? []);
 
@@ -213,6 +215,13 @@ export function ResourcePage({
                       </TableCell>
                     ))}
                     <TableCell className="text-right">
+                      {role === "marketing" ? <DropdownMenu>
+                        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label="Rekord műveletei"><MoreHorizontal /></Button></DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => { setEditing(row); setOpen(true); }}><Pencil />Szerkesztés</DropdownMenuItem>
+                          {canDelete && <DropdownMenuItem className="text-destructive" onSelect={() => setDeleting(row.id)}><Trash2 />Törlés</DropdownMenuItem>}
+                        </DropdownMenuContent>
+                      </DropdownMenu> : <>
                       <Tooltip><TooltipTrigger asChild><Button
                         size="icon"
                         variant="ghost"
@@ -225,6 +234,7 @@ export function ResourcePage({
                         <Pencil className="h-4 w-4" />
                       </Button></TooltipTrigger><TooltipContent>Szerkesztés</TooltipContent></Tooltip>
                       {canDelete && <DeleteButton onConfirm={() => del.mutate(row.id)} />}
+                      </>}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -248,6 +258,11 @@ export function ResourcePage({
           setOpen(false);
         }}
       />
+      <AlertDialog open={deleting !== null} onOpenChange={(value) => { if (!value) setDeleting(null); }}>
+        <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Biztosan törlöd?</AlertDialogTitle><AlertDialogDescription>Ez a művelet nem visszavonható.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Mégse</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleting && canDelete) del.mutate(deleting); }}>Törlés</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -30,6 +30,7 @@ function weekAgo() {
 
 export function PulseBar() {
   const { role } = usePermissions();
+  if (role === "marketing") return null;
   return role === "sales" || role === "owner" ? <SalesPulseBar /> : <LegacyPulseBar />;
 }
 
