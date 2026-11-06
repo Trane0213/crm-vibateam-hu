@@ -252,6 +252,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const partialHandoffLeadId = useRef<string | null>(null);
   const handoff = useMutation({
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
+      if (!cust.data || cust.isFetching) throw new Error('A friss cégállapot betöltése után ellenőrizd az átadást.');
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
       let leadId = partialHandoffLeadId.current;
@@ -712,7 +713,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         defaultLeadSource={meta.leadSource}
         salesUsers={salesUsers.data ?? []}
         existingOpenLeads={openLeads(companyLeads.data ?? [])}
-        submitting={handoff.isPending}
+        submitting={handoff.isPending || cust.isFetching || companyLeads.isFetching}
         onSubmit={(d) => handoff.mutate(d)}
       />
 

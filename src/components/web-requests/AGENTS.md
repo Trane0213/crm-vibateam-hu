@@ -1,0 +1,1 @@
+- Website intake retains acknowledged company IDs and blocks retries after attempted writes; fresh matching and shared query invalidation reduce duplicates without claiming durable cross-tab idempotency or creating Sales leads.

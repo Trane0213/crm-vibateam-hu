@@ -1,1 +1,2 @@
 - Marketing priorities reuse loadMarketingDaily with user-RLS and existing campaign/callback fields; Scarlet reads reuse exact mailbox authorization and content-free audit, because marketing must not create a parallel CRM or expose another mailbox.
+- CRM read envelopes interpret saved marketing state and contact provenance through existing shared helpers; daily email warnings distinguish address suppression from phone availability, because workflow status and usable contact data are not delivery proof or send consent.
