@@ -1,0 +1,3 @@
+-- Suspend new campaign writes/dispatch without deleting signatures, ledger rows, audit or mail.
+revoke execute on function public.campaign_save_message(uuid,uuid,timestamptz,text,text,text,text,text),public.campaign_schedule(uuid,uuid,timestamptz,text,jsonb),public.campaign_delivery_control(uuid,uuid,timestamptz,text),public.campaign_delivery_claim(uuid,uuid,text),public.campaign_delivery_finish(uuid,uuid,uuid,text,uuid,boolean) from service_role;
+-- Existing campaign_test_claim MUST retain the shared delivery ledger quota accounting.

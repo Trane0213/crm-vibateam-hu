@@ -1,5 +1,5 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
-import {createHash} from 'node:crypto';
+import {campaignSnapshotHash} from './campaign-snapshot.server';
 import {handleGmailSend} from '@/lib/gmail/send.server';
 import {getMessage,getProfile,headerOf} from '@/lib/gmail/gmail-api.server';
 /** Explicit authenticated TESZT processor; no external scheduler or customer activation. */
@@ -12,7 +12,7 @@ export async function processCampaignTestItem(sb:SupabaseClient<any>,userId:stri
  const camp=await sb.from('email_campaigns').select('id,created_by').eq('id',a.campaign_id).single();
  if(role.error||!['owner','marketing'].includes(role.data)||camp.error||(role.data==='marketing'&&camp.data.created_by!==userId))throw new Error('Nincs kampányjogosultság.');
  const copy=a.snapshot as {subject:string;body:string;html:string};
- const hash=createHash('sha256').update(JSON.stringify(copy)).digest('hex');
+ const hash=campaignSnapshotHash(copy);
  if(hash!==a.snapshot_hash)throw new Error('A mentett levélmásolat megváltozott.');
  let token:string|null=null,live=false,gmail:string|null=null,emailId:string|null=null;
  try{
