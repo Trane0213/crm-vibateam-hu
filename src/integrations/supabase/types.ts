@@ -858,7 +858,9 @@ export type Database = {
       contacts: {
         Row: {
           company_id: string | null
+          contact_kind: string | null
           created_at: string | null
+          data_source: string | null
           email: string | null
           email_invalid: boolean
           email_invalid_note: string | null
@@ -866,10 +868,16 @@ export type Database = {
           name: string
           phone: string | null
           position: string | null
+          verification_reference: string | null
+          verification_state: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           company_id?: string | null
+          contact_kind?: string | null
           created_at?: string | null
+          data_source?: string | null
           email?: string | null
           email_invalid?: boolean
           email_invalid_note?: string | null
@@ -877,10 +885,16 @@ export type Database = {
           name: string
           phone?: string | null
           position?: string | null
+          verification_reference?: string | null
+          verification_state?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           company_id?: string | null
+          contact_kind?: string | null
           created_at?: string | null
+          data_source?: string | null
           email?: string | null
           email_invalid?: boolean
           email_invalid_note?: string | null
@@ -888,6 +902,10 @@ export type Database = {
           name?: string
           phone?: string | null
           position?: string | null
+          verification_reference?: string | null
+          verification_state?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -4724,6 +4742,17 @@ export type Database = {
           p_expected: Json
           p_handoff_lead?: string
           p_status: string
+        }
+        Returns: Json
+      }
+      contact_set_provenance: {
+        Args: {
+          p_contact: string
+          p_expected: Json
+          p_kind: string
+          p_reference?: string
+          p_source: string
+          p_state: string
         }
         Returns: Json
       }

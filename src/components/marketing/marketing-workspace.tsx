@@ -51,6 +51,7 @@ import { canSubmitHandoff, openLeads } from "@/lib/marketing-handoff-guard";
 import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
 import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
+import { ContactProvenanceEditor, ContactProvenanceSummary } from '@/components/customers/contact-provenance';
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
@@ -697,7 +698,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           setContactDialogOpen(open);
           if (!open) setEditingContact(null);
         }}
-        initial={editingContact}
+        initial={(contacts.data ?? []).find(c => c.id === editingContact?.id) ?? editingContact}
         saving={saveContact.isPending}
         onSave={(data: { id?: string; name: string; email: string; phone: string; position: string }) => saveContact.mutate(data)}
       />
@@ -803,6 +804,7 @@ function ContactsTable({
             <tr key={c.id} className="border-t hover:bg-muted/30">
               <td className="px-3 py-2">
                 <Link to="/contacts/$id" params={{ id: c.id }} className="text-primary hover:underline">{c.name ?? "—"}</Link>
+                <ContactProvenanceSummary contact={c} />
               </td>
               <td className="px-3 py-2">{c.position ?? "—"}</td>
               <td className="px-3 py-2">{c.email ?? "—"}</td>
@@ -881,6 +883,7 @@ function ContactDialog({
             </div>
           </div>
         </div>
+        {initial?.id && <ContactProvenanceEditor contact={initial} disabled={saving || name !== (initial.name ?? '') || email !== (initial.email ?? '') || phone !== (initial.phone ?? '') || position !== (initial.position ?? '')} />}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Mégse</Button>
           <Button

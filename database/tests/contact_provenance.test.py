@@ -1,5 +1,5 @@
 import os, subprocess, json
-base=['psql','-h',os.environ['SCRATCH_PGHOST'],'-p',os.environ['SCRATCH_PGPORT'],'-U','lovable','-d','postgres','-qAt','-v','ON_ERROR_STOP=1','-c']
+base=['psql','-h',os.environ['SCRATCH_PGHOST'],'-p',os.environ['SCRATCH_PGPORT'],'-U','lovable','-d',os.environ.get('SCRATCH_PGDATABASE','contact_fixture'),'-qAt','-v','ON_ERROR_STOP=1','-c']
 def sql(q,fail=False):
  r=subprocess.run(base+[q],capture_output=True,text=True)
  assert (r.returncode!=0 if fail else r.returncode==0),r.stderr
