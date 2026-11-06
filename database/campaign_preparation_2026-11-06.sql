@@ -39,7 +39,7 @@ begin
  end loop;
  delete from public.email_campaign_recipients where campaign_id=p_campaign;
  insert into public.email_campaign_recipients(campaign_id,contact_id,email_norm,eligibility,reasons,last_history_at,selected)
- select p_campaign,(r->>'contact_id')::uuid,nullif(r->>'email_norm',''),r->>'eligibility',r->'reasons',(r->>'last_history_at')::timestamptz,(r->>'selected')::boolean from jsonb_array_elements(p_rows) r;
+ select p_campaign,(item.value->>'contact_id')::uuid,nullif(item.value->>'email_norm',''),item.value->>'eligibility',item.value->'reasons',(item.value->>'last_history_at')::timestamptz,(item.value->>'selected')::boolean from jsonb_array_elements(p_rows) as item(value);
  get diagnostics n=row_count;
  update public.email_campaigns set status=case when p_complete then 'prechecked' else 'draft' end,
  prechecked_at=case when p_complete then clock_timestamp() else null end where id=p_campaign returning * into c;
