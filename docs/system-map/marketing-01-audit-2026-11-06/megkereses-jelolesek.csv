@@ -1,0 +1,204 @@
+company_id,company_name,category,contact_ids,emails,external_sent,drafts,same_thread_inbound,gmail_ids
+875da768-0d7e-4724-92b1-7637921feb82,"""ARGO-HUNGARY"" Fémfeldolgozóipari Kft.",külső_SENT_bizonyíték,2c7996c0-a5fa-4364-9e80-b939a1d7fb2c,posta@argohungary.hu,1,2,0,1a1ac53c4832be51
+e33c94c2-47dc-4245-9c9d-adecd37a0100,Ki-Ko Bau Kft.,csak_piszkozat,a30a7381-a5de-47db-8f4d-82ece0e6f5dd,kikobau50@gmail.com,0,2,0,
+ef6fe5d9-99bc-4cb6-91e8-e8a1e29a5a2f,Ker-Építő Kft.,csak_piszkozat,6c0ae8ea-4d7b-40ee-ad3c-8a020da68407,ker-epito@gmail.com,0,2,0,
+96994bcf-78f6-4620-bb54-963aca04e9d8,K.F. Építőipari Kft.,csak_piszkozat,01c98ac9-0303-4c8d-b12d-80b392b42885,k.f.epitoiparikft@gmail.com,0,2,0,
+c00bbbc5-4dbb-468c-9f14-be7175643d66,"""AGORA"" Kft.",csak_piszkozat,33a6b37b-4689-439c-9a96-d49aab7a23f4,agora@agorabp.hu,0,2,0,
+c467b3ac-2212-47df-aca3-2078acfc6160,Neural Építő Kft.,csak_piszkozat,95d58564-7191-4df7-a6c8-c8c1a37a3f39,info@neuralepito.hu,0,2,0,
+9cb92278-bcab-4af6-a3da-faaefd867a04,Térváz Csarnok Kft.,csak_piszkozat,1d28f4de-e8e2-4295-98d9-2dbc773667cd,vallalkozas@tervazcsarnok.hu,0,2,0,
+ce667bcc-d169-47b7-b1ad-8eb1528df383,TIM - BAUMONT Kft.,csak_piszkozat,ee1bcf77-3d50-40f1-a5e1-c8ba0366ba13,iroda@timbaumont.hu,0,2,0,
+e5400835-dfee-4f08-b073-1758f711a635,Alldone Hungary Kft.,csak_piszkozat,f3c023a1-a84c-4dbb-b8ad-5ee688b86f6d,varga-tamas@hotmail.hu,0,2,0,
+0ad6f86c-f46e-4d01-a25d-058ea867eb8e,Aliante Kft.,csak_piszkozat,c039386c-a07b-4227-83bc-f35caffff803,info@aliante.hu,0,2,0,
+0bd14416-ea46-44cd-ba76-51b860a8fad0,TRI-GER Consulting Kft. (Tri-Ger Bau),csak_piszkozat,89a7b4f8-1a36-4653-87da-7d59bf42341c;37c4f704-76df-4b74-aa2f-571e727fa2a2;3a9886fe-46f9-48d1-b87a-fe71ecf71bde,info@trigerbau.com;trigerbau@gmail.com;trigerkft2013@gmail.com,0,2,0,
+124ca12b-a8b8-4629-afa8-a8f4f95a5a04,3K Engineering&More Kft.,csak_piszkozat,df0765e4-591b-4cf4-bae1-112a28ba6841;86f32ab4-f79a-4793-82aa-046334643031,elokeszites@3k-engineering.hu;info@3k-engineering.hu,0,2,0,
+45084617-0a2b-414d-9631-5f1705c74c22,Alappont Generál Kft.,csak_piszkozat,f51e0231-e70c-4415-838f-6ca47c19d439,alappontgeneral@gmail.com,0,2,0,
+022cc259-723b-471d-8d8f-5544cd2ff5db,ARRABONA KONSTRUKT Kft.,csak_piszkozat,59eda8ce-5148-42f8-b159-063af94ea327,info@a-k.hu,0,1,0,
+25224c76-647f-4fe0-949f-d2acfb176439,Nidum Építőipari Kft.,külső_SENT_bizonyíték,3e3c62f0-00b9-4251-9b69-c5b02edb83f0,info@nidum.hu,1,2,0,1a1ac54b70af32a5
+4800dafb-7f1f-4090-89a4-30835be9b48b,Dome Facility Services Group Kft. (Dome Fit-out),külső_SENT_bizonyíték,206a4e23-982c-4e33-b5c4-a55b4d220132,info@dome.hu,1,2,0,1a1ac54678210284
+0d018e02-f315-4650-a0c1-3508cc1f3a0c,HERCEGBILD Építőipari Kft.,csak_piszkozat,4c2ff7eb-cb80-40ba-8ce7-0794c5297ef0,iroda@hercegbild.hu,0,3,0,
+3a385ada-e52c-440d-ae0d-af89ab02552e,Masszív Építő Kft.,csak_piszkozat,b3e8c4b6-652e-419d-b498-23adc3ae96eb,tothkrisztianev@gmail.com,0,4,0,
+302f0f61-695c-4c2a-84a8-11d8663fb440,Working In Teams Kft.,csak_piszkozat,a2afe6a0-f66a-40ac-aa51-89202208099a,wint.kft@gmail.com,0,3,0,
+8f7f5f05-5f4a-4e2c-8f2e-0051b4c2e259,SIMI-ÉP Kft. (Teljes Név: SIMI-ÉP Kivitelező és Szolgáltató Kft.),csak_piszkozat,56de4a38-2214-439d-949e-8099d83001bb,simi.ep.kft@gmail.com,0,3,0,
+06272958-7fda-467a-a85e-7c7cfc79e0d0,B2 HÁZAK Kft.,külső_SENT_bizonyíték,dde5466c-b9c2-4e5b-9488-66e39e046155;e043e215-5e97-4c65-8874-0b29cd68c8b1,bitay.zoltan@b2hazak.hu;info@b2hazak.hu,1,2,0,1a1b06e75ef40c3a
+0712d128-4c43-4596-aca2-3d1df54a7065,Veresmester Ingatlanfejlesztő Kft.,külső_SENT_bizonyíték,e653087a-a6ab-4de2-9b51-d21bb0264f18,veresmesterkft@gmail.com,1,2,0,1a1b06ee4e12bf1f
+09f6c7c1-5fdf-4d92-86ed-fbdd8f13a5cb,QUALITY FIT OUT Kft.,csak_piszkozat,9aa24715-deea-4dab-9ca1-aa24f71a5a59,info@qualityfitout.hu,0,1,0,
+0a2251af-b577-4dbc-910d-4211116f75ba,Global General Group Kft. (Korábbi Név: BDPST Bau Kft.),csak_piszkozat,4b6db952-2fe0-47ab-a024-f2ae8c54f0cb,info@gggroup.hu,0,3,0,
+0a3fe28d-e18c-42ae-966d-8706d853264d,DakotaÉpítő Kft.,külső_SENT_bizonyíték,03ddc254-9d13-4358-8172-4e500929dfd4;b2664f26-2ece-43d5-abe9-4625b11fa1d5,info@dakotaepito.hu;iroda@dakotaepito.hu,1,2,0,1a1ac538bd00e37c
+0ae24683-9ab7-4227-8293-4dbe3b451919,ILLÉS METÁL GABONATECHNIKA Kft. (Illés Metál Kft. Márkanév),külső_SENT_bizonyíték,5b03026f-2b8b-4cb2-b8db-3d51d7c619ec,info@illesmetalkft.hu,1,2,0,1a1ac54018e2cf2c
+0b36f236-1782-43e0-b952-11aa6823ab79,KOHINOR-ÉPÍTŐ Fővállalkozó és Kereskedelmi Kft.,külső_SENT_bizonyíték,c7ce34c2-5b47-46fc-b1f3-2d49318a87dc;0fc45b15-e954-4a6a-833b-741c4604c996,iroda@kohinor.hu;turcsanyi.csaba@kohinor.hu,1,2,0,1a1ac5416b16d4fe
+0c3b9010-c813-4212-97c1-69f84a5dd209,JÓZAN Építőipari és Kereskedelmi Kft. (JÓZAN Kft.),külső_SENT_bizonyíték,e37fb29b-ff51-4ae2-9bdc-a6ed24d3836e,szerkezetepites@jozankft.hu,1,2,0,1a1b06e0ad9234f9
+0cf7b546-8c0c-4675-8421-ebe552057b93,Cars-Bau Kft.,csak_piszkozat,48bca8b3-66f2-40ec-90f0-c7f116ee692b;c59be634-5540-4ee6-bbae-878d5e1d8766,carsbau0609@gmail.com;carsbau@gmail.com,0,1,0,
+0eab8a4a-34b3-4587-921e-e1799a39914a,WESSELTON Kft.,külső_SENT_bizonyíték,15dd0cd9-333c-4ec2-8604-8324768506bd,sales@wesselton.hu,1,2,0,1a1ac53bb2c03e04
+0f6b3c15-3665-46ad-bf58-34ff45999abd,Stabil Konstrukt Kft.,külső_SENT_bizonyíték,998b4c9f-68d0-407e-ad45-2ed207d333da;bd1a05fd-a2e4-4f43-a6a3-043afcbb4e27,info@stabilkonstrukt.hu;stabiltetoiroda@gmail.com,1,2,0,1a1b06ddde1c5be4
+10ad60d4-f1c8-4de4-8361-55ab514b9665,Capstone Management Kft.,külső_SENT_bizonyíték,d06f6d62-d2cd-414c-8d18-05a2b7e5b2b6,office@capstone-m.com,1,2,0,1a1b06df441de78f
+1366a8c8-f4a0-4ba6-8af9-86499e4428e8,MEGATALENT Kft.,csak_piszkozat,f5de4aee-10a3-46ea-afe6-c98235112964,megatalent@megatalentkft.hu,0,1,0,
+13929dcd-43e2-4263-893e-d82b452cfe51,Szabó-Galambos Fővállalkozó Kft.,külső_SENT_bizonyíték,90fdcad9-7bd8-443c-8c8d-ff5f71561bc9,szabo-galambos@szabo-galambos.hu,1,0,0,1a1a1ecbd7fb5304
+1511a7db-7578-427e-97f6-2efc6c94fe47,UNIO ART MONTAGE Kft. (Shopdesign),külső_SENT_bizonyíték,a721d573-b97e-4008-b8e9-dedb99dd1159,bela.vitez@shopdesign.hu,1,2,0,1a1ac545f2e7c0f0
+15b084d1-4934-449c-b5ad-a3dedd028b28,Pallér Csarnok Kft.,csak_piszkozat,aa046735-da02-40f1-9589-52ca26481840,info@pallercsarnok.hu,0,2,0,
+1a33408c-c010-4c69-8f83-01fbab719e7f,Gyetvai Fivérek Zrt.,külső_SENT_bizonyíték,ecdadeeb-bac4-46fd-989e-b9a91894a450,ertekesites@gyetvaifiverek.hu,1,2,0,1a1b06f84850e494
+1ca89774-5be0-438f-89d4-e6ae4c02b415,HOMEURO Kft.,külső_SENT_bizonyíték,fd099bdd-3865-4aab-8307-924f87422b4e,homeuro@gmail.com,1,2,0,1a1ac5397cf326ef
+1e9c4cb1-50c4-41c8-86a5-2b738dbc7481,Costell Építő Kft.,külső_SENT_bizonyíték,4492d668-114a-43e1-afad-ba9f30cf5255,info@costell.hu,1,0,0,1a19becc450f02c7
+21b14a8b-8f98-42f1-b70d-9224d179bd49,ÉP-ENTERIŐR Kft.,csak_piszkozat,b9ac6456-d6fd-4f51-b051-8f8eaca7aa89,office@epenterior.hu,0,2,0,
+21b409d5-fa6f-4ec5-8dbd-7d462040c35f,SIGNO-TEN Kft. (Signo Építőipari és Szolgáltató),külső_SENT_bizonyíték,aeef5c96-9340-4ad6-9cd9-73b094f7d229,info@signokft.hu,1,2,0,1a1b06de70eb242b
+23674df4-d543-4c94-a91e-beb2410ac96a,RENSZ Kft.,csak_piszkozat,f6de7556-59be-470e-a537-2efe535ddace,info@renszkft.hu,0,4,0,
+237c4ec3-6531-4530-995c-35e315a39ae8,Watz Építőipari Kft.,külső_SENT_bizonyíték,f1cd92eb-492d-45a9-89da-923f59a6dd3e,watz@watz.t-online.hu,1,2,0,1a1b06e1f227e6f3
+2592eeb7-d121-40c7-b892-a6816cac5556,Wrecker Kft.,csak_piszkozat,e6201992-d139-44a1-a11a-e5cc1e167315,mail@wrecker.hu,0,2,0,
+27c379e9-9a12-4cb3-b101-4975030e7e83,Gébex Kft.,csak_piszkozat,9355396c-3707-4ac0-957d-8a71f5ca01be,gebexkft@gmail.com,0,2,0,
+2b033a57-31ce-44ff-9ee3-f247ea73b2c4,AKTUÁL BAU Kft.,külső_SENT_bizonyíték,3be0a518-3edb-48a9-9b49-2f110d508441,aktbau@aktualbau.hu,1,1,0,1a032be7ec42d147
+2cc39185-0f29-44be-bc47-62ec1c580ef0,Kapitány Generálkivitelező Kft.,csak_piszkozat,c330221a-ed1f-4392-959a-73797c1ac39e,kapitany.general@gmail.com,0,2,0,
+36dde488-07ec-4781-9339-ae31e8b7a240,SHALPEM GROUP Kft.,csak_piszkozat,650b4744-c281-404a-bec2-f68c1a58c2d0,meplas.kft@gmail.com,0,1,0,
+38f4d34c-c90f-4682-806a-0ffc14d26bee,ÁDI BAU GENERÁL Kft.,külső_SENT_bizonyíték,b48dc7f0-8c1a-49a1-b72e-b561f3a2ecf9,olcsoszigetelo@gmail.com,1,2,0,1a1ac53f7cc66c0b
+3a3702c2-0c0f-4c1d-9b16-f06269df8538,INTERTÁR Kft.,külső_SENT_bizonyíték,c1e3239c-42a8-472d-b6b7-8ff567133ab6,multigroup@multigroup.hu,1,2,0,1a1ac53ee48f3225
+3e704b52-62b6-4edb-8fc4-8ef722829d32,West-Line Group Kft.,csak_piszkozat,d7e3b060-9355-4f62-aa11-8a1d9873d7d9,info@west-line.eu,0,2,0,
+3e830221-867a-473e-8861-84eecb3bce54,GPM Kivitelezési Kft.,külső_SENT_bizonyíték,905be8d4-970f-45ac-9127-9333d7ff9780;a588b236-2d21-4a4a-85fb-45eaba10f994,csuhay@gpm.hu;info@gpm.hu,1,2,0,1a1b06f53e05fec0
+3f000632-7c04-423a-8fc8-09c931911c74,MERAND HUNGÁRIA Építőipari és Szolgáltató Kft.,külső_SENT_bizonyíték,4f2fb24c-e96b-40e5-9efc-6ad29e8d93cd;6487709a-eb83-40d7-bf57-b9562d476405,merand@merandhungaria.hu;merandkft@gmail.com,1,2,0,1a1ac54a24cdd212
+3f2f0c38-6ad6-462e-88eb-429e2df487ab,Bernecker Építőipari-Fővállalkozó Zrt.,külső_SENT_bizonyíték,66013670-267f-4329-a91b-d81794e1605f,bernecker@bernecker.hu,1,1,0,1a032be74ca4b8cc
+3fe41772-ba4c-4064-8e1c-e2fac945021c,Greenteco System Kft.,csak_piszkozat,f2b8a45c-f12d-4817-ad62-db3b6cdf9048,greentecosystem@gmail.com,0,1,0,
+057b657a-aded-4193-aa07-139948c85de9,TESZT – VIBA WEB CRM E2E 2026-11-01,belső_vagy_teszt,b3011d44-6e74-4e10-b6ee-8ad6a465a371,info@vibateam.hu,0,0,0,
+404fda0d-b53b-40c8-a144-ec3e3fd68f0c,Minimal House Kft.,csak_piszkozat,9c91039c-ab98-4467-a34b-48fc5f0fcd11,kapcsolat@minimalhouse.hu,0,1,0,
+42113ebc-dd95-4dc4-b5c2-d53d9090c589,"Wandbau Kft. (""Wandbau"" Építőipari Kft.)",csak_piszkozat,9fb0740f-2272-4ebf-9d13-e356775e3c1a;d597800f-975a-4453-ad34-54c8012dc951,info@wandbau.hu;kangyalgergo@t-online.hu,0,3,0,
+43500724-641c-4651-8430-8dcea3471e3a,Szent György Ház Építő Szolgáltató Kft.,csak_piszkozat,29ec455a-9c91-4244-ba43-d2c1df6b50df,szentgyorgy@hazepito.hu,0,4,0,
+4364f542-9566-41c7-8ecb-a602d4df3052,"""DECO-DESIGN"" Kft.",külső_SENT_bizonyíték,20ab8bdf-8463-4508-939a-8ff22de79c76,iroda@deco-design.hu,1,2,0,1a1b06f2641a3823
+43fcd019-2f38-4499-9a54-b13ac121185c,BAU-TRADE Kft.,külső_SENT_bizonyíték,24ded196-45d0-43ad-acf8-cb89bd23b065;e3179886-e8e7-4562-8c1f-cb7a4ced021f,bautrade@bau-trade.eu;bautrade@vnet.hu,1,2,0,1a1b06ea74191821
+4680e9bf-b31d-459a-90fd-88f7aa90c130,KR Építő Kft.,csak_piszkozat,850223a9-1add-4d80-afd2-4ce1bed3fc0e,krepito@krepito.hu,0,2,0,
+47f6bee8-613f-49ca-ae5a-0d42c3ca03ed,Szabados és Társa Kft.,csak_piszkozat,35423cd8-5fc9-4b59-84dc-ffaaa0b928c8,iroda.szabados@gmail.com,0,2,0,
+49ec0dda-0ce1-4258-bc3c-0fdd0df0135e,TAND Bau Kft.,csak_piszkozat,cf5adaa8-7bf5-406b-9201-3acc1bd4935b,andras@tandbaukft.com,0,2,0,
+49fcf061-004a-4069-9052-0c7cf0b27ca8,Art 'N Bau Beruházó és Kivitelező Kft.,külső_SENT_bizonyíték,c8576c1c-41f5-451e-a714-c5825038e771;cdfbfe1a-8d0a-4310-80cd-552908a761ea,artnbau@artnbau.hu;artnbau@gmail.com,1,2,0,1a1ac5455e237e69
+4ad7fcc4-0074-4e40-b43c-14e46c5bc084,Globál Építő Kft.,csak_piszkozat,56a24e2b-a3c3-49b5-bb57-aedfa483c9c8,info@epitonet.hu,0,2,0,
+4d4543a4-16e6-4387-9d7e-afc60f8fa220,WOY-BAU Kft.,csak_piszkozat,3807521a-871f-41de-a9b5-6ed21f0d29a4,woy@monornet.hu,0,2,0,
+4e675fa3-8e7d-472d-aa9f-f1f5268f534f,K-KONSTRUKT Kft.,csak_piszkozat,3e8ea90f-d3a6-4acd-9a75-3eda9886a711;7d495be8-b26d-449c-ab1a-6c4c2b789a88,epites@k-konstrukt.hu;nyikos.lajos@k-konstrukt.hu,0,1,0,
+4e7554fc-2949-49db-a1a5-d47dd42ce4a8,TELESIS Generál Kivitelező Zrt.,csak_piszkozat,caa8a2bc-f7a6-4a0a-9c71-c1633144c692,nzoltan@telesisgeneralzrt.hu,0,4,0,
+4eb5fef6-3c02-4703-aaf0-3882c18eb4b7,OROSZ-GENERAL Építőipari és Szolgáltató Kft.,külső_SENT_bizonyíték,fed88634-365f-47ac-9d1c-67d05fe20d92;13dd17df-0686-41f4-9f3e-2b95d055b4a5,epvez2@orosz-general.hu;info@orosz-general.hu,1,2,0,1a1ac543f6533356
+4f872487-e8fb-45b1-a730-e5ea662c1894,Telaro Capital Kft.,csak_piszkozat,15d92886-ee69-4d9f-82c9-d3cbb7add01f,telarocapital@gmail.com,0,2,0,
+50bf0173-334b-46cc-b7c8-d17d9a845e4c,Társas Építő Kft.,csak_piszkozat,d1c791e1-e47e-4a9f-a281-d775e6083d47,iroda@tarsasepito.hu,0,2,0,
+54db8879-0074-44a7-8970-f33002e7f227,Officon Hungary Kft.,csak_piszkozat,d699f447-c361-43c0-93a1-83e14916f13f,office@officon.hu,0,2,0,
+56cf1505-f09c-4540-9c74-b7053cae7395,TRUST-BAU Építőipari Szolgáltató Zrt.,külső_SENT_bizonyíték,200bc513-82c1-412b-bd94-e178fde437f9,info@trustbau.hu,1,2,0,1a1ac53ce31937cf
+572f3553-6b3e-4375-a9a2-44c7afec821b,Deltacalor Home Kft.,csak_piszkozat,43488fda-2fd0-4710-8ad7-638e61f264b4;16ca41a2-45a0-41f6-824c-eb5578d1fbe4,deltacalorhome@gmail.com;info@dchkft.com,0,3,0,
+574902fd-3b70-4aaa-880d-74853f9b4817,DÓZER-ÉP Kft. (DÓZER - ÉP Kereskedelmi és Szolgáltató Kft.),csak_piszkozat,3986a1c5-1a88-4f09-943c-8a7047968aab,info@dozer-ep.hu,0,3,0,
+58b1caec-0c6b-4a1a-9bf4-d07298890869,RETICOLO ÉPÍTŐ Kft.,csak_piszkozat,ecd43e50-ea48-46c2-9986-14735745eb57,reticolo@reticolo.hu,0,4,0,
+5b68db3d-952c-45ed-96e1-d0071a148db6,Turagroup Kft. (Tura Group),csak_piszkozat,e545d7ec-2f57-4337-b924-77cf37e944dc,murat.yildiz@tugra.hu,0,2,0,
+5d03150b-7064-4d48-97ac-704d304e822f,Dunaflat Hungary Kft.,csak_piszkozat,295fadb6-946f-46d9-9f00-aff6dd4f8e8a;f5796694-471a-43cc-be3e-afb40a3f658d,dunaflat.2018@gmail.com;samankft@t-online.hu,0,3,0,
+5d212a82-c417-491e-960e-57522920c1d4,UNI-INVEST Kft.,külső_SENT_bizonyíték,c6767083-d8ca-4800-97ca-16f274629aed,kozpont@uni-invest.hu,1,2,0,1a1b06e2b262b42f
+5f87d76d-184f-46cd-a8e3-8843487024d3,PD BAU Kft.,külső_SENT_bizonyíték,39460cdc-4fdd-45eb-93b4-532c4de677b8;ad354e3b-2541-482a-ae1e-1c1217fb0ecf,info@pdbau.com;parkany.daniel@gmail.com,1,2,0,1a1b06ef1d2b3ea9
+61afce9d-558b-43a5-8a15-41e65e10bcdb,SF GENERAL ÉPÍTŐ Kft.,csak_piszkozat,c9daa7bc-88a2-435c-8362-8fdc33056234,sfgeneralepito@gmail.com,0,2,0,
+61da39fc-dfd7-4f5a-a2b8-feb9f556f455,GLT DELTA Kft.,külső_SENT_bizonyíték,b5a2dfc2-f282-4220-ba02-08d3e548757f,cserkuthy@glt.hu,1,2,0,1a1b06f930c4a964
+62b43694-b5d8-4980-80ab-85adbfcdc37a,Bartisok Bau Kft.,csak_piszkozat,06684b9f-b28f-4aee-93d7-16ba406eba9f,bartisbau@gmail.com,0,2,0,
+64724d4a-30e9-41bb-97b8-bd88853ea1f0,Bereg Generál Kft.,csak_piszkozat,b9b43dd9-f5d2-46bb-89bf-61d1b926b5c6,bereggeneralkft@gmail.com,0,2,0,
+651aaaa4-6366-4cca-ab1c-5650a06d9db5,Vertian Építő Zrt.,csak_piszkozat,f29f108e-4307-4a40-afa9-edb82da705c8,info@vertian.hu,0,2,0,
+67768e82-de41-4e70-b1cd-1e1114dffac4,BENATI - BAU Kft.,csak_piszkozat,583ce758-bcb5-4266-86bd-586e1244c8fe;8577aafb-aba9-43d3-8371-b54d12cd52ec,benatibau@gmail.com;iroda@benati.hu,0,2,0,
+687fa5e8-2bc2-413b-a72c-ee419b90cfca,Belotti Generál Kft.,csak_piszkozat,d6aa2c84-db6e-4393-a0bd-bb66504d030c,general@belotti.hu,0,2,0,
+69b67812-1f07-4ef5-ab07-08f7949ff884,Tamásy Kft. / Europabau,külső_SENT_bizonyíték,f10545bd-5373-4eae-8b41-3649fca26c13,tamasy.gabor@europabau.hu,2,2,0,19fb243716758590;1a163a3e806cb90d
+6b453c04-1097-405e-9ba5-82e3b306d3d5,Eco Horizont Kft.,csak_piszkozat,9394bb39-3100-4d14-9dfe-b9cbf5ebb09e;f5631455-a4c5-4ad4-8411-70f180897c49,csanalosi.istvan@gmail.com;info@ecohorizont.hu,0,1,0,
+6b459287-54c0-454a-9494-fdb5394b1eee,Kvinta Hungary Kft.,külső_SENT_bizonyíték,95358e4f-3c3d-4789-be8b-b208a84ea38e;fce5b5cb-00b1-49c7-9891-ca4c9d3a2a48,info@kvinta.hu;vakli.laszlo@gmail.com,1,2,0,1a1b06f0c10ade9b
+6be38845-9973-41f7-b7c5-ee583eefee68,Triple Capital Kft.,csak_piszkozat,d7b092bd-2678-4d7b-a0aa-20016f62c1e0,iroda@triplecapital.hu,0,2,0,
+6d34ed16-0a2b-4dec-ab54-a5e3ebcc721b,Rezideo,külső_SENT_bizonyíték,8bf762a8-f35e-4f00-8897-e226cfaa0b3c,hello@rezideo.hu,1,1,0,1a163a56d98fb822
+6e460429-0981-4b9b-a66d-e4c6fca7083d,MeroCon Építő Kft.,csak_piszkozat,5df13733-0f15-4b7c-9677-3596d4252641;810f141b-788d-4acb-85b9-cdc5da682373,info@merocon.hu;marko@merocon.hu,0,3,0,
+70d3696b-6b57-4171-931b-91a23a678cfa,MFB-Ingatlanfejlesztő Zrt.,külső_SENT_bizonyíték,2f810dab-4f52-4b88-a3a3-6beb96f7568c,malyusz.levente@mfbingatlan.hu,1,1,0,1a163a5a0da4e11c
+70f70b14-78f8-471c-9588-412e87673577,MESTER-ÉPÍTŐ Kft.,csak_piszkozat,ecef534b-51f2-49aa-9569-aee7563114a4,info@mesterepito.hu,0,4,0,
+70fc31a9-766f-4486-880c-e167d587636d,Garage Kft. (Garage Ingatlanfejlesztő Kft.),csak_piszkozat,e267d065-3c9e-444f-92df-4cabf12fb8ae,titkarsag@garagekft.hu,0,2,0,
+77acdaca-d514-48df-bf8d-0c1e1be110a8,PEKA BAU 2000 Kft.,külső_SENT_bizonyíték,8b685c1a-6bcb-4819-bd27-ca81db45cf43;504210eb-4c27-48c7-a1c5-f15f5b0dd6fb,pekabau@gmail.com;peto.gyorgy@pekabau.hu,1,2,0,1a1ac540a3867f77
+77cbdbab-8d0f-41dc-afbf-2d004d29d043,Petrov és Társa Zrt.,külső_SENT_bizonyíték,87ec6825-dcfb-4975-bd67-0b1b1cc4a609,petrovzrt@petrovzrt.hu,1,0,0,1a1a1ee7127e3aa1
+79700a4f-3148-4fb8-bebb-1ecf4fb837a2,CB Építő,külső_SENT_bizonyíték,0f43d79d-7561-4d2f-8308-b2c587d4003a,zoltan.toldi@cbepito.hu,3,2,0,1a03355f272cfb32;1a0532f465b9a344;1a13561be072d1cf
+797e6c35-5c06-4d09-89ff-e289c81f63ee,REOGROUP Kft.,külső_SENT_bizonyíték,2d480f06-53a2-4cfa-b667-9e195ea7a12e;ab7645a4-be78-4b49-97ba-1dbaca8762ed,reogroup@freemail.hu;reogroupkft@gmail.com,1,2,0,1a1b06e00bbf0bf8
+7a358db5-3992-4e52-aa07-8ea5bc8afa0d,ProMate Generál Kft.,csak_piszkozat,70e7ced6-f067-46d1-a999-0f3f6abaf09f,hello@promate.hu,0,2,0,
+7bcf4f4d-661e-46ff-8583-bef66299ebdc,GK-Industry Technology Kft.,külső_SENT_bizonyíték,7344741d-890f-4ae6-96cf-b5373681dcdd;c77cccf9-4657-4bf5-8458-acddd1b6505c,gkindustrytechnologykft@gmail.com;info@gkindustry.hu,1,2,0,1a1ac5486ea58e33
+7c5d5349-5799-4b91-b458-ab4418ab0eee,Delta Hungária Építő Kft.,csak_piszkozat,1a3a7b17-3918-42ab-9f4c-2e75eb55f461,iroda@deltahungariaepito.hu,0,3,0,
+7f8aa522-f1d6-4153-b482-2517ecd24345,Szegletkő General Kft.,külső_SENT_bizonyíték,9e878549-4c68-4004-b26f-a0a204c084f7,szegletkogeneral@szegletkogeneral.hu,1,2,0,1a1ac54984eeba5e
+7fa89c1c-bd48-479c-8e47-b70621ddfd44,BULLDOZER IC Kft.,csak_piszkozat,19830774-6d7f-4cdf-adc7-0be9203b0268,info@bulldozer.hu,0,2,0,
+810acf32-2848-4506-b2d3-e0f3fa8148fa,HORSENS PARTNERS Kft.,külső_SENT_bizonyíték,db3c6694-101c-46ed-9541-7a84a0b59a46;93ffb75c-6a5f-4a45-9f45-206deb82c0aa,info@horsenspartners.com;nemeth@horsenspartners.com,1,2,0,1a1b06f19e41f570
+8368fd81-a562-4cbd-a2d8-8f0a94fffb07,OROSZ-ÉPÍTŐK Ingatlanhasznosító Kft.,külső_SENT_bizonyíték,f6f41c19-000f-4c54-9630-69441b7c4391;df6d04b4-5bd7-42b8-bc5b-f383480e788c,elitapartmanok@gmail.com;oroszep@gmail.com,1,2,0,1a1ac54359a686f3
+88964a53-c687-4c8f-b984-bd958b70c2bb,Human Bau Építő Kft.,csak_piszkozat,cea3907b-41cd-4b66-b843-e66c59f3a1e8,info@kornyezettudatos.eu,0,3,0,
+8919342b-192c-4579-8371-e8854ada5558,"TESZ-97 Szerelő, Szolgáltató és Kereskedelmi Kft.",csak_piszkozat,ad2be46a-b16a-4fe7-a4bb-d3e3368e1668;1d052ccc-d19b-433d-94b3-566d4c795644;96f1a04a-bede-4213-90fb-22120372fcb2,info@tesz97.hu;kivitelezes@tesz97.hu;ronga.jozsef@tesz97.hu,0,4,0,
+89b3b2a0-d6d5-4101-bd04-f5094c006a1a,Favourite Home General Kft.,csak_piszkozat,5ed76c91-6028-44ce-9062-66d47b1479be,info@fhgeneral.com,0,3,0,
+8a4dce59-129f-491a-9fb4-d57cae0ffc37,Bau-Flott Kft.,csak_piszkozat,b440734f-737a-47c8-abba-f3982cac892f,bauflott@bauflott.hu,0,2,0,
+8d246415-3e5c-473b-9917-e165bc7120ca,LÉPSZER Kft.,csak_piszkozat,9b1e302a-4d8f-4104-9287-24202a382119;fa42cb4b-f72b-4c9c-b6e1-5374a524bc93,lakasepitokft@gmail.com;lepszer@lepszer.hu,0,2,0,
+8e24b31a-aed2-4d93-ba76-11f92939290d,WOLF GENERÁL Kft.,külső_SENT_bizonyíték,f6d2974f-f307-4aff-83f5-fe5326102e0f,wolfbau@gmail.com,1,2,0,1a1b06e81d7f648e
+8e396cce-da0b-4918-9ca6-7133b0844f48,FŐVÁROSI ÉPÍTŐ Zrt.,csak_piszkozat,a2cc60ec-c759-471d-a259-a80ae6a24e86,info@fovep.hu,0,4,0,
+8e87b2aa-b96b-48de-afed-4fa2e4a7db37,Globo Menedzsment Kereskedelmi és Szolgáltató Kft.,külső_SENT_bizonyíték,88207d99-9230-4b80-ac77-c673cd51ac9f;83623b34-30be-409a-aa97-6c46a37df23b,gistvan@globom.hu;office@globom.hu,1,2,0,1a1ac548e2abcc91
+90042640-1ee8-42cf-85aa-7601384a723c,"BAU-GÉP 2000 Kft. (BAU-GÉP 2000 Építőipari Szolgáltató, Karbantartó és Kereskedelmi Kft.)",csak_piszkozat,ebe00557-2e75-42db-899d-5afd65b9b3fa;7a0d29e7-4c56-4ddf-bbb7-08c35ee76938,baugep2000@baugep2000.hu;baugep@pantecom.hu,0,3,0,
+9026c108-327e-46fa-94f5-14dc3d5d0a0d,HATING GROUP Kft.,külső_SENT_bizonyíték,f3165f4a-701f-4cbf-ab3d-6af4f301cbc9;d93ceb57-b48a-4f65-bb21-8ff5f95e1561,kalman.viktor@hatinggroup.hu;kalmanzsu@gmail.com,1,2,0,1a1b06f3490963da
+905d195c-b4b2-4b28-b486-e527186ad047,ATI-TECH BAU Kft.,külső_SENT_bizonyíték,df763678-cc5a-4725-b217-393690b3a817;d053c817-c46e-49c9-98c3-1231e5b14f40,atitechbau@gmail.com;iroda.atitechbau@gmail.com,1,2,0,1a1b06ed2cbb450e
+90a46246-b197-4668-82c2-fdf1a8c7030c,Pepezol Bau Kft.,csak_piszkozat,1b381c28-29c3-425a-820f-5afecc07c7e9,pepezolbau@gmail.com,0,2,0,
+90fd9a18-d927-4c62-bb10-35ba59925331,ÚTNET Ingatlanfejlesztő / Tópark,külső_SENT_bizonyíték,8d0e5cbb-6628-4569-9759-195dac1b4d66,info@topark.hu,1,1,0,1a163a512a36cf4e
+94b6b7a7-9cf4-4bdf-92f6-b2820fc037ea,GeneralTop Kft.,csak_piszkozat,993910ee-cd09-4075-834e-6a6f564f4c44,generaltop@generaltop.hu,0,2,0,
+950328d9-ac59-456b-b7fa-e5945b1176f3,ZELE-BAU Kft.,csak_piszkozat,489b84ed-85da-46a8-af88-bbe53d2be27b;97aa8ae9-2aae-4f44-95da-351394374ce7;e7d10db2-40be-4598-9e8c-8b4fe9ce7a2d,csirincsik.csaba@zelebau.hu;epito@zelebau.hu;iroda@zelebau.hu,0,1,0,
+956a2650-5f6e-48ed-b6ab-f0bbd31a858e,BG Construkt Kft.,csak_piszkozat,dce746d3-3a50-4503-a6db-f45d3149b513,bgconstrukt@gmail.com,0,3,0,
+96335486-c591-4e5e-bd21-7d4ee40b00dc,Urban Estate Ingatlanfejlesztő és Építőipari Zrt.,külső_SENT_bizonyíték,157ce4cf-e60f-4f95-8430-869476cab3e2,info@urbanestate.hu,1,2,0,1a1ac5472f2c5fdb
+968fcd05-5010-4d76-b3e9-04c503f0ee74,SCHMIDT'64 Kft.,csak_piszkozat,a254408d-df23-4ef8-b872-b5010cea7c2d,schmidt64iroda@gmail.com,0,2,0,
+9849eff8-ff85-49d1-96bd-e80dba54de59,ProInterier Kft.,külső_SENT_bizonyíték,c2a95098-c5b7-4648-97f6-3b4f6e86e5b9,info@prointerier.hu,1,2,0,1a1b06e459ddcef0
+99156af9-e13f-4dc5-9171-2e05cbfa8764,ETNA GENERAL Kft.,csak_piszkozat,1884ffd2-05ca-4204-a524-53a2d28114ec,info@etnageneral.hu,0,2,0,
+9c3b01c2-57fc-47cb-9314-9c4ce8531bd5,TÉR Generál Kft.,csak_piszkozat,669b499b-2a5a-426a-997f-a4e5277d8191,info@tergeneral.hu,0,2,0,
+9d9459b2-8cd3-4aa9-9bcc-9c72e52cfd77,BÉTA-ÉP Kft.,csak_piszkozat,c7703b80-caf2-442e-b0cc-7b84729a7159,info@betaep.hu,0,2,0,
+9db14604-5b9a-4892-9f89-25e9c4752253,GEPARD Építő Kft.,csak_piszkozat,55711076-3d16-4305-8402-66f027dc9fb4,licska.zoltan@gepardepito.hu,0,2,0,
+9dfaf64f-48b2-4887-a6cf-d63839fde5be,Consolum Architects Kft.,külső_SENT_bizonyíték,40adf1a4-0cd1-4c92-91f9-d8c9a9edaf79,varhelyi.tibor@consolum.hu,1,2,0,1a1ac53a0fe5daa9
+9e0ce110-e3d9-49f6-bc3c-fb09429030bb,DC BAU INVEST Kft.,külső_SENT_bizonyíték,f1f96e8b-5f5e-4946-984d-7c41a035476f,milis.szabolcs@gmail.com,1,2,0,1a1b06e5e44a8487
+9ea1906d-5f0d-415e-9349-f5e16812d0d8,TREND Építő Zrt.,csak_piszkozat,9e172be6-c84f-48e6-b44b-839663e2305e,info@trendzrt.hu,0,2,0,
+9fb5f93e-1ca2-4fcd-9a2e-d7771c3bce0c,Modernházak Investment Zrt.,külső_SENT_bizonyíték,c716de5d-4cb4-4d06-9dbc-e7abfa6f6931;742ab0f8-56af-4fa4-94ad-6f08531c3141;250e82a7-602e-497e-a18b-a9e1a7b02a3e,gergely.biczok@gmail.com;info@modernhazak.com;penzugy@modernhazak.com,1,2,0,1a1b06f790e0eb58
+a012c772-9fe7-46a4-a547-ef0695a1c83d,PROFI GENERÁL Kft.,csak_piszkozat,934591d3-cdeb-4fc3-b9c7-1bf619c00d92,profigeneral@profigeneral.hu,0,2,0,
+a3681c32-435f-4887-a8ad-fc6d2a898636,GRT General Kft.,csak_piszkozat,792cc9fb-9080-4e1b-baa8-3b9e33ccd6db,grtgroup@grtgroup.hu,0,2,0,
+a66b7e3a-26f2-41a7-b85e-b7b9a5b189e7,Molnár-Ház Kft.,külső_SENT_bizonyíték,84f93f7e-6af9-4655-9c43-4b23cf49b6f8,info@molnargeneral.hu,1,3,0,1a17d52389b0caec
+a8ec2fe0-b241-46a0-a078-8db092e4cfc7,Best Bau Trade Kft.,csak_piszkozat,2143edc5-e8d2-4356-abf8-995eb23be6d9,info@bestbautrade.hu,0,1,0,
+a943fdaf-795e-4767-b0a7-fe89e650cd40,VIV Építő Kft.,csak_piszkozat,257f348b-2aa5-407d-9393-e0e8ef08c7a6,borza.timea@vivepito.hu,0,2,0,
+a9b0d08e-91d1-48f1-9a28-5f3e7e525216,ConNext Hungary Kft.,külső_SENT_bizonyíték,0ca90e98-a95f-4041-adc1-69d17cfd0231,info@connext.hu,1,2,0,1a1b06e3982113d0
+ac2061a9-a890-43b5-bdfc-7bb90dab628d,BRAVO Kft.,külső_SENT_bizonyíték,7b465fd5-4cec-410e-9598-30274cb21ee4,bravo89@t-online.hu,1,2,0,1a1b06dd06c377bf
+ad505110-7168-43e9-93aa-fe804f4d23ab,KIPSZER FT Zrt.,csak_piszkozat,1fbc4713-e1f0-498e-8d75-19154e475936,kipszer@kipszer.com,0,2,0,
+afc48e69-7818-4f0d-8684-526ec92a99c7,Minimál Ház Kft.,csak_piszkozat,e2981f99-f01b-47d1-b3d0-caad0e2264f8,minimalhazkft@gmail.com,0,3,0,
+b07ad8f8-cf8b-4564-8fc8-d9e469a87a1f,Iosif Construct Kft.,csak_piszkozat,aa3bc883-b09d-4bbf-8c16-0908eca150bc,hello@iosif.hu,0,2,0,
+b140fec9-f10c-4dac-b7b3-575f638e52a4,Wemat Hungary Kft.,csak_piszkozat,3a19dcef-0c7f-44ec-ac02-0f0bff9358b7,officehu@wemat.global,0,4,0,
+b23cdf0d-15a5-4387-9baa-566ff68742e1,Pyrus Magna Zrt.,külső_SENT_bizonyíték,7928a502-d160-45e4-a7e0-0eb911a2509f,info@pyrusmagna.com,1,2,0,1a1ac53d91d5ae7e
+b29ed8ea-374d-498a-bcb6-d14ebd1a9752,BUILDING-TRADE BAU Szolgáltató és Kereskedelmi Kft.,külső_SENT_bizonyíték,04032c3c-6ebd-46ec-8c69-a01e00d26cb8;ead9d16f-7ed3-4f8d-aef8-224d383bf40c,info@btbkft.hu;martin.markus.hu@gmail.com,1,2,0,1a1ac54200c8db87
+b6aa6525-dd45-4eb3-a8aa-f72de7e191a6,International Construction Company Zrt. (ICC Zrt.),csak_piszkozat,e0b58030-bbdf-4056-aeae-9419a4577735,info@icczrt.hu,0,3,0,
+b8894206-aefb-4766-87dc-37814d015c51,Upright Masters Kft.,külső_SENT_bizonyíték,0d1c0218-d7d0-4a79-bc5a-1d0be0400a32,info@upright.hu,1,2,0,1a1b06ec25b15732
+bd4495db-a43f-44bc-b31f-9a766908e309,STRUKTUR-BAU Kft.,külső_SENT_bizonyíték,90e4c5ce-da9c-43cd-855c-3d91b777b487,szilagyi.adam@mailbox.hu,1,2,0,1a1b06e6a66ddf7d
+bdd294b8-1867-4249-95e9-6006aab5abf6,Construction Project Hungary Kft.,csak_piszkozat,37857c4a-2fe8-4f23-ad05-30066bd2931b,kovacsk@cphkft.hu,0,2,0,
+befff992-1dde-46b9-8026-d5e6d41a0743,Nova Bau Hungary Kft.,csak_piszkozat,c80f0791-bd56-4566-b4b4-65b21f304cd4,novabauhun@novabauhun.hu,0,2,0,
+bf772f13-fcab-4138-b532-ba478e240228,GRABARICS Építőipari Kft.,külső_SENT_bizonyíték,ca975cda-0c08-4eea-9aea-52bfae80e554,ingatlanfejlesztes@grabarics.hu,1,1,0,1a163a469cdee469
+c2087853-9bfe-4dc8-8fc7-885cc2a06d94,FORT-BAU Zrt.,csak_piszkozat,9d85c999-8a7a-4e27-882c-7604a2c6b699,fortbau@fortbau.hu,0,2,0,
+c2d9e672-6dd4-463f-aa42-111bffef280a,EVBAU Kft.,külső_SENT_bizonyíték,84633e79-192c-4f11-b807-6e5861e58a0a,evbau@evbau.hu,1,2,0,1a1b06f6cfcbca9b
+c30ea20f-c90d-463c-bed5-c5ef2a3861a5,Integral Holding Kft.,csak_piszkozat,e62d71b3-1c11-4392-98c0-9199693e0f9c;fddbfd7b-cf13-4e75-b575-ac1d36df50cc,ifiandras@gmail.com;info@integralholding.hu,0,2,0,
+c3edc6b4-3d28-43d6-846c-572f40e274e8,"MULTINOX Fővállalkozó, Ipari Szolgáltató Kft.",külső_SENT_bizonyíték,58dd17cb-2955-4a04-87f9-111883d08e40,info@multinox.hu,1,2,0,1a1ac542ac8813b8
+c4fc9ec9-ecd0-425b-ae34-0dc1eeb288f7,Varga Generál Építő Kft.,csak_piszkozat,76298982-63c8-4b56-baf4-843b0917d35f,vargageneral@gmail.com,0,2,0,
+c511cf1e-e33e-4a7c-aba4-01dc61d3dca3,Villa Deco Építő Kft.,külső_SENT_bizonyíték,9efb140e-196e-440c-ba26-cd13c8d1016f;27bbb600-7c68-452c-9741-5bc9c61f2946,babits@gmail.com;villadecoepito@gmail.com,1,2,0,1a1ac54aa7b7248f
+c6bac763-ced0-425d-a953-efbc34861a58,Prozity Kft.,csak_piszkozat,08d6fced-89ea-4621-ba1c-41888c710e26,elod.turkus@prozity.com,0,2,0,
+cac56ee3-c2a9-41a4-8ae2-247f64981dc1,F-Építő Generál Zrt.,csak_piszkozat,8aac39d5-8846-4dab-bfaa-3bb05410bdb7,info@f-epito.hu,0,2,0,
+cae87cbf-de93-4bf3-8406-d1a25a3a2214,Tecton Kft.,csak_piszkozat,c64d04d0-a939-4464-ab47-4cafa4f4c196,tecton@tecton.co.hu,0,2,0,
+cc5cafc3-ea3e-458b-80a2-8aa32f26b1d3,Smart Shop Design Kft.,külső_SENT_bizonyíték,a49e6dc9-f109-47c2-8a03-69cb4f8fb4db;ba36eb5c-00bd-49e4-88fc-d01e63f90473;f3731283-da4b-4c26-b724-ed4368eb1ad4,arpad.simon@smartshopdesign.com;contact@smartshopdesign.com;gabor.kifut@smartshopdesign.com,1,2,0,1a1b06eb252c41a9
+cd1886c1-0931-4b10-a906-1195d17d3a89,KOVA-LINE Kft.,csak_piszkozat,949abcf6-33d9-45b7-b9dd-e25fc108642a,kovalinekft@gmail.com,0,3,0,
+cd86b714-683d-4793-bfde-0751de5a3f8d,T-Hof Bau Kft.,csak_piszkozat,970fc06d-6e30-4176-913e-1b8797983d32;833a7a88-f12f-49e0-9258-d58fe5a8aefd,tamas@hofstadter.hu;thofbau@freemail.hu,0,2,0,
+d0295ccf-d2b2-47e7-949a-2c6647886bcc,PATINA Építő Zrt.,külső_SENT_bizonyíték,093c734f-21f5-45f4-9fe3-e41765c35228,iroda@patinazrt.hu,1,2,0,1a1b06fa02866ff6
+d13786f2-a168-40e9-a856-1cb63c90b686,VIG és TÁRSA 2000 Kft.,csak_piszkozat,3cd33784-c250-4cf0-bbbf-1ab05c4c6ccb,vig.zoltan@vigepito.hu,0,2,0,
+d482901a-6121-4264-8d0b-a0084839de95,Gulyás - Ép Magyarország Kft.,külső_SENT_bizonyíték,5a590817-3f8f-496f-9fa8-4b23f66a43f2;f0e8b6ca-470d-4739-b23c-ca42d2221fd4,gulyasep@gmail.com;iroda@gulyasep.hu,1,2,0,1a1b06e9bd366186
+d872f84b-e76d-43e5-8603-203df5e01f9d,ALTAN BETON HUNGÁRIA Kft.,csak_piszkozat,b40e7381-a575-41a5-a3b5-76b7181b1c9a;a99ab875-9e37-41f5-94e1-5dbbf52aa981,budapest@altan.hu;info@altan.hu,0,3,0,
+db9d118f-779c-43a3-8773-afdb21fdeb55,Energet Építő Kft.,csak_piszkozat,911d2604-0a38-4645-ae43-b3b6b3202c35;35cb1db4-2dee-4add-a051-efaae2cd65f9,daniel.pongracz@energetcsoport.hu;info@energetcsoport.hu,0,2,0,
+4e8bdcc8-f837-4663-9a0b-7af139e999cc,Colas Magyarország Zrt.,külső_SENT_bizonyíték,8f4551c4-73ee-4c71-8b88-33f0b8c29298,magyarorszag@colas.hu,1,2,0,1a163a40f63e6444
+965c9c50-3fbf-400b-bf8e-c5b73358196a,BN Real Estate / Biggeorge Property,külső_SENT_bizonyíték,e0d5ba4b-c401-405f-8cac-c099bec6e8ff,info@biggeorge.hu,2,2,0,1a0e6de2eff4f08c;1a16378e3e17ce38
+dcbd53df-e25b-4a9c-b820-522ab2bf10eb,FŐSZERÉP Szerelő-Építő Kft. (FŐSZERÉP Kft.),csak_piszkozat,1e7e5ec7-c764-4f30-99d7-efeff50c310c,foszerep@gmail.com,0,2,0,
+dffed263-d881-44f9-9423-d887b9b81905,Pannon Építőműhely Generálkivitelező és Épületenergetikai Tanácsadó Kft.,külső_SENT_bizonyíték,6c39355f-b2cb-4c28-a445-fcefa131a6c2,info@pannonmuhely.hu,1,0,0,1a1a1ee749b3a55a
+e2a416a9-b8b0-4f4c-bfef-ac41b09efc24,NOVAKONCEPT Kft.,csak_piszkozat,44c5ecbc-440a-43d4-afec-f4f4a19e049c,novakoncept@gmail.com,0,4,0,
+e307375a-4cee-46fd-b5d3-445318a3c00f,GANZ Generálkivitelező Zrt.,csak_piszkozat,6215f48a-4eb8-4e57-b962-18b9f4989eaf,pal.santha@ganzgeneral.hu,0,2,0,
+5e2be70a-fda1-4423-8b3a-6944b277a4b6,Indotek,külső_SENT_bizonyíték,d121a163-d903-4ae9-a668-c749e43c1a44,koos.barnabas@indotek.hu,1,0,0,19f88ad3d578c1ef
+e34e05cf-84d6-403c-8eb9-e4120621103a,GENÉV Kft.,csak_piszkozat,96958601-68ae-4cda-971a-fd332b7a1936,iroda@genev.hu,0,1,0,
+e44a83ce-b9b7-47b1-9a29-b13cadbafa43,BAM Construction Kft.,külső_SENT_bizonyíték,c9fbe367-9e54-42a7-8832-cd485cb6b4fa,info@bamgroup.hu,1,2,0,1a1ac547a5e2f8ab
+e4577413-7959-46a5-8d11-6ae0030b968a,VÁR-BAU System Kft.,csak_piszkozat,98f7d1e4-645c-4a60-90ae-51ea87750ea2,info@varbausystem.hu,0,3,0,
+e75d3c4a-a8bf-457e-9b49-d29ccba6b22b,"""PHAROS '95"" Kft. (PHAROS '95 SPORTPÁLYAÉPÍTŐ Kft.)",külső_SENT_bizonyíték,232fef24-2b62-4f52-86d9-4bfab7f772d4;8d9dca4d-84fb-43ea-8e03-5fefa87970db,gabriella.molnar@pharos95.hu;pharos95@pharos95.hu,1,2,0,1a1b06eff857ce65
+ab0810fe-6432-4891-9706-e23de1f76d13,KÉSZ Group / KÉSZ Építő,külső_SENT_bizonyíték,534f9e3f-2c36-40fb-a868-8d9d0213da09,keszgroup@keszgroup.com,3,3,0,1a0e6dec4dba1e9b;1a163a485bec0b58;1a1a1ec1fa4a65c1
+e8f7f683-7e4e-48ac-908a-485f93a40095,CSERKÚTI GENERÁL Kft.,csak_piszkozat,4c4519f7-652d-43fe-a449-201d4a6c4797,csgeneral@csgeneral.hu,0,2,0,
+e9207c4f-43ca-47f9-af6e-e69cb1f14458,MZS Construct Kft.,csak_piszkozat,253cb6c2-dda6-4d9e-b16a-205925158142;cc1bdd78-50e3-40c0-946b-f977d89fdd8c;855dfb0e-dcc4-475d-ad2b-7260a8afe8be,info@mazas.hu;mzsbaukft@gmail.com;mzsconstruct@mzsconstruct.hu,0,4,0,
+ea94fd23-9340-424f-b6b7-21796dc7734b,VisionTrend Kft.,csak_piszkozat,1013d676-6799-44ec-b452-6cab5830e8f7,gberecz@visiontrend.hu,0,2,0,
+ec132a61-dd79-4b6f-a2ed-65f8ccee3f53,Comp-Terv Kft.,csak_piszkozat,4693180f-05aa-49ea-8320-c446561a5f3a,compterv@compterv.hu,0,2,0,
+ec395963-9dad-4f20-bd9d-4c08e112d48f,UTI Kft. (Urbán Tibor és Társa Szolgáltató és Kereskedelmi Kft.),csak_piszkozat,56b6dc14-21df-4629-b1fa-13ad200ba295,info@utikft.hu,0,4,0,
+ecf96eab-c949-4b0b-9e37-ddddf9d1356d,UniGeneral Kft.,csak_piszkozat,a9a80450-a7bb-4875-9484-1d96a54be8ea;a63ee01a-0f39-4bbf-91de-c90364960809,info@unigeneral.hu;malinger.mate@unigeneral.hu,0,3,0,
+ed1bf79d-a58b-4d6e-983d-62a4965988e1,B-ZOLI Generál Group Kft.,csak_piszkozat,17804962-acf0-4bdd-b4a4-5d407116fbcf,bzoligeneralgroupkft@gmail.com,0,3,0,
+ee7cee06-de74-4d15-83b3-67028ae429d9,Ív Generál Kft.,csak_piszkozat,c79a447a-1bc5-4c8a-945d-48b7129d0757,iroda@ivgeneral.hu,0,2,0,
+f20b7304-3813-4240-83b1-d7e76f1ebde3,Ladányi és Társa Kft.,külső_SENT_bizonyíték,dea7928d-2d23-489c-87ab-7a0f04f5afb3,ladanyi@ladanyikft95.hu,1,2,0,1a1b06f609181cb8
+f2442b06-9a38-42f4-947c-bbd2d4b1d399,"FODOR Építőipari, Kereskedelmi és Szolgáltató Kft.",külső_SENT_bizonyíték,13ab89c6-7dbc-42e3-b9bc-0563d6559635;fa06218c-fde1-4b77-a649-9c4cc50d060f,berki.andrea@fodor.hu;info@fodor.hu,1,2,0,1a1ac53ae4dc76bb
+f30c01b6-879e-4e1f-b039-fd56d7ef5510,VZM GENERAL GROUP Kft.,csak_piszkozat,7186484d-7d7f-4d6f-82f7-2093cae324a3,info@vzmgeneral.hu,0,2,0,
+f3937832-48d0-4d33-a626-f77637063b5a,MEGA-LOGISTIC Beruházási és Üzemeltetési Zrt.,külső_SENT_bizonyíték,63ac8d7f-8813-44fd-bef0-edc65c57879e,duzs.gyorgy@mega-logistic.hu,1,2,0,1a1ac53e2fcfd260
+f3d0fe05-1e32-4ec9-87de-50961fcbe076,Sharp Invest Kft. (Buda Prestige Property),külső_SENT_bizonyíték,2ebf5420-ffb2-41af-9d56-51597b6159e2;96b25eb6-1e25-47b8-98bb-953dbe262ffa,info@budaprestige.com;sharpinvesthungary@gmail.com,1,2,0,1a1b06e8ca0db648
+3900c667-e2cc-4766-b61b-38c73837df71,STETTIN-HUNGARIA Kft.,külső_SENT_bizonyíték,a0643432-0c92-42cf-a2d8-dc80d9814b0c,budapest@stettin-hungaria.hu,1,2,0,1a163a4321a40afe
+f5f84b34-6909-4d51-adef-863d222fbf9d,INETON Kft. (INETON Építő és Gyártó Kft.),csak_piszkozat,96e44058-a324-40a0-9175-4ce24f5bcb5c,info@ineton.com,0,2,0,
+f87f23bf-cc1e-41e4-9e44-cab44d14e533,EURO GENERÁL Zrt.,külső_SENT_bizonyíték,5484cfd7-dfe9-4810-922f-4f6a9c27bd0f,gyor@eurogeneral.hu,1,2,0,1a1b06e525e28509
+fbd900b5-68e9-4e06-b284-929483da4139,Salgó és Fia Szerelő és Építőipari Kft.,csak_piszkozat,9c1f089d-30e5-4ce8-9fce-61a7c0b9c545;defad25b-4dfb-4535-beb3-556e19df63c4,janos.salgo@chello.hu;kapcsolat@salgo.eu,0,4,0,
+fd31e754-16a5-4f30-95ab-11aa6f9f7b02,Value 4 Real Építő Kft.,csak_piszkozat,553f96ed-d92a-4de7-a62d-79a5986d3ff2,info@value4real.com,0,2,0,
+fdb5ec8e-9666-4314-ac3e-27f7d5eb7f21,Valbo Garden & Bau Kft.,csak_piszkozat,2cff5991-1222-49b6-9883-a66adbf87a67,bododavid90@gmail.com,0,2,0,
+fff0d394-6ea9-40dc-ad13-b509445b4386,LTV Interior Kft.,csak_piszkozat,69e511d0-846c-42d4-abba-46b95e010eff,iroda@ltvinterior.hu,0,3,0,

@@ -1,0 +1,488 @@
+sheet,row,excel_company,emails,company_ids,identity,category,sent_messages,drafts,same_thread_inbound,gmail_ids,thread_ids,mailboxes
+Generál 200 ellenőrzés,2,Ki-Ko Bau Kft.,kikobau50@gmail.com,e33c94c2-47dc-4245-9c9d-adecd37a0100,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,3,Ker-Építő Kft.,ker-epito@gmail.com,ef6fe5d9-99bc-4cb6-91e8-e8a1e29a5a2f,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,4,SÜGÉR-VILL Kft.,,3f675af6-5f87-4ab1-a9c4-bf9ef4379dcb,normalizált_név_jelölt,nincs_cím,0,0,0,,,
+Generál 200 ellenőrzés,5,GANZ Generálkivitelező Zrt.,pal.santha@ganzgeneral.hu,e307375a-4cee-46fd-b5d3-445318a3c00f,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,6,Wrecker Kft.,mail@wrecker.hu,2592eeb7-d121-40c7-b892-a6816cac5556,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,7,Construction Project Hungary Kft.,kovacsk@cphkft.hu,bdd294b8-1867-4249-95e9-6006aab5abf6,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,8,Ív Generál Kft.,iroda@ivgeneral.hu,ee7cee06-de74-4d15-83b3-67028ae429d9,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,9,Bereg Generál Kft.,bereggeneralkft@gmail.com,64724d4a-30e9-41bb-97b8-bd88853ea1f0,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,10,PROFI GENERÁL Kft.,profigeneral@profigeneral.hu,a012c772-9fe7-46a4-a547-ef0695a1c83d,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,11,ProMate Generál Kft.,hello@promate.hu,7a358db5-3992-4e52-aa07-8ea5bc8afa0d,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,12,GeneralTop Kft.,generaltop@generaltop.hu,94b6b7a7-9cf4-4bdf-92f6-b2820fc037ea,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,13,NOVAKONCEPT Kft.,novakoncept@gmail.com,e2a416a9-b8b0-4f4c-bfef-ac41b09efc24,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,14,MESTER-ÉPÍTŐ Kft.,info@mesterepito.hu,70f70b14-78f8-471c-9588-412e87673577,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,15,FŐVÁROSI ÉPÍTŐ Zrt.,info@fovep.hu,8e396cce-da0b-4918-9ca6-7133b0844f48,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,16,AKTUÁL BAU Kft.,aktbau@aktualbau.hu,2b033a57-31ce-44ff-9ee3-f247ea73b2c4,pontos_email,SENT_bizonyíték,1,1,0,1a032be7ec42d147,d4eaf2ec-728b-4db6-b9f5-0e15990f2ef9,info@vibateam.hu
+Generál 200 ellenőrzés,17,RENSZ Kft.,info@renszkft.hu,23674df4-d543-4c94-a91e-beb2410ac96a,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,18,CSERKÚTI GENERÁL Kft.,csgeneral@csgeneral.hu,e8f7f683-7e4e-48ac-908a-485f93a40095,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,19,SF GENERAL ÉPÍTŐ Kft.,sfgeneralepito@gmail.com,61afce9d-558b-43a5-8a15-41e65e10bcdb,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,20,Társas Építő Kft.,iroda@tarsasepito.hu,50bf0173-334b-46cc-b7c8-d17d9a845e4c,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,21,TAND Bau Kft.,andras@tandbaukft.com,49ec0dda-0ce1-4258-bc3c-0fdd0df0135e,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,22,Garage Kft. (Garage Ingatlanfejlesztő Kft.),titkarsag@garagekft.hu,70fc31a9-766f-4486-880c-e167d587636d,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,23,VisionTrend Kft.,gberecz@visiontrend.hu,ea94fd23-9340-424f-b6b7-21796dc7734b,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,24,Triple Capital Kft.,iroda@triplecapital.hu,6be38845-9973-41f7-b7c5-ee583eefee68,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,25,Telaro Capital Kft.,telarocapital@gmail.com,4f872487-e8fb-45b1-a730-e5ea662c1894,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,26,BULLDOZER IC Kft.,info@bulldozer.hu,7fa89c1c-bd48-479c-8e47-b70621ddfd44,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,27,KIPSZER FT Zrt.,kipszer@kipszer.com,ad505110-7168-43e9-93aa-fe804f4d23ab,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,28,K.F. Építőipari Kft.,k.f.epitoiparikft@gmail.com,96994bcf-78f6-4620-bb54-963aca04e9d8,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,29,"""AGORA"" Kft.",agora@agorabp.hu,c00bbbc5-4dbb-468c-9f14-be7175643d66,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,30,Neural Építő Kft.,info@neuralepito.hu,c467b3ac-2212-47df-aca3-2078acfc6160,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,31,Alldone Hungary Kft.,varga-tamas@hotmail.hu,e5400835-dfee-4f08-b073-1758f711a635,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,32,Térváz Csarnok Kft.,vallalkozas@tervazcsarnok.hu,9cb92278-bcab-4af6-a3da-faaefd867a04,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,33,TIM - BAUMONT Kft.,iroda@timbaumont.hu,ce667bcc-d169-47b7-b1ad-8eb1528df383,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,34,BÉTA-ÉP Kft.,info@betaep.hu,9d9459b2-8cd3-4aa9-9bcc-9c72e52cfd77,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,35,Iosif Construct Kft.,hello@iosif.hu,b07ad8f8-cf8b-4564-8fc8-d9e469a87a1f,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,36,Bernecker Építőipari-Fővállalkozó Zrt.,bernecker@bernecker.hu,3f2f0c38-6ad6-462e-88eb-429e2df487ab,pontos_email,SENT_bizonyíték,1,1,0,1a032be74ca4b8cc,9628d719-3a8b-4d87-bdaa-ca3b712adc3a,info@vibateam.hu
+Generál 200 ellenőrzés,37,Aliante Kft.,info@aliante.hu,0ad6f86c-f46e-4d01-a25d-058ea867eb8e,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,38,Kapitány Generálkivitelező Kft.,kapitany.general@gmail.com,2cc39185-0f29-44be-bc47-62ec1c580ef0,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,39,Varga Generál Építő Kft.,vargageneral@gmail.com,c4fc9ec9-ecd0-425b-ae34-0dc1eeb288f7,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,40,VIV Építő Kft.,borza.timea@vivepito.hu,a943fdaf-795e-4767-b0a7-fe89e650cd40,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,41,TREND Építő ZRt.,info@trendzrt.hu,9ea1906d-5f0d-415e-9349-f5e16812d0d8,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,42,F-Építő Generál Zrt.,info@f-epito.hu,cac56ee3-c2a9-41a4-8ae2-247f64981dc1,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,43,Globál Építő Kft.,info@epitonet.hu,4ad7fcc4-0074-4e40-b43c-14e46c5bc084,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,44,ÉP-ENTERIŐR Kft.,office@epenterior.hu,21b14a8b-8f98-42f1-b70d-9224d179bd49,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,45,Officon Hungary Kft.,office@officon.hu,54db8879-0074-44a7-8970-f33002e7f227,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,46,West-Line Group Kft.,info@west-line.eu,3e704b52-62b6-4edb-8fc4-8ef722829d32,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,47,MagnaIndustrial Kft.,info@magnaepito.hu,d90290fc-9376-5e1b-b4b2-f600ec9dfc1f,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e1fc6a6c95,2e09e227-bb02-4958-bf29-ad540c97ee3e,ramon.dencsi@vibateam.hu
+Generál 200 ellenőrzés,48,Vertian Építő Zrt.,info@vertian.hu,651aaaa4-6366-4cca-ab1c-5650a06d9db5,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,49,Greenfield Development Kft.,info@greenfield.eu,302bd3bc-7f0f-430c-aeef-bb014879889f,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Generál 200 ellenőrzés,50,Pallér Csarnok Kft.,info@pallercsarnok.hu,15b084d1-4934-449c-b5ad-a3dedd028b28,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,51,Energet Építő Kft.,daniel.pongracz@energetcsoport.hu;info@energetcsoport.hu,db9d118f-779c-43a3-8773-afdb21fdeb55,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,52,SCHMIDT'64 Kft.,schmidt64iroda@gmail.com,968fcd05-5010-4d76-b3e9-04c503f0ee74,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,53,T-Hof Bau Kft.,tamas@hofstadter.hu;thofbau@freemail.hu,cd86b714-683d-4793-bfde-0751de5a3f8d,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,54,Integral Holding Kft.,ifiandras@gmail.com;info@integralholding.hu,c30ea20f-c90d-463c-bed5-c5ef2a3861a5,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,55,INETON Kft. (INETON Építő és Gyártó Kft.),info@ineton.com,f5f84b34-6909-4d51-adef-863d222fbf9d,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,56,Value 4 Real Építő Kft.,info@value4real.com,fd31e754-16a5-4f30-95ab-11aa6f9f7b02,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,57,WOY-BAU KFT.,woy@monornet.hu,4d4543a4-16e6-4387-9d7e-afc60f8fa220,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,58,Gébex Kft.,gebexkft@gmail.com,27c379e9-9a12-4cb3-b101-4975030e7e83,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,59,LÉPSZER Kft.,lakasepitokft@gmail.com;lepszer@lepszer.hu,8d246415-3e5c-473b-9917-e165bc7120ca,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,60,Szabados és Társa Kft.,iroda.szabados@gmail.com,47f6bee8-613f-49ca-ae5a-0d42c3ca03ed,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,61,Belotti Generál Kft.,general@belotti.hu,687fa5e8-2bc2-413b-a72c-ee419b90cfca,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,62,TÉR Generál Kft.,info@tergeneral.hu,9c3b01c2-57fc-47cb-9314-9c4ce8531bd5,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,63,FŐÉPSZER Kft.,,f1c51fbb-110a-4c74-8915-fdaa10b36ad2,normalizált_név_jelölt,nincs_cím,0,0,0,,,
+Generál 200 ellenőrzés,64,GEPARD Építő Kft.,licska.zoltan@gepardepito.hu,9db14604-5b9a-4892-9f89-25e9c4752253,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,65,VIG és TÁRSA 2000 Kft.,vig.zoltan@vigepito.hu,d13786f2-a168-40e9-a856-1cb63c90b686,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,66,Pepezol Bau Kft.,pepezolbau@gmail.com,90a46246-b197-4668-82c2-fdf1a8c7030c,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,67,GLT DELTA Kft.,cserkuthy@glt.hu,61da39fc-dfd7-4f5a-a2b8-feb9f556f455,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f930c4a964,c799b5a2-614f-4cd6-9ad9-d725792f3f69,info@vibateam.hu
+Generál 200 ellenőrzés,68,PATINA Építő Zrt.,iroda@patinazrt.hu,d0295ccf-d2b2-47e7-949a-2c6647886bcc,pontos_email,SENT_bizonyíték,1,2,0,1a1b06fa02866ff6,9e77ad2b-e54c-4c3c-bd67-d6af4fe6190c,info@vibateam.hu
+Generál 200 ellenőrzés,69,Valbo Garden & Bau Kft.,bododavid90@gmail.com,fdb5ec8e-9666-4314-ac3e-27f7d5eb7f21,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,70,Nova Bau Hungary Kft.,novabauhun@novabauhun.hu,befff992-1dde-46b9-8026-d5e6d41a0743,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,71,BENATI - BAU Kft.,benatibau@gmail.com;iroda@benati.hu,67768e82-de41-4e70-b1cd-1e1114dffac4,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,72,VIRTUAL BAU Kft.,info@virtualbau.hu;virtualbaukft@gmail.com,cf248f47-6a11-56d8-9029-392f393f928a,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e256c74535,953f00ec-7140-4bdf-825c-4897f7b6af3a,ramon.dencsi@vibateam.hu
+Generál 200 ellenőrzés,73,VZM GENERAL GROUP Kft.,info@vzmgeneral.hu,f30c01b6-879e-4e1f-b039-fd56d7ef5510,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,74,KR Építő Kft.,krepito@krepito.hu,4680e9bf-b31d-459a-90fd-88f7aa90c130,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,75,ETNA GENERAL Kft.,info@etnageneral.hu,99156af9-e13f-4dc5-9171-2e05cbfa8764,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,76,GRT General Kft.,grtgroup@grtgroup.hu,a3681c32-435f-4887-a8ad-fc6d2a898636,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,77,TRI-GER Consulting Kft. (Tri-Ger Bau),info@trigerbau.com;trigerbau@gmail.com;trigerkft2013@gmail.com,0bd14416-ea46-44cd-ba76-51b860a8fad0,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,78,Bau-Flott Kft.,bauflott@bauflott.hu,8a4dce59-129f-491a-9fb4-d57cae0ffc37,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,79,Alappont Generál Kft.,alappontgeneral@gmail.com,45084617-0a2b-414d-9631-5f1705c74c22,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,80,3K Engineering&More Kft.,elokeszites@3k-engineering.hu;info@3k-engineering.hu,124ca12b-a8b8-4629-afa8-a8f4f95a5a04,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,81,Tecton Kft.,tecton@tecton.co.hu,cae87cbf-de93-4bf3-8406-d1a25a3a2214,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,82,FORT-BAU Zrt.,fortbau@fortbau.hu,c2087853-9bfe-4dc8-8fc7-885cc2a06d94,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,83,FŐSZERÉP Szerelő-Építő Kft. (FŐSZERÉP Kft.),foszerep@gmail.com,dcbd53df-e25b-4a9c-b820-522ab2bf10eb,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,84,Prozity Kft.,elod.turkus@prozity.com,c6bac763-ced0-425d-a953-efbc34861a58,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,85,Turagroup Kft. (Tura Group),murat.yildiz@tugra.hu,5b68db3d-952c-45ed-96e1-d0071a148db6,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,86,Bartisok Bau Kft.,bartisbau@gmail.com,62b43694-b5d8-4980-80ab-85adbfcdc37a,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,87,Comp-Terv Kft.,compterv@compterv.hu,ec132a61-dd79-4b6f-a2ed-65f8ccee3f53,pontos_email,csak_piszkozat,0,2,0,,,
+Generál 200 ellenőrzés,88,B2 HÁZAK Kft.,bitay.zoltan@b2hazak.hu;info@b2hazak.hu,06272958-7fda-467a-a85e-7c7cfc79e0d0,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e75ef40c3a,a43192b7-078b-43d8-9916-1fb5ebce8566,info@vibateam.hu
+Generál 200 ellenőrzés,89,HOME CARTEL Kft.,homecartelkft@gmail.com,0f0a8792-0dd8-45c6-a8c7-da1b3d7ac793,pontos_email,nincs_tárolt_bizonyíték,0,0,0,,,
+Generál 200 ellenőrzés,90,WOLF GENERÁL Kft.,wolfbau@gmail.com,8e24b31a-aed2-4d93-ba76-11f92939290d,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e81d7f648e,fe427d54-5918-4d64-b284-0898e85e2f85,info@vibateam.hu
+Generál 200 ellenőrzés,91,Sharp Invest Kft. (Buda Prestige Property),info@budaprestige.com;sharpinvesthungary@gmail.com,f3d0fe05-1e32-4ec9-87de-50961fcbe076,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e8ca0db648,3e7e37d4-bc75-4a20-8f98-01b6b6230c87,info@vibateam.hu
+Generál 200 ellenőrzés,92,Triglif Építő Kft.,iroda@triglifepito.hu;kapcsolat@triglifepito.hu,9781e60f-3119-4619-bfc2-976b43bc2d03,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Generál 200 ellenőrzés,93,CB-ÉPÍTŐ GENERÁL Zrt.,cbepitozrt@gmail.com,,nincs_egyezés,egyéb_nem_igazolt,0,0,0,,,
+Generál 200 ellenőrzés,94,Gulyás - Ép Magyarország Kft.,gulyasep@gmail.com;iroda@gulyasep.hu,d482901a-6121-4264-8d0b-a0084839de95,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e9bd366186,61e78696-8e2a-437b-a4c6-52399104f1ab,info@vibateam.hu
+Generál 200 ellenőrzés,95,BAU-TRADE Kft.,bautrade@bau-trade.eu;bautrade@vnet.hu,43fcd019-2f38-4499-9a54-b13ac121185c,pontos_email,SENT_bizonyíték,1,2,0,1a1b06ea74191821,0811aca4-b155-42c6-ac3e-c9365f6b2689,info@vibateam.hu
+Generál 200 ellenőrzés,96,Smart Shop Design Kft.,arpad.simon@smartshopdesign.com;contact@smartshopdesign.com;gabor.kifut@smartshopdesign.com,cc5cafc3-ea3e-458b-80a2-8aa32f26b1d3,pontos_email,SENT_bizonyíték,1,2,0,1a1b06eb252c41a9,eb522f71-acc2-4a20-ac0d-abda6915faa7,info@vibateam.hu
+Generál 200 ellenőrzés,97,Upright Masters Kft.,info@upright.hu,b8894206-aefb-4766-87dc-37814d015c51,pontos_email,SENT_bizonyíték,1,2,0,1a1b06ec25b15732,cab23f3a-db9f-42b0-9d97-dedad0490a50,info@vibateam.hu
+Generál 200 ellenőrzés,98,Veresmester Ingatlanfejlesztő Kft.,veresmesterkft@gmail.com,0712d128-4c43-4596-aca2-3d1df54a7065,pontos_email,SENT_bizonyíték,1,2,0,1a1b06ee4e12bf1f,e7125dcd-9539-4a6c-a014-5856150d105c,info@vibateam.hu
+Generál 200 ellenőrzés,99,ATI-TECH BAU Kft.,atitechbau@gmail.com;iroda.atitechbau@gmail.com,905d195c-b4b2-4b28-b486-e527186ad047,pontos_email,SENT_bizonyíték,1,2,0,1a1b06ed2cbb450e,cabccb81-6a64-417e-ac3e-481db9158782,info@vibateam.hu
+Generál 200 ellenőrzés,100,Petrov és Társa Zrt.,petrovzrt@petrovzrt.hu,77cbdbab-8d0f-41dc-afbf-2d004d29d043,pontos_email,SENT_bizonyíték,1,0,0,1a1a1ee7127e3aa1,cba273d7-42ee-437f-89d3-215abdcba016,ramon.dencsi@vibateam.hu
+Generál 200 ellenőrzés,101,PD BAU Kft.,info@pdbau.com;parkany.daniel@gmail.com,5f87d76d-184f-46cd-a8e3-8843487024d3,pontos_email,SENT_bizonyíték,1,2,0,1a1b06ef1d2b3ea9,90b48a20-9e85-4f7b-80ee-2f2fb71fab72,info@vibateam.hu
+Generál 200 ellenőrzés,102,"""PHAROS '95"" Kft. (PHAROS '95 SPORTPÁLYAÉPÍTŐ Kft.)",gabriella.molnar@pharos95.hu;pharos95@pharos95.hu,e75d3c4a-a8bf-457e-9b49-d29ccba6b22b,pontos_email,SENT_bizonyíték,1,2,0,1a1b06eff857ce65,ba139be6-545f-4077-bd6c-d9dca7e04f6e,info@vibateam.hu
+Generál 200 ellenőrzés,103,Kvinta Hungary Kft.,info@kvinta.hu;vakli.laszlo@gmail.com,6b459287-54c0-454a-9494-fdb5394b1eee,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f0c10ade9b,d85e4a6e-6390-4386-8933-c7ebd31eb288,info@vibateam.hu
+Generál 200 ellenőrzés,104,HORSENS PARTNERS Kft.,info@horsenspartners.com;nemeth@horsenspartners.com,810acf32-2848-4506-b2d3-e0f3fa8148fa,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f19e41f570,baeec5fc-a1fe-4698-9def-034adbd2ddd5,info@vibateam.hu
+Generál 200 ellenőrzés,105,"""DECO-DESIGN"" Kft.",iroda@deco-design.hu,4364f542-9566-41c7-8ecb-a602d4df3052,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f2641a3823,b42e1759-3760-4d5d-9f02-3733b8f657de,info@vibateam.hu
+Generál 200 ellenőrzés,106,HATING GROUP Kft.,kalman.viktor@hatinggroup.hu;kalmanzsu@gmail.com,9026c108-327e-46fa-94f5-14dc3d5d0a0d,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f3490963da,d6b07597-868e-4fe3-93a0-3a64124d3871,info@vibateam.hu
+Generál 200 ellenőrzés,107,GPM Kivitelezési Kft.,csuhay@gpm.hu;info@gpm.hu,3e830221-867a-473e-8861-84eecb3bce54,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f53e05fec0,44b9c539-2b8f-42d4-857f-b31c914276ce,info@vibateam.hu
+Generál 200 ellenőrzés,108,Szabó-Galambos Fővállalkozó Kft.,szabo-galambos@szabo-galambos.hu,13929dcd-43e2-4263-893e-d82b452cfe51,pontos_email,SENT_bizonyíték,1,0,0,1a1a1ecbd7fb5304,3c23909b-2993-484f-89f3-a84b02862db8,ramon.dencsi@vibateam.hu
+Generál 200 ellenőrzés,109,Ladányi és Társa Kft.,ladanyi@ladanyikft95.hu,f20b7304-3813-4240-83b1-d7e76f1ebde3,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f609181cb8,938ea905-5d49-4208-9708-142cf399b8d9,info@vibateam.hu
+Generál 200 ellenőrzés,110,EVBAU Kft.,evbau@evbau.hu,c2d9e672-6dd4-463f-aa42-111bffef280a,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f6cfcbca9b,59a08a42-f437-4505-b6cc-57f7596c9d8c,info@vibateam.hu
+Generál 200 ellenőrzés,111,Modernházak Investment Zrt.,gergely.biczok@gmail.com;info@modernhazak.com;penzugy@modernhazak.com,9fb5f93e-1ca2-4fcd-9a2e-d7771c3bce0c,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f790e0eb58,00c538da-32a0-44ab-92a8-65a2fe846b1b,info@vibateam.hu
+Generál 200 ellenőrzés,112,Gyetvai Fivérek Zrt.,ertekesites@gyetvaifiverek.hu,1a33408c-c010-4c69-8f83-01fbab719e7f,pontos_email,SENT_bizonyíték,1,2,0,1a1b06f84850e494,eb943172-560f-484a-b81a-443c11e9ce71,info@vibateam.hu
+Generál 200 ellenőrzés,113,GENÉV Kft.,iroda@genev.hu,e34e05cf-84d6-403c-8eb9-e4120621103a,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,114,ZELE-BAU Kft.,csirincsik.csaba@zelebau.hu;epito@zelebau.hu;iroda@zelebau.hu,950328d9-ac59-456b-b7fa-e5945b1176f3,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,115,MEGATALENT Kft.,megatalent@megatalentkft.hu,1366a8c8-f4a0-4ba6-8af9-86499e4428e8,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,116,SHALPEM GROUP Kft.,meplas.kft@gmail.com,36dde488-07ec-4781-9339-ae31e8b7a240,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,117,QUALITY FIT OUT Kft.,info@qualityfitout.hu,09f6c7c1-5fdf-4d92-86ed-fbdd8f13a5cb,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,118,ARRABONA KONSTRUKT Kft.,info@a-k.hu,022cc259-723b-471d-8d8f-5544cd2ff5db,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,119,K-KONSTRUKT Kft.,epites@k-konstrukt.hu;nyikos.lajos@k-konstrukt.hu,4e675fa3-8e7d-472d-aa9f-f1f5268f534f,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,120,BRAVO KFT,bravo89@t-online.hu,ac2061a9-a890-43b5-bdfc-7bb90dab628d,pontos_email,SENT_bizonyíték,1,2,0,1a1b06dd06c377bf,b369c5d7-6f10-46da-991e-03cb8f7c8184,info@vibateam.hu
+Generál 200 ellenőrzés,121,Stabil Konstrukt Kft.,info@stabilkonstrukt.hu;stabiltetoiroda@gmail.com,0f6b3c15-3665-46ad-bf58-34ff45999abd,pontos_email,SENT_bizonyíték,1,2,0,1a1b06ddde1c5be4,77b02471-90de-4527-adcd-2fdb5ff90908,info@vibateam.hu
+Generál 200 ellenőrzés,122,MZS Construct Kft.,info@mazas.hu;mzsbaukft@gmail.com;mzsconstruct@mzsconstruct.hu,e9207c4f-43ca-47f9-af6e-e69cb1f14458,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,123,SIGNO-TEN Kft. (Signo Építőipari és Szolgáltató),info@signokft.hu,21b409d5-fa6f-4ec5-8dbd-7d462040c35f,pontos_email,SENT_bizonyíték,1,2,0,1a1b06de70eb242b,7f684eff-39a0-4013-a065-cef5ecc2fe64,info@vibateam.hu
+Generál 200 ellenőrzés,124,Capstone Management Kft.,office@capstone-m.com,10ad60d4-f1c8-4de4-8361-55ab514b9665,pontos_email,SENT_bizonyíték,1,2,0,1a1b06df441de78f,fc4ae90b-332d-4ae6-ae09-71b7d6984f8d,info@vibateam.hu
+Generál 200 ellenőrzés,125,REOGROUP Kft.,reogroup@freemail.hu;reogroupkft@gmail.com,797e6c35-5c06-4d09-89ff-e289c81f63ee,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e00bbf0bf8,59b104cd-8ba6-4d21-8482-8ae162a348d3,info@vibateam.hu
+Generál 200 ellenőrzés,126,JÓZAN Építőipari és Kereskedelmi Kft. (JÓZAN Kft.),szerkezetepites@jozankft.hu,0c3b9010-c813-4212-97c1-69f84a5dd209,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e0ad9234f9,7bd5de5e-b0e4-4a29-92ba-a72cd4888081,info@vibateam.hu
+Generál 200 ellenőrzés,127,Watz Építőipari Kft.,watz@watz.t-online.hu,237c4ec3-6531-4530-995c-35e315a39ae8,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e1f227e6f3,584d1ec0-8723-4af9-b69e-d4c4e8dfb937,info@vibateam.hu
+Generál 200 ellenőrzés,128,UNI-INVEST KFT,kozpont@uni-invest.hu,5d212a82-c417-491e-960e-57522920c1d4,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e2b262b42f,2c2ebd5b-413c-4733-89d0-6c8dfe458743,info@vibateam.hu
+Generál 200 ellenőrzés,129,ConNext Hungary Kft.,info@connext.hu,a9b0d08e-91d1-48f1-9a28-5f3e7e525216,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e3982113d0,73dc7ea4-e9a8-40e7-9459-c2faef2f17a1,info@vibateam.hu
+Generál 200 ellenőrzés,130,ProInterier Kft.,info@prointerier.hu,9849eff8-ff85-49d1-96bd-e80dba54de59,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e459ddcef0,c7c79124-f605-4333-bdff-19eeb120eb0f,info@vibateam.hu
+Generál 200 ellenőrzés,131,EURO GENERÁL Zrt.,gyor@eurogeneral.hu,f87f23bf-cc1e-41e4-9e44-cab44d14e533,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e525e28509,8a039764-8f3c-41dd-ac48-3f534d710d48,info@vibateam.hu
+Generál 200 ellenőrzés,132,DC BAU INVEST Kft.,milis.szabolcs@gmail.com,9e0ce110-e3d9-49f6-bc3c-fb09429030bb,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e5e44a8487,75c1b52b-3d2b-4f39-ad6b-0245a01d3239,info@vibateam.hu
+Generál 200 ellenőrzés,133,STRUKTUR-BAU Kft.,szilagyi.adam@mailbox.hu,bd4495db-a43f-44bc-b31f-9a766908e309,pontos_email,SENT_bizonyíték,1,2,0,1a1b06e6a66ddf7d,4b8b3d55-eb00-4d01-975f-7765570cd056,info@vibateam.hu
+Generál 200 ellenőrzés,134,Eco Horizont Kft.,csanalosi.istvan@gmail.com;info@ecohorizont.hu,6b453c04-1097-405e-9ba5-82e3b306d3d5,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,135,Greenteco System Kft.,greentecosystem@gmail.com,3fe41772-ba4c-4064-8e1c-e2fac945021c,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,136,Minimal House Kft.,kapcsolat@minimalhouse.hu,404fda0d-b53b-40c8-a144-ec3e3fd68f0c,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,137,Best Bau Trade Kft.,info@bestbautrade.hu,a8ec2fe0-b241-46a0-a078-8db092e4cfc7,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,138,DakotaÉpítő Kft.,info@dakotaepito.hu;iroda@dakotaepito.hu,0a3fe28d-e18c-42ae-966d-8706d853264d,pontos_email,SENT_bizonyíték,1,2,0,1a1ac538bd00e37c,6934193a-8a8a-45d2-8029-e12669ed590a,info@vibateam.hu
+Generál 200 ellenőrzés,139,Cars-Bau Kft.,carsbau0609@gmail.com;carsbau@gmail.com,0cf7b546-8c0c-4675-8421-ebe552057b93,pontos_email,csak_piszkozat,0,1,0,,,
+Generál 200 ellenőrzés,140,HOMEURO Kft.,homeuro@gmail.com,1ca89774-5be0-438f-89d4-e6ae4c02b415,pontos_email,SENT_bizonyíték,1,2,0,1a1ac5397cf326ef,19b30611-1ec1-4067-9f71-15a5c3c335c7,info@vibateam.hu
+Generál 200 ellenőrzés,141,BUILD IT Mérnökiroda Zrt.,info@build-it.hu,,nincs_egyezés,nincs_tárolt_bizonyíték,0,0,0,,,
+Generál 200 ellenőrzés,142,Consolum Architects Kft.,varhelyi.tibor@consolum.hu,9dfaf64f-48b2-4887-a6cf-d63839fde5be,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53a0fe5daa9,369dc7d5-69f0-4ea5-92fe-0162b29a6e13,info@vibateam.hu
+Generál 200 ellenőrzés,143,"FODOR Építőipari, Kereskedelmi és Szolgáltató Kft.",berki.andrea@fodor.hu;info@fodor.hu,f2442b06-9a38-42f4-947c-bbd2d4b1d399,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53ae4dc76bb,88e27230-45bd-43cd-b707-a956c5b5e874,info@vibateam.hu
+Generál 200 ellenőrzés,144,WESSELTON Kft.,sales@wesselton.hu,0eab8a4a-34b3-4587-921e-e1799a39914a,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53bb2c03e04,7de9cbb8-6a2a-4ba0-b77c-d18b65fb3dfd,info@vibateam.hu
+Generál 200 ellenőrzés,145,Costell Építő Kft.,info@costell.hu,1e9c4cb1-50c4-41c8-86a5-2b738dbc7481,pontos_email,SENT_bizonyíték,1,0,0,1a19becc450f02c7,87c0b8bc-57e9-47ef-81e2-e493a964e939,ramon.dencsi@vibateam.hu
+Generál 200 ellenőrzés,146,"""ARGO-HUNGARY"" Fémfeldolgozóipari Kft.",posta@argohungary.hu,875da768-0d7e-4724-92b1-7637921feb82,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53c4832be51,7a225425-40d7-4332-9893-8a351e4676b5,info@vibateam.hu
+Generál 200 ellenőrzés,147,TRUST-BAU Építőipari Szolgáltató Zrt.,info@trustbau.hu,56cf1505-f09c-4540-9c74-b7053cae7395,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53ce31937cf,9202fedc-71eb-4597-aeea-4cb536506cbc,info@vibateam.hu
+Generál 200 ellenőrzés,148,Pyrus Magna Zrt.,info@pyrusmagna.com,b23cdf0d-15a5-4387-9baa-566ff68742e1,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53d91d5ae7e,ea640521-afcc-49ef-afab-6b4548ae6970,info@vibateam.hu
+Generál 200 ellenőrzés,149,MEGA-LOGISTIC Beruházási és Üzemeltetési Zrt.,duzs.gyorgy@mega-logistic.hu,f3937832-48d0-4d33-a626-f77637063b5a,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53e2fcfd260,481973b4-1450-448c-889a-e683fb420ba8,info@vibateam.hu
+Generál 200 ellenőrzés,150,INTERTÁR Kft.,multigroup@multigroup.hu,3a3702c2-0c0f-4c1d-9b16-f06269df8538,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53ee48f3225,c3154538-796d-4d38-a5a8-e237fd61742e,info@vibateam.hu
+Generál 200 ellenőrzés,151,ÁDI BAU GENERÁL Kft.,olcsoszigetelo@gmail.com,38f4d34c-c90f-4682-806a-0ffc14d26bee,pontos_email,SENT_bizonyíték,1,2,0,1a1ac53f7cc66c0b,2f2e0189-b237-415e-8c61-4e2c66407144,info@vibateam.hu
+Generál 200 ellenőrzés,152,ILLÉS METÁL GABONATECHNIKA Kft. (Illés Metál Kft. márkanév),info@illesmetalkft.hu,0ae24683-9ab7-4227-8293-4dbe3b451919,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54018e2cf2c,cc4d4aea-3474-4544-bd78-a9214ab1414f,info@vibateam.hu
+Generál 200 ellenőrzés,153,PEKA BAU 2000 Kft.,pekabau@gmail.com;peto.gyorgy@pekabau.hu,77acdaca-d514-48df-bf8d-0c1e1be110a8,pontos_email,SENT_bizonyíték,1,2,0,1a1ac540a3867f77,8750778a-7c9f-4c97-b094-60f968d7a666,info@vibateam.hu
+Generál 200 ellenőrzés,154,KOHINOR-ÉPÍTŐ Fővállalkozó és Kereskedelmi Kft.,iroda@kohinor.hu;turcsanyi.csaba@kohinor.hu,0b36f236-1782-43e0-b952-11aa6823ab79,pontos_email,SENT_bizonyíték,1,2,0,1a1ac5416b16d4fe,b88e1028-bb28-487e-86b4-14e9ee97be3f,info@vibateam.hu
+Generál 200 ellenőrzés,155,BUILDING-TRADE BAU Szolgáltató és Kereskedelmi Kft.,info@btbkft.hu;martin.markus.hu@gmail.com,b29ed8ea-374d-498a-bcb6-d14ebd1a9752,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54200c8db87,df23f626-d4d0-49bd-ae95-381162f10df8,info@vibateam.hu
+Generál 200 ellenőrzés,156,"MULTINOX Fővállalkozó, Ipari Szolgáltató Kft.",info@multinox.hu,c3edc6b4-3d28-43d6-846c-572f40e274e8,pontos_email,SENT_bizonyíték,1,2,0,1a1ac542ac8813b8,3ffdd6d1-bdc0-4d3b-a7c4-1df22f577845,info@vibateam.hu
+Generál 200 ellenőrzés,157,OROSZ-ÉPÍTŐK Ingatlanhasznosító Kft.,elitapartmanok@gmail.com;oroszep@gmail.com,8368fd81-a562-4cbd-a2d8-8f0a94fffb07,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54359a686f3,c6b2ed9a-f30c-4431-a228-c8aceca4fd66,info@vibateam.hu
+Generál 200 ellenőrzés,158,OROSZ-GENERAL Építőipari és Szolgáltató Kft.,epvez2@orosz-general.hu;info@orosz-general.hu,4eb5fef6-3c02-4703-aaf0-3882c18eb4b7,pontos_email,SENT_bizonyíték,1,2,0,1a1ac543f6533356,726497a3-0704-49ac-89d9-72924d09900f,info@vibateam.hu
+Generál 200 ellenőrzés,159,FEJÉR-B.Á.L. Építő és Szolgáltató Zrt.,info@fejerbalzrt.com,,nincs_egyezés,SENT_bizonyíték,1,2,0,1a1ac544a2f81d27,0afab60b-6367-44ac-bfa8-3818187f5c39,info@vibateam.hu
+Generál 200 ellenőrzés,160,Art 'N Bau Beruházó és Kivitelező Kft.,artnbau@artnbau.hu;artnbau@gmail.com,49fcf061-004a-4069-9052-0c7cf0b27ca8,pontos_email,SENT_bizonyíték,1,2,0,1a1ac5455e237e69,0c12f727-a3a7-4013-8e00-eb37f9058c83,info@vibateam.hu
+Generál 200 ellenőrzés,161,UNIO ART MONTAGE Kft. (Shopdesign),bela.vitez@shopdesign.hu,1511a7db-7578-427e-97f6-2efc6c94fe47,pontos_email,SENT_bizonyíték,1,2,0,1a1ac545f2e7c0f0,5241b57e-b51a-424e-8c93-a274ba1ae941,info@vibateam.hu
+Generál 200 ellenőrzés,162,Dome Facility Services Group Kft. (Dome Fit-out),info@dome.hu,4800dafb-7f1f-4090-89a4-30835be9b48b,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54678210284,89feda55-5536-4ac0-923b-929d8a97e818,info@vibateam.hu
+Generál 200 ellenőrzés,163,Urban Estate Ingatlanfejlesztő és Építőipari Zrt.,info@urbanestate.hu,96335486-c591-4e5e-bd21-7d4ee40b00dc,pontos_email,SENT_bizonyíték,1,2,0,1a1ac5472f2c5fdb,51589531-53d8-4485-8a37-02ee374e5029,info@vibateam.hu
+Generál 200 ellenőrzés,164,BAM Construction Kft.,info@bamgroup.hu,e44a83ce-b9b7-47b1-9a29-b13cadbafa43,pontos_email,SENT_bizonyíték,1,2,0,1a1ac547a5e2f8ab,5ba822ae-8e5c-4523-ac8a-f20522d36509,info@vibateam.hu
+Generál 200 ellenőrzés,165,GK-Industry Technology Kft.,gkindustrytechnologykft@gmail.com;info@gkindustry.hu,7bcf4f4d-661e-46ff-8583-bef66299ebdc,pontos_email,SENT_bizonyíték,1,2,0,1a1ac5486ea58e33,01b5dc93-432a-44c9-a5a5-80430a5d2eb2,info@vibateam.hu
+Generál 200 ellenőrzés,166,Globo Menedzsment Kereskedelmi és Szolgáltató Kft.,gistvan@globom.hu;office@globom.hu,8e87b2aa-b96b-48de-afed-4fa2e4a7db37,pontos_email,SENT_bizonyíték,1,2,0,1a1ac548e2abcc91,b4040a7f-94df-4ef8-b7f1-96877adc9107,info@vibateam.hu
+Generál 200 ellenőrzés,167,Szegletkő General Kft.,szegletkogeneral@szegletkogeneral.hu,7f8aa522-f1d6-4153-b482-2517ecd24345,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54984eeba5e,fe76714a-5a72-47ac-b81b-0ebd7d1290c2,info@vibateam.hu
+Generál 200 ellenőrzés,168,MERAND HUNGÁRIA Építőipari és Szolgáltató Kft.,merand@merandhungaria.hu;merandkft@gmail.com,3f000632-7c04-423a-8fc8-09c931911c74,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54a24cdd212,d70d00a7-ba12-4860-a07e-47b2161395d4,info@vibateam.hu
+Generál 200 ellenőrzés,169,Villa Deco Építő Kft.,babits@gmail.com;villadecoepito@gmail.com,c511cf1e-e33e-4a7c-aba4-01dc61d3dca3,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54aa7b7248f,c785e68e-468e-4b7b-bb80-789991b86bf6,info@vibateam.hu
+Generál 200 ellenőrzés,170,Nidum Építőipari Kft.,info@nidum.hu,25224c76-647f-4fe0-949f-d2acfb176439,pontos_email,SENT_bizonyíték,1,2,0,1a1ac54b70af32a5,bf35faed-ad0d-4203-8098-256e3a390f6c,info@vibateam.hu
+Generál 200 ellenőrzés,171,Pannon Építőműhely Generálkivitelező és Épületenergetikai Tanácsadó Kft.,info@pannonmuhely.hu,dffed263-d881-44f9-9423-d887b9b81905,pontos_email,SENT_bizonyíték,1,0,0,1a1a1ee749b3a55a,90f03f41-c906-4e21-9d8c-54d27c6798e6,ramon.dencsi@vibateam.hu
+Generál 200 ellenőrzés,172,Salgó és Fia Szerelő és Építőipari Kft.,janos.salgo@chello.hu;kapcsolat@salgo.eu,fbd900b5-68e9-4e06-b284-929483da4139,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,173,Wemat Hungary Kft.,officehu@wemat.global,b140fec9-f10c-4dac-b7b3-575f638e52a4,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,174,"TESZ-97 Szerelő, Szolgáltató és Kereskedelmi Kft.",info@tesz97.hu;kivitelezes@tesz97.hu;ronga.jozsef@tesz97.hu,8919342b-192c-4579-8371-e8854ada5558,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,175,Szent György Ház Építő Szolgáltató Kft.,szentgyorgy@hazepito.hu,43500724-641c-4651-8430-8dcea3471e3a,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,176,TELESIS Generál Kivitelező Zrt.,nzoltan@telesisgeneralzrt.hu,4e7554fc-2949-49db-a1a5-d47dd42ce4a8,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,177,RETICOLO ÉPÍTŐ Kft.,reticolo@reticolo.hu,58b1caec-0c6b-4a1a-9bf4-d07298890869,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,178,Masszív Építő Kft.,tothkrisztianev@gmail.com,3a385ada-e52c-440d-ae0d-af89ab02552e,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,179,UTI KFT (Urbán Tibor és Társa Szolgáltató és Kereskedelmi Kft.),info@utikft.hu,ec395963-9dad-4f20-bd9d-4c08e112d48f,pontos_email,csak_piszkozat,0,4,0,,,
+Generál 200 ellenőrzés,180,Favourite Home General Kft.,info@fhgeneral.com,89b3b2a0-d6d5-4101-bd04-f5094c006a1a,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,181,International Construction Company Zrt. (ICC Zrt.),info@icczrt.hu,b6aa6525-dd45-4eb3-a8aa-f72de7e191a6,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,182,VÁR-BAU System Kft.,info@varbausystem.hu,e4577413-7959-46a5-8d11-6ae0030b968a,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,183,LTV Interior Kft.,iroda@ltvinterior.hu,fff0d394-6ea9-40dc-ad13-b509445b4386,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,184,Global General Group Kft. (korábbi név: BDPST Bau Kft.),info@gggroup.hu,0a2251af-b577-4dbc-910d-4211116f75ba,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,185,B-ZOLI Generál Group Kft.,bzoligeneralgroupkft@gmail.com,ed1bf79d-a58b-4d6e-983d-62a4965988e1,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,186,BG Construkt Kft.,bgconstrukt@gmail.com,956a2650-5f6e-48ed-b6ab-f0bbd31a858e,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,187,SIMI-ÉP Kft. (teljes név: SIMI-ÉP Kivitelező és Szolgáltató Kft.),simi.ep.kft@gmail.com,8f7f5f05-5f4a-4e2c-8f2e-0051b4c2e259,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,188,KOVA-LINE Kft.,kovalinekft@gmail.com,cd1886c1-0931-4b10-a906-1195d17d3a89,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,189,UniGeneral Kft.,info@unigeneral.hu;malinger.mate@unigeneral.hu,ecf96eab-c949-4b0b-9e37-ddddf9d1356d,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,190,Delta Hungária Építő Kft.,iroda@deltahungariaepito.hu,7c5d5349-5799-4b91-b458-ab4418ab0eee,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,191,Deltacalor Home Kft.,deltacalorhome@gmail.com;info@dchkft.com,572f3553-6b3e-4375-a9a2-44c7afec821b,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,192,Minimál Ház Kft.,minimalhazkft@gmail.com,afc48e69-7818-4f0d-8684-526ec92a99c7,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,193,Human Bau Építő Kft.,info@kornyezettudatos.eu,88964a53-c687-4c8f-b984-bd958b70c2bb,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,194,ALTAN BETON HUNGÁRIA Kft.,budapest@altan.hu;info@altan.hu,d872f84b-e76d-43e5-8603-203df5e01f9d,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,195,Working in Teams Kft.,wint.kft@gmail.com,302f0f61-695c-4c2a-84a8-11d8663fb440,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,196,DÓZER-ÉP Kft. (DÓZER - ÉP Kereskedelmi és Szolgáltató Kft.),info@dozer-ep.hu,574902fd-3b70-4aaa-880d-74853f9b4817,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,197,HERCEGBILD Építőipari Kft.,iroda@hercegbild.hu,0d018e02-f315-4650-a0c1-3508cc1f3a0c,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,198,"BAU-GÉP 2000 Kft. (BAU-GÉP 2000 Építőipari Szolgáltató, Karbantartó és Kereskedelmi Kft.)",baugep2000@baugep2000.hu;baugep@pantecom.hu,90042640-1ee8-42cf-85aa-7601384a723c,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,199,MeroCon Építő Kft.,info@merocon.hu;marko@merocon.hu,6e460429-0981-4b9b-a66d-e4c6fca7083d,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,200,"Wandbau Kft. (""Wandbau"" Építőipari Kft.)",info@wandbau.hu;kangyalgergo@t-online.hu,42113ebc-dd95-4dc4-b5c2-d53d9090c589,pontos_email,csak_piszkozat,0,3,0,,,
+Generál 200 ellenőrzés,201,Dunaflat Hungary Kft.,dunaflat.2018@gmail.com;samankft@t-online.hu,5d03150b-7064-4d48-97ac-704d304e822f,pontos_email,csak_piszkozat,0,3,0,,,
+Marketing 287 ellenőrzés,2,Amper Studio,froland@amperstudio.hu,e55ee69b-a5aa-5431-a1ca-d5c9cbd5de15,pontos_email,igazolt_szálbeli_bejövő,5,21,4,1a0a4beebf701703;1a0e83b37e629883;1a10b545987d4aba;1a135fcfb7b90447;1a15ec7da6ab4e2d,2d8313cd-14f3-4ad4-9116-d8b994e004d6;d3924df1-6efb-4bfb-8fdb-3cd1c3f999f1;e3cdfd5a-cad4-4fb0-870d-2b09f3595f8e;efa6e2d8-4afc-4bce-9818-d93efdc77b4a;fbe1f9af-f86d-46eb-ab25-e39302f5b651,info@vibateam.hu
+Marketing 287 ellenőrzés,3,BAUREK,lazori.peter@baurek.hu,90a3a803-f526-57fd-b5dd-7f07be1392eb,pontos_email,igazolt_szálbeli_bejövő,2,3,2,1a11075de0200b7b;1a13561d38f608e4,51dafdd2-3c6e-4ec8-99ce-b57dd9703dda,info@vibateam.hu
+Marketing 287 ellenőrzés,4,Betonpartner,j.kiss@betonpartner.hu,54d1cb5e-a16e-466c-8100-94b5935ecd26,pontos_email,igazolt_szálbeli_bejövő,13,13,8,19f4ce6538daeec1;19f5ccb66e4d0f86;19f66d3783a28d01;19f6bd251beba248;19f702b19ee78979;19fa892085da614f;19fe2382d40ac2e8;19fe54163b64dbe6;1a085d72b9b5b655;1a0b85db63dc9591;1a0e76c6689dc7c6;1a0e79fcc927b655;1a0ed264f2c80a83,07c17e08-cc61-4325-a1b8-f851d6b56c7e;642633a7-9d7f-4859-a8f0-6fe2dd26649d;6e1fe7b9-8a56-438b-9602-f63dd67d571e;77f30445-8a62-4c83-9aec-8c678b047805;b87acfae-848b-4b63-8f44-9b3a7e4b5f52;f9db9960-3149-4321-a9df-275206682486,info@vibateam.hu
+Marketing 287 ellenőrzés,5,CB Építő,zoltan.toldi@cbepito.hu,79700a4f-3148-4fb8-bebb-1ecf4fb837a2,pontos_email,SENT_bizonyíték,3,2,0,1a03355f272cfb32;1a0532f465b9a344;1a13561be072d1cf,3896d611-f307-4b06-ae5d-5c8c9b071645,info@vibateam.hu
+Marketing 287 ellenőrzés,6,Iconic Team,nemeth.norbert@iconicteamkft.hu,33f62a0c-31af-4f5b-8ebe-271e3611c01f,pontos_email,SENT_bizonyíték,2,3,0,19f93010a22a1ef4;1a033c729b57e93d,43187ffd-a38e-4164-b3ba-52f1bc9351a0;58e2405a-0bc3-4312-a5c7-99721a5d1c42,info@vibateam.hu
+Marketing 287 ellenőrzés,7,Ilusso,csaba.daniel@ilusso.hu,6c9b060e-f2bb-514b-9602-12611c514346,pontos_email,igazolt_szálbeli_bejövő,6,2,4,1a08af3e42ce6f7d;1a090865bc41fea8;1a0c2a8f639d70e2;1a0d732d5221d5e6;1a13561a1e6fa175;1a159dc6918556a2,534a7cb4-5de1-4440-afa2-6b2077288755,info@vibateam.hu
+Marketing 287 ellenőrzés,8,Indotek,koos.barnabas@indotek.hu,5e2be70a-fda1-4423-8b3a-6944b277a4b6,pontos_email,SENT_bizonyíték,1,0,0,19f88ad3d578c1ef,f939c498-da62-4fad-a237-51f57780dc33,info@vibateam.hu
+Marketing 287 ellenőrzés,9,Jánosik Kft.,sandor.istvan@janosikkft.hu,eb7844b0-a9f3-5e4d-9a93-e0b22c3b3709,pontos_email,igazolt_szálbeli_bejövő,3,3,4,1a13fd0e05e26fbf;1a157eecfa2a4d60;1a15859bbcf37ab3,954bb1e1-d78c-4dd9-9e0a-fe104c37cd31,info@vibateam.hu
+Marketing 287 ellenőrzés,10,LANGBAU,elokeszites@langbau.hu,c4f8cb4f-ea3c-4147-b82d-3464a0953029,pontos_email,igazolt_szálbeli_bejövő,3,2,2,19ed680792043b9c;19f6ab8b9f1cf5ed;1a033c85bfbaa906,eeb70ff8-0b80-4088-ad0f-1ec9e7d9942c;ef0b8783-cf01-4fc2-aa52-592f7617c8c6,info@vibateam.hu
+Marketing 287 ellenőrzés,11,NimródBau,szoke.laszlo@nimrodbau.hu,236d6b8e-b3b9-571f-bbef-c4bce712d7ad,pontos_email,igazolt_szálbeli_bejövő,10,14,4,1a05702f6a1303a6;1a057dd533c9c366;1a0580164ecc733a;1a0580b6842b7bcf;1a0581d0d7fb4677;1a05c68cceae1fe2;1a05d1b2d0206c2e;1a0811185c212c6a;1a13b294e847d218;1a13ea63a12e44a7,157bd1da-a4dc-477d-9439-8f6c7ea4f75d;2fb67b28-cc87-43f1-ac20-d7e031dcd1ff;460eab6c-0898-48d6-ab2b-a48f03562a73;47db03ff-bd86-40bf-9500-bda89d0d2219;54ee6192-9d53-4909-9ca2-0fc896b03c51;b64abd8b-c726-4673-b86d-bac2914e8a05;b6542565-1f5f-4f8e-8d6a-680aab0434dd;debc88d5-dd58-41b2-a065-2153ac176539,info@vibateam.hu
+Marketing 287 ellenőrzés,12,SHS Építő,lovasz.istvan@shsepito.hu,96a00e76-2d2e-4428-aa6c-07f4de985d68,pontos_email,igazolt_szálbeli_bejövő,13,10,8,19f0894f2395284c;19f28e932e0659c5;19f42637c6029d86;19f6aba6e9e96876;19f7ee9e7c6b675e;1a033ca158580264;1a05705c2c07fce2;1a0ec4aa80f91fc5;1a1102923729f70c;1a1353f39f3efa5e;1a144c2988af5be8;1a1581f8b78f5f20;1a182ceb6d5936c1,280ee8ff-47f3-4239-986b-3fb6ba27c492;33d8017f-d255-4a82-8416-d30b6a51f5d3;5120c18d-55ac-46b4-b0d9-249d91700ef8;6b87267e-824c-4e86-935a-e989a4af2ee1;7a388913-2576-499a-adce-0858b94d538c;a0c01d24-c88f-4fb5-9b8f-eaa93f941102;a971c77d-e26f-48a5-92bb-cc8be98219d4;c62c1cc1-15c5-4f98-b745-c5fd484d42d9,info@vibateam.hu
+Marketing 287 ellenőrzés,13,Threen Investors,threenvestors@gmail.com,6dc9f5cb-49d6-5001-9134-f984143acd82,pontos_email,SENT_bizonyíték,3,2,0,1a0c2a768fb0d684;1a0d30f2380f37df;1a13561614707da7,41dce459-7ec3-4dff-a2fd-c3fa316d703a,info@vibateam.hu
+Marketing 287 ellenőrzés,14,Vilati,hajose@vilati.hu,d943f201-b5d2-4c55-a4f0-319c9ef5a478,pontos_email,SENT_bizonyíték,2,4,0,19eefc00c6dc476f;1a0386dbe5852a8a,07343924-eaef-41ab-ae83-2913c1d31328;4751e99b-4f5c-4123-963b-c9816d8ec048,info@vibateam.hu
+Marketing 287 ellenőrzés,15,WHB ELEKTRO,illes.gergely@whbelektro.hu,d7aac8b5-a44b-5058-8d54-36f78fb5f7d2,pontos_email,igazolt_szálbeli_bejövő,3,6,1,1a0d31519580d03d;1a0d3baea0ffbd35;1a13540c6293101b,4ed88fae-89d8-4db4-8e88-713aa2922f4d,info@vibateam.hu
+Marketing 287 ellenőrzés,16,A1 Solar Kft.,info@a1solar.hu,e05e9e1b-ea75-5f45-8dc7-da4507940723,pontos_email,SENT_bizonyíték,1,2,0,1a163bf7dd1ccd82,05781db1-9d2b-432a-b7af-8996bae20f40,info@vibateam.hu
+Marketing 287 ellenőrzés,17,Adrenalin-Company Kft.,makay@makaykft.hu,9312f54e-467a-52f7-aec1-3f6f10c988e5,pontos_email,SENT_bizonyíték,1,3,0,1a17d514b3dd2657,5134ffa1-ef47-4710-a785-dc3db80b9ddb,info@vibateam.hu
+Marketing 287 ellenőrzés,18,Agamedes Kft.,agamedeskft@gmail.com,4df416e6-70ec-5eac-9eed-273685445a4a,pontos_email,SENT_bizonyíték,1,3,0,1a17d53c3481a710,c98b7f45-a34e-45f1-9989-70f304b2881d,info@vibateam.hu
+Marketing 287 ellenőrzés,19,AMPER 99 Kft.,info@amper99.hu,ff975b07-e7b8-5c5a-85bb-514411acc67a,pontos_email,SENT_bizonyíték,1,2,0,1a163c033951e1df,1af3f232-12bd-4b0e-9337-2c6ef851a065,info@vibateam.hu
+Marketing 287 ellenőrzés,20,ANTÜVÁL Kft.,info@antuval.hu,0ec84da3-b20d-5639-ad03-b4c49b5be8ad,pontos_email,SENT_bizonyíték,1,3,0,1a17d52da96d5035,8c907ac2-3456-4be7-bdaa-63bb2f54ae90,info@vibateam.hu
+Marketing 287 ellenőrzés,21,ARB INVEST Ingatlanfejlesztő Kft.,erno@hotelaurum.hu,55509e0b-fd6d-4b0f-87f8-25d8cb4d0abe,pontos_email,SENT_bizonyíték,1,1,0,1a163a509a4894dc,a973325d-67c5-4ce3-99ac-4864f2d4112e,info@vibateam.hu
+Marketing 287 ellenőrzés,22,Artdom Építő Kft.,info@artdom.hu,b1c42f0c-b79f-5616-91ef-ef5d2f92fe8c,pontos_email,SENT_bizonyíték,1,3,0,1a17d52c721df72b,af973d7c-2802-4931-b647-6cb11a8753c6,info@vibateam.hu
+Marketing 287 ellenőrzés,23,ART EXPO Kft.,info@art-expo.hu,14d9b58c-2989-59f3-9185-e71867b99c0e,pontos_email,SENT_bizonyíték,1,3,0,1a17d52d1c646997,5445b8dd-71ba-442f-a374-594195409878,info@vibateam.hu
+Marketing 287 ellenőrzés,24,ASA Építőipari Kft.,zoltan.laszlo@asa.hu,c900fbad-4f65-5a16-8b44-71eab2bc6877,pontos_email,SENT_bizonyíték,1,3,0,1a17d50735db130f,107a98c8-8efb-4c22-9db0-317737b69cf3,info@vibateam.hu
+Marketing 287 ellenőrzés,25,ASTRASUN Solar Nyrt.,welcome@astrasun.solar,21580fd7-127a-56f0-86d8-90c325a536df,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,26,ATENOR Hungary Kft.,info@atenor.hu,04068c98-d6dc-48c0-8b1a-6a504fe0570e;9f79d990-1706-4eb5-b291-d0f4cea04cb1,névütközés,SENT_bizonyíték,1,1,0,1a163a62a5790d96,4948fc47-32ee-4d4c-9aa9-aeb2d6b23199,info@vibateam.hu
+Marketing 287 ellenőrzés,27,ATYS-CO Kft.,atysco@atysco.hu,99bfb55a-6453-51e2-9948-0863877e8b5a,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,28,Avico Group,info@avicogroup.hu,5a06f863-0047-4b0c-b41c-6beaec54e1ce,pontos_email,SENT_bizonyíték,2,4,0,19ebaa018f2af2b7;1a16367287533030,95d29061-9690-448b-a27c-c6933ea56afb;fd19096c-1584-429a-becf-45fdba4a7a8b,info@vibateam.hu;pretor.laszlo@vibateam.hu
+Marketing 287 ellenőrzés,29,AXABAU Group Kft.,arajanlat@axabau.hu,eafe6e27-7a40-4c12-ab5d-d527939fd02b,pontos_email,SENT_bizonyíték,3,1,0,1a032be66873d976;1a163a48f0dab24f;1a18c0e98eabe0d9,31c0178b-0e2a-4504-bd9d-db6a43885463;a7d84f9c-0914-4a45-a1dd-9229341abeb5;b289da16-ad77-440b-9281-15632297fdc6,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,30,Azur Bau Construct Kft.,info@azurbau.com,64f379f3-4afa-5bfd-aee6-d9214c6ea90a,pontos_email,SENT_bizonyíték,1,3,0,1a17d52bc873362f,7ad981b5-2b9e-4c75-b529-3d0aae607c40,info@vibateam.hu
+Marketing 287 ellenőrzés,31,BALVIA Hungary Kft.,vac.bako@gmail.com,a735649a-26e5-5707-a342-3c4998a55df8,pontos_email,SENT_bizonyíték,1,3,0,1a17d50889306c88,f5c4bcc9-ad7c-49a8-bfe7-f74a88c1446b,info@vibateam.hu
+Marketing 287 ellenőrzés,32,BAMAX Work Kft. / BAMAX,havasi.benjamin@bamaxcsoport.hu,75aa0843-3866-5b57-8e01-74b83b0825f2,pontos_email,SENT_bizonyíték,1,3,0,1a17d52f9c56dc9f,47780045-9a63-4655-b34d-59d1999a3af3,info@vibateam.hu
+Marketing 287 ellenőrzés,33,BARTKOMPANY Kft.,bartkompany@gmail.com,7b41470b-103b-5390-83ba-8cee1697a904,pontos_email,SENT_bizonyíték,1,3,0,1a17d5386ddfac33,ea79ae23-dc96-4efc-9803-0c184e128433,info@vibateam.hu
+Marketing 287 ellenőrzés,34,BauGenerál Kft.,mezo.robert@baugeneral.hu,f99a777f-6bcb-5c65-9d4e-9b1d18d35f74,pontos_email,SENT_bizonyíték,1,3,0,1a17d51004416466,5188646d-4cb7-4355-8222-7ebe56b33d0e,info@vibateam.hu
+Marketing 287 ellenőrzés,35,Baupartner HU,lajos.hardi@baupartner.hu,142cd4a7-c897-5184-9ba8-cf1c178c6619,pontos_email,SENT_bizonyíték,1,3,0,1a17d516d179e438,1d8e3e34-32c8-49c8-9f35-3d502468c75d,info@vibateam.hu
+Marketing 287 ellenőrzés,36,Baustra Építő Kft.,info@baustra.hu,3e50e9e4-92b7-5b4b-ac8c-a2e00e600bed,pontos_email,SENT_bizonyíték,1,3,0,1a17d52b010d5601,9ddb435d-e37c-4091-9950-a18222aa08cb,info@vibateam.hu
+Marketing 287 ellenőrzés,37,BAU-VIP Generál Kft.,info@bauvip.hu,2905d0ca-6d46-539c-a6e0-09660e1500f5,pontos_email,SENT_bizonyíték,1,3,0,1a17d52a9e6a2cc3,31358fa6-d335-433a-a900-7e3cd8800bda,info@vibateam.hu
+Marketing 287 ellenőrzés,38,Bayer Property,info@bayerproperty.com,250b4b7b-6c10-45e3-9422-76a26d45d626,pontos_email,SENT_bizonyíték,1,1,0,1a163a61ed170b0d,75f061df-5d61-472e-bab3-995bb379415a,info@vibateam.hu
+Marketing 287 ellenőrzés,39,B Consulting Kft.,kozpont@bconsulting.hu,62719aee-67d5-5b2a-8d3e-85e59212e05f,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,40,BEDAX Kft.,info@bedax.hu,b8c80830-657b-56dc-ae3f-efd0dabbd26b,pontos_email,SENT_bizonyíték,1,2,0,1a163c03f24a2b0e,e91fef7d-6556-41d2-b1c7-8e254217125e,info@vibateam.hu
+Marketing 287 ellenőrzés,41,BN Real Estate / Biggeorge Property,info@biggeorge.hu,965c9c50-3fbf-400b-bf8e-c5b73358196a,pontos_email,SENT_bizonyíték,2,2,0,1a0e6de2eff4f08c;1a16378e3e17ce38,391951b4-04ef-4b55-a10f-78c0a3035e2e;7e811a87-9f52-4e1d-b81d-c759f52b508e,info@vibateam.hu
+Marketing 287 ellenőrzés,42,BNRG Kft.,info@bnrg.eu,637c20e3-2358-576c-9be3-ccf4cfdfc7d0,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,43,BONSZA Hungária Kft.,bonszahungariakft@gmail.com,3103d74b-c9d1-57e8-adc7-d2540b0dd027,pontos_email,SENT_bizonyíték,1,3,0,1a17d536ca550e56,8d031075-3572-4b7b-8cab-1ec8fbdca1db,info@vibateam.hu
+Marketing 287 ellenőrzés,44,Boros és Fiai Villamosipari Kft.,info@borosesfiai.hu,b5bfebf8-371b-5c16-b8f4-48fe45234b2c,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,45,B.P. BAU Kft.,bujdospeter@bpbau.hu,8595e82e-54e9-5d45-8781-8ce659a8f99c,pontos_email,SENT_bizonyíték,1,3,0,1a17d535eb426180,50f62911-0cc7-4b36-be5a-2682cc31fd96,info@vibateam.hu
+Marketing 287 ellenőrzés,46,Build IT Kft.,info@buildit.hu,8c9a20ad-bef4-5e21-b39a-c398873a4d2a,pontos_email,SENT_bizonyíték,1,4,0,1a16367853987018,c60480cd-3a99-45a1-996b-1f2e1d93f211,info@vibateam.hu
+Marketing 287 ellenőrzés,47,BZS HOME 2016 Kft.,bokor.zsolt29@gmail.com,fbbe0c82-8e5c-5c93-987e-359825799e3a,pontos_email,SENT_bizonyíték,1,3,0,1a17d5375d34f18f,d27d477e-e45b-4149-aa12-d6c03b0779a2,info@vibateam.hu
+Marketing 287 ellenőrzés,48,CECZ / Monori Center,info@monoricenter.hu,d0d5643b-c94a-5a2c-97fa-9da57bcc34d5,pontos_email,SENT_bizonyíték,1,1,0,1a163a615e5b3427,8d260c63-6ec1-400c-9c1d-6665adefa875,info@vibateam.hu
+Marketing 287 ellenőrzés,49,CENTERVILL Kft.,adam.pangl@centervill.net,813a86bd-c3e0-597f-b1ec-5c54fdfff1db,pontos_email,SENT_bizonyíték,1,2,0,1a163c066f7c968a,3679ab1e-28c2-4d1f-ab03-218f9ddbd72a,info@vibateam.hu
+Marketing 287 ellenőrzés,50,Cibon Építő Kft.,baloghandi81@gmail.com,ae372a6d-3027-5e88-a059-c1bf93868173,pontos_email,SENT_bizonyíték,1,3,0,1a17d5391ca3c637,9e826158-815a-4b03-b38a-a0359bbd0cd2,info@vibateam.hu
+Marketing 287 ellenőrzés,51,CIVIL Rendszertechnika Kft.,crt.titkarsag@civil.hu,31baba27-6ef5-57ab-84de-ca18a9d320b3,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,52,Cleanergon Kft.,office@cleanergon.hu,225512c3-c8cf-5d87-959b-2bf41a930992,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,53,Colas Magyarország Zrt.,magyarorszag@colas.hu,4e8bdcc8-f837-4663-9a0b-7af139e999cc,pontos_email,SENT_bizonyíték,1,2,0,1a163a40f63e6444,637f731f-4085-4297-87c7-0e8b291a42bf,info@vibateam.hu
+Marketing 287 ellenőrzés,54,ComplexIT Kft.,kozpont@complexit.hu,fe258f3c-ab8d-51c0-a8be-6f1a90c4d07b,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,55,CONFECTOR Kft.,confector@confector.hu,9e291519-ae84-4951-9940-cc0b91c7b20a,pontos_email,SENT_bizonyíték,1,1,0,1a163a60b28793e1,ed911977-d28f-43bd-a7b1-b3f01bb30787,info@vibateam.hu
+Marketing 287 ellenőrzés,56,CONIA – Projects & Services,info@coniakft.com,c8dc289d-1200-52e9-8034-c30f3e0dd855,pontos_email,nincs_tárolt_bizonyíték,0,0,0,,,
+Marketing 287 ellenőrzés,57,Controlsoft Automatika Kft.,berzsenyi.miklos@controlsoft.hu,953b252d-9605-5fb3-aaa6-e34888cbadca,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,58,ConWerk Villamosipari Kft.,info@conwerk.hu,4e284438-280b-5d97-8f9b-fa0342af3f30,pontos_email,SENT_bizonyíték,1,2,0,1a163c04e0f71373,11b6b82b-a362-4b65-85d0-d1e0d833a424,info@vibateam.hu
+Marketing 287 ellenőrzés,59,Creative Building Solutions Kft.,iroda.cbs@gmail.com,63de6381-607f-5c97-b434-03996751c5ec,pontos_email,SENT_bizonyíték,1,3,0,1a17d51dfa68a119,ff918ea3-00f5-49b2-bf85-9493878c7b66,info@vibateam.hu
+Marketing 287 ellenőrzés,60,CREO Építő Kft.,info@creoe.hu,eac43232-ae62-535e-b52b-59781db4b8ae,pontos_email,SENT_bizonyíték,1,3,0,1a17d529f0bac870,8db806f1-fcac-4844-a824-defc94c7cea5,info@vibateam.hu
+Marketing 287 ellenőrzés,61,CRITERION Biztonságtechnikai Zrt.,systems@criterion.hu,6910c43a-3745-524c-9361-0852fb207659,pontos_email,SENT_bizonyíték,1,2,0,1a163bf57b822640,2069710e-ca64-47e5-8ebb-79d5aef37b77,info@vibateam.hu
+Marketing 287 ellenőrzés,62,CTP Hungary,ferenc.gondi@ctp.eu,49769b66-59e3-55ce-85b5-a86bc2193cb3,pontos_email,SENT_bizonyíték,1,1,0,1a163a601fb5dd8f,56d7525f-827e-4f8b-b302-9eeabe25a0bd,info@vibateam.hu
+Marketing 287 ellenőrzés,63,Cushman & Wakefield Hungary,gergely.pados@cushwake.com,0da82061-2e39-4d16-b6b4-256afae89a35,pontos_email,SENT_bizonyíték,1,1,0,1a163a4fe3e1bded,5f8f98cd-2d59-4749-9232-b1d0eb636378,info@vibateam.hu
+Marketing 287 ellenőrzés,64,D2works,laszlo.csontos@d2works.hu,6415c9d2-d534-5e72-8ae0-4554378d8be7,pontos_email,SENT_bizonyíték,1,3,0,1a17d5154f90d459,9a25eb14-ba32-4e56-9dee-84a6bf7bf61e,info@vibateam.hu
+Marketing 287 ellenőrzés,65,Danubio Ingatlanfejlesztő,info@danubio.hu,107d120b-0345-4b46-adfa-a51a527cbde4,pontos_email,SENT_bizonyíték,1,1,0,1a163a5f5f2031a1,4e684e2a-f8a6-4cc3-9c0a-28264d502715,info@vibateam.hu
+Marketing 287 ellenőrzés,66,D&D PETROGAS Kft.,attila.dulai@gaspetrol.net,21d80ee3-d145-5639-9ece-ede3a770c277,pontos_email,SENT_bizonyíték,1,3,0,1a17d539af002144,d7070ded-0ee8-4400-82e2-b04c1549329f,info@vibateam.hu
+Marketing 287 ellenőrzés,67,Debreceni Városüzemeltető Kft.,info@dvu.hu,6c8c5ffd-c634-57cf-9cd7-116e20ec62b6,pontos_email,SENT_bizonyíték,1,2,0,1a163bf8ecec403f,3626bab7-2096-4907-981e-e3c25927ecf7,info@vibateam.hu
+Marketing 287 ellenőrzés,68,Délvill Kft.,iroda@delvill.hu,07329efc-6b45-595e-9326-fda20b54c432,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,69,Direkt-Vill Kft.,direktvill@t-online.hu,5c540eb8-acda-5451-a481-d1a610a66819,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,70,DOLCE HOME Kft.,dolcehomekft@gmail.com,a52f8ceb-aacf-508b-a64f-2c793f4ad636,pontos_email,SENT_bizonyíték,1,3,0,1a17d533cefa7155,171d4292-0d48-424b-a82f-6da02923ad47,info@vibateam.hu
+Marketing 287 ellenőrzés,71,Dorba Development Kft.,info@dorba.hu,182eb51d-e643-4ce9-9fd2-758569648bf2,pontos_email,SENT_bizonyíték,1,1,0,1a163a5eb152497d,c1f6afc4-377f-4554-b287-a04f6f059a5b,info@vibateam.hu
+Marketing 287 ellenőrzés,72,Doroblex Építőipari és Kereskedelmi Kft.,hanka.tibor@gmail.com,388203ac-2749-5e24-82df-d477fd6b79fb,pontos_email,SENT_bizonyíték,1,3,0,1a17d530290fb4ae,cc357349-cd68-4668-8783-52fc2cb16b14,info@vibateam.hu
+Marketing 287 ellenőrzés,73,Double D Builder Kft.,info@doubledbuilder.hu,9d88aae4-b366-4365-90d2-571cfa7cb4b8,pontos_email,SENT_bizonyíték,1,4,0,1a163677592e7e40,646209c1-90e4-4882-970f-5fc92846e4b9,info@vibateam.hu
+Marketing 287 ellenőrzés,74,Duna-Vill Kft.,info@dunavill.hu,b14f91a4-8005-5686-8422-116c48a664ca,pontos_email,SENT_bizonyíték,1,3,0,1a16365d587c88bf,5415859c-175f-4678-bc43-988812b29c90,info@vibateam.hu
+Marketing 287 ellenőrzés,75,DVM Group,info@dvmgroup.com,ec2ad189-2afb-4db9-ac9d-b6539bb7b871,pontos_email,SENT_bizonyíték,3,4,0,19ebaa018f2af2b7;1a16367be1b302f7;1a1a1ec198bab863,db176295-618e-4a86-a2c8-dbd56537beda;ee4821e9-9076-433f-be56-7e6550b893bd;fd19096c-1584-429a-becf-45fdba4a7a8b,info@vibateam.hu;pretor.laszlo@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,76,EB Hungary Invest Kft.,ebhinvest@ebhinvest.hu,e3e3a8b5-9ed2-4dd0-82d0-cd3064346282,pontos_email,SENT_bizonyíték,2,0,0,1a16376c5e86724c;1a1a1ebf52d18a8c,17247271-9b1e-4a9e-acf9-9ee351910a9b;71770771-b3f5-4770-a049-bd5592bdb3d5,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,77,Elektro-Install Kft.,olah.janos@elektro-install.hu,a4137f99-6528-5e3f-a296-0b51d898a654,pontos_email,SENT_bizonyíték,1,0,0,1a16376ead52ea00,ebe02a8f-be98-4c69-9131-67708a7243eb,info@vibateam.hu
+Marketing 287 ellenőrzés,78,Elektronika Vonala Biztonsági Megoldások Zrt.,info@lineelectronic.hu,294ef871-b353-592b-9979-abf2ed91307a,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,79,ELEKTRO PROFI Vállalkozási Kft.,vallalkozas@elektroprofi.hu,4f811ca1-a0ed-5544-9fa3-c4f4d442c02e,pontos_email,SENT_bizonyíték,1,2,0,1a163c07d1c28b64,57c80997-8f5b-4506-be86-1026a9565560,info@vibateam.hu
+Marketing 287 ellenőrzés,80,ELSZÖV-Automatika,vallalkozas@elszaut.hu,a21ef78a-102c-5073-a357-b3515b38f046,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,81,Energosun Investment Zrt.,invest@energosun.hu,a887f178-b9d7-5bfc-8c43-061002798d2f,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,82,Energo-Vill Kft.,info@energovill.hu,5e2c17d0-d013-56f2-81be-29ebf00968c7,pontos_email,SENT_bizonyíték,1,4,0,1a16366c73353b92,89452d01-1860-4aa9-91db-0b1a97c1296e,info@vibateam.hu
+Marketing 287 ellenőrzés,83,Energrid Solar,info@energridsolar.hu,e7483c6f-a43d-52c8-b99e-594af88c31b0,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,84,Energy Hungary Zrt.,iroda@energy-hungary.hu,a2ac04fa-0fe0-5b36-99c9-06a4276d6983,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,85,Energy Network Solutions Kft. / Omexom,omexom@omexom.hu,5156a891-35ee-513d-9a3f-74b9b152ce98,pontos_email,SENT_bizonyíték,1,2,0,1a163bfaa1dac424,2244e0a4-71eb-478f-a0ca-0b88e097986d,info@vibateam.hu
+Marketing 287 ellenőrzés,86,ÉPKÁR Zrt.,info@epkar.hu,657bed32-955e-40f4-8eba-a3558310b1ae,pontos_email,SENT_bizonyíték,1,4,0,1a1636768f611747,34f2d8dc-bfe1-44f0-b440-72f3975f50db,info@vibateam.hu
+Marketing 287 ellenőrzés,87,Épkomplex Kft.,epkomplex@epkomplex.hu,3f3b7f0c-e575-5f49-9af9-cc23580665a8,pontos_email,SENT_bizonyíték,1,3,0,1a17d5332c02ec0e,e77ad9b9-2f65-4d42-bbdc-183b9349f8c9,info@vibateam.hu
+Marketing 287 ellenőrzés,88,Epronex Építő Zrt.,adam.szabo@epronex.hu,858744e9-d2e5-532e-b62b-da417f298494,pontos_email,SENT_bizonyíték,1,3,0,1a17d53cd7426827,a0c8a332-f203-4bc8-a752-3fe8e63a54a4,info@vibateam.hu
+Marketing 287 ellenőrzés,89,EST8 Build Kft.,alexandra.nagy@est8build.hu,15853454-8f6f-5e74-a59a-1bcc697b735e,pontos_email,SENT_bizonyíték,1,3,0,1a17d53b9d10fcb7,2b7162df-30dc-4f47-82bf-fc6a6cb13f95,info@vibateam.hu
+Marketing 287 ellenőrzés,90,EVB Építő Kft.,info@miepitunk.hu,1d8553d6-4a3d-594f-b9f0-89e6358c120d,pontos_email,SENT_bizonyíték,1,3,0,1a17d52431d76528,5a5a5ea1-b513-48ec-8e31-6b40fdab11cb,info@vibateam.hu
+Marketing 287 ellenőrzés,91,Feher Construction Kft.,office@feherconstruction.com,d25b6b17-998e-56bb-b058-efe1c5ab7601,pontos_email,SENT_bizonyíték,1,3,0,1a17d50e1a334fcf,e3cbc577-6214-4b7d-8375-a57f34e582c3,info@vibateam.hu
+Marketing 287 ellenőrzés,92,Felépítmény General Kft.,felepitmeny@gmail.com,dc6cc2e0-1bc9-5d47-8599-c0a60d20c464,pontos_email,SENT_bizonyíték,1,3,0,1a17d530e17efa17,090a871f-9f45-436d-94e8-7cbe1862aa99,info@vibateam.hu
+Marketing 287 ellenőrzés,93,FiNor94 Kft.,info@finor94kft.hu,5ca5db22-f44f-57bc-881b-29d9884c0a5e,pontos_email,SENT_bizonyíték,1,3,0,1a17d52953a578b6,65fccadd-d629-4fe5-bcab-237a74e3aa27,info@vibateam.hu
+Marketing 287 ellenőrzés,94,Firetron Kft.,firetron@firetron.hu,f1de89a3-eb27-573e-93f4-cffda317fd6f,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,95,First Facility Ingatlankezelő Kft.,office.budapest@firstfacility.net,c1941a45-4cd2-5c2e-b19e-1ddd96aa0f8a,pontos_email,SENT_bizonyíték,1,1,0,1a163a5e02f7d602,2691504a-38aa-40af-a7aa-0d5bdef601a7,info@vibateam.hu
+Marketing 287 ellenőrzés,96,Fitout Zrt.,info@fitout.hu,8cb34c84-2903-4e6b-a54e-ca0e64adc648,pontos_email,SENT_bizonyíték,2,1,0,1a163a5d7343e086;1a1a1ebfb308ab24,4ee45eca-7aed-4b04-8382-6c53fc83cbb2;f8cdc83d-eb7d-451a-b5ca-20c163ee25ee,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,97,Flexmont Kft.,flexmont@flexmont.hu,6c7abbab-0362-51b8-b414-c274cb5412d1,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,98,Forest-Vill Zrt.,forest@forest-vill.hu,dd1bf40d-ea9a-5ead-932b-a08dd30b9daf,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,99,FORZA HUNGÁRIA Kft.,forzafumo@gmail.com,e1b57495-9381-5d02-89a4-ce7c705fa943,pontos_email,SENT_bizonyíték,1,1,0,1a163bf3a548dd0e,545ad80e-636d-40b9-a1c4-258fed571f98,info@vibateam.hu
+Marketing 287 ellenőrzés,100,Frame Group,home@frame.hu,03acc35a-df97-5f36-ac0f-558123e5acec,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,101,Futureal Csoport,info@futureal.hu,718bb12e-bb3e-4326-aa46-2770e8148026,pontos_email,SENT_bizonyíték,1,1,0,1a163a5cbee278ce,0d73d184-079a-474c-8b76-34e31129cdae,info@vibateam.hu
+Marketing 287 ellenőrzés,102,Gátiba Solar Kft.,info@gatibasolar.hu,eb9423b2-bd31-571a-aed6-eda246e2f758,pontos_email,SENT_bizonyíték,1,2,0,1a163bf6548692f0,a9be7bcd-f6cd-4cbd-b41b-6c77f1968492,info@vibateam.hu
+Marketing 287 ellenőrzés,103,GENERAL BUILDING Kft.,iroda@generalbuildingkft.hu,4b530b6d-4f4e-5e22-8e8a-59f5dbfb3ddc,pontos_email,SENT_bizonyíték,1,3,0,1a17d51d04fe5554,b421ae59-d9ba-4b4a-a907-2ef52ce9e3e5,info@vibateam.hu
+Marketing 287 ellenőrzés,104,GÉPVILLÉP Kft.,mail@gepvillep.hu,fad04276-69f1-5505-b877-460e7045b72e,pontos_email,SENT_bizonyíték,1,2,0,1a163bfd4b01d659,2f4b4ac7-0b87-4cb5-aa6b-77fe5e532c36,info@vibateam.hu
+Marketing 287 ellenőrzés,105,GLP Hungary,contact-hu@glp.com,5b9946e8-53ec-4b0d-8ff6-9a53b76c3914,pontos_email,SENT_bizonyíték,1,1,0,1a163a5c116c8600,f67b8bd2-4de7-487f-be47-9d91d8513429,info@vibateam.hu
+Marketing 287 ellenőrzés,106,GMT-Építő Kft.,2kop@2kop.hu,d8c5859f-85c7-439b-8e8b-f55fbcd4fb7c,pontos_email,SENT_bizonyíték,2,1,0,19eba9984481105a;1a163a4f3707d7fc,7d0b74df-5cb4-45e1-b04a-53c88a00e1ac;842a6074-1fe0-42a2-8637-7477dffa05ed,info@vibateam.hu;pretor.laszlo@vibateam.hu
+Marketing 287 ellenőrzés,107,GNX Engineering,info@gnx.hu,beea70c3-f39f-538c-ba5f-fc704830a9d3,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,108,GOLDBECK Hungária Kft.,info@goldbeck.hu,61fd441b-75b3-5bf6-8e05-13e43ed7249d,pontos_email,SENT_bizonyíték,1,3,0,1a17d528d425a7eb,726456eb-4f92-4a7c-b7d8-14f86175d54e,info@vibateam.hu
+Marketing 287 ellenőrzés,109,GRABARICS Építőipari Kft.,ingatlanfejlesztes@grabarics.hu,bf772f13-fcab-4138-b532-ba478e240228,pontos_email,SENT_bizonyíték,1,1,0,1a163a469cdee469,b5d705bd-67d8-4fd5-b38d-280f518b8e8d,info@vibateam.hu
+Marketing 287 ellenőrzés,110,Grandiva Group,info@grandivagroup.hu,29303d9a-29d5-5ed6-ae2b-c8665c069709,pontos_email,SENT_bizonyíték,1,3,0,1a17d5281dc525c7,73565098-a44a-490d-b24f-3a735a7ae151,info@vibateam.hu
+Marketing 287 ellenőrzés,111,Granimpex Kft.,info@granimpex.hu,b4dfa16c-0892-5ee2-a573-c576fc8df9cf,pontos_email,SENT_bizonyíték,1,4,0,1a1636749457db49,a4c432a0-cdbe-40b0-bbeb-af5ea1f9befd,info@vibateam.hu
+Marketing 287 ellenőrzés,112,GRM Construction Team Kft.,info@grmc.hu,e0b6fc09-ae2a-55d6-9078-87e18625fac4,pontos_email,SENT_bizonyíték,1,3,0,1a17d527752aacd8,3c810e1b-6678-4d3e-9892-8a4e7519789a,info@vibateam.hu
+Marketing 287 ellenőrzés,113,GTC Magyarország Zrt.,office.hu@gtcgroup.com,5cf7b2ee-2e16-4be3-a9ff-c0eb06051ea3,pontos_email,SENT_bizonyíték,1,1,0,1a163a5b648dcbe9,076a6f1e-3d65-40a2-8f4d-2e696e9fa8e8,info@vibateam.hu
+Marketing 287 ellenőrzés,114,H1 Systems Mérnöki Szolgáltatások Kft.,info@h1systems.hu,54a915cc-fbb7-570e-bb68-cd1b498ce93b,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,115,Hajdú Construction Kft.,info@kivitelezzuk.hu,4a9f5e2b-1a61-4c83-ae68-f5acdd2227cb,pontos_email,SENT_bizonyíték,2,1,0,1a163a4e596c3f76;1a18c0e6794dd99a,5ea40f97-0943-4ca9-a20a-b5a27445d690;dfbc665e-71b2-4a74-87f4-93d37efd96ae,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,116,HÁsZ Kft.,halmitamas@hasz.hu,74697f65-8a60-5ef0-b34c-fcaf616cfc9a,pontos_email,SENT_bizonyíték,1,3,0,1a17d531639b2a41,a4cb1243-4a56-4bcf-a1a4-eea067789e0a,info@vibateam.hu
+Marketing 287 ellenőrzés,117,Homedom Kft.,homedomkft@gmail.com,192c369e-e255-53c3-ae4d-71a42b677975,pontos_email,SENT_bizonyíték,1,3,0,1a17d52f2ccf499c,f271ddbc-9065-4a15-ab6f-b803ea3ac682,info@vibateam.hu
+Marketing 287 ellenőrzés,118,Horváth Hálózatépítő Kft.,orsolya.ferencz@horvathkft.hu,a0b83c6e-baf2-55b2-814d-2413ee0df6ce,pontos_email,SENT_bizonyíték,1,2,0,1a163bf9a078b2b0,5232ef2b-daee-45a7-aa6f-d8449eaed12e,info@vibateam.hu
+Marketing 287 ellenőrzés,119,HT Engineering Services Kft.,horvath.attila@htes.hu,fe2b39d8-3273-5693-b330-4880fd25b190,pontos_email,SENT_bizonyíték,1,3,0,1a17d52e841d672b,c5e6202d-9ba2-4b28-aecd-466be1197b9e,info@vibateam.hu
+Marketing 287 ellenőrzés,120,HUNÉP Zrt.,titkarsag@hunep.hu,2960dca6-4f43-4aff-a648-235b5632fa37,pontos_email,SENT_bizonyíték,1,2,0,1a163a45e4ede5d8,b228ebfe-fce6-416e-a2e5-f24356ff80c5,info@vibateam.hu
+Marketing 287 ellenőrzés,121,HungaroJuice Kft.,info@hungarojuice.hu,022ea3b7-7cd7-5922-ac64-1d1c858e21e8,pontos_email,SENT_bizonyíték,1,3,0,1a17d526cfac8ebe,1df0a463-70ad-4e2d-bdf5-4cb60b3dc2fa,info@vibateam.hu
+Marketing 287 ellenőrzés,122,Hunyadi Kft.,info@hunyadi.hu,26348e8c-ba40-5a09-88b4-0bbc2cb18c59,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,123,IBG Magyarország Kft.,info@ibg.hu,e5c6dd57-c850-5de8-8ff3-969b0cb9117b,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,124,IGL Construct Kft.,d.sas@igl-construct.com,5d5c681e-647d-5cee-a462-fd9c485820d4,pontos_email,SENT_bizonyíték,1,3,0,1a17d53462405615,637c01fc-795b-42bb-afd4-e796298262d7,info@vibateam.hu
+Marketing 287 ellenőrzés,125,INFOWARE Zrt.,viragi@infoware.hu,5a03dad5-2522-52b0-9906-558fbe3f0a9a,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,126,Innovart Energia Kft.,szendro.akos@innovart.hu,6c8a749e-9f72-5761-a1a1-9a97f04576ea,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,127,Innovatív Napelem Kft.,ugyfelszolgalat@innovativnapelem.hu,9b46e7a2-8232-5feb-94c4-5b868dfb8541,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,128,Intelvill Mérnöki Kft.,info@intelvill.hu,e5fbb5b0-782a-5033-bc93-3bb40bac0739,pontos_email,nincs_tárolt_bizonyíték,0,0,0,,,
+Marketing 287 ellenőrzés,129,Jankovics Generál Kft.,jankovics@jankovics-general.hu,eeb2279d-f9be-5942-bbf5-64cbd2252d0e,pontos_email,SENT_bizonyíték,1,3,0,1a17d51aac28f820,a532c1ae-8f39-4a14-b36f-1dccd2f799bc,info@vibateam.hu
+Marketing 287 ellenőrzés,130,Kelet-Solar Kft.,info@keletsolar.hu,62b071c0-20ea-5d7a-bde0-bc39c5ccf8b3,pontos_email,SENT_bizonyíték,1,2,0,1a163bf2a2719c3d,42608890-133f-46eb-ab9a-8c815e82b36c,info@vibateam.hu
+Marketing 287 ellenőrzés,131,KÉSZ Group / KÉSZ Építő,keszgroup@keszgroup.com,ab0810fe-6432-4891-9706-e23de1f76d13,pontos_email,SENT_bizonyíték,3,3,0,1a0e6dec4dba1e9b;1a163a485bec0b58;1a1a1ec1fa4a65c1,266c43c1-3914-4ffd-b6e1-2b6944b67fcd;ba411ede-4ffa-4ae8-9696-33771fe933e7;e928d621-7837-447f-914e-57cf1a46b234,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,132,Kinex Építő Kft.,info@kinex.hu,990bbc3d-48df-5ecf-ab4e-0b4519c7c413,pontos_email,SENT_bizonyíték,1,4,0,1a163673ee881f15,4cb744ee-6f0d-4def-8b7d-beb0a27cc432,info@vibateam.hu
+Marketing 287 ellenőrzés,133,KIRÁLY-VILL Kft.,kiralyvill@kiralyvill.hu,1a94710a-960a-5034-8cc3-4547fccdd066,pontos_email,SENT_bizonyíték,1,2,0,1a163bff8e6c8930,029a859c-36da-4986-a289-1e534dbc1de1,info@vibateam.hu
+Marketing 287 ellenőrzés,134,KISÉP-GENERAL Kft.,kiss.rudolf@kisepgeneral.hu,9d1718e6-df46-575d-9df9-5110ce103ad8,pontos_email,SENT_bizonyíték,1,3,0,1a17d5180dcb5073,c99701b6-1bf5-4121-a3ed-e9a5a1f3b326,info@vibateam.hu
+Marketing 287 ellenőrzés,135,KKS-Energy,kks@kks-energy.hu,a0143f89-0a28-59de-bc1f-42454f5da7b1,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,136,KRAFT / KRAFT-Tech,info@kraft-tech.hu,41bb1969-e041-5a55-a11c-894096567928,pontos_email,SENT_bizonyíték,1,0,0,1a16376d74dd1e81,17648f10-4f86-49a9-a3eb-882c58940448,info@vibateam.hu
+Marketing 287 ellenőrzés,137,KUJBUS-ELEKTRO Kft.,vevoszolgalat@elektroshopdebrecen.hu,819337af-109f-54a9-81f1-164df2edca2a,pontos_email,SENT_bizonyíték,1,2,0,1a163bff1ce4c3ee,64494ade-b95d-402e-9d55-3e1c0e377544,info@vibateam.hu
+Marketing 287 ellenőrzés,138,Lak-Pro-Vill Kft.,lakprovillkft@gmail.com,cd288956-c13f-59c6-b01c-840bc95c8eb6,pontos_email,SENT_bizonyíték,1,3,0,1a17d51605f58cea,cd7a483e-13a7-4dc5-8e62-bd9f0eb5ad25,info@vibateam.hu
+Marketing 287 ellenőrzés,139,LANZO Kft.,ajanlat@lanzo.hu,4130b767-518a-514e-8619-499dd578b31e,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,140,Larion Generál Kft.,info@lariongeneralkivitelezes.hu,5c7169fb-2dcd-5b24-a45d-790c93f3ee8a,pontos_email,SENT_bizonyíték,1,3,0,1a17d5263b46566c,05de6347-d245-4977-99b1-4e60f81a7d00,info@vibateam.hu
+Marketing 287 ellenőrzés,141,Lat-Elektro Kft. (LATEREX csoport),info@latelektro.hu,19df2fe0-969d-5066-8219-dc387ab3ad3b,pontos_email,SENT_bizonyíték,1,0,0,1a163769d06a4057,ce17e232-45c1-4355-80df-3a106de3ce3a,info@vibateam.hu
+Marketing 287 ellenőrzés,142,L-Build Kft.,info@lbuild.hu,12421f21-7d72-4bb0-b204-e4414146ad8f,pontos_email,SENT_bizonyíték,1,1,0,1a163a5ac1a5d102,8e19fb8f-de76-4bf7-875d-17f267cc6b49,info@vibateam.hu
+Marketing 287 ellenőrzés,143,L-CONT Villamossági Kft.,ker@l-cont.hu,61c126a1-0c01-5d0e-a0d6-4e57be69fae2,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,144,Les Ildzsas Zrt.,info@lesildzsas.hu,29bb62e0-2698-5264-bb52-43b8d8868a77,pontos_email,SENT_bizonyíték,1,3,0,1a17d52572b584bf,03e2f530-26a9-46e2-94ba-6a4d99ed09ad,info@vibateam.hu
+Marketing 287 ellenőrzés,145,Lifesun Trade Kft.,info@lifesuntrade.hu,9b80a88e-f68c-5212-8226-0ebb3d272a33,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,146,LSATech Kft.,ertekesites@lsa.hu,69c8d5e2-aea6-5782-ac53-11876cf67951,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,147,Lux Home Bau,iroda@luxhomebau.hu,1436345a-0eb6-5166-879c-be8c4a079b06,pontos_email,SENT_bizonyíték,1,3,0,1a17d51c7e79c21f,b24a1e89-3821-4310-8c52-a4b21a2a56bd,info@vibateam.hu
+Marketing 287 ellenőrzés,148,Magyar Építő Zrt.,info@magyarepito.hu,69f71fdb-4da2-4133-8215-a3df7f613c94,pontos_email,SENT_bizonyíték,1,4,0,1a163683dfc2565e,0bbeb8ee-c2e1-40f4-9f3a-0cdcddab43cb,info@vibateam.hu
+Marketing 287 ellenőrzés,149,Magyar Konstruktőr Kft.,info@minosegmagyar.hu,f8677f64-8e30-43f5-acfb-8591be846cb5,pontos_email,SENT_bizonyíték,1,1,0,1a163a4d288ca1c4,2cf2715b-92f9-4660-b45d-6bb0f8b4be8b,info@vibateam.hu
+Marketing 287 ellenőrzés,150,MAXMAL EISEN Kft.,info@maxmal.hu,ee432649-8a9e-5f1b-a062-dc43ea4d4a93,pontos_email,SENT_bizonyíték,1,3,0,1a17d524d8a03651,d9ad200d-59f0-499a-9d8d-8b81f317bc4b,info@vibateam.hu
+Marketing 287 ellenőrzés,151,MC ALEC / NOVACRAFT – cégazonosítás tisztázandó,arajanlat@novacraft.hu,4b968e29-44d5-59d4-9db1-36317d86f3a4,pontos_email,SENT_bizonyíték,1,3,0,1a17d53ad38c2bfa,98e11896-3685-4a81-9c16-bd12a98eef77,info@vibateam.hu
+Marketing 287 ellenőrzés,152,Mecsek Energetika Kft.,info@mecsekenergetika.hu,206290d6-1ed8-56b0-96f1-85e76759ba62,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,153,Megavill Kft.,info@megavill.hu,55ff7f0d-2bb2-5a92-bca9-5100404c2bfb,pontos_email,SENT_bizonyíték,1,4,0,1a16366d6692cff4,414704c2-6127-485f-b2d7-56502d57bef5,info@vibateam.hu
+Marketing 287 ellenőrzés,154,MEGAWATT VILLAMOSIPARI Kft.,megawatt@megawatt.hu,ec518a67-3f61-53c5-b796-bb4fd7d22f37,pontos_email,SENT_bizonyíték,1,2,0,1a163c059b36da84,b8f50997-f4ee-44c1-8160-a62ed28a047f,info@vibateam.hu
+Marketing 287 ellenőrzés,155,Melde Kft.,info@melde.hu,4a231d9a-701e-543e-893c-7fc05939840a,pontos_email,SENT_bizonyíték,1,2,0,1a163c08649a6aee,8acfb4b1-bc0b-474c-a3f1-5a10397bac10,info@vibateam.hu
+Marketing 287 ellenőrzés,156,MERKBAU Zrt.,office@merkbau.hu,9d2e2130-fce1-4c37-94d1-ad44951d42ba,pontos_email,SENT_bizonyíték,2,0,0,1a16376937bef808;1a1a1ec2510fdfef,30a04d0f-737a-4098-80e3-9e11d3184714;d95fb823-c519-463c-b172-81ee50a12368,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,157,METÓ Építő Zrt.,ajanlat@metoepito.hu,4cbc494c-9a3b-45eb-ab9c-a2a941ce61f9,pontos_email,SENT_bizonyíték,1,0,0,1a16376a84361c57,3017beab-e2d0-4356-a2a3-9b1e8fa243a4,info@vibateam.hu
+Marketing 287 ellenőrzés,158,Metrodom,info@metrodom.hu,cc928544-7c12-44e4-8610-a3643fe45f60,pontos_email,SENT_bizonyíték,1,1,0,1a163a47b19a2cb7,11ed74bc-00d6-42ec-8ef2-73f337fb7674,info@vibateam.hu
+Marketing 287 ellenőrzés,159,MFB-Ingatlanfejlesztő Zrt.,malyusz.levente@mfbingatlan.hu,70d3696b-6b57-4171-931b-91a23a678cfa,pontos_email,SENT_bizonyíték,1,1,0,1a163a5a0da4e11c,fbbd7afa-fcc3-4779-b87d-9a834c529771,info@vibateam.hu
+Marketing 287 ellenőrzés,160,MKT 98 Kft.,mkt98kft@gmail.com,3b43874e-ef49-59ef-8a1d-c82790c4c6f5,pontos_email,SENT_bizonyíték,1,3,0,1a17d50f761b6869,8abc5f32-3fc8-46d7-a3ff-3b1f0ce4d26d,info@vibateam.hu
+Marketing 287 ellenőrzés,161,M & L-Sec Kft.,mlsec@mlsec.hu,fcf3fcff-7369-504d-b457-25f89756d415,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,162,Molnár-Ház Kft.,info@molnargeneral.hu,a66b7e3a-26f2-41a7-b85e-b7b9a5b189e7,pontos_email,SENT_bizonyíték,1,3,0,1a17d52389b0caec,e868c6b5-4d04-473d-ad95-de51c5a27ff5,info@vibateam.hu
+Marketing 287 ellenőrzés,163,MOVASOL GROUP,info@movasol.hu,40d5885d-52c5-5c88-82b6-3d52d134964b,pontos_email,nincs_tárolt_bizonyíték,0,0,0,,,
+Marketing 287 ellenőrzés,164,Multi-Vill Kft.,multivill@multivill.hu,9a9a4aa2-6c34-5298-8d32-feedc100259b,pontos_email,SENT_bizonyíték,1,0,0,1a16378f81470d20,60a8cc21-b184-43ce-bfc7-05d15dd09bdb,info@vibateam.hu
+Marketing 287 ellenőrzés,165,NAGY-INVEST GROUP Kft.,info@nagyinvestgroup.com,91ddcb48-1c15-57ff-9f55-67c140605457,pontos_email,SENT_bizonyíték,1,3,0,1a17d522e5c3c03b,beada36c-9842-4b67-8ba3-04c2e99c2ad4,info@vibateam.hu
+Marketing 287 ellenőrzés,166,Need Plus Kft.,sarkozy.balint@needplus.hu,4e667a56-25f8-5fcb-85ca-dbba878f8580,pontos_email,SENT_bizonyíték,1,3,0,1a17d50c1799ee00,286dcad9-b87a-43d4-9c60-21d3e57140fa,info@vibateam.hu
+Marketing 287 ellenőrzés,167,New Age Properties Kft.,hello@nap.hu,138f4544-55ed-46c8-8192-5ca05a6f47d5,pontos_email,SENT_bizonyíték,1,1,0,1a163a59647d98c6,1ceb4290-6e2c-4c17-8ae4-f9f586b214af,info@vibateam.hu
+Marketing 287 ellenőrzés,168,NewBorn Construction Kft.,info@newbornconstruction.hu,8189ab13-a453-57c3-bbd4-e9a788a42132,pontos_email,SENT_bizonyíték,1,3,0,1a17d5227a91a96a,baa9eb82-baeb-496d-b804-3f564e0f341a,info@vibateam.hu
+Marketing 287 ellenőrzés,169,NEWERGIES Kft.,info@newergies.com,a0978887-9704-5a0e-a6dd-b8a708ffd7ca,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,170,NOMEON Technologies Ltd.,norbert.ruff@nomeon.hu,a7e5befe-e729-53e1-ab7f-2f4670a45bad,pontos_email,SENT_bizonyíték,1,3,0,1a17d50ed07ceb80,0b02cf24-6f1a-4888-a5c1-ccc5f8c80f36,info@vibateam.hu
+Marketing 287 ellenőrzés,171,NORDIC SYSTEMS Kft.,info@nordicsystems.hu,8f592b1d-847c-57c6-be9a-4007869225fc,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,172,NOVEX Biztonságtechnika,budapest@novex.hu,8bfecce6-d9a8-5d02-8b22-67545ce85b59,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,173,NOVOTERM-96 Kft.,jurec.m@novoterm.hu,4d9c5573-e1ec-5066-abdb-887519dda5f2,pontos_email,SENT_bizonyíték,1,3,0,1a17d5194f148d66,edb95992-fcb9-4bba-aca5-81630ece1c8d,info@vibateam.hu
+Marketing 287 ellenőrzés,174,NRG Services Kft.,info@nrgservices.hu,32dd8a00-cd31-58a1-ae85-91b4528aeafd,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,175,Óbuda Group / Újlaki Építő Kft.,ujlaki@ujlaki.hu,35c4c18e-bec2-5f6e-9531-f687c28b7178,pontos_email,SENT_bizonyíték,1,1,0,1a163a51d1257ad8,90af920c-7fa2-49e6-a28a-7602fffa5d66,info@vibateam.hu
+Marketing 287 ellenőrzés,176,Panattoni Hungary,huinfo@panattoni.com,f764eab3-55b7-4ff8-8108-1b5246b93084,pontos_email,SENT_bizonyíték,1,0,0,1a16376ccae2d463,b81c9cb0-8145-428b-a83a-c9b583d46b01,info@vibateam.hu
+Marketing 287 ellenőrzés,177,Pannon Solar Holding Kft.,info@psh.energy,e76e200b-bfee-5874-b26c-0ae51984a945,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,178,ParalelBau Kft.,info@paralelbau.hu,c0684fb6-aaaa-58e5-8884-41e8af164932,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,179,PARTUM Generálkivitelező Kft.,info@partum.hu,60f65cc3-869c-515b-8473-16ea6e843ce9,pontos_email,SENT_bizonyíték,1,3,0,1a17d521dd02bf91,13131d64-c578-4a5d-93f0-397fdff21e87,info@vibateam.hu
+Marketing 287 ellenőrzés,180,PATOM Zrt.,info@patom.hu,79d2a401-dc8c-4eb6-aaba-62d4712265c7,pontos_email,SENT_bizonyíték,1,1,0,1a163a588bff14f0,52c56006-1fe1-4add-8bfb-ffaa1aa85c48,info@vibateam.hu
+Marketing 287 ellenőrzés,181,Pearl Enterprises Kft.,info@pearl-energia.hu,c2687516-f97e-5456-bd0f-e50d78968c90,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,182,Pedrano Group,info@pedrano.com,eac4c9aa-9fcf-4e69-ae18-0165b44f89b2,pontos_email,SENT_bizonyíték,2,4,0,19ebabc1cb225e80;1a16367dcf2c2420,4bb64d75-4e0b-4e1c-bd0a-69658e51b973;af61924b-e3da-43c6-898c-640fbc723e35,info@vibateam.hu;pretor.laszlo@vibateam.hu
+Marketing 287 ellenőrzés,183,Peka Solar Kft.,info@pekasolar.hu,a4388cd4-96a7-5931-b1cc-af36b366a6bd,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,184,Penta-Elektrik Kft.,penta@penta-elektrik.hu,c0c9f2ed-5176-5273-ab53-6657f5e1cbde,pontos_email,SENT_bizonyíték,1,2,0,1a163bfc63e7d8b1,847f2953-7084-4354-9da3-cef910ec884b,info@vibateam.hu
+Marketing 287 ellenőrzés,185,Penta Építőipari Kft.,iroda@pentakft.hu,78a96758-b71e-4b4f-aa8b-e51d1ad38ad4,pontos_email,SENT_bizonyíték,1,2,0,1a163a3f5fb15525,26095ec3-b95b-48fe-9e4e-6e31f39f0ed0,info@vibateam.hu
+Marketing 287 ellenőrzés,186,Pesti Építő Zrt.,pestiepitozrt@gmail.com,765113e3-de13-5d75-8ad5-db9357a4354b,pontos_email,SENT_bizonyíték,1,1,0,1a163a57f277c608,ab402dbf-8a8e-4df0-87e7-cfbe8cf048e4,info@vibateam.hu
+Marketing 287 ellenőrzés,187,P&G Elektrobau Kft.,iroda@pgelektrobau.hu,292073ef-8844-5571-9f7e-65784e1f0a84,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,188,PLE Group Kft.,zs.pap@ple.hu,ae966ff5-8e80-5e0f-bd15-2be14e677d07,pontos_email,SENT_bizonyíték,1,3,0,1a17d5068fbb120c,bceea3fa-e9cd-4367-94ae-5c3cc3d45e84,info@vibateam.hu
+Marketing 287 ellenőrzés,189,PLG Szolgáltató Zrt.,plg@plg.co.hu,93dc44f8-040c-59b2-aeab-9b602d71b997,pontos_email,SENT_bizonyíték,1,2,0,1a163c00ac50a439,20c24146-3b9a-44cf-ba83-a84a5f1eb3f0,info@vibateam.hu
+Marketing 287 ellenőrzés,190,POLAR-STÚDIÓ 2. Kft.,levai.agnes@polar2.hu,383cc2ad-9647-5b06-8376-baa8725840d8,pontos_email,SENT_bizonyíték,1,2,0,1a163c0242ac8c5c,af78df90-2aee-4ae9-9e74-a14c11283d2d,info@vibateam.hu
+Marketing 287 ellenőrzés,191,Prémium Extra Építőipari Kft.,farago.andras@premiumextra.hu,8754e251-8947-5d1d-bb71-463fc4fa10df,pontos_email,SENT_bizonyíték,1,3,0,1a17d53202ee24f3,0104e925-f63d-4894-8eb5-1d5aead0b9ae,info@vibateam.hu
+Marketing 287 ellenőrzés,192,Pro Electro Kft.,kondor.oliver@gmail.com,20147f24-99eb-51dd-8ee4-6d042b375623,pontos_email,SENT_bizonyíték,1,0,0,1a163790e0ac8ca8,d4552386-f172-457d-93a5-11d6239b819e,info@vibateam.hu
+Marketing 287 ellenőrzés,193,Prologis Hungary,zhunyadi@prologis.com,51ec5f41-0010-4b21-8517-3334b885c41f,pontos_email,SENT_bizonyíték,1,1,0,1a163a5744049861,c357e3ab-af9a-4ad7-897b-98608131995b,info@vibateam.hu
+Marketing 287 ellenőrzés,194,Promexa Business Solutions,info@promexa.com,f9e09725-5cc5-5b80-991b-9e79a693b1f5,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,195,Prosperitás Épszer Kft.,szabo@prosperitas-epszer.hu,68da2923-92b6-518e-aad3-e0363f019c72,pontos_email,SENT_bizonyíték,1,3,0,1a17d509f23169ba,29bee699-97e7-4e00-846d-fe395bc7c8fb,info@vibateam.hu
+Marketing 287 ellenőrzés,196,RAL Elektro Kft.,info@ralelektro.hu,4d1464a8-22f1-4d90-ab21-a37b4a2d3694,pontos_email,SENT_bizonyíték,1,2,0,1a163c0479605fa8,da86b5a0-f938-4627-bbd9-bb52c8c95e36,info@vibateam.hu
+Marketing 287 ellenőrzés,197,Ready System Kft.,info@readysystem.hu,270bef3b-8f24-43d4-a889-2f21fdc37bf4,pontos_email,SENT_bizonyíték,1,1,0,1a163a4c924d9ffd,929bf14e-2c58-461b-9a81-a9a15d219e72,info@vibateam.hu
+Marketing 287 ellenőrzés,198,Revcolor Kft.,info@revcolor.hu,74e2ea73-4fa0-57c7-8cbd-79108132e595,pontos_email,SENT_bizonyíték,1,3,0,1a17d5211f23511c,a0489e30-668c-406a-a4ea-23fa2990e9ca,info@vibateam.hu
+Marketing 287 ellenőrzés,199,Rezideo,hello@rezideo.hu,6d34ed16-0a2b-4dec-ab54-a5e3ebcc721b,pontos_email,SENT_bizonyíték,1,1,0,1a163a56d98fb822,4e5d9b8a-93dd-4c54-9952-e984885ec0c8,info@vibateam.hu
+Marketing 287 ellenőrzés,200,Robot-X Hungary,mail@robot-x.hu,bab6681d-513a-5030-bfeb-67fd5590e523,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,201,Safel Building Industry Kft.,info@safelbuilding.hu,6cbdc56f-ccc0-5d72-aa16-0d158fbaafb1,pontos_email,SENT_bizonyíték,1,3,0,1a17d5205a541130,c3b351da-291e-4b29-badf-a77d28c50ea7,info@vibateam.hu
+Marketing 287 ellenőrzés,202,SBT Protect Kft.,info@sbtprotect.hu,ee157b5a-f393-5d2f-bf4b-4fd035d94b55,pontos_email,SENT_bizonyíték,1,2,0,1a163bf49b1107dc,d0bb4734-7fc9-4723-a853-df40e1ab38d4,info@vibateam.hu
+Marketing 287 ellenőrzés,203,SCADA GROUP,mail@scada-group.hu,59e4a145-24b8-5933-ac6e-5db822783af5,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,204,SCHOTT Hungary Kft.,pph@schott.com,996d226f-747a-4f16-a573-1226ad502520,pontos_email,SENT_bizonyíték,1,2,0,1a163a44b2c79f89,43f98a59-cc0d-4c22-85bc-e6867663de39,info@vibateam.hu
+Marketing 287 ellenőrzés,205,SEC-COM-LINE BAU Kft.,info@sclbau.hu,13241e5a-d51f-5f41-b681-fb49e656ba02,pontos_email,SENT_bizonyíték,1,2,0,1a163bfe8a0154ed,5232708b-9391-4f02-8b9f-d4f3ca95403d,info@vibateam.hu
+Marketing 287 ellenőrzés,206,SISKIN,muszaki.koordinacio@siskin.hu,b177837b-d710-5061-8d78-c4000564c6b2,pontos_email,SENT_bizonyíték,1,1,0,1a163a562bae6ce5,d9a868eb-dd27-4722-8aae-9caa13d8ee59,info@vibateam.hu
+Marketing 287 ellenőrzés,207,Skanska Property Hungary,property@skanska.hu,e4325396-9e04-5bd2-965c-4b153d84355e,pontos_email,SENT_bizonyíték,1,1,0,1a163a54f2be7306,8891a26f-4c2b-4768-8057-12ab2bf0945d,info@vibateam.hu
+Marketing 287 ellenőrzés,208,SmartEra Consulting Kft.,kapcsolat@smarteraconsulting.hu,6a53e560-1db5-5dfe-90e6-18739f6001d1,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,209,SmartFM Ingatlanüzemeltető Kft.,office@smartfm.hu,41a8d657-432f-4fe9-a6be-6de28d1213e9,pontos_email,SENT_bizonyíték,1,1,0,1a163a53e99bef47,f6cc92cc-e8e9-4faa-b3da-95365694d0f4,info@vibateam.hu
+Marketing 287 ellenőrzés,210,SMC-HVK Group,info@smcgroup.hu,26679982-f279-5194-81af-bdd83bbed62c,pontos_email,SENT_bizonyíték,1,3,0,1a17d51f99178c0b,8cd96729-8a21-4d68-8332-9ba473b815d7,info@vibateam.hu
+Marketing 287 ellenőrzés,211,Soglia Kft.,sogliakft@gmail.com,a70631bf-1b2a-5d8b-a42a-07b0e065f2c5,pontos_email,SENT_bizonyíték,1,3,0,1a17d50b46b2c031,39c4459d-2378-401b-bec1-1e344211a7ac,info@vibateam.hu
+Marketing 287 ellenőrzés,212,Solared Panel Kft.,info@solared.hu,0a30c792-104e-55e5-be03-fe730549ec5f,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,213,Solargroup Energy Kft.,info@solargroup.hu,202dc100-b0b9-51bb-b71f-3416a6d18d61,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,214,Solaris EPC Kft.,info@solarisenergy.hu,8d198323-8092-5364-a220-04c6acff94b2,pontos_email,nincs_tárolt_bizonyíték,0,0,0,,,
+Marketing 287 ellenőrzés,215,SOLARKIT Europe Kft.,info@solar-kit.hu,e429853a-4800-5372-84e2-bdb9619b79c1,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,216,Solar Konstrukt Kft.,info@solarkonstrukt.hu,8ba3c86f-a9c3-50fe-8bd4-0431ecdd51c2,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,217,SPIE Hungária Kft.,kozbeszerzes@spie-hungaria.hu,3ce4d06c-f772-5470-a27b-e7de7f163871,pontos_email,SENT_bizonyíték,1,0,0,1a16376e13e9fe32,f0fca6a9-b8b2-4032-bd30-7f3863977acd,info@vibateam.hu
+Marketing 287 ellenőrzés,218,STETTIN-HUNGARIA Kft.,budapest@stettin-hungaria.hu,3900c667-e2cc-4766-b61b-38c73837df71,pontos_email,SENT_bizonyíték,1,2,0,1a163a4321a40afe,401bca22-5133-41f6-bebf-800fc007e87d,info@vibateam.hu
+Marketing 287 ellenőrzés,219,STRABAG Építő Kft.,info@strabag.hu,653d1e81-17e6-5c51-b423-58ab5ab1acdf,pontos_email,SENT_bizonyíték,1,4,0,1a163681b0bc76f2,a3272edc-0837-44ae-8cae-dc132d32d609,info@vibateam.hu
+Marketing 287 ellenőrzés,220,Stratos Magasépítő Zrt.,papp.gabor@stratos.hu,4c2667f7-8e37-5c41-881d-d5070d2fa0fc,pontos_email,SENT_bizonyíték,1,3,0,1a17d50d6bb57e72,c8d04f5f-cc8a-41a2-9358-d4754a30034f,info@vibateam.hu
+Marketing 287 ellenőrzés,221,STRUKTOR Kft.,struktorkft@gmail.com,078229e2-5b12-572b-be67-ee5aa5a2d79c,pontos_email,SENT_bizonyíték,1,3,0,1a17d50a80c2d17b,f004aa3d-f67b-452d-9e65-086db0717974,info@vibateam.hu
+Marketing 287 ellenőrzés,222,SUNdroid,info@sundroid.hu,a592a000-244d-5252-937c-4d2adf9e05ee,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,223,SWIETELSKY Magyarország Kft.,info@swietelsky.hu,995e1cb3-4278-4823-975c-92be23b73368,pontos_email,SENT_bizonyíték,2,4,0,19ebaa718f74bbb4;1a163680f73d074c,5b1815ea-afd8-4a9b-b2f3-fb020f0dffc6;9e01c46e-9166-4ac9-9f8d-0694c627f0e8,info@vibateam.hu;pretor.laszlo@vibateam.hu
+Marketing 287 ellenőrzés,224,Synergy Industrial Solutions / SYNERGY CONSTRUCT,duygut@syncons.eu,5a9c7e4d-6c3b-521e-8583-e10f995f4489,pontos_email,SENT_bizonyíték,1,3,0,1a17d532ae182f46,0f1b16f9-3680-47db-b1f6-a73842eb8116,info@vibateam.hu
+Marketing 287 ellenőrzés,225,SZ-VOLT Kft.,info@sz-volt.hu,70660d09-d427-5299-a612-eaedc12aabb7,pontos_email,SENT_bizonyíték,1,2,0,1a163c002f00fee8,120565b9-5222-4af4-a2fc-9d8cc42048c6,info@vibateam.hu
+Marketing 287 ellenőrzés,226,Takenaka Europe GmbH – Hungary,info@takenaka.hu,9869e1fd-5e96-5e5c-a6cc-8b7ec7548b0b,pontos_email,SENT_bizonyíték,1,2,0,1a163a43dbe16931,5b63ab32-d27c-4f85-b943-80ae3ed7d189,info@vibateam.hu
+Marketing 287 ellenőrzés,227,Tall Tech Épületvillamosság Kft.,info@talltech.hu,a39fe22d-6302-4eda-9167-a0244a4eae26,pontos_email,SENT_bizonyíték,1,1,0,1a163a4afce27a7e,4f3d4480-2173-4c18-a8b9-5b1ad7c7b51c,info@vibateam.hu
+Marketing 287 ellenőrzés,228,Tamásy Kft. / Europabau,tamasy.gabor@europabau.hu,69b67812-1f07-4ef5-ab07-08f7949ff884,pontos_email,SENT_bizonyíték,2,2,0,19fb243716758590;1a163a3e806cb90d,a6b3c063-3f5e-433b-b42c-71e9c3e4bf77;ac3f4f89-a77e-446d-95f8-a72010910bcc,info@vibateam.hu
+Marketing 287 ellenőrzés,229,Tánci Kft.,iroda@tancikft.hu,a8036505-a15a-5bbe-b6e1-663538705447,pontos_email,SENT_bizonyíték,1,2,0,1a163bfbe89bc0df,b021fdad-1da1-46c8-a8e9-e6c4c0fc624c,info@vibateam.hu
+Marketing 287 ellenőrzés,230,Techniq 2000 Kft.,info@techniq.hu,25ab3b98-d50d-58c7-b870-9c7820949297,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,231,TEGA-BAU Kft.,tegabau@t-online.hu,ef54d883-76d4-5a1c-aea4-7db968b649cf,pontos_email,SENT_bizonyíték,1,3,0,1a17d50946b143db,9703abf4-01fa-40d9-ad8a-8b99bb3c236e,info@vibateam.hu
+Marketing 287 ellenőrzés,232,Thermo Épgép Kft.,kasa.laszlo@thermoepgep.hu,b2cf3479-4e8c-570a-8614-09b7a7b704c7,pontos_email,SENT_bizonyíték,1,3,0,1a17d518889fa8d4,7b68978d-c2f7-4cf5-b354-9062e059d763,info@vibateam.hu
+Marketing 287 ellenőrzés,233,Toma General,janostoma@gmail.com,f346b694-f475-5114-b62f-9dfa71d48653,pontos_email,SENT_bizonyíték,1,3,0,1a17d519ca7301d8,ed55cd19-7420-449a-a3c2-1d35301624fb,info@vibateam.hu
+Marketing 287 ellenőrzés,234,Treszner Cégcsoport,iroda@tresznerkft.hu,23cc26e8-11f5-5af0-96a3-41ef9bbc0a35,pontos_email,SENT_bizonyíték,1,1,0,1a032c8146e067e0,9370b257-5345-4fca-9cfe-18423c1f5288,info@vibateam.hu
+Marketing 287 ellenőrzés,235,Triholding Cégcsoport,burger.donat@triholding.hu,b4b9ead6-40de-51a4-acbe-be51f7cd66cf,pontos_email,SENT_bizonyíték,1,1,0,1a163a3da00cf783,84bc3218-61cf-4e74-b6ee-da1384089016,info@vibateam.hu
+Marketing 287 ellenőrzés,236,TrustHome Kft.,iroda@trusthome.hu,7a4fe5c8-004e-5381-a6a7-5fbf6068b790,pontos_email,SENT_bizonyíték,1,3,0,1a17d51bd95205de,0d73b068-8c2c-40ac-ab2d-ef8a0c451162,info@vibateam.hu
+Marketing 287 ellenőrzés,237,T-TECH 2000 Kft.,szaloki@t-tech.hu,1ff86420-1a90-57a2-88a8-ad364d8bb2a7,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,238,Tuba Építészmester Kft. / Tuba Építész Iroda,vajnaimernokiroda@gmail.com,b711a0f6-270c-5d46-a29c-dee26caa7059,pontos_email,SENT_bizonyíték,1,3,0,1a17d507e100c773,3c8031db-bff3-4c89-b156-9986cfd3f119,info@vibateam.hu
+Marketing 287 ellenőrzés,239,Unitrust Zrt.,unitrust@unitrust.hu,a576f00a-c1c8-5dff-95a7-a7ed2e62018c,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,240,ÚTNET Ingatlanfejlesztő / Tópark,info@topark.hu,90fd9a18-d927-4c62-bb10-35ba59925331,pontos_email,SENT_bizonyíték,1,1,0,1a163a512a36cf4e,48bb9bb3-683b-445d-b72d-965728537813,info@vibateam.hu
+Marketing 287 ellenőrzés,241,Vabeko Solar,vabekosolar@vabekosolar.hu,33cfb1ea-5d7a-585a-b639-99dea496d8c0,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,242,VAS-BETON Construct,vasbeton2000@gmail.com,8cff90b1-309f-5da7-8528-fe77671b18f7,pontos_email,SENT_bizonyíték,1,1,0,1a163a4a4844014e,bbeb1f4c-3ab2-422f-a0b5-03dbca37b5eb,info@vibateam.hu
+Marketing 287 ellenőrzés,243,Vaskapu Generálkivitelező Kft.,info@vaskapugeneral.hu,1a55ea97-13f1-5e8d-9cd0-f175fea1b45e,pontos_email,SENT_bizonyíték,1,3,0,1a17d51f128b1f8c,d75cc113-2218-431d-b2bf-7ccc587ee910,info@vibateam.hu
+Marketing 287 ellenőrzés,244,VATAM GROUP,info@vatam.hu,a8419799-10ad-54d5-97eb-26f451b25a3a,pontos_email,nincs_tárolt_bizonyíték,0,0,0,,,
+Marketing 287 ellenőrzés,245,Vattay Constructions,kristofvattay@outlook.com,06673931-0def-5c1b-952e-7e247edc337d,pontos_email,SENT_bizonyíték,1,3,0,1a17d5177ce57445,4215eab7-f3e7-4b0a-9339-6b2ab1651e25,info@vibateam.hu
+Marketing 287 ellenőrzés,246,VÁV Union,vavunion@vavunion.hu,a7d3ec88-d787-51e4-9093-a75d1841cf61,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,247,VEMÉVSZER Építő- és Szerelőipari Kft.,vemevszer@vemevszer.hu,34534319-9773-53e3-bf18-2e89e7254cb0,pontos_email,csak_piszkozat,0,1,0,,,
+Marketing 287 ellenőrzés,248,VILLCONet Kft.,info@villconet.hu,37777eac-300b-5952-9cae-07aeba00b5f3,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,249,VILLKÁSZ Kft.,villkasz@villkasz.hu,77832780-e94a-5f0b-9b9d-68a4b98dcefc,pontos_email,SENT_bizonyíték,1,2,0,1a163bfb5b37fff2,79174324-aa27-4696-9816-50c4bc67268f,info@vibateam.hu
+Marketing 287 ellenőrzés,250,Vill-Korr Hungária Kft.,info@villkorr.hu,52f68049-963a-5592-9f2c-c8017154fbab,pontos_email,SENT_bizonyíték,1,4,0,1a16366fa801024f,43fdb662-6484-49d7-a763-18b9fb6daae3,info@vibateam.hu
+Marketing 287 ellenőrzés,251,Vill-Szer Kft.,info@villszer.hu,01774f96-0ae7-5c79-bc91-43807d5c6e19,pontos_email,SENT_bizonyíték,1,5,0,1a163668aaceccce,6a7e7923-ec7d-47cf-b1f5-2e57d87f7af7,info@vibateam.hu
+Marketing 287 ellenőrzés,252,Vill-Tech Kft.,info@villtech.hu,2c06662e-e4ba-5223-859e-2bb22926cdb7,pontos_email,SENT_bizonyíték,1,5,0,1a163667deddf9a0,1f218eb6-2815-4dbe-a175-39ef373b5a65,info@vibateam.hu
+Marketing 287 ellenőrzés,253,Vitruvius Építő Kft.,info@vitruviusepito.hu,ec36ca5e-7bba-5d17-9f38-100d77b0f12d,pontos_email,SENT_bizonyíték,1,3,0,1a17d51e96a8ffd4,18d0425c-f500-4ab9-bc91-1c675a0bb341,info@vibateam.hu
+Marketing 287 ellenőrzés,254,VIV Zrt.,viv@viv.hu,e127c582-5b86-4281-88c8-038ceef007b2,pontos_email,SENT_bizonyíték,1,2,0,1a163a41b9d12571,0128d0ef-cadc-499c-97c5-e51cafbf7263,info@vibateam.hu
+Marketing 287 ellenőrzés,255,VOORTEX Kft.,hello@voortex.hu,f50faeac-5e86-5570-a01e-758f40c3f1ec,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,256,Wagner Solar Hungária Kft.,info@wagnersolar.hu,88a4fcf7-0d9a-5af6-a6a8-cd9d32c1b4b8,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,257,Weinberg '93 Építő Kft.,tender@weinberg.hu,67a86d1c-16fc-4206-8028-83a67841cb9a,pontos_email,SENT_bizonyíték,1,2,0,1a163a4038d551c7,95b63cec-8392-4d12-a645-4b95fdd313ca,info@vibateam.hu
+Marketing 287 ellenőrzés,258,WellElektro Kft.,info@wellelektro.hu,f3bff9c4-4876-54cd-b489-c0c190461751,pontos_email,SENT_bizonyíték,1,2,0,1a163c01ca29ea03,bda1eb54-44b7-4b38-8ce4-d83eb471f5a1,info@vibateam.hu
+Marketing 287 ellenőrzés,259,Windberg Ingatlanfejlesztő Kft.,info@windberg.hu,acc8c535-5cf8-53fd-8a19-0bf6bb0767ad,pontos_email,SENT_bizonyíték,1,1,0,1a163a52981652ae,c891ef06-720a-4b30-821f-7e2cade5e341,info@vibateam.hu
+Marketing 287 ellenőrzés,260,WTR Generál Kft.,wtrgeneral@gmail.com,d1f801ee-9ecf-4b4c-b959-5afada66f93c,pontos_email,SENT_bizonyíték,1,1,0,1a163a498b897dbe,ad9ee10c-ea3c-4915-afa4-548c0763e792,info@vibateam.hu
+Marketing 287 ellenőrzés,261,ZALA-ELEKTRO Kft.,info@zalaelektro.hu,3d77c6d1-b300-5872-9252-1b60cdfc7322,pontos_email,SENT_bizonyíték,1,2,0,1a163c071c07bd20,a32865e4-9e96-4e84-be77-1fd6e8fb05f0,info@vibateam.hu
+Marketing 287 ellenőrzés,262,ZTS Hungária Kft.,info@ztshungariakft.hu,ef5329b5-468b-520b-bb02-468afed3fc3a,pontos_email,SENT_bizonyíték,1,2,0,1a163c0141435b17,21243b88-b5d4-4d24-9bae-b1b7feacd20e,info@vibateam.hu
+Marketing 287 ellenőrzés,263,Z&Z Biztonságtechnika Kft.,info@znz.hu,f7869d02-e647-5e58-88fd-413fc626ae95,pontos_email,egyéb_nem_igazolt,0,0,0,,,
+Marketing 287 ellenőrzés,264,Garda-Ház Kft.,gardahaz@gmail.com,0d9be82b-5792-58d8-bda8-c9f896d246bd,pontos_email,SENT_bizonyíték,1,1,0,1a18c0e0b7e86efc,41eaffce-f352-4762-a625-d67f3d848969,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,265,Hello Ház Kft.,hellohaz@hellohaz.hu,a3462098-778a-5247-90b0-331ca9ad8557,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e136723e2e,a5dd91ae-4387-4506-bb6c-0dde948b0cc9,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,266,Home&Co / Mipa Home Kft.,info@homeandco.hu,2501ac53-8f48-5538-95a3-91a73023c95d,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e1803358ac,bc67125a-7293-4039-9e49-36607cbfc5e7,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,267,Magna Industrial Kft.,info@magnaepito.hu,d90290fc-9376-5e1b-b4b2-f600ec9dfc1f,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e1fc6a6c95,2e09e227-bb02-4958-bf29-ad540c97ee3e,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,268,Virtual Bau Kft.,info@virtualbau.hu,cf248f47-6a11-56d8-9029-392f393f928a,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e256c74535,953f00ec-7140-4bdf-825c-4897f7b6af3a,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,269,Atlasz-Tech Kft.,info@atlasztech.hu,2931fdbb-b462-5338-ac18-6c855d93b91e,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e2a67a4ca2,3a44e849-011e-4c79-9346-49d57fb27a7d,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,270,Renovato Bau Kft.,info@renovato.hu,3ea384bc-38f3-594d-a0d4-aa5fd5d32e21,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e306cd1ba6,1fba93f2-b380-4b03-b2d6-d34f58491c23,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,271,Hajdú-ÉK Ház,info@hajduekhaz.hu,44238529-8f11-58e9-9f59-8309c4c283b2,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e38ccd5e92,b02d62ab-059b-4cf1-8655-2d7a2a3644ad,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,272,Kiss-Magyar Építő Kft.,kmepito@t-online.hu,add8d706-795b-528b-9378-557db82374a5,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e41291d917,e28b53b1-3be9-49de-a386-e71353869e8c,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,273,AVI Generál Kft.,avigeneral6@gmail.com,aa1a23f5-749b-5af6-b405-1f2fd73cf0b8,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e4674da379,56dc0a47-47e9-42ab-93a0-2e1ef74f8543,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,274,Régió General Építőipari Kft.,info@regiogeneral.hu,d33491b9-f0a3-5b7b-884c-17be544a7c03,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e4fabd4eec,33a4e81b-09cb-460b-a293-9ec922cdc70b,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,275,Tendler Baut Zrt.,info@tendlerbaut.hu,7125ed04-f741-546b-bd81-65d4619e223a,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e5520a52dc,8d7959e5-f6eb-4802-af08-255938a354fd,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,276,Borisz és Tózsó Kft. / BTHome,info@bthome.hu,dcc54c27-1158-57dc-9b14-af0c6c6b0333,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e5a67e6377,7b47584e-6389-4a52-8dd6-a19b5e21de37,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,277,Delux Properties Kft.,fp.deluxe.property@gmail.com,5b5db766-7b7b-5367-8c82-646a693e955c,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e60a376263,605baa4c-d957-49d4-aed8-ee829d1c01f9,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,278,Harangozó és Fia Kft.,harangozo.pal4@gmail.com,64d09ff0-ab03-5d0f-8643-64ed9cc0f96b,pontos_email,SENT_bizonyíték,2,1,0,19fb23df27c8187e;1a18c0e73a7c712d,422c3147-214c-4966-aaf6-f5cdd263104d;d0a85254-7331-4fd9-9f0a-8fd35f542a12,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,279,EXAHÁZ Kft. / kulcsrakesz.hu,info@kulcsrakesz.hu,9514f30f-1159-5a26-96ba-9d181a7158e0,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e8cfaa74ee,52909eb2-33f5-427f-9a28-ac630bd4aa7f,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,280,Teljes Kivitelezés,info@teljeskivitelezes.hu,f4dd3a4c-47eb-585d-b3fb-9f736cbacd74,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e81c0d3d20,34fc16b0-9e7f-42f6-a516-7a9b25576567,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,281,GROSS MASTER Kft.,gross@generalmaster.hu,fcf12662-60fa-5f48-b21c-5c5b4fd21762,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e6ac4e68fb,62b9817d-5d09-4c95-85bc-3b16b9a702a1,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,282,STRABAG Magyarország,ajanlatkeres@strabag.com,dcc28f2c-f8de-5b6d-b3a0-52fa54751902,pontos_email,SENT_bizonyíték,1,0,0,1a18c0ebb54080f4,2e8a0966-24bd-4a03-aa29-9ee03f41ac46,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,283,LAKI Épületszobrász Zrt.,info@lakinet.hu,63109a41-438c-5acf-919a-d2ea79537f90,pontos_email,SENT_bizonyíték,2,2,0,1a0e6de6e167fc90;1a18c0ea412c0754,2b523ec4-72fd-485a-818e-5a31bb266661;f643409f-b3a1-4994-8aeb-459b7d2cf0bd,info@vibateam.hu;ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,284,Stonerose Kft. / acsaladihaz.hu,info@acsaladihaz.hu,51b2d6b8-18d6-5354-bc87-96c0520a332b,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e92bfd0b3b,da21ffed-81ba-49b4-81d2-8e2ccaef9132,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,285,Miller Estate Kft.,millerestatekft@gmail.com,3b1d8274-1676-5f76-af0e-5216cecf8a2c,pontos_email,SENT_bizonyíték,1,0,0,1a18c0e9dccbc9fc,bc0fec5e-8ead-4ba9-a7fc-a99403d823c7,ramon.dencsi@vibateam.hu
+Marketing 287 ellenőrzés,286,KONTEXA Kft.,penzugy@kontexa.hu,b5e6db64-5ac8-5cd4-ba08-6f27012a2f8e,pontos_email,SENT_bizonyíték,1,1,0,1a1828d9138a6182,3acee319-078d-41c2-9e9e-6e6d8e4215cb,info@vibateam.hu
+Marketing 287 ellenőrzés,287,12 Raszter Acélszerkezet Építő és Szolgáltató Kft.,karacsonyi.kitti@12raszter.hu,833f07ad-55c5-5e11-aca7-23e60876087d,pontos_email,igazolt_szálbeli_bejövő,2,1,1,1a1870f02610eebb;1a1a0e9373d8eebb,1f1fe5c1-13ce-45b2-972d-999f121425c2;e78330d1-ba27-48b9-831b-124de53dd523,info@vibateam.hu
+Marketing 287 ellenőrzés,288,Sopron út 66. társasház,konyveles.kollar.babar@gmail.com,342a4576-4a1b-561e-985b-302d98a71b9a,pontos_email,igazolt_szálbeli_bejövő,3,3,3,1a182c5056650da0;1a186bafcd4bab18;1a1a61df0b69ebf3,6f12f20b-ba41-41ff-a469-a54dc1a1be7f,info@vibateam.hu
