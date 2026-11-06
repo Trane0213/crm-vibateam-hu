@@ -1,0 +1,8 @@
+import { it, expect } from 'vitest';
+import { marketingMailFacts, type MarketingMail } from './marketing-mail';
+const base: MarketingMail = {id:'sent',thread_id:'thread',company_id:'company',owner_user_id:'owner',from_email:'own@example.com',to_emails:['customer@example.com'],is_outbound:true,internal_date:'2026-11-06T08:00:00Z',created_at:null};
+const contacts = [{company_id:'company',email:'customer@example.com'}];
+it('two sent messages are not a customer reply', () => expect(marketingMailFacts([base,{...base,id:'second'}], contacts,'2026-11-01').replied).toBe(0));
+it('counts a later exact external incoming reply', () => expect(marketingMailFacts([base,{...base,id:'reply',is_outbound:false,from_email:'customer@example.com',internal_date:'2026-11-06T09:00:00Z'}],contacts,'2026-11-01').rate).toBe(100));
+it('does not combine different mailboxes', () => expect(marketingMailFacts([base,{...base,id:'reply',owner_user_id:'other',is_outbound:false,from_email:'customer@example.com',internal_date:'2026-11-06T09:00:00Z'}],contacts,'2026-11-01').replied).toBe(0));
+it('unknown sender is not an identified customer reply', () => expect(marketingMailFacts([base,{...base,id:'reply',is_outbound:false,from_email:'newsletter@example.com',internal_date:'2026-11-06T09:00:00Z'}],contacts,'2026-11-01').replied).toBe(0));
