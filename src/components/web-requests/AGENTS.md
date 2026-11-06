@@ -1,1 +1,1 @@
-- Website intake retains acknowledged company IDs and blocks retries after attempted writes; fresh matching and shared query invalidation reduce duplicates without claiming durable cross-tab idempotency or creating Sales leads.
+- Website intake uses the stored inquiry and a service-only atomic receipt transaction after authenticated Owner/Marketing checks; user-RLS company/contact/audit readback and read-only recovery prevent duplicate creation across tabs without automatic Sales leads or legacy repair.
