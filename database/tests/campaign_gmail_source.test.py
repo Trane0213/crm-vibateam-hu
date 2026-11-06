@@ -24,7 +24,7 @@ sql('create or replace function public.email_campaigns_guard()'+guard)
 sql('create trigger email_campaigns_guard before insert or update on email_campaigns for each row execute function email_campaigns_guard()')
 sql(Path('database/campaign_gmail_source_2026-11-06.sql').read_text())
 c='11111111-1111-4111-8111-111111111111';u='22222222-2222-4222-8222-222222222222'
-sql(f"insert into email_campaigns(id,name,created_by,status) values('{c}','TESZT','{u}','draft');insert into users_profile values('{u}','info@vibateam.hu',true,null)")
+sql(f"set role service_role;insert into email_campaigns(id,name,created_by,status) values('{c}','TESZT','{u}','draft');insert into users_profile values('{u}','info@vibateam.hu',true,null)")
 s={'draft_id':'d','message_id':'m','mailbox':'info@vibateam.hu','read_at':'2026-11-06T17:27:00Z','imported_by':u,'sha256':'a'*64}
 def act(role='marketing',db='service_role'):return f"set role {db};set test.uid='{u}';set test.role='{role}';"
 def imp(role='marketing',expected=None,source=s,db='service_role',fail=False):
