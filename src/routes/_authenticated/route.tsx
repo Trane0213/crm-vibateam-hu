@@ -16,6 +16,7 @@ import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { AiPanel, AiPanelProvider, useAiPanel } from "@/components/ai/ai-panel";
 import { BrandLogo } from "@/components/brand-logo";
 import { CrmNotificationsMenu } from "@/components/crm-notifications-menu";
+import { WorkNavigation } from "@/components/work-navigation";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -63,6 +64,7 @@ function AppShell() {
             </div>
           </header>
           <PulseBar />
+          <WorkNavigation />
           <main className="flex-1 min-w-0 overflow-auto pb-20 md:pb-0">
             {allowed ? (
               <Outlet />
