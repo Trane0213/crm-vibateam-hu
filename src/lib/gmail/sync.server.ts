@@ -1,3 +1,4 @@
+import { matchCrmAddresses, resolveThreadLink, type CrmLink } from "./crm-association";
 /**
  * Gmail -> meglevo `emails` tabla szinkron. Csak az emails tablat irja
  * (gmail_message_id alapjan idempotens upsert).
@@ -62,45 +63,17 @@ export async function syncInbox(
   // Egyszer betöltjük a teljes run elején (kis méretű).
   // A leads tábla nem tárol email mezőt; lead → email kapcsolatot a contact_id-n
   // keresztül oldjuk meg (contacts.email → leads via contact_id).
-  const [contactsRes, companiesRes, leadsRes] = await Promise.all([
-    admin.from("contacts").select("id,email").not("email", "is", null),
-    admin.from("companies").select("id,website").not("website", "is", null),
-    admin.from("leads").select("id,contact_id").not("contact_id", "is", null),
+  const [contactsRes, leadsRes] = await Promise.all([
+    admin.from("contacts").select("id,email,company_id").not("email", "is", null).order("id").limit(1000),
+    admin.from("leads").select("id,contact_id,company_id").not("contact_id", "is", null).order("id").limit(1000),
   ]);
-  const contactByEmail = new Map<string, string>();
-  for (const c of (contactsRes.data ?? []) as any[]) {
-    const e = String(c.email ?? "").toLowerCase().trim();
-    if (e) contactByEmail.set(e, c.id);
-  }
-  const companyByDomain = new Map<string, string>();
-  for (const c of (companiesRes.data ?? []) as any[]) {
-    const d = String(c.website ?? "").toLowerCase().trim().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
-    if (d) companyByDomain.set(d, c.id);
-  }
-  const leadByContactId = new Map<string, string>();
-  for (const l of (leadsRes.data ?? []) as any[]) {
-    if (l.contact_id) leadByContactId.set(l.contact_id, l.id);
-  }
-  const leadByEmail = new Map<string, string>();
-  for (const [email, contactId] of contactByEmail.entries()) {
-    const leadId = leadByContactId.get(contactId);
-    if (leadId) leadByEmail.set(email, leadId);
-  }
-  function matchCrm(addresses: string[]): { contact_id: string | null; company_id: string | null; lead_id: string | null } {
-    let contact_id: string | null = null;
-    let company_id: string | null = null;
-    let lead_id: string | null = null;
-    for (const a of addresses) {
-      const addr = a.toLowerCase();
-      if (!contact_id && contactByEmail.has(addr)) contact_id = contactByEmail.get(addr)!;
-      if (!lead_id && leadByEmail.has(addr)) lead_id = leadByEmail.get(addr)!;
-      if (!company_id) {
-        const dom = addr.split("@")[1];
-        if (dom && companyByDomain.has(dom)) company_id = companyByDomain.get(dom)!;
-      }
-      if (contact_id && company_id && lead_id) break;
-    }
-    return { contact_id, company_id, lead_id };
+  if (contactsRes.error || leadsRes.error) throw new Error("A CRM-hozzárendelés nem ellenőrizhető.");
+  const completeLookup = (contactsRes.data?.length ?? 0) < 1000 && (leadsRes.data?.length ?? 0) < 1000;
+  function matchCrm(addresses: string[]): CrmLink {
+    if (!completeLookup) { result.errors.push("CRM-hozzárendelés: részleges címjegyzék, kézi ellenőrzés szükséges."); return { company_id:null,contact_id:null,lead_id:null }; }
+    const matched = matchCrmAddresses(addresses, contactsRes.data ?? [], leadsRes.data ?? []);
+    if (matched.review) result.errors.push("Bizonytalan CRM-hozzárendelés: kézi ellenőrzés szükséges.");
+    return matched.link;
   }
 
   const targetMax = opts.backfill ? Math.min(opts.max ?? 5000, 10000) : Math.min(opts.max ?? 25, 100);
@@ -124,14 +97,9 @@ export async function syncInbox(
       threadCache.set(gmailThreadId, found.id);
       // Ha a thread még nem ismeri valamelyik CRM mezőt, de az új email igen,
       // szinkronizáljuk a threadre is, hogy konzisztens legyen.
-      const patch: Record<string, string> = {};
-      if (!found.contact_id && crm.contact_id) patch.contact_id = crm.contact_id;
-      if (!found.company_id && crm.company_id) patch.company_id = crm.company_id;
-      if (!found.lead_id && crm.lead_id) patch.lead_id = crm.lead_id;
-      if (Object.keys(patch).length) {
-        await admin.from("email_threads").update(patch).eq("id", found.id);
-        Object.assign(found, patch);
-      }
+      const resolved = resolveThreadLink(found, crm);
+      if (resolved.conflict) result.errors.push(`Szál ${found.id}: eltérő CRM-kapcsolat, kézi ellenőrzés szükséges.`);
+      // Existing historical thread assignments remain unchanged; only new messages inherit them.
       return {
         id: found.id,
         contact_id: found.contact_id ?? null,
@@ -277,21 +245,8 @@ export async function syncInbox(
                 { thread_id: tr.id, user_id: userId, mailbox_email: myMailbox },
                 { onConflict: "thread_id,user_id" },
               );
-              // Email CRM backfill a threadről, ha hiányzik
-              const { data: erow } = await admin
-                .from("emails")
-                .select("company_id,contact_id,lead_id")
-                .eq("id", knownId)
-                .maybeSingle();
-              if (erow) {
-                const patch: Record<string, string> = {};
-                if (!erow.company_id && tr.company_id) patch.company_id = tr.company_id;
-                if (!erow.contact_id && tr.contact_id) patch.contact_id = tr.contact_id;
-                if (!erow.lead_id && tr.lead_id) patch.lead_id = tr.lead_id;
-                if (Object.keys(patch).length) {
-                  await admin.from("emails").update(patch).eq("id", knownId);
-                }
-              }
+              // Historical message CRM assignments are not automatically rewritten.
+
             }
           }
         } catch {}
@@ -319,11 +274,9 @@ export async function syncInbox(
         const thread = await ensureThread(m.threadId, subject, crm);
         const threadDbId = thread.id;
         // Az email mindig örökli a thread CRM mezőit, ha az adott email nem matchelt
-        const effective = {
-          contact_id: crm.contact_id ?? thread.contact_id,
-          company_id: crm.company_id ?? thread.company_id,
-          lead_id: crm.lead_id ?? thread.lead_id,
-        };
+        const resolved = resolveThreadLink(thread, crm);
+        if (resolved.conflict) result.errors.push(`Szál ${thread.id}: új üzenet CRM-kapcsolata ellenőrzendő.`);
+        const effective = resolved.conflict ? {company_id:null,contact_id:null,lead_id:null} : resolved.link;
         const labels = (m.labelIds ?? []) as string[];
         const isOutbound =
           labels.includes("SENT") ||
