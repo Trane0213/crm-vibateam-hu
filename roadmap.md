@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
+- [ ] Jóváhagyott levélszál-áttekintés: friss, csak SELECT dry-run a Viba-Team céghez kötött szálakról, mindhárom céges fiók szinkron-hozzárendelésével; tételes azonosítólista, bizonytalan esetek kizárása, írás/átkötés/leválasztás nélkül.
 - [x] Feltöltött követelmények rögzítése és meglévő alapok összevetése; közös, jóváhagyásos végrehajtási terv előkészítése.
 - [x] 0–1. kör: frissített térkép és 487 Excel-sor/203 jelölés tételes SELECT-audit. 82 külső SENT, 120 csak DRAFT, 1 TESZT/belső jelölés; 32 teszt PASS, belső bejelentkezett próba NEM TESZTELT. Jelentés: docs/system-map/marketing-egysegesites-01-2026-11-06.md; adat/kód/RLS/küldés változatlan, STOP.
 - [x] Jóváhagyott célzott hitelességi kódjavítás: SENT/DRAFT-védelem, három céges fiók, azonos szálbeli válasz, hiányos történet és 1001 üzenetes olvasóteszt. 655 teszt PASS, build OK; docs/system-map/marketing-hitelessegi-javitas-2026-11-06.md, STOP.
