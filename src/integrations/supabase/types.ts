@@ -700,6 +700,11 @@ export type Database = {
           company_type: string | null
           created_at: string | null
           id: string
+          marketing_handoff_lead_id: string | null
+          marketing_status: string | null
+          marketing_status_changed_at: string | null
+          marketing_status_changed_by: string | null
+          marketing_status_source: string | null
           name: string
           notes: string | null
           tax_number: string | null
@@ -709,6 +714,11 @@ export type Database = {
           company_type?: string | null
           created_at?: string | null
           id?: string
+          marketing_handoff_lead_id?: string | null
+          marketing_status?: string | null
+          marketing_status_changed_at?: string | null
+          marketing_status_changed_by?: string | null
+          marketing_status_source?: string | null
           name: string
           notes?: string | null
           tax_number?: string | null
@@ -718,6 +728,11 @@ export type Database = {
           company_type?: string | null
           created_at?: string | null
           id?: string
+          marketing_handoff_lead_id?: string | null
+          marketing_status?: string | null
+          marketing_status_changed_at?: string | null
+          marketing_status_changed_by?: string | null
+          marketing_status_source?: string | null
           name?: string
           notes?: string | null
           tax_number?: string | null
@@ -4688,6 +4703,19 @@ export type Database = {
       can_access_quote: {
         Args: { _created_by: string; _lead_id: string; _project_id: string }
         Returns: boolean
+      }
+      company_marketing_from_sent: {
+        Args: { p_company: string; p_email: string; p_user: string }
+        Returns: boolean
+      }
+      company_set_marketing_status: {
+        Args: {
+          p_company: string
+          p_expected: Json
+          p_handoff_lead?: string
+          p_status: string
+        }
+        Returns: Json
       }
       crm_lookup_normalize: { Args: { p_text: string }; Returns: string }
       crm_mailbox_page: {
