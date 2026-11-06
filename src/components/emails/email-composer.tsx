@@ -171,21 +171,21 @@ export function EmailComposer({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
+      <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-3xl gap-0 overflow-y-auto rounded-lg bg-card p-0">
+        <DialogHeader className="border-b bg-muted/40 px-5 py-4 text-left">
           <DialogTitle>{gmailThreadId ? "Válasz" : "Új email"}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">Küldő: <span className="font-medium text-foreground">{sender ?? "Nincs csatlakoztatott saját Gmail-fiók"}</span></p>
+        <div className="space-y-3 px-4 py-4 sm:px-5">
+          <p className="break-words border-b pb-3 text-xs text-muted-foreground">Küldő: <span className="font-medium text-foreground">{sender ?? "Nincs csatlakoztatott saját Gmail-fiók"}</span></p>
           {senderMismatch && <p className="text-sm text-destructive">Ez a levélszál másik postafiókból lett megnyitva; innen nem küldhetsz választ.</p>}
           <div className="grid gap-2">
-            <Label htmlFor="to" className="text-xs uppercase tracking-wider text-muted-foreground">Címzett</Label>
+            <Label htmlFor="to" className="text-xs text-muted-foreground">Címzett</Label>
             <Input id="to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="nev@cég.hu, masik@cég.hu" />
           </div>
           {!showCcBcc ? (
-            <button type="button" onClick={() => setShowCcBcc(true)} className="text-xs text-primary hover:underline">
+            <Button type="button" variant="link" size="sm" onClick={() => setShowCcBcc(true)} className="h-7 px-0">
               + Cc / Bcc hozzáadása
-            </button>
+            </Button>
           ) : (
             <>
               <div className="grid gap-2">
@@ -199,7 +199,7 @@ export function EmailComposer({
             </>
           )}
           <div className="grid gap-2">
-            <Label htmlFor="subject" className="text-xs uppercase tracking-wider text-muted-foreground">Tárgy</Label>
+            <Label htmlFor="subject" className="text-xs text-muted-foreground">Tárgy</Label>
             <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
           </div>
           <div className="rounded-md border">
@@ -207,8 +207,11 @@ export function EmailComposer({
             <div
               ref={editorRef}
               contentEditable
+              role="textbox"
+              aria-label="Levél szövege"
+              aria-multiline="true"
               suppressContentEditableWarning
-              className="min-h-[200px] max-h-[40vh] overflow-auto px-3 py-2 text-sm leading-relaxed outline-none [&_a]:text-primary [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+              className="crm-mail-editor min-h-[240px] max-h-[40dvh] overflow-auto px-4 py-3 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring [&_a]:text-primary [&_a]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
               data-placeholder="Írj ide…"
             />
           </div>
@@ -219,15 +222,15 @@ export function EmailComposer({
                   <Paperclip className="h-3 w-3" />
                   <span className="max-w-[200px] truncate">{a.filename}</span>
                   <span className="text-muted-foreground">{Math.round(a.size_bytes / 1024)} KB</span>
-                  <button type="button" onClick={() => removeAttachment(a.key)} className="ml-1 rounded p-0.5 hover:bg-muted">
+                  <Button type="button" variant="ghost" size="icon" title="Melléklet eltávolítása" aria-label={`${a.filename} eltávolítása`} onClick={() => removeAttachment(a.key)} className="ml-1 h-6 w-6">
                     <X className="h-3 w-3" />
-                  </button>
+                  </Button>
                 </Badge>
               ))}
             </div>
           )}
         </div>
-        <DialogFooter className="flex items-center justify-between sm:justify-between">
+        <DialogFooter className="flex flex-row flex-wrap items-center justify-between gap-3 border-t bg-muted/20 px-4 py-3 sm:justify-between sm:px-5">
           <div>
             <input
               ref={fileRef}

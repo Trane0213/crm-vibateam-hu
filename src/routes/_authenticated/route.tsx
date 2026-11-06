@@ -39,10 +39,10 @@ function AppShell() {
   return (
     <AiPanelProvider>
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="crm-workspace flex min-h-screen w-full bg-background">
         <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0">
-          <header className="sticky top-0 z-30 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b bg-background/90 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/75 md:px-4">
+          <header className="sticky top-0 z-30 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b bg-card/95 px-3 backdrop-blur md:px-5">
             <div className="flex min-w-0 items-center gap-2">
               <SidebarTrigger className="hidden md:inline-flex" />
               <Link to="/today" className="flex shrink-0 items-center md:hidden">

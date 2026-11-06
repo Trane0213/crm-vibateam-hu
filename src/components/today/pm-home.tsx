@@ -48,8 +48,8 @@ export function PmHome() {
     .slice(0, 8);
 
   return (
-    <div className="flex flex-col">
-      <WelcomeHeader subtitle="Mai projekt-teendők és a kivitelezés állapota." />
+    <div className="crm-today flex flex-col">
+      <WelcomeHeader title="Mai projektmunka" subtitle="Mai projekt-teendők és a kivitelezés állapota." />
 
       <QuickActions>
         <Button size="sm" asChild><Link to="/projects" search={{ new: 1 } as any}><Plus className="mr-1 h-3.5 w-3.5" />Új projekt</Link></Button>

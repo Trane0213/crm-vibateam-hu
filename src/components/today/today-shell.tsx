@@ -15,26 +15,20 @@ export function HeroStat({
   sub?: string;
   search?: Record<string, string>;
 }) {
-  const toneClass = {
-    danger:  "border-destructive/40 bg-destructive/5 hover:bg-destructive/10 text-destructive",
-    warning: "border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/5 hover:bg-[color:var(--status-warning)]/10 text-[color:var(--status-warning)]",
-    info:    "border-[color:var(--status-info)]/40 bg-[color:var(--status-info)]/5 hover:bg-[color:var(--status-info)]/10 text-[color:var(--status-info)]",
-    success: "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5 hover:bg-[color:var(--status-success)]/10 text-[color:var(--status-success)]",
-    primary: "border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary",
-  }[tone];
   return (
     <Link
       to={to}
       {...(search ? { search: search as any } : {})}
-      className={`flex items-center gap-4 rounded-lg border p-5 transition ${toneClass}`}
+      data-tone={tone}
+      className="crm-stat flex min-w-0 items-center gap-3 rounded-lg border p-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-4"
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-background/60">
-        <Icon className="h-6 w-6" />
+      <div className="crm-stat-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+        <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{label}</div>
-        <div className="mt-1 text-4xl font-bold tabular-nums leading-none">{value}</div>
-        {sub && <div className="mt-1 text-xs opacity-70">{sub}</div>}
+        <div className="break-words text-xs font-medium">{label}</div>
+        <div className="crm-stat-value mt-1 font-display text-3xl font-semibold tabular-nums leading-none">{value}</div>
+        {sub && <div className="mt-1 break-words text-xs text-muted-foreground">{sub}</div>}
       </div>
     </Link>
   );
@@ -42,8 +36,8 @@ export function HeroStat({
 
 export function SectionLabel({ title, action }: { title: string; action?: ReactNode }) {
   return (
-    <div className="flex items-center justify-between px-6 pt-5 pb-2">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+    <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-5 pb-3 sm:px-6">
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <span className="inline-block h-2 w-2 rounded-full bg-primary/60" />
         {title}
       </div>
@@ -65,7 +59,7 @@ export function ListCard({
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <div>
+        <div className="min-w-0">
           <CardTitle className="text-base">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </div>
@@ -74,7 +68,7 @@ export function ListCard({
       <CardContent>
         {!hasItems && empty
           ? <EmptyState icon={empty.icon} title={empty.title} />
-          : <ul className="space-y-2 text-sm">{items}</ul>}
+          : <ul className="divide-y text-sm [&>li]:min-w-0 [&>li]:py-2.5">{items}</ul>}
       </CardContent>
     </Card>
   );
@@ -82,7 +76,7 @@ export function ListCard({
 
 export function QuickActions({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 px-6 pb-2">
+    <div className="flex flex-wrap items-center gap-2 px-4 pt-4 pb-2 sm:px-6">
       {children}
     </div>
   );
