@@ -58,7 +58,7 @@ export const precheckCampaign = createServerFn({ method: "POST" })
           const { data: rows, error } = await (q.col === "from_email" ? base.in("from_email", part) : base.overlaps(q.col, part)).order("id").range(from, from + 999);
           if (error) throw new Error(error.message);
           for (const r of rows ?? []) {
-            if (testOwners.has(r.owner_user_id)) continue;
+            if (!r.owner_user_id || testOwners.has(r.owner_user_id)) continue;
             const mailbox = mailboxOf.get(r.owner_user_id) ?? "ismeretlen postafiók";
             const set = new Set(part.map(a => a.toLowerCase()));
             const list = q.col === "from_email" ? [r.from_email] : (r[q.col] as string[] | null) ?? [];
