@@ -2154,6 +2154,54 @@ export type Database = {
           },
         ]
       }
+      issue_reports: {
+        Row: {
+          actual_result: string
+          created_at: string
+          description: string
+          expected_result: string
+          id: string
+          owner_note: string
+          page_path: string
+          reporter_id: string
+          reporter_role: string
+          status: string
+          submission_key: string
+          technical_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          actual_result: string
+          created_at?: string
+          description: string
+          expected_result: string
+          id?: string
+          owner_note?: string
+          page_path: string
+          reporter_id: string
+          reporter_role: string
+          status?: string
+          submission_key: string
+          technical_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actual_result?: string
+          created_at?: string
+          description?: string
+          expected_result?: string
+          id?: string
+          owner_note?: string
+          page_path?: string
+          reporter_id?: string
+          reporter_role?: string
+          status?: string
+          submission_key?: string
+          technical_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kg_edge_history: {
         Row: {
           change_type: string
