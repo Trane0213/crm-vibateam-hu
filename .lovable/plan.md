@@ -1,45 +1,38 @@
-# Kampányok: HTML-aláírás és közös CRM–Gmail piszkozatok
+# 2. szakasz – meglévő kampánykezelés befejezése
 
-## Eredmény
-A meglévő kampánylistában Gmail-szerű, formázott levelet lehet előkészíteni, végén HTML-aláírással. A kijelölt, ellenőrzött címzetteknek külön **valódi piszkozat** készül a bejelentkezett felhasználó saját aktív céges Gmail-fiókjában. Ezek a CRM-ből megnyithatók, frissen visszaolvashatók és szerkeszthetők; a Gmailben végzett módosításokat nem írjuk felül észrevétlenül.
+## Már ellenőrzött célzott javítás
+A mentett HTML címzettenkénti előnézete megőrzi a formázást és biztonságosan helyettesíti be a cég/ellenőrzött személy nevét. A TESZT-küldés azonos kampányváltozat/címzett esetén meglévő kísérlet, bizonytalan válasz vagy olvasási hiba mellett zárolva marad. 80 kampányteszt PASS, AI acceptance 21 PASS, fordítás OK; elkülönített asztali/mobil HTML-próba PASS. Bejelentkezett Gmail-próba továbbra NEM TESZTELT.
 
-A csatolt kép megjelenítési referencia. Nem készül belőle levélbe illesztett képernyőkép, és a személyes aláírásadatokat nem találjuk ki.
+## Ebben a szakaszban elkészül
+- A meglévő CRM-levélíró formázó részének közösítése a kampánnyal, nem második levélíró. A kampány a CRM-ben nulláról megírható, Gmail-import nélkül.
+- Mentett tárgy, szöveg és HTML; cég/ellenőrzött név személyre szabás, címzettenkénti előnézet. A kért HTML-aláírás külön rész, formázott paste és HTML-kód; pontosan egyszer a végére kerül. Importált, már aláírt levélhez nincs automatikus duplázás. A közös navigáció és teljes levélíró-átalakítás az 5. szakaszban marad.
+- Jóváhagyás a pontos mentett üzenetre és kijelölt címzettlistára; saját aktív céges fiók, címzettenkénti ütemezés, szüneteltetés/leállítás és tartós hibajelzés.
+- A meglévő Gmail-küldési út újrahasználata, nem új levélszállítás. A napi 40/fiók keret a TESZT- és későbbi ügyfélküldési foglalások közös összege, Budapest-nap szerint. Bizonytalan eredmény nem próbálható újra automatikusan.
+- Valós állapotszámok: várakozó, foglalt, igazoltan elküldött, bizonytalan, tiltott, leállított. Válaszadat csak pontos saját Gmail/CRM-bizonyítékból; nem piszkozatból.
 
-## Meglévő kampánylista bővítése
-- Formázott levélszerkesztés, tárgy, címzettenkénti előnézet, meglévő ellenőrzött név/cég behelyettesítés.
-- Külön aláírásrész: formázott beillesztés a Gmailből **és** HTML-kód beillesztése, biztonságos előnézettel. Az aláírás a levél végére egyszer kerül; módosítása nem halmozza a korábbi változatokat.
-- A kampányban külön mentett aláírás és formázott tartalom; az importált Gmail-forrás védelme megmarad. Már aláírt importnál nem illesztünk új aláírást automatikusan: a hozzáadás külön tudatos választás.
-- „Gmail-piszkozatok létrehozása” a mentett, ellenőrzött címzettekre; előtte fiók, címzettlista, darabszám és teljes levél ellenőrizhető.
-- Címzettenként állapot és Gmail-megnyitás; tényleges visszaolvasás nélkül nincs sikerjelzés.
+## Adatmegőrző sémabővítés – jóváhagyási kapu
+**Meglévő email_campaigns:** nullable `signature_html text`, `signature_text text`, `delivery_state text`, `approved_revision timestamptz`, `approved_by uuid`, `approved_at timestamptz`. A levél HTML-je továbbra a meglévő `message_html`; nem új kampányadatbázis. Védett, revízióellenőrzött mentés és audit; importproveniencia megőrzése vagy explicit leválasztása. Tartalom/célzás változás érvényteleníti az engedélyt, régi foglalás soha nem indul új tartalommal. A delivery állapot elkülönül a meglévő draft/prechecked/archived státusztól; prechecked továbbra nem küldési engedély.
 
-## CRM és Gmail együtt használva
-- Csak a meglévő, saját aktív céges Gmail-kapcsolat használható. Kolléga fiókjára nem váltunk, nem csatlakoztatunk újra fiókot.
-- Kijelölt címzettenként egy levél készül; nincs közös To/CC/BCC tömeglevél.
-- A cégtiltás, címtiltás, hibás cím, bizonytalan előzmény, pontos kontakt/cég kapcsolat és névellenőrzés a meglévő előellenőrzésből származik, létrehozáskor frissen ellenőrizve. Tiltott/bizonytalan címzett kimarad, látható indokkal.
-- Tartós foglalás védi a dupla kattintást, párhuzamos kérést és újratöltést. Bizonytalan Gmail-eredménynél megállás és ellenőrzés, nem vak újrapróbálás.
-- Frissítéskor az aktuális Gmail-piszkozatot olvassuk. Külső szerkesztés esetén összehasonlítás és megerősítés szükséges a CRM-ből történő módosítás előtt.
-- Eltűnt piszkozat nem tekinthető elküldöttnek. Küldés kizárólag saját Gmail SENT-bizonyítékkal minősíthető; nem keletkezik automatikusan Sales-lead vagy marketing-megkeresésjelölés.
-- Nincs folyamatos kétirányú szinkron ígéret: ebben a körben explicit frissítés és mentés biztosítja az együttműködést, a meglévő levélszinkron mellett.
-- A napi **40 elküldött kampánylevél/fiók, Budapest szerint** változatlan. Piszkozat nem elküldött levél, ezért nem fogyaszt küldési keretet. Legfeljebb 40 címzett dolgozható fel egy előkészítési körben, kisebb részletekben. A Gmail saját felületén történő közvetlen küldést a CRM nem tudja megakadályozni; a CRM-korlát nem állítható Gmail-szintű korlátnak.
-- Mellékletes forrás nem importálható veszteségesen; a jelenlegi elutasítás megmarad, amíg a teljes mellékletkezelés külön elkészül.
+**Egy technikai küldési munkasor a meglévő kampányhoz**, `campaign_delivery_items`: `id uuid`, `campaign_id uuid`, `campaign_revision timestamptz`, `contact_id uuid nullable`, `company_id uuid nullable`, `user_id uuid`, `mailbox text`, `recipient_email text`, `mode text`, `scheduled_at timestamptz`, `snapshot jsonb`, `snapshot_hash text`, `state text`, `claim_token uuid nullable`, `claimed_at/finished_at timestamptz nullable`, `budapest_day date nullable`, `gmail_message_id text nullable`, `email_id uuid nullable`, `reason text nullable`, `created_at timestamptz`. TESZT-módban csak a két engedélyezett cím, ügyfélmódban pontos kontakt/cég szükséges. Snapshot = jóváhagyott tárgy/szöveg/HTML és azonosítók, credential nélkül. Egyediség `(campaign_id,campaign_revision,mailbox,recipient_email)`; claim állapot nem állítható vissza várakozóra. A címzett-előellenőrzés sorainak újramentése nem törölheti a küldési előzményt.
 
-## Technikai változtatás és jóváhagyási kapu
-A jelenlegi kampány- és címzetttáblák megmaradnak. A használaton kívüli `email_drafts` táblára nem építünk: jelenleg minden bejelentkezett felhasználóra teljes hozzáférésű szabálya van; ennek jogosultságait ebben a körben nem módosítjuk.
+**Hozzáférés:** service_role explicit grant, RLS bekapcsolva; nincs anon/authenticated közvetlen grant vagy policy az új munkasorra. Hitelesített szerverfunkció a felhasználó saját RLS-es kampány/kontakt jogait ellenőrzi, majd szűk szerverműveletet hív. Owner/Marketing jelenlegi scope és saját fiók megmarad; más kolléga Gmail-hozzáférése nem bővül. Minden új RPC service-only, security invoker; jogosult userId-t kizárólag hitelesített szerver adhatja.
 
-**Tervezett, adatmegőrző migráció:**
-1. `email_campaigns`: nullable `signature_html text`, `signature_text text`. A formázott tartalom továbbra a meglévő `message_html` mezőben marad. Védett mentés, hosszkorlátok, változáskor előellenőrzés érvénytelenítése; saját kampány/Owner, revízióellenőrzés és audit. A meglévő importproveniencia csak explicit leválasztással változhat.
-2. Egy technikai kapcsolattábla: `campaign_gmail_drafts`, nem új CRM-modul. Mezők: `id uuid`, `campaign_id uuid`, `contact_id uuid`, `user_id uuid`, `mailbox text`, `recipient_email text`, `campaign_revision timestamptz`, `content_hash text`, `gmail_draft_id text nullable`, `gmail_message_id text nullable`, `state text`, `claim_token uuid`, `created_at/updated_at/checked_at timestamptz`. Egyedi kulcs `(campaign_id,contact_id,user_id)`; kampány-előellenőrzés címzettsorainak újramentése nem törölheti a kapcsolatot.
-3. A kapcsolattábla csak a szerver által írható/olvasható: explicit `service_role` grant, RLS bekapcsolva, nincs anon/authenticated grant vagy közvetlen olvasási policy. A hitelesített szerverfunkció előbb a felhasználó RLS-es kampány/kontakt-hozzáférését és saját fiókját ellenőrzi, utána olvassa a saját kapcsolatot. Owner sem kap más fiókjának élő Gmail-tartalmához új jogot.
-4. Service-only, sorzárolt claim/finish RPC: állapotok `creating`, `ready`, `changed`, `missing`, `uncertain`; immutable tulajdonos/fiók/címzett, metadata-only audit. Foglalás után bizonytalan eredmény nem indíthat új Gmail-create-ot. Friss módosítás külön hash-ellenőrzött foglalást igényel.
-5. A Gmail API meglévő saját OAuth-útjának drafts.create/update/get bővítése; nincs új connector, transport vagy OAuth-rendszer. A már megadott jogosultságot nem tekintjük automatikusan működőnek: szolgáltatói hibát bizonyíték alapján kezelünk, újracsatlakoztatás nélkül.
+**RPC-k:** védett tartalommentés; kampány jóváhagyása/ütemezése; pause/resume/stop; atomic claim; finish/readback. Claim sorzár + cím/mailbox advisory lock mellett ellenőrzi aktuális szerepet, kampányengedélyt és snapshotot, időpontot, saját aktív fiókot, jelenlegi kontakt/cégkapcsolatot, hibás címet, cím- és cégtiltást, közös napi keretet. A korábbi TESZT-claim is a közös keretet számolja; TESZT-címkorlát és bizonyítékfeltétele nem gyengül. Stop a még nem foglalt sorokat állítja le; már folyamatban lévő küldésről nem állítjuk, hogy azonnal visszavonható.
 
-**Hatás:** nincs régi adat feltöltése/átírása, cégegyesítés, levelek törlése, szerepkörbővítés vagy küldési engedély. Az új mezők üresek maradnak használatig. Gmail-műveletet fejlesztés közben nem indítunk.
+**Bizonytalan előzmény:** a jelenlegi előellenőrzés nem igazol teljes Gmail-történetet. Ezt nem alakítjuk át „kész” állapottá. Ügyfélmódban csak biztonságosan engedélyezhető sor ütemezhető; bizonytalan eset blokkolt marad. A teljes lánc izolált TESZT-adattal igazolható, de ez nem engedély ügyfélküldésre.
 
-**Visszaállítás:** új RPC-k végrehajtási jogának visszavonása és az új vezérlők kikapcsolása; minden mentett aláírás, kapcsolatsor, audit és Gmail-piszkozat megmarad. Nem törlünk adatot visszaállításkor, nem törlünk Gmail-piszkozatot automatikusan.
+**Hatás:** régi sorokhoz nincs backfill, nincs ügyfél/email átírás, relink vagy Sales-lead. Az új mezők üresek maradnak használatig. Jogosultságok csak az új technikai út szűk szerverhatárát kapják.
 
-## Ellenőrzés
-Egy összevont célzott tesztkör: HTML-biztonság és egyszeri aláírás, ellenőrzött név, szerepkör/saját fiók, friss tiltások, párhuzamos claim, timeout és részleges hiba, külső Gmail-szerkesztés/hash-ütközés, újraellenőrzés után megmaradó kapcsolat. Izolált SQL és Gmail-választesztek; asztali/mobil megjelenítés; AI acceptance regresszió.
+**Visszaállítás:** új RPC execute jog visszavonása és vezérlők kikapcsolása; mezők, munkasor, audit és Gmail-bizonyítékok megmaradnak. Nincs adat- vagy levéltörlés. A régi TESZT-út napi keretéből nem hagyhatók ki a már létező új foglalások.
 
-A külső Supabase miatt a bejelentkezett saját Gmail végigpróbája jelenleg nem hozzáférhető az automatizált böngészőből; ez nem nevezhető sikeresnek. Valódi TESZT-piszkozat létrehozása és visszaolvasása a megfelelő bejelentkezett fiókból szükséges az elfogadáshoz.
+## Ütemezés aktiválása és külső függőség
+A külső Supabase mellé Lovable nem biztosít automatikusan időzített HTTP-hívást. Nem hozunk létre kézzel pg_cron/pg_net HTTP-hívó rendszert. A biztonságos, hitelesített feldolgozó elkészülhet, de böngészőbezárás után futó időzítéshez külön külső ütemező bekötése szükséges, az aktiválás előtt egyeztetve. Addig a felület világosan jelzi az inaktív feldolgozást, nem ígér automatikus küldést. Nem tárolunk felhasználói munkamenet-tokent a munkasorban.
 
-**Nincs levélküldés, ügyfélkampány-aktiválás vagy publikálás.** A jóváhagyás a fenti célzott sémabővítésre és megvalósításra vonatkozik, nem éles tömeges piszkozatgenerálásra.
+A kétirányú valódi Gmail-piszkozatírás a korábbi kérés része marad, de nem építünk hozzá önálló levelezőrendszert; a közös szerkesztő és tartós foglalási modell elkészülte után kezelhető. Nem aktiválunk most tömeges Gmail-piszkozatgenerálást.
+
+## Egy összevont ellenőrzés, majd STOP
+Izolált PostgreSQL: scope, revízió, párhuzamos claim, napi 40 közös keret, friss tiltás, pause/stop, immutable snapshot és auditrollback. Gépi teljes lánc: kampány → szerkesztés → ellenőrzés → jóváhagyás → időzítés → szimulált Gmail/CRM igazolás → napló. HTML-aláírás és személyre szabás teszt; meglévő kampány/Gmail/AI regresszió; desktop/mobil.
+
+Valódi saját Gmail-küldést nem indítunk. Bejelentkezett szerepkörös végigpróba jelenleg **NEM TESZTELT** (external_unmanaged); a 2. szakasz teljes készsége csak tényleges elfogadási eredmény alapján állítható.
+
+A jóváhagyás a célzott sémabővítésre és megvalósításra vonatkozik; **nem** éles ügyfélkampányra, külső ütemező aktiválására vagy publikálásra. A 3. szakasz csak új „Mehet” után indul.
