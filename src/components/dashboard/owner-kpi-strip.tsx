@@ -9,7 +9,7 @@ import { budapestDayBounds, kpiDisplay, useOpenQuotesSummary, useSalesProjectSna
  * Tulajdonosi KPI sáv — a „Ma" és az „Irányítópult" ugyanezt a komponenst
  * használja, így a két oldalon azonos definíció és azonos szám látszik.
  */
-export function OwnerKpiStrip() {
+export function OwnerKpiStrip({ overview = false }: { overview?: boolean }) {
   const now = new Date().toISOString();
   const today = budapestDayBounds();
 
@@ -26,6 +26,14 @@ export function OwnerKpiStrip() {
   const s = snap.data;
   const sv = (k: keyof NonNullable<typeof s>) => kpiDisplay({ isLoading: snap.isLoading, isError: snap.isError, data: s ? (s[k] as number) : null });
   const testSub = (n?: number) => (n ? `ebből TESZT: ${n}` : "");
+
+  if (overview) return <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+    <HeroStat to="/quotes" tone="info" icon={FileText} label="Nyitott ajánlatok" value={kpiDisplay({ isLoading: quotes.isLoading, isError: quotes.isError, data: q?.count })} sub={quoteSub} />
+    <HeroStat to="/sales/leads" tone="success" icon={Trophy} label="Megnyert ügyletek" value={sv("won")} sub={testSub(s?.wonTest) || "lezárt leadek · összesen"} />
+    <HeroStat to="/projects" tone="primary" icon={Briefcase} label="Projektek" value={sv("projectsTotal")} sub={s ? `${s.projectsHandoff} átadásra vár` : "betöltés…"} />
+    <HeroStat to="/sales/leads" tone="warning" icon={Columns3} label="Aktív Pipeline" value={sv("pipeline")} sub="nyitott üzleti ügyek" />
+    <HeroStat to="/leads" tone="info" icon={Sparkles} label="Sales-előkészítés" value={sv("salesPrep")} sub="még nincs Pipeline-ban" />
+  </div>;
 
   return (
     <div className="space-y-3">
