@@ -10,6 +10,8 @@ Létezik az AI OS közös `runAgent`, szerepkör/eszköz-metszet, George-handoff
 ## 1. szakasz – közös jegyzék, emberi és AI-forrás
 **Most csak ezt a szakaszt lehet engedélyezni; a továbbiak nem indulnak automatikusan.**
 
+**Közös adatszerződés ugyanabban az egy tárolóban** (minimális bővítés, nincs párhuzamos tábla): correlation_id, issue_id/linked_issue_id, source (ember vagy megnevezett AI / automatikus ellenőrzés), module/role, trigger_type (sürgős / user / óránkénti delta / deployment utáni izolált próba), detected_at, expected/actual_behavior, severity_suspected, business_impact, affected_records_count csak igazoltan, reproducible (igen/nem/ismeretlen), időbélyeges evidence_refs log/teszt forrással, verification_status (gyanú / igazolt / nem reprodukálható / nem vizsgálható), verification_steps/results, likely_cause + bizonyosság/bizonytalanság, javasolt javítás vagy UX-javaslat, duplicate_group, owner_action_required, reviewed_at, follow_up_due, valamint jóváhagyott javaslatnál elfogadási kritérium és utólagos ellenőrzési eredmény. Érzékeny tartalom helyett azonosító és redaktált leírás.
+
 - A meglévő `/help` és egyetlen `issue_reports` tároló bővítése; nincs második backlog. Használati kérdés / működési hiba / UX-nehézség / fejlesztési javaslat, természetes nyelvű leírás, opcionális reprodukció és várt/tapasztalt eredmény.
 - Bejelentő és forráseredet külön: ember / megnevezett meglévő AI / automatikus ellenőrzés. Az AI-javaslat nem emberi megerősítés; a fejlesztési igény nem bizonyított hiba. Bizonyítottság külön: igazolt / nem igazolt / nem vizsgálható.
 - Saját/Owner hozzáférés, korrelációazonosító, üzleti hatás, státusz, kezelő; megőrzött eredeti jelentések és visszakövethető kezelési változások. Duplikáció csak összekapcsolás, nem törlés vagy szövegfelülírás. Más dolgozó jegye/azonosítója nem jelenhet meg a saját listában.
@@ -27,6 +29,10 @@ Létezik az AI OS közös `runAgent`, szerepkör/eszköz-metszet, George-handoff
 - Naplóhozzáférés híján manuális vizsgálat és nem igazolt jelzés; ez nem blokkolja a bejelentést. Egyetlen opcionális külső technikai forrásként Sentry javasolt, **külön integrációs/adatvédelmi/költségjóváhagyással**. DSN a hibagyűjtéshez nem ad George-nak eseményolvasási jogosultságot; külön read-only kapcsolat szükséges. Fejlesztői MCP nem alkalmazásbeli tool.
 - Egyszeri nem tolakodó segítségfelkérés csak valódi megfigyelt hibakódnál, AI-hívás nélkül; nem minden betöltéskor. Titkos gyűjtés nincs. Külső gyűjtés opt-in, allowlistelt metaadat, nincs cookie/token/név/email/request body/replay vagy nyers hibaszöveg.
 - Teszt: jogosultsági deny, téves pozitív/negatív, hiányos forrás, anonimizálás, error-boundary fallback és visszajelzett lépések. Fizetős próba csak külön engedéllyel.
+- **Aktív, területi felderítés:** Scarlet (Marketing), Timothy (Sales), Boss (PM projektek/határidők/kockázatok/dokumentumhiány), George közös rendszerek. Saját jogosult read-only forrásaikon keresnek működési hibát, elakadást, adatellentmondást, visszatérő UX-gondot és bizonyítható fejlesztési lehetőséget; fejlesztési javaslat hiba nélkül is lehet, de nem igazolt hiba.
+- **Triggerek:** (a) sürgős: exception, betöltési/szinkronhiba, tartós 5xx, kritikus jogosultsági/adatkonzisztencia-eltérés, meghiúsult ügyfolyamat — determinisztikus jelből, nem LLM-pollingból; (b) dolgozói bejelentés/chat-visszajelzés; (c) óránkénti delta; (d) deployment utáni izolált regresszió küldés nélkül.
+- **Súlyos jelzés:** a specialista azonnal strukturált eseményt ad George-nak. „Észlelt kritikus gyanú” és „igazolt kritikus hiba” külön állapot. George célzott utóellenőrzést kér (másik jogosult forrás, izolált próba vagy időbeli megismétlés) az igazolt jelölés előtt; bizonyíték/hozzáférés nélkül nincs valódi ok vagy „minden rendben”.
+- George oszt el, ellenőriz, csoportosít duplikációt és épít backlogot bizonyíték/gyakoriság/üzleti hatás alapján; dolgozói visszajelzés elsőrendű bemenet.
 
 **STOP:** hiányzó jogosult log/credential esetén a diagnózis NYITOTT; 3. szakasz külön engedély.
 
@@ -39,6 +45,7 @@ Létezik az AI OS közös `runAgent`, szerepkör/eszköz-metszet, George-handoff
 - Kikapcsolva az alapállapot. Ütemezés és AI külön kapcsolható; nincs automatikus óránkénti bekapcsolás a fejlesztés során.
 
 **Szükséges kapuk:** külső időzítő és végpont-hitelesítés, szolgáltatói költségkeret, pontos tartós claim/cursor/limit migráció. A meglévő privát `ai_memory` claim-minta és `agent_runs`/`agent_run_steps` napló újrahasználata előnyben; pontos reserved-key/RLS terv szükséges, a meglévő AI-memóriát nem keverjük a review-állapottal. Második backlog nincs.
+Sürgős triggerhez szükséges: igazolt technikai eseményforrás (pl. Sentry külön engedéllyel) vagy meglévő szinkron-/futásnapló jogosult olvasója; enélkül a sürgős ág NYITOTT. Deployment-trigger csak izolált tesztkörnyezetben, élő adat írása nélkül; ehhez CI/teszt-hook külön döntés.
 
 E projekt külső Supabase-án nem készítünk új `pg_cron`→`pg_net` HTTP-időzítést. Támogatott út: külső scheduler hívja a saját hitelesített TanStack végpontot. A meglévő Gmail cron nem használható fel erre és változatlan marad. Scheduler hitelesítés szolgáltatói aláírással vagy dedikált `AI_REVIEW_SCHEDULER_SECRET` megosztott titokkal; nem a Gmail kulcsával. Most nem kérünk titkot és nem indítunk időzítőt.
 
@@ -49,6 +56,8 @@ E projekt külső Supabase-án nem készítünk új `pg_cron`→`pg_net` HTTP-id
 - Azonnali belső jelzés csak **súlyos és igazolt rendszerszintű** problémánál, ismétlésvédelemmel. Egyéb esemény nem külön értesítés; értesítési csatorna meglévő belső felület, nem éles e-mail.
 - Konkrét jegy/ref., tényleges ismétlődésszám és lefedettség, érintett munkakör, üzleti hatás, reprodukálhatóság/forrás, javasolt javítás, bizonytalanság. Indokolt becslés csak emberi vagy ellenőrzött forrással, egyébként „nincs megalapozott becslés”.
 - Owner szűrhet/priorizálhat/jóváhagyhat vagy halaszthat. Jóváhagyott fejlesztési javaslat **nem** jogosít automatikus kód-/adat-/jogosultság-/levélmódosításra; megvalósítás külön kör.
+- Tulajdonosi értesítés kritikus gyanúnál is lehet, de egyértelműen „nem igazolt” jelöléssel; igazolt kritikus hibánál a bizonyítékforrással.
+- Minden fejlesztési javaslatnál elfogadási kritérium és megvalósítás utáni használhatósági/teszt visszaellenőrzés.
 - Teszt: csak Owner összesítő, saját jegyhez saját válasz, riasztási küszöb/deduplikáció, hamis igazolás és becslés tiltása, napi/heti esedékesség, küldés nélküli regresszió.
 
 **STOP:** eredmények és fennmaradó NEM TESZTELT működések jelentése; nincs automatikus továbblépés.
@@ -59,5 +68,10 @@ E projekt külső Supabase-án nem készítünk új `pg_cron`→`pg_net` HTTP-id
 Minden szakasz célzott unit/role/RLS teszt, érintett regresszió, AI acceptance és preview ellenőrzés; modellek változatlanok. Valós diagnózis kizárólag jogosult forrásból, élő üzleti adatot módosító teszt tilos. Hitelesített éles próba jelenleg nem biztosított; ezt NEM TESZTELT-ként jelöljük.
 
 Ebben a tervezési körben nem módosítunk forráskódot, adatbázist, titkot vagy időzítést. A terv jóváhagyása után elsőként a `roadmap.md` és a tartós követelmények frissülnek, majd az **1. szakasz pontos, forráseredettel kiegészített migrációs javaslata** készül és kerül külön jóváhagyásra.
+
+## Státusz röviden
+- Meglévő: súgó, `/help`, régi hibajegy-tároló (0 jegy), AI OS George/handoff/szerepkör-metszet, futásnapló, Timothy napi claim-minta.
+- Hiányzik: tároló-bővítés (adatszerződés) — BLOKKOLT; George súgó-/naplóolvasó; triggerek; scheduler/lock/delta/limit; Owner összesítő.
+- Függőségek: migrációs jóváhagyás (1.), technikai eseményforrás/Sentry (2.), külső scheduler + titok + költségkeret (3.).
 
 **Tervezési szakasz KÉSZ; ügytároló-bővítés továbbra is BLOKKOLT a felülvizsgált pontos SQL jóváhagyásáig. Mehet kizárólag az 1. szakasz?**
