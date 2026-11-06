@@ -3,11 +3,13 @@ import os,subprocess,json,hashlib
 from pathlib import Path
 h=os.environ['SCRATCH_PGHOST'];p=os.environ['SCRATCH_PGPORT'];assert h.startswith('/tmp/')
 db='delivery_fixture'
+subprocess.run(['dropdb','-h',h,'-p',p,'-U','lovable','--if-exists',db],check=True)
 subprocess.run(['createdb','-h',h,'-p',p,'-U','lovable','-T','campaign_fixture',db],check=True)
 base=['psql','-h',h,'-p',p,'-U','lovable','-d',db,'-qAt','-v','ON_ERROR_STOP=1','-c']
 def sql(q,fail=False):
  r=subprocess.run(base+[q],capture_output=True,text=True);assert (r.returncode!=0 if fail else r.returncode==0),r.stderr;return r.stdout.strip()
 sql("alter table contacts add column email_invalid boolean;create table companies(id uuid primary key,marketing_blocked boolean);alter table email_campaigns add column message_html text,add column gmail_draft_source jsonb,add column target_company_ids uuid[];alter table emails add column subject text,add column body text,add column company_id uuid,add column contact_id uuid;grant all on companies to service_role;")
+sql('truncate campaign_send_audit,marketing_email_suppressions;')
 for file in sorted(Path('supabase/migrations').glob('2026110617*.sql')):
  if file.name.startswith(('20261106174954','20261106175026','20261106175322')):sql(file.read_text())
 c='99999999-1111-4111-8111-111111111111';u='22222222-2222-4222-8222-222222222222'
