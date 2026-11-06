@@ -12,7 +12,7 @@
 - [ ] Kontaktellenőrzöttség hosted owner/Marketing/Sales/PM mentés/readback végigpróba: external_unmanaged, nincs átadható biztonságos munkamenet; NEM TESZTELT.
 - [x] 3. kör kampány-előkészítés: jóváhagyott meglévő táblabővítés, explicit cég/kontakt, mentett üzenet/verified-name előnézet, timestamp-védett mentés és atomikus címzettcsere. 681 teszt/izolált SQL/desktop+mobil TESZT-megjelenítés PASS; éles 664/701/8 és 1 tervezet/0 címzett változatlan. Jelentés docs/system-map/kontrollalt-kampany-elokeszites-2026-11-06.md; küldés/publikálás nélkül, STOP.
 - [ ] Kampány hosted Owner/Marketing mentés/readback és szerepkörös E2E: external_unmanaged munkamenet nem elérhető; NEM TESZTELT.
-- [ ] 3. kör küldési aktiválás: leiratkozás/tiltás/limit/ütemezés/idempotencia külön jóváhagyásos kapu; TESZT-küldés és automatikus indulás tilos engedély nélkül.
+- [ ] 3. kör küldési védelem: új folytatási jóváhagyás alapján meglévő tiltás/limit/ütemezés/idempotencia lehetőségeinek read-only ellenőrzése; üzleti küldési keretek tisztázása, majd összevont hatás/rollback terv. Aktiválás/TESZT-küldés továbbra is külön kapu.
 - [ ] 4–5. kör: napi munkafolyamat, Scarlet és végigpróba; csak az előző kör elfogadása után, adatjavítás/RLS/küldés külön kapuval.
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
 - [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
