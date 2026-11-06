@@ -191,32 +191,17 @@ function CustomersIndex() {
               variant={kind === v ? "default" : "outline"}
               size="sm"
               onClick={() => setKind(v)}
+              aria-pressed={kind === v}
             >
               <Icon className="mr-2 h-4 w-4" />
               {label}
             </Button>
           ))}
         </div>
-        {role === "marketing" ? <Select value={segment} onValueChange={(v) => { if (v === "all" || v === "active" || v === "new" || v === "reactivatable") setSegment(v); }}>
+        <Select value={segment} onValueChange={(v) => { if (v === "all" || v === "active" || v === "new" || v === "reactivatable") setSegment(v); }}>
           <SelectTrigger className="w-56 max-w-full" aria-label="Ügyfélaktivitás szűrése"><SelectValue /></SelectTrigger>
           <SelectContent><SelectItem value="all">Minden aktivitás</SelectItem><SelectItem value="active">Aktív</SelectItem><SelectItem value="new">Új (7 nap)</SelectItem><SelectItem value="reactivatable">Reaktiválható</SelectItem></SelectContent>
-        </Select> : <div className="mb-3 flex flex-wrap gap-1.5">
-          {[
-            { v: "all" as const, label: "Mind" },
-            { v: "active" as const, label: "Aktív" },
-            { v: "new" as const, label: "Új (7 nap)" },
-            { v: "reactivatable" as const, label: "Reaktiválható" },
-          ].map((s) => (
-            <Button
-              key={s.v}
-              size="sm"
-              variant={segment === s.v ? "secondary" : "ghost"}
-              onClick={() => setSegment(s.v)}
-            >
-              {s.label}
-            </Button>
-          ))}
-        </div>}
+        </Select>
         <div className="mb-3">
           <FilterBar
             search={search}
@@ -234,16 +219,17 @@ function CustomersIndex() {
           />
         </div>
         {companies.isError ? (
-          <p role="alert" className="text-sm text-destructive">
+          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md border border-destructive/30 p-3 text-sm text-destructive">
             Az ügyféllista nem tölthető be.
-          </p>
+            <Button size="sm" variant="outline" onClick={() => companies.refetch()}>Újrapróbálás</Button>
+          </div>
         ) : companies.isLoading ? (
-          <p className="text-sm text-muted-foreground">Betöltés…</p>
+          <p role="status" className="text-sm text-muted-foreground">Ügyfelek betöltése…</p>
         ) : rows.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="Nincs ügyfél"
-            description="Először vegyél fel egy céget vagy magánszemélyt."
+            title={search || segment !== "all" || kind !== "all" ? "Nincs a szűrésnek megfelelő ügyfél" : "Még nincs látható ügyfél"}
+            action={search || segment !== "all" || kind !== "all" ? <Button size="sm" variant="outline" onClick={() => { setSearch(""); setSegment("all"); setKind("all"); }}><RotateCcw />Szűrés törlése</Button> : undefined}
           />
         ) : (
           <div className="rounded-md border bg-card">

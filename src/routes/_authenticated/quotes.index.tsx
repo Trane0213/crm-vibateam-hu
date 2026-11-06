@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { FileText } from "lucide-react";
+import { FileText, Search, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,16 +32,19 @@ function QuotesPage() {
   const rows = useMemo(() => filterQuoteRows(list.data ?? [], { search, status, currentOnly }), [list.data, search, status, currentOnly]);
   const pages = Math.max(1, Math.ceil(rows.length / PAGE));
   const shown = rows.slice(page * PAGE, page * PAGE + PAGE);
+  const resetFilters = () => { setSearch(""); setStatus("all"); setCurrentOnly(true); setPage(0); };
+  const filtered = !!search || status !== "all" || !currentOnly;
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="flex min-w-0 flex-col">
       <PageHeader
         title="Ajánlatok"
         description="Kapott költségvetések és saját VIBA-ajánlatok · verziók, nettó összegek, kiküldés és utánkövetés."
         actions={<NewQuoteButton variant="default" />}
       />
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <Input className="w-72 max-w-full" aria-label="Ajánlat keresése" placeholder="Keresés: cím, ügyfél, ügy, projekt" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
+      <div className="min-w-0 space-y-4 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative min-w-0 flex-1 basis-64"><Search aria-hidden="true" className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" /><Input className="pl-9" aria-label="Ajánlat keresése" placeholder="Cím, ügyfél, ügy vagy projekt" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} /></div>
         <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
           <SelectTrigger aria-label="Ajánlat állapota" className="w-56 max-w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -49,18 +52,19 @@ function QuotesPage() {
             {QUOTE_STATUSES.map((s) => <SelectItem key={s} value={s}>{QUOTE_STATUS_LABEL[s]}</SelectItem>)}
           </SelectContent>
         </Select>
-        <label className="flex min-h-9 cursor-pointer items-center gap-2 text-sm">
+        <details className="min-w-0 rounded-md border px-3 py-2"><summary className="cursor-pointer text-sm">Verziók · {currentOnly ? "aktuális" : "összes"}</summary><label className="flex min-h-9 cursor-pointer items-center gap-2 pt-2 text-sm">
           <Checkbox checked={currentOnly} onCheckedChange={(checked) => { setCurrentOnly(checked === true); setPage(0); }} />
           Csak aktuális verziók
-        </label>
-        <span className="text-xs text-muted-foreground">{rows.length} találat</span>
+        </label></details>
+        {filtered && <Button variant="ghost" size="sm" onClick={resetFilters}><RotateCcw className="h-4 w-4" />Szűrés törlése</Button>}
+        {list.isSuccess && <span className="text-xs text-muted-foreground">{rows.length} találat</span>}
       </div>
       {list.isLoading ? (
-        <p className="mt-6 text-sm text-muted-foreground">Betöltés…</p>
+        <p role="status" className="mt-6 text-sm text-muted-foreground">Ajánlatok és utánkövetések betöltése…</p>
       ) : list.error ? (
-        <p className="mt-6 text-sm text-destructive">Az ajánlatok nem tölthetők be: {humanizeSupabaseError(list.error)}</p>
+        <div role="alert" className="flex flex-wrap items-center gap-3 rounded-md border border-destructive/30 p-3 text-sm text-destructive"><span>Az ajánlatok nem tölthetők be: {humanizeSupabaseError(list.error)}</span><Button variant="outline" size="sm" onClick={() => list.refetch()}>Újrapróbálás</Button></div>
       ) : rows.length === 0 ? (
-        <EmptyState icon={FileText} title="Nincs találat" description="Módosítsd a szűrést, vagy hozz létre új ajánlatot." />
+        <EmptyState icon={FileText} title={filtered ? "Nincs a szűrésnek megfelelő ajánlat" : "Még nincs látható aktuális ajánlat"} action={filtered ? <Button variant="outline" size="sm" onClick={resetFilters}><RotateCcw />Szűrés törlése</Button> : undefined} />
       ) : (
         <>
           <div className="mt-4 rounded-md border">
@@ -118,6 +122,7 @@ function QuotesPage() {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }

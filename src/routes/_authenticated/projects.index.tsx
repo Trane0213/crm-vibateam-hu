@@ -14,6 +14,7 @@ import {
   PROJECT_STATUS_TONE,
 } from "@/lib/viba-constants";
 import { useAuth } from "@/hooks/use-auth";
+import { Checkbox } from "@/components/ui/checkbox";
 
 function ProjectsPage() {
   const companyLabel = useLookup("companies", "name");
@@ -35,16 +36,7 @@ function ProjectsPage() {
       }
       toolbar={
         <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant={onlyMine ? "default" : "outline"}
-            aria-pressed={onlyMine}
-            onClick={() => setOnlyMine((v) => !v)}
-            disabled={!user?.id}
-          >
-            {onlyMine ? "Saját projektjeim ✓" : "Saját projektjeim"}
-          </Button>
+          <label className="flex min-h-10 cursor-pointer items-center gap-2 text-sm"><Checkbox checked={onlyMine} onCheckedChange={(checked) => setOnlyMine(checked === true)} disabled={!user?.id} />Saját projektjeim</label>
           {onlyMine && (
             <span className="text-xs text-muted-foreground">
               Csak azok a projektek látszanak, ahol te vagy a kijelölt projektvezető.
