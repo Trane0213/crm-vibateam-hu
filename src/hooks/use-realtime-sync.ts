@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 // listák automatikusan újratöltődnek. Az RLS miatt mindenki csak a számára
 // látható sorokról kap értesítést. Rövid gyűjtés után egyszer frissítünk
 // (nincs lekérdezés-vihar), és csak az aktív (képernyőn lévő) lekérdezéseket.
-const TABLES = ["leads", "quotes", "followups", "projects", "tasks", "emails", "email_threads", "quote_sends", "phone_calls", "companies", "contacts"] as const;
+const TABLES = ["leads", "quotes", "followups", "projects", "tasks", "emails", "email_threads", "quote_sends", "phone_calls", "companies", "contacts", "email_campaigns", "email_campaign_recipients"] as const;
 const EXTRA_KEYS: Record<string, string[]> = {
   leads: ["pipeline", "pulse", "sales-watch"],
   quotes: ["pipeline", "pulse", "sales-watch"],
@@ -20,6 +20,8 @@ const EXTRA_KEYS: Record<string, string[]> = {
   quote_sends: ["sales-watch"],
   projects: [],
   tasks: ["pulse"],
+  email_campaigns: ['email_campaign_recipients'],
+  email_campaign_recipients: [],
 };
 
 export function useRealtimeSync(enabled: boolean) {

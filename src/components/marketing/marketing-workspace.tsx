@@ -48,6 +48,8 @@ import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
 import { canSubmitHandoff, openLeads } from "@/lib/marketing-handoff-guard";
+import { CompanyCampaigns } from "@/components/customers/company-campaigns";
+import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
@@ -488,12 +490,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
       {/* ───── Tartalom ───── */}
       <div className="p-6">
+        <CompanyMarketingSummary notes={c.notes ?? null} />
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Levélszálak ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
+            <TabsTrigger value="campaigns">Kampányok</TabsTrigger>
+            <TabsTrigger value="followups">Utánkövetések</TabsTrigger>
             <TabsTrigger value="sales-note">
               <StickyNote className="mr-1.5 h-3.5 w-3.5" />
               Jegyzet salesnek
@@ -633,6 +638,16 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           </TabsContent>
 
           {/* Dokumentumok — cég-szintű */}
+          <TabsContent value="campaigns" className="mt-4">
+            <CompanyCampaigns companyId={companyId} contactIds={(contacts.data ?? []).map(c => c.id)} enabled={!contacts.isLoading} />
+          </TabsContent>
+          <TabsContent value="followups" className="mt-4 space-y-3">
+            <Button size="sm" variant="outline" asChild><Link to="/followups">Utánkövetések megnyitása</Link></Button>
+            {companyFollowups.error ? <p role="alert" className="text-destructive">Az utánkövetések nem tölthetők be.</p> : companyFollowups.isLoading ? <p>Betöltés…</p> : <ul className="divide-y border-y">
+              {(companyFollowups.data ?? []).map(f => <li key={f.id} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><span>{f.followup_type ?? 'Utánkövetés'}</span><span>{fmtDateTime(f.due_date)} · {f.completed ? 'Lezárva' : 'Nyitott'}</span></li>)}
+            </ul>}
+            {!companyFollowups.isLoading && !companyFollowups.error && !companyFollowups.data?.length && <p className="text-sm text-muted-foreground">Nincs számodra látható céges utánkövetés.</p>}
+          </TabsContent>
           <TabsContent value="docs" className="mt-4">
             <CompanyDocumentManager companyId={companyId} />
           </TabsContent>
@@ -651,7 +666,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           {/* Idővonal — egyszerűsített marketing nézet */}
           <TabsContent value="timeline" className="mt-4">
             <p className="mb-3 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-              Az idővonal a hívásokat, találkozókat, utánkövetéseket, leadeket, kapcsolattartókat, dokumentumokat és státuszokat teljesen mutatja (max. 200/típus).
+              A hívások, találkozók és utánkövetések legfeljebb 200 látható rekordja szerepel. A státuszjelölés nem teljes változástörténet.
               Levélszálakból csak az <strong>„Levélszálak” fülön éppen megnyitott oldal</strong> {derivedThreads.length} szála szerepel
               (összesen {threadCount}{emailHint ? ", csak a számodra látható" : ""}) — a teljes levelezést a Levélszálak fülön lapozva nézd.
             </p>

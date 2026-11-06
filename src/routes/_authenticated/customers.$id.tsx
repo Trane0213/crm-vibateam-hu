@@ -25,12 +25,15 @@ import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 import { usePermissions } from "@/hooks/use-permissions";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
 import { MarketingWorkspace } from "@/components/marketing/marketing-workspace";
+import { CompanyCampaigns } from "@/components/customers/company-campaigns";
+import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
 import {
   companyCounters, companyEmailQueryKey, emailVisibilityHint, fetchCompanyThreadsPage,
   fetchEmailFullAccess, mergeById, normalizeContactEmails, COMPANY_THREAD_PAGE_SIZE,
 } from "@/lib/company-activity";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
+  head: () => ({ meta: [{ title: 'Cégadatlap | VIBA CRM' }, { name: 'description', content: 'Céges alapadatok, kapcsolattartók, kampányok és jogosult kommunikáció a VIBA CRM-ben.' }, { property: 'og:title', content: 'Cégadatlap | VIBA CRM' }, { property: 'og:description', content: 'A céghez kapcsolódó adatok és munkafolyamatok.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: CustomerDetail,
 });
 
@@ -238,6 +241,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
       </div>
 
       <div className="p-6">
+        <CompanyMarketingSummary notes={c.notes ?? null} />
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Building2 className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
@@ -245,6 +249,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
             {!isMarketing && <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>}
             {!isMarketing && <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>}
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
+            <TabsTrigger value="campaigns">Kampányok</TabsTrigger>
             <TabsTrigger value="leads"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Leadek ({leads.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threadTotal}{emailHint ? "*" : ""})</TabsTrigger>
             {!isMarketing && <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>}
@@ -380,6 +385,9 @@ function LegacyCustomerDetail({ id }: { id: string }) {
               { label: "Státusz", get: (r) => r.status ?? "—" },
               { label: "Létrejött", get: (r) => fmtDate(r.created_at) },
             ]} empty="Nincs lead." emptyIcon={Sparkles} />
+          </TabsContent>
+          <TabsContent value="campaigns" className="mt-4">
+            <CompanyCampaigns companyId={id} contactIds={(contacts.data ?? []).map(c => c.id)} enabled={!contacts.isLoading} />
           </TabsContent>
           <TabsContent value="emails" className="mt-4 space-y-2">
             {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
