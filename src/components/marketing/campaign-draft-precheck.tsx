@@ -155,7 +155,7 @@ export function CampaignDraftPrecheck({
       setBusy(false);
     }
   };
-  if (list.error) return null; // nem Owner/Marketing: a panel nem jelenik meg
+  if (list.error) return <>{recipientBrowser}</>; // keep the existing company browser available; no campaign controls on error
   const d = camp ? detail.data : undefined;
   const pages = d ? Math.max(1, Math.ceil(d.total / d.pageSize)) : 1;
   const archived = camp?.status === "archived";
