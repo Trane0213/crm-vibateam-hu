@@ -17,7 +17,7 @@
 - `scripts/qa/check_runtime_routes.py`: megőrzött Playwright útvonal/betöltési regresszió; teljes route tree, meglévő oldalak és tényleges query/serverFn klienshívás, kizárólag TESZT hálózati válaszok. Ez nem valódi bejelentkezett end-to-end teszt.
 
 ## Ellenőrzés
-- Első teljes regresszió: **776/776**, 77 fájl PASS; utolsó kiegészítő Auth-teszt után külön friss eredmény a roadmapban.
+- Végső teljes regresszió: **777/777**, 77 fájl PASS, beleértve a caller bearer/opaque apikey Auth-próbát.
 - AI acceptance: **21 forgatókönyv PASS**, 0 hiba/figyelmeztetés; nem élő Scarlet-próba.
 - Harness utolsó kód-build: **build OK**.
 - Valódi signed-out betöltés: /emails, /today, /dashboard, /projects, /leads, /campaign-list → /auth; 0 pageerror. Ez csak a nyilvános betöltést és a belépési kaput igazolja.
