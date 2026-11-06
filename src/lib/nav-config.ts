@@ -58,7 +58,7 @@ export const AI_ITEMS: NavItem[] = [
   { title: "George – CRM Navigátor", url: "/ai-assistant", icon: Search, search: { agent: "crm" }, agentId: "crm" },
   { title: "Timothy – Értékesítés", url: "/ai-assistant", icon: TrendingUp, search: { agent: "sales" }, agentId: "sales" },
   { title: "Boss – Projektfelügyelő", url: "/ai-assistant", icon: Hammer, search: { agent: "pm" }, agentId: "pm" },
-  { title: "Scarlet – Marketing", url: "/sales/research", icon: Radar, agentId: "marketing" },
+  { title: "Scarlet – Marketing", url: "/ai-assistant", icon: Radar, search: { agent: "marketing" }, agentId: "marketing" },
 ];
 
 /** A „Továbbiak” csoportjai — minden ritkábban használt modul itt marad. */

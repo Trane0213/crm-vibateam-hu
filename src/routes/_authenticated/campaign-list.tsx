@@ -158,9 +158,6 @@ function CampaignListPage() {
             <Badge variant="secondary" className="tabular-nums">
               <ListPlus className="mr-1 h-3 w-3" /> {total} aktív
             </Badge>
-            <Button size="sm" variant="outline" asChild>
-              <Link to="/sales/research"><Radar className="mr-1 h-3.5 w-3.5" />Scarlet research</Link>
-            </Button>
           </div>
         }
       />
@@ -183,7 +180,7 @@ function CampaignListPage() {
             icon={ListPlus}
             title={total === 0 ? "Üres a kampánylista" : "Nincs találat"}
             description={total === 0
-              ? "A Scarlet research oldalon a „Kampány” gombbal vehetsz fel ide cégeket."
+              ? "A cég adatlapján vagy a Minden cég nézetből vehetsz fel ide cégeket."
               : "Próbálj más keresőszót, vagy ürítsd a mezőt."}
           />
         ) : (
