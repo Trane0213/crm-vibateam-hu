@@ -1,5 +1,5 @@
 import { it,expect } from 'vitest';
-import { CAMPAIGN_DAILY_LIMIT,campaignTestInput,campaignDay,testCopy,campaignOutcome } from './campaign-send-policy';
+import { CAMPAIGN_DAILY_LIMIT,campaignTestInput,campaignDay,testCopy,campaignOutcome,campaignTestAttemptLocked } from './campaign-send-policy';
 it('uses exactly the owner-approved 40 daily campaign allowance',()=>expect(CAMPAIGN_DAILY_LIMIT).toBe(40));
 it.each(['viktor.csotai@gmail.com','info@vibateam.hu'])('allows explicit approved TESZT address %s',recipient=>expect(campaignTestInput.safeParse({campaignId:'11111111-1111-4111-8111-111111111111',expectedUpdatedAt:'now',recipient,confirmed:true}).success).toBe(true));
 it('blocks customer test recipient',()=>expect(campaignTestInput.safeParse({campaignId:'11111111-1111-4111-8111-111111111111',expectedUpdatedAt:'now',recipient:'customer@example.com',confirmed:true}).success).toBe(false));
@@ -8,3 +8,5 @@ it('uses Budapest midnight rather than UTC midnight',()=>{expect(campaignDay(new
 it('requires both live and saved proof for success',()=>{expect(campaignOutcome(true,true,false)).toBe('uncertain');expect(campaignOutcome(true,false,true)).toBe('uncertain');expect(campaignOutcome(true,true,true)).toBe('verified');});
 it('marks test copy and never uses real customer personalization',()=>expect(testCopy('{{ceg}}','{{nev}}')).toEqual({subject:'[TESZT] TESZT VIBA-TEAM',body:'TESZT Címzett'}));
 it('rejects empty saved copy',()=>expect(()=>testCopy('','body')).toThrow());
+it('never retries a durable attempt for the same revision and address',()=>expect(campaignTestAttemptLocked([{recipient:'info@vibateam.hu',campaign_revision:'rev'}],'rev','info@vibateam.hu')).toBe(true));
+it('does not confuse another revision or recipient with the exact attempt',()=>{expect(campaignTestAttemptLocked([{recipient:'info@vibateam.hu',campaign_revision:'old'}],'rev','info@vibateam.hu')).toBe(false);expect(campaignTestAttemptLocked([{recipient:'info@vibateam.hu',campaign_revision:'rev'}],'rev','viktor.csotai@gmail.com')).toBe(false);});

@@ -11,3 +11,7 @@ export function testCopy(subject: string, body: string) {
 }
 export function escapedMailHtml(body:string) { return body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br/>'); }
 export function campaignOutcome(claimed:boolean,liveVerified:boolean,savedVerified:boolean) {return !claimed ? 'not_started' : liveVerified && savedVerified ? 'verified' : 'uncertain';}
+/** Any durable attempt for this exact revision/address forbids another UI attempt, regardless of its final state. */
+export function campaignTestAttemptLocked(rows: {recipient:string;campaign_revision:string}[], revision:string, recipient:string) {
+ return rows.some(row=>row.campaign_revision===revision && row.recipient===recipient);
+}

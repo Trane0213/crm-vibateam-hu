@@ -84,7 +84,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
   const picked = explicitContactIds(contactIds,choices.map(c=>c.id));
   const selectedCompanyIds = [...new Set(choices.filter(c=>picked.includes(c.id)).map(c=>c.company_id))];
   const previewRow = d?.rows.find(r=>r.contact_id===previewId);
-  const preview = camp && previewRow ? campaignPreview(camp.message_subject ?? "",camp.message_body ?? "",previewRow) : null;
+  const preview = camp && previewRow ? campaignPreview(camp.message_subject ?? "",camp.message_body ?? "",previewRow,camp.message_html ?? null) : null;
 
   return (
     <Card><CardContent className="space-y-3 p-4 text-sm">
@@ -174,7 +174,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates, entryContactId, 
           ))}
           {d.rows.length === 0 && <li className="py-2 text-muted-foreground">Nincs tárolt címzett ebben a csoportban.</li>}
         </ul>
-        {preview && previewRow && <section className="border-y py-3 space-y-2"><h3 className="font-medium">Mentett üzenet · {previewRow.email}</h3><p className="break-words">{preview.subject || "(Üres tárgy)"}</p><p className="whitespace-pre-wrap break-words">{preview.body || "(Üres üzenet)"}</p>{dirty && <Badge variant="outline">Nem mentett változások nélkül</Badge>}</section>}
+        {preview && previewRow && <section className="border-y py-3 space-y-2"><h3 className="font-medium">Mentett üzenet · {previewRow.email}</h3><p className="break-words">{preview.subject || "(Üres tárgy)"}</p>{preview.html !== null ? <CampaignHtmlPreview html={preview.html} /> : <p className="whitespace-pre-wrap break-words">{preview.body || "(Üres üzenet)"}</p>}{dirty && <Badge variant="outline">Nem mentett változások nélkül</Badge>}</section>}
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Előző</Button>
           <span>{page} / {pages} oldal · {d.total} cím</span>
