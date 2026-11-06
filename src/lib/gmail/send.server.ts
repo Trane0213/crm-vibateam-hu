@@ -244,10 +244,14 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
 
     let marketingWarning: string | undefined;
     if (body.company_id) {
-      const stateResult = await admin.rpc("company_marketing_from_sent", {
-        p_company: body.company_id, p_email: insEmail.id, p_user: userId,
-      });
-      if (stateResult.error) marketingWarning = "A levél kiment, de a marketingállapot frissítése nem igazolt. Ne küldd újra; frissítsd a cégadatlapot.";
+      try {
+        const stateResult = await admin.rpc("company_marketing_from_sent", {
+          p_company: body.company_id, p_email: insEmail.id, p_user: userId,
+        });
+        if (stateResult.error) throw stateResult.error;
+      } catch {
+        marketingWarning = "A levél kiment, de a marketingállapot frissítése nem igazolt. Ne küldd újra; frissítsd a cégadatlapot.";
+      }
     }
 
     // csatolmányok metaadat mentése (a fájlok már R2-ben vannak az outbound-attachments/ prefix alatt)
@@ -279,7 +283,7 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     }
     return Response.json({ ok: true, warning: marketingWarning, id: sent.id, threadId: sent.threadId });
   } catch (e: any) {
-    if (hooks && sentEvidence) return Response.json({ok:true,...sentEvidence,warning:'A levél Gmail-azonosítója megvan, de a teljes eredmény nem igazolt. Ne küldd újra.'});
+    if (sentEvidence) return Response.json({ok:true,...sentEvidence,warning:'A levél Gmail-azonosítója megvan, de a teljes eredmény nem igazolt. Ne küldd újra.'});
     if (e instanceof Response) return e;
     console.error("[gmail/send] error", e);
     return Response.json({ error: e?.message ?? String(e) }, { status: 500 });

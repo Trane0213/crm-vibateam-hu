@@ -252,7 +252,6 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
     mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
-      const withSrc = withLeadSource(cust.data?.notes ?? null, input.lead_source);
       let leadId = partialHandoffLeadId.current;
       if (!leadId) {
         const payload: any = {
@@ -271,9 +270,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         partialHandoffLeadId.current = leadId;
       }
       try {
-        const { error: sourceError } = await supabase.from("companies").update({ notes: withSrc }).eq("id", companyId);
-        if (sourceError) throw sourceError;
-        await setCompanyMarketingStatus({ data: { companyId, status: "handoff", handoffLeadId: leadId, expected: { ...marketingExpected(cust.data ?? {}), notes: withSrc } } });
+        await setCompanyMarketingStatus({ data: { companyId, status: "handoff", handoffLeadId: leadId, leadSource: input.lead_source, expected: marketingExpected(cust.data ?? {}) } });
       } catch {
         const err: any = new Error(
           `A lead létrejött (#${leadId.slice(0, 8)}), de a cég marketingstátusza nem mentődött. Az újbóli „Átadás” csak a státuszt pótolja, új leadet nem hoz létre.`,
