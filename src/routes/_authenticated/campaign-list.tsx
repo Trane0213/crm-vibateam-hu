@@ -12,7 +12,8 @@ import { EmailComposer } from "@/components/emails/email-composer";
 import { CampaignDraftPrecheck } from "@/components/marketing/campaign-draft-precheck";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { readMarketingMeta, withMarketingStatus } from "@/lib/marketing-status";
+import { readMarketingMeta, marketingExpected, MARKETING_STATE_SELECT, type CompanyMarketingState } from "@/lib/marketing-status";
+import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { selectMarketingCompanies } from "@/lib/marketing-universe";
 import {
   AlertDialog,
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/campaign-list")({
   component: CampaignListPage,
 });
 
-type CampaignRow = {
+type CampaignRow = CompanyMarketingState & {
   id: string;
   name: string;
   website: string | null;
@@ -57,23 +58,23 @@ function fmtDate(iso: string): string {
  * marketing-home pipeline és a campaign-list ugyanazt a rekordot
  * ugyanabban az állapotban mutatja.
  */
-function isActiveCampaign(notes: string | null): boolean {
-  return readMarketingMeta(notes).status === "new";
+function isActiveCampaign(row: CampaignRow): boolean {
+  return readMarketingMeta(row.notes, row).status === "new";
 }
 
 function CampaignListPage() {
   const [scope,setScope]=useState<"campaign"|"all">("campaign");
   const [search, setSearch] = useState("");
   const [composer, setComposer] = useState<{ to: string; company: string; companyId: string; contactId?: string } | null>(null);
-  const [rejecting, setRejecting] = useState<{ id: string; name: string; notes: string | null } | null>(null);
+  const [rejecting, setRejecting] = useState<CampaignRow | null>(null);
   const qc = useQueryClient();
 
   const q = useQuery({
     queryKey: ["campaign-list", "marketing-universe",scope],
     queryFn: async (): Promise<CampaignRow[]> => {
-      const companies = scope==='campaign' ? await selectMarketingCompanies(supabase,"id,name,website,notes,created_at",{limit:1000}) : await (async()=>{
+      const companies = scope==='campaign' ? await selectMarketingCompanies(supabase,`id,name,website,notes,created_at,${MARKETING_STATE_SELECT}`,{limit:1000}) : await (async()=>{
         const rows: any[]=[];
-        for(let from=0;;from+=1000){const r=await supabase.from('companies').select('id,name,website,notes,created_at').order('id').range(from,from+999);if(r.error)throw r.error;rows.push(...(r.data??[]));if((r.data?.length??0)<1000)break;}
+        for(let from=0;;from+=1000){const r=await supabase.from('companies').select(`id,name,website,notes,created_at,${MARKETING_STATE_SELECT}`).order('id').range(from,from+999);if(r.error)throw r.error;rows.push(...(r.data??[]));if((r.data?.length??0)<1000)break;}
         return rows;
       })();
       const ids = (companies ?? []).map((c) => c.id);
@@ -90,6 +91,7 @@ function CampaignListPage() {
         byCompany.set(k.company_id as string, arr);
       }
       return (companies ?? []).map((c) => ({
+        ...c,
         id: c.id,
         name: c.name,
         website: c.website ?? null,
@@ -101,7 +103,7 @@ function CampaignListPage() {
   });
 
   const active = useMemo(
-    () => (q.data ?? []).filter((r) => isActiveCampaign(r.notes)),
+    () => (q.data ?? []).filter((r) => isActiveCampaign(r)),
     [q.data],
   );
 
@@ -120,33 +122,20 @@ function CampaignListPage() {
 
   const total = active.length;
 
-  async function markEmailSent(companyId: string, currentNotes: string | null) {
-    const next = withMarketingStatus(currentNotes, "contacted");
-    const { error } = await supabase
-      .from("companies")
-      .update({ notes: next } as any)
-      .eq("id", companyId);
-    if (error) {
-      toast.error("Nem sikerült rögzíteni az email küldést", { description: humanizeSupabaseError(error) });
-      return;
-    }
-    qc.invalidateQueries({ queryKey: ["campaign-list", "marketing-universe"] });
-  }
-
   async function rejectFromCampaign() {
     if (!rejecting) return;
-    const next = withMarketingStatus(rejecting.notes, "rejected");
-    const { error } = await supabase
-      .from("companies")
-      .update({ notes: next } as any)
-      .eq("id", rejecting.id);
-    if (error) {
+    try {
+      await setCompanyMarketingStatus({ data: { companyId: rejecting.id, status: "rejected", handoffLeadId: null, expected: marketingExpected(rejecting) } });
+    } catch (error) {
       toast.error("Elutasítás nem sikerült", { description: humanizeSupabaseError(error) });
+      qc.invalidateQueries({ queryKey: ["campaign-list"] });
       return;
     }
     toast.success("Eltávolítva az aktív kampánylistából", { description: rejecting.name });
     setRejecting(null);
-    qc.invalidateQueries({ queryKey: ["campaign-list", "marketing-universe"] });
+    qc.invalidateQueries({ queryKey: ["campaign-list"] });
+    qc.invalidateQueries({ queryKey: ["mkt-home"] });
+    qc.invalidateQueries({ queryKey: ["customers"] });
   }
 
   return (
@@ -247,7 +236,7 @@ function CampaignListPage() {
                               {scope==='campaign' && <Button
                                 size="sm"
                                 variant="ghost"
-                                onClick={() => setRejecting({ id: r.id, name: r.name, notes: r.notes })}
+                                onClick={() => setRejecting(r)}
                                 title="Elutasítás — kikerül az aktív kampánylistából (a cég és kontakt megmarad)"
                                 aria-label="Elutasítás"
                               >
@@ -289,7 +278,9 @@ function CampaignListPage() {
         onSent={() => {
           if (!composer) return;
           const row = (q.data ?? []).find((r) => r.id === composer.companyId);
-          if (row) void markEmailSent(row.id, row.notes);
+          qc.invalidateQueries({ queryKey: ["campaign-list"] });
+          qc.invalidateQueries({ queryKey: ["mkt-home"] });
+          qc.invalidateQueries({ queryKey: ["customers"] });
           qc.invalidateQueries({ queryKey: ["mkt-home", "marketing-companies"] });
           setComposer(null);
         }}
