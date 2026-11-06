@@ -11,12 +11,17 @@ import {
   readMarketingMeta, type MarketingStatus,
 } from "@/lib/marketing-status";
 import { selectMarketingCompanies } from "@/lib/marketing-universe";
+import { getMarketingDaily } from '@/lib/marketing-daily.functions';
+import { budapestDayBounds } from '@/lib/owner-kpis';
+import { usePermissions } from '@/hooks/use-permissions';
 
-const isoStartOfDay = () => { const d = new Date(); d.setHours(0,0,0,0); return d.toISOString(); };
+const isoStartOfDay = () => budapestDayBounds().start;
 const isoWeekAgo = () => { const d = new Date(); d.setDate(d.getDate()-7); return d.toISOString(); };
 const isoMonthAgo = () => { const d = new Date(); d.setDate(d.getDate()-30); return d.toISOString(); };
 
 export function MarketingHome() {
+  const {profile}=usePermissions();
+  const dailyQ=useQuery({queryKey:['mkt-home','daily',profile?.auth_user_id],queryFn:()=>getMarketingDaily(),enabled:!!profile?.auth_user_id});
   const todayStart = isoStartOfDay();
   const weekAgo = isoWeekAgo();
   const monthAgo = isoMonthAgo();
@@ -126,18 +131,7 @@ export function MarketingHome() {
     (e.internal_date ?? e.created_at) >= weekAgo,
   );
   const emails7 = recentEmails.length;
-  const replied7 = (() => {
-    // Válaszadási arány: hány aktív szálban van legalább 1 bejövő válasz az
-    // elmúlt 7 napban (azaz több mint 1 email a szálban).
-    const recentThreads = threads.filter((t: any) => t.last_message_at >= weekAgo);
-    if (recentThreads.length === 0) return 0;
-    const byThread = new Map<string, number>();
-    for (const e of (emailsQ.data ?? []) as any[]) {
-      byThread.set(e.thread_id, (byThread.get(e.thread_id) ?? 0) + 1);
-    }
-    const replied = recentThreads.filter((t: any) => (byThread.get(t.id) ?? 0) > 1).length;
-    return Math.round((replied / recentThreads.length) * 100);
-  })();
+  const replied7 = dailyQ.data?.partial ? null : dailyQ.data?.mail.rate;
 
   const loading = companiesQ.isLoading || allCompaniesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
 
@@ -153,6 +147,17 @@ export function MarketingHome() {
       </QuickActions>
 
       <div className="space-y-4 p-6 pt-3">
+        {dailyQ.isError && <p role="alert" className="text-sm text-destructive">A napi marketingfeladatok nem tölthetők be.</p>}
+        {dailyQ.data && <section className="border bg-card">
+          <SectionHeader title="Mai marketingfeladatok" />
+          {dailyQ.data.partial && <p className="p-3 text-sm text-muted-foreground">Részleges adatok; a lista nem teljes.</p>}
+          <div className="grid gap-4 p-4 md:grid-cols-3">
+            <DailyList title="Esedékes / lejárt utánkövetés" rows={dailyQ.data.followups.filter(f=>f.due_date && f.due_date<=budapestDayBounds().end).map(f=>({id:f.id,companyId:f.company_id ?? '',name:`${f.company_name} · ${f.followup_type==='call'?'Telefon':'Utánkövetés'} · ${fmtDate(f.due_date ?? undefined)}`}))} />
+            <DailyList title="Válaszra reagálni" rows={dailyQ.data.reply_pending.map(c=>({...c,companyId:c.id}))} />
+            <DailyList title="Tárolt megkeresés válasz nélkül" rows={dailyQ.data.awaiting_reply.map(c=>({...c,companyId:c.id}))} />
+          </div>
+          <p className="px-4 pb-3 text-xs text-muted-foreground">Saját tárolt postafiókadatok; a válaszhiány és a levél tartalma ellenőrizendő.</p>
+        </section>}
         {/* ───────── 1. Marketing minősítési pipeline ───────── */}
         <section className="rounded-lg border bg-card">
           <SectionHeader title="Marketing pipeline"
@@ -244,7 +249,7 @@ export function MarketingHome() {
             <PerfTile label="Új cég · 30 nap" value={newCompanies30} />
             <PerfTile label="Átadási arány · 30 nap" value={`${handoffRate30}%`} sub="átadott / új cég" />
             <PerfTile label="Email aktivitás · 7 nap" value={emails7} sub="email db" />
-            <PerfTile label="Válaszadási arány · 7 nap" value={`${replied7}%`} sub="szálban >1 üzenet" />
+            <PerfTile label="Válaszadási arány · 7 nap" value={replied7 == null ? '—' : `${replied7}%`} sub={`${dailyQ.data?.mail.replied ?? 0} külső válasz / ${dailyQ.data?.mail.contacted ?? 0} saját megkeresés`} />
           </div>
         </section>
 
@@ -341,3 +346,7 @@ function fmtDate(iso?: string) {
 // A marketing kizárólag company + contact + email szinten dolgozik;
 // a leadek a sales pipeline saját adatai.
 void Send;
+function DailyList({title,rows}:{title:string;rows:{id:string;companyId:string;name:string}[]}) {
+  const [page,setPage]=useState(0);
+  return <div><h3 className="mb-2 text-sm font-semibold">{title} ({rows.length})</h3>{rows.length===0?<p className="text-xs text-muted-foreground">Nincs látható tétel.</p>:<ul className="space-y-2">{rows.slice(page*5,page*5+5).map(row=><li key={row.id}><Link to="/customers/$id" params={{id:row.companyId}} className="text-sm text-primary hover:underline">{row.name}</Link></li>)}</ul>}{rows.length>5&&<div className="mt-2 flex gap-2"><Button size="sm" variant="ghost" disabled={page===0} onClick={()=>setPage(page-1)}>Előző</Button><Button size="sm" variant="ghost" disabled={(page+1)*5>=rows.length} onClick={()=>setPage(page+1)}>Következő</Button></div>}</div>;
+}

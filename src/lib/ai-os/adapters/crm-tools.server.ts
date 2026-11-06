@@ -31,6 +31,19 @@ const fail = (err: unknown) => toolError.fromException(err);
 function ok<T>(data: T) { return { ok: true, data }; }
 
 export function registerCrmTools() {
+  registerTool({name:'crm_company_activity',domain:'crm.companies',allowed_agents:['scarlet','timothy','george','boss'],
+    description:'Céghez mentett hívások, utánkövetések és találkozók lapozott előzményei. Nem teljes postafiók és nem üzleti módosítás.',
+    parameters:{type:'object',properties:{company_id:{type:'string'},section:{type:'string',enum:['phone_calls','followups','meetings']},...CRM_PAGE_PROPERTIES},required:['company_id','section']}}, async (args,ctx)=>{
+      const id=z.string().uuid().parse(args.company_id);
+      const section=z.enum(['phone_calls','followups','meetings']).parse(args.section);
+      const company=await ctx.supabaseUser.from('companies').select('id').eq('id',id).maybeSingle();
+      if(company.error||!company.data) return fail('A cég nem olvasható.');
+      const window=readWindow(args);
+      const columns=section==='phone_calls'?'id,company_id,contact_id,direction,outcome,summary,callback_date,created_at':section==='followups'?'id,company_id,followup_type,due_date,completed,result,created_at':'id,company_id,title,meeting_date,created_at';
+      const result=await ctx.supabaseUser.from(section).select(columns,{count:'exact'}).eq('company_id',id).order('created_at',{ascending:false}).order('id').range(window.offset,window.offset+window.limit-1);
+      if(result.error) return fail(result.error.message);
+      return ok(crmReadPage(result.data??[],result.count,window,section));
+    });
   // ---------------- GLOBAL SEARCH ----------------
   registerTool(
     {
