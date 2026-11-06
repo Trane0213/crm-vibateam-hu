@@ -398,15 +398,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   return (
     <div className="flex flex-col">
       {/* ───── Fejléc ───── */}
-      <div className="border-b bg-background px-6 py-4">
-        <div className="flex items-start justify-between gap-4">
+      <div className="border-b bg-background px-4 py-4 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
               Marketing minősítés
             </div>
             <h1 className="mt-1 flex flex-wrap items-center gap-2 text-xl font-semibold">
               <Building2 className="h-5 w-5 text-muted-foreground" />
-              <span className="truncate">{c.name}</span>
+              <span className="break-words">{c.name}</span>
               <Badge variant="outline">{COMPANY_TYPE_LABEL[c.company_type] ?? "Cég"}</Badge>
               <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${MARKETING_STATUS_TONE[meta.status]}`}>
                 {MARKETING_STATUS_LABEL[meta.status]}
@@ -496,30 +496,36 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
       </div>
 
       {/* ───── Tartalom ───── */}
-      <div className="p-6">
+      <div className="min-w-0 p-4 sm:p-6">
+        {(contacts.error || companyLeads.error || emails.error) && <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-md border border-destructive/30 p-3 text-sm text-destructive">
+          Egyes kapcsolattartási vagy előzményadatok nem tölthetők be. A hiányzó lista nem igazolt üres állapot.
+          <Button variant="outline" size="sm" onClick={() => { void contacts.refetch(); void companyLeads.refetch(); void emails.refetch(); }}>Előzmények újrapróbálása</Button>
+        </div>}
         <CompanyMarketingSummary notes={c.notes ?? null} company={c} />
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview"><Sparkles className="mr-1.5 h-3.5 w-3.5" />Áttekintés</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolattartók ({contacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Levélszálak ({emailCount}{emailHint ? "*" : ""})</TabsTrigger>
-            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
-            <TabsTrigger value="campaigns">Kampányok</TabsTrigger>
-            <TabsTrigger value="followups">Utánkövetések</TabsTrigger>
             <TabsTrigger value="sales-note">
               <StickyNote className="mr-1.5 h-3.5 w-3.5" />
-              Jegyzet salesnek
+              Összefoglaló Salesnek
               {meta.salesNote && <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-primary" />}
             </TabsTrigger>
             <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
+            <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label="További ügyféladatok"><MoreHorizontal />További adatok</Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setTab("docs")}><FolderOpen />Dokumentumok</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTab("campaigns")}>Kampányok</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTab("followups")}>Utánkövetések</DropdownMenuItem>
+            </DropdownMenuContent></DropdownMenu>
           </TabsList>
 
           {/* Áttekintés */}
           <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
             <Card>
-              <CardHeader><CardTitle className="text-sm">Cég adatok</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-sm">Ügyféladatok</CardTitle></CardHeader>
               <CardContent className="space-y-1.5 text-sm">
-                <Row label="Cégnév" value={c.name} />
+                <Row label="Név" value={c.name} />
                 <Row label="Típus" value={COMPANY_TYPE_LABEL[c.company_type] ?? "—"} />
                 {c.tax_number && <Row label="Adószám" value={c.tax_number} />}
                 {c.website && <Row label="Web" value={c.website} />}
@@ -542,8 +548,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     <Row label="Telefon" value={primary.phone ?? "—"} />
                     {primary.email && (
                       <div className="pt-2">
-                        <Button size="sm" variant="outline" onClick={() => setComposer({ to: primary.email!, subject: `${c.name} — `, contactId: primary.id })}>
-                          <Send className="mr-1 h-3.5 w-3.5" />Email küldése
+                        <Button size="sm" variant="outline" onClick={() => { if (primary.email) setComposer({ to: primary.email, subject: `${c.name} — `, contactId: primary.id }); }}>
+                          <Send className="mr-1 h-3.5 w-3.5" />Levél írása
                         </Button>
                       </div>
                     )}
@@ -577,7 +583,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
 
           {/* Kapcsolattartók */}
           <TabsContent value="contacts" className="mt-4">
-            <ContactsTable
+            {contacts.isLoading ? <p role="status" className="text-sm text-muted-foreground">Kapcsolattartók betöltése…</p> : contacts.error ? <p role="alert" className="text-sm text-destructive">A kapcsolattartók nem tölthetők be. Az Előzmények újrapróbálása gombbal frissítheted őket.</p> : <ContactsTable
               rows={contacts.data ?? []}
               onAdd={() => {
                 setEditingContact(null);
@@ -588,7 +594,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                 setContactDialogOpen(true);
               }}
               onEmail={(c2) => c2.email && setComposer({ to: c2.email, subject: "", contactId: c2.id })}
-            />
+            />}
           </TabsContent>
 
           {/* Email aktivitás */}
@@ -608,11 +614,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
             {emailHint && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">* {emailHint}</p>}
             {emails.data?.emailLinkOverflow && <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">Ehhez a céghez nagyon sok levél van egyenként hozzárendelve; ezek közül csak a céghez vagy kapcsolattartóhoz kötött szálak látszanak. Ellenőrzés tulajdonosi döntésre vár.</p>}
             <ThreadPager page={threadPage} total={threadCount} pageSize={COMPANY_THREAD_PAGE_SIZE} onPage={setThreadPage} />
-            {emailCount === 0 ? (
+            {emails.isLoading ? <p role="status" className="text-sm text-muted-foreground">Látható levélszálak betöltése…</p> : emails.error ? <p role="alert" className="text-sm text-destructive">A levelezési előzmények nem igazoltak. Próbáld újra a betöltést.</p> : emailCount === 0 ? (
               <EmptyState icon={Mail} title={emailHint ? "Nincs számodra látható levél" : "Nincs email aktivitás"}
                 description={emailHint ? "A levelezés a hozzád rendelt postafiókok szerint szűrt." : "Küldj egy emailt valamelyik kapcsolattartónak — a szál automatikusan ide kerül."} />
             ) : (
-              <div className="rounded-md border bg-card overflow-hidden">
+              <div className="rounded-md border bg-card overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                     <tr>
@@ -754,7 +760,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-2">
       <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-right truncate">{value}</span>
+      <span className="min-w-0 break-words font-medium text-right">{value}</span>
     </div>
   );
 }
@@ -796,7 +802,7 @@ function ContactsTable({
       <div className="flex justify-end">
         <Button size="sm" onClick={onAdd}><UserPlus className="mr-1.5 h-4 w-4" />Kapcsolattartó hozzáadása</Button>
       </div>
-      <div className="rounded-md border bg-card overflow-hidden">
+      <div className="rounded-md border bg-card overflow-x-auto">
       <table className="w-full text-sm">
         <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
           <tr>
@@ -868,7 +874,7 @@ function ContactDialog({
         <DialogHeader>
           <DialogTitle>{initial?.id ? "Kapcsolattartó szerkesztése" : "Kapcsolattartó hozzáadása"}</DialogTitle>
           <DialogDescription>
-            A marketing workflow innen megszakítás nélkül továbbvihető emailre és átadásra.
+            A mentés a kapcsolattartó adatait módosítja ennél az ügyfélnél; emailt nem küld és Sales-ügyet nem hoz létre.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-3">
@@ -924,7 +930,7 @@ function SalesNoteEditor({
           <StickyNote className="h-4 w-4" />
           Salesnek szánt jegyzet
           <span className="ml-auto text-xs font-normal text-muted-foreground">
-            ez a szöveg lesz az átadás idő pontján a Lead összefoglalója
+            átadáskor ellenőrizhető ügyösszefoglaló
           </span>
         </CardTitle>
       </CardHeader>
@@ -935,20 +941,21 @@ function SalesNoteEditor({
             <Link to="/leads/$id" params={{ id: handoffLeadId }} className="font-mono underline">
               #{handoffLeadId.slice(0, 8)}
             </Link>{" "}
-            (a sales pipeline-ban dolgoznak rajta).
+            (az átadott Sales-ügy; a Pipeline-ba léptetés külön történik).
           </div>
         )}
         <Textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Mit kell tudni a salesnek? Pl. milyen projektre keresnek partnert, mikor érdemes felhívni, korábbi beszélgetések, döntéshozó neve…"
-          rows={14}
+          aria-label="Salesnek szánt összefoglaló"
+          rows={8}
           className="text-sm"
         />
         <div className="flex justify-end gap-2">
           {dirty && <Button variant="ghost" size="sm" onClick={() => setValue(initial)}>Mégse</Button>}
           <Button size="sm" disabled={!dirty || saving} onClick={() => onSave(value)}>
-            {saving ? "Mentés…" : "Mentés"}
+            {saving ? "Összefoglaló mentése…" : "Összefoglaló mentése"}
           </Button>
         </div>
       </CardContent>
