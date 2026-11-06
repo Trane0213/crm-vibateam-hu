@@ -31,6 +31,7 @@ export function MobileBottomNav() {
       <Link
         key={i.url}
         to={i.url}
+        aria-current={a ? "page" : undefined}
         className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 py-2 text-[11px] font-medium transition-colors ${a ? "text-primary" : "text-muted-foreground"}`}
       >
         <span className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${a ? "bg-primary/12" : ""}`}>
@@ -60,7 +61,7 @@ export function MobileBottomNav() {
         </Button>
       </nav>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-3xl pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto rounded-t-xl pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
           <SheetHeader className="text-left">
             <SheetTitle className="font-display">Továbbiak</SheetTitle>
           </SheetHeader>
@@ -68,7 +69,7 @@ export function MobileBottomNav() {
             {groups.map((g) => (
               <section key={g.label}>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{g.label}</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid gap-1 sm:grid-cols-2">
                   {g.items.map((i) => {
                     const a = isNavActive(pathname, i.url);
                     return (
@@ -76,10 +77,11 @@ export function MobileBottomNav() {
                         key={i.url + (i.search?.agent ?? "")}
                         to={i.url}
                         {...(i.search ? { search: i.search as never } : {})}
-                        className={`flex min-h-[76px] flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-center text-xs leading-tight transition-colors ${a ? "border-primary bg-primary/10 text-primary" : "bg-card hover:bg-accent"}`}
+                        aria-current={a ? "page" : undefined}
+                        className={`flex min-h-11 items-center gap-3 rounded-md px-3 py-2 text-sm leading-snug transition-colors ${a ? "bg-primary/10 text-primary" : "bg-card hover:bg-accent"}`}
                       >
                         <i.icon className="h-5 w-5 shrink-0" />
-                        <span className="line-clamp-2">{i.title}</span>
+                        <span className="min-w-0 break-words">{i.title}</span>
                       </Link>
                     );
                   })}

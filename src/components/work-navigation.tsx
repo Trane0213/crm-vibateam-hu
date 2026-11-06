@@ -9,7 +9,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 export function WorkNavigation() {
   const { role } = usePermissions();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (role !== "sales" && role !== "marketing") return null;
   return (
     <div className="min-w-0 border-b bg-card">
     <nav
@@ -30,8 +29,8 @@ export function WorkNavigation() {
           </Link>
         </Button>
       ))}
-      {role === "marketing" && <DropdownMenu>
-        <DropdownMenuTrigger asChild><Button size="sm" variant="outline" className="shrink-0" aria-label="További marketinges oldalak"><MoreHorizontal />Továbbiak</Button></DropdownMenuTrigger>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild><Button size="sm" variant="outline" className="shrink-0" aria-label="További oldalak"><MoreHorizontal />Továbbiak</Button></DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="max-h-96 overflow-y-auto">
           {moreGroups(role).map((group) => <div key={group.label}>
             <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
@@ -39,9 +38,9 @@ export function WorkNavigation() {
             <DropdownMenuSeparator />
           </div>)}
         </DropdownMenuContent>
-      </DropdownMenu>}
+      </DropdownMenu>
     </nav>
-    <details className="border-t px-4 py-2 text-xs sm:px-6">
+    {(role === "marketing" || role === "sales") && <details className="border-t px-4 py-2 text-xs sm:px-6">
       <summary className="cursor-pointer font-medium text-muted-foreground"><Route className="mr-1.5 inline h-3.5 w-3.5" />{role === "marketing" ? "Folyamat · érdeklődéstől a Sales-átadásig" : "Folyamat · átvett ügytől az ajánlatig"}</summary>
       <ol className="grid gap-3 py-3 text-sm sm:grid-cols-3" aria-label="Marketing–Sales munkafolyamat">
         {role === "marketing" ? <>
@@ -54,7 +53,7 @@ export function WorkNavigation() {
           <li><strong className="text-foreground">3 · Ajánlat és utánkövetés</strong><p className="mt-1 text-muted-foreground">Az ajánlat mentése nem küldés. A kiküldést és az utánkövetést a meglévő ajánlatmunkafolyamatban kezeld.</p><Button asChild variant="link" size="sm" className="px-0"><Link to="/quotes">Ajánlatok megnyitása</Link></Button></li>
         </>}
       </ol>
-    </details>
+    </details>}
     </div>
   );
 }

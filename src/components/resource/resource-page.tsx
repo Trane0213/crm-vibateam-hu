@@ -125,7 +125,7 @@ export function ResourcePage({
   /** Meglévő rekord mentése előtt ellenőriz / módosít; hibát dobva megállítja a mentést. */
   beforeUpdate?: (values: Record<string, any>, current: any) => Record<string, any> | Promise<Record<string, any>>;
 }) {
-  const { data, isLoading, error } = useList<any>(table, { order, ascending });
+  const { data, isLoading, error, refetch } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
   const del = useDelete(table);
   const { role } = usePermissions();
@@ -178,13 +178,14 @@ export function ResourcePage({
       <div className="min-w-0 p-4 sm:p-6">
         {toolbar && <div className="mb-3">{toolbar}</div>}
         {error && (
-          <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            Adatbázis hiba: {(error as any).message}
+          <div role="alert" className="mb-4 flex flex-wrap items-center gap-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            A lista nem tölthető be. A meglévő adatok nem vesztek el.
+            <Button size="sm" variant="outline" onClick={() => refetch()}>Újrapróbálás</Button>
           </div>
         )}
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Betöltés…</p>
-        ) : rows.length === 0 ? (
+          <p role="status" className="text-sm text-muted-foreground">{title} betöltése…</p>
+        ) : error && !rows.length ? null : rows.length === 0 ? (
           <EmptyState
             icon={Icon}
             title={emptyTitle ?? "Itt jelennek meg a rekordok."}
@@ -215,26 +216,13 @@ export function ResourcePage({
                       </TableCell>
                     ))}
                     <TableCell className="text-right">
-                      {role === "marketing" ? <DropdownMenu>
+                      <DropdownMenu>
                         <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label="Rekord műveletei"><MoreHorizontal /></Button></DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onSelect={() => { setEditing(row); setOpen(true); }}><Pencil />Szerkesztés</DropdownMenuItem>
                           {canDelete && <DropdownMenuItem className="text-destructive" onSelect={() => setDeleting(row.id)}><Trash2 />Törlés</DropdownMenuItem>}
                         </DropdownMenuContent>
-                      </DropdownMenu> : <>
-                      <Tooltip><TooltipTrigger asChild><Button
-                        size="icon"
-                        variant="ghost"
-                        aria-label="Szerkesztés"
-                        onClick={() => {
-                          setEditing(row);
-                          setOpen(true);
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button></TooltipTrigger><TooltipContent>Szerkesztés</TooltipContent></Tooltip>
-                      {canDelete && <DeleteButton onConfirm={() => del.mutate(row.id)} />}
-                      </>}
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bot, ChevronDown, MoreHorizontal } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent,
@@ -12,6 +12,7 @@ import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABEL } from "@/lib/permissions";
 import { aiItems, isNavActive, moreGroups, primaryItems, type NavItem } from "@/lib/nav-config";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const itemCls =
   "h-10 rounded-lg px-3 text-sidebar-foreground/85 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-semibold";
@@ -29,7 +30,7 @@ export function AppSidebar() {
   const moreActive = more.some((g) => g.items.some((i) => isNavActive(pathname, i.url)));
   const [moreOpen, setMoreOpen] = useState(moreActive);
   const [aiOpen, setAiOpen] = useState(false);
-  const [openGroup, setOpenGroup] = useState<string | null>(more.find(g => g.items.some(i => isNavActive(pathname, i.url)))?.label ?? null);
+  useEffect(() => { if (moreActive) setMoreOpen(true); }, [pathname, moreActive]);
 
   const active = (i: NavItem) =>
     i.search?.agent
@@ -98,12 +99,14 @@ export function AppSidebar() {
 
         {more.length > 0 && (
           <SidebarGroup className="mt-2 border-t border-sidebar-border/40 pt-2">
-            {toggle("Továbbiak", moreOpen, () => setMoreOpen((v) => !v), MoreHorizontal)}
+            {collapsed ? <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="text-sidebar-foreground" aria-label="További oldalak"><MoreHorizontal /></Button></DropdownMenuTrigger><DropdownMenuContent side="right" className="max-h-96 overflow-y-auto">
+              {more.map(g => <div key={g.label}><DropdownMenuLabel>{g.label}</DropdownMenuLabel>{g.items.map(i => <DropdownMenuItem asChild key={i.url}><Link to={i.url}><i.icon />{i.title}</Link></DropdownMenuItem>)}</div>)}
+            </DropdownMenuContent></DropdownMenu> : toggle("Továbbiak", moreOpen, () => setMoreOpen((v) => !v), MoreHorizontal)}
             {(moreOpen && !collapsed) &&
               more.map((g) => (
                 <div key={g.label} className="mt-2">
-                  <Button type="button" variant="ghost" className="h-8 w-full justify-between px-3 text-xs text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground" aria-expanded={openGroup === g.label} onClick={() => setOpenGroup(openGroup === g.label ? null : g.label)}>{g.label}<ChevronDown className={`h-3.5 w-3.5 ${openGroup === g.label ? "rotate-180" : ""}`} /></Button>
-                  {openGroup === g.label && <SidebarMenu className="gap-0.5">{g.items.map(renderItem)}</SidebarMenu>}
+                  <SidebarGroupLabel className="text-sidebar-foreground/60">{g.label}</SidebarGroupLabel>
+                  <SidebarMenu className="gap-0.5">{g.items.map(renderItem)}</SidebarMenu>
                 </div>
               ))}
           </SidebarGroup>

@@ -17,7 +17,7 @@ export function PageHeader({
           <p className="mt-1 max-w-3xl break-words text-sm leading-relaxed text-muted-foreground">{description}</p>
         )}
       </div>
-      {actions && <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div>}
+      {actions && <div className="crm-page-actions flex max-w-full flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
