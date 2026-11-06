@@ -51,11 +51,11 @@ export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/activity", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/projects", roles: ["owner", "project_manager", "sales"] },
   { prefix: "/quotes", roles: ["owner", "project_manager", "sales"] },
-  { prefix: "/followups", roles: ["owner", "project_manager", "sales"] },
+  { prefix: "/followups", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/leads/lost", roles: ["owner", "sales"] },
   // A Lead Workspace marketing módban is működik (új megkeresések, átadás a salesnek).
   { prefix: "/leads", roles: ["owner", "sales", "marketing"] },
-  { prefix: "/tasks", roles: ["owner", "project_manager", "sales"] },
+  { prefix: "/tasks", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/companies", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/contacts", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/customers", roles: ["owner", "project_manager", "sales", "marketing"] },
