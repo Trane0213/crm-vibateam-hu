@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { campaignPreview, explicitContactIds } from "@/lib/marketing/campaign-preparation";
 import { ContactProvenanceSummary } from "@/components/customers/contact-provenance";
 import { listCampaignDrafts, saveCampaignDraft, setCampaignArchived, precheckAndStoreCampaign, getCampaignDraft } from "@/lib/marketing/campaign-drafts.functions";
+import { CampaignTestControl } from "@/components/marketing/campaign-test-control";
 import type { EligibilityStatus } from "@/lib/marketing/campaign-eligibility";
 
 const LABEL: Record<EligibilityStatus | "all", string> = {
@@ -148,6 +149,7 @@ export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: 
           <Button size="sm" disabled title="Ebben a körben a kiküldés tiltott">Kiküldés (tiltott)</Button>
         </div>
       </>)}
+      {camp && <CampaignTestControl key={`${camp.id}:${camp.updated_at}`} campaignId={camp.id} revision={camp.updated_at} disabled={busy || archived || dirty || !camp.message_subject?.trim() || !camp.message_body?.trim()} />}
     </CardContent></Card>
   );
 }
