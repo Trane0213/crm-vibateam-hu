@@ -52,4 +52,12 @@ out=json.loads(block('owner',False,revision=rev)); assert out['blocked'] is Fals
 block('owner',True,revision=rev,fail=True)
 assert sql(f"select notes from companies where id='{co}'")=='TESZT megőrzött jegyzet'
 assert sql("select count(*) from activities where action='company_marketing_block'")=='2'
-print('PASS: roles, protected columns, insert guard, reason, RLS, server metadata, new contact block, owner-only release, stale revision, atomic audit rollback, preserved notes')
+# Both callers saw the same revision: exactly one may claim the locked row.
+from concurrent.futures import ThreadPoolExecutor
+revision=out['revision']
+query=act('owner')+f"select company_set_marketing_block('{co}',true,'TESZT párhuzamos tiltás','{revision}')"
+with ThreadPoolExecutor(max_workers=2) as pool:
+ results=list(pool.map(lambda _: subprocess.run(base+[query],capture_output=True,text=True).returncode,range(2)))
+assert sorted(results)==[0,1], results
+assert sql("select count(*) from activities where action='company_marketing_block'")=='3'
+print('PASS: roles, protected columns, insert guard, reason, RLS, server metadata, new contact block, owner-only release, stale revision, concurrent single winner, atomic audit rollback, preserved notes')

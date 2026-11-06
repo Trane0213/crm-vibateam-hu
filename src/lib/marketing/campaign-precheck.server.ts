@@ -10,12 +10,16 @@ export async function runCampaignPrecheck(userClient: SupabaseClient<any>, compa
   const data = { companyIds };
     // Kontaktok a felhasználó saját jogosultságával (RLS): csak látható cégek/kontaktok jelöltek.
     const chunks = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
-    const candidates: { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null; marketing_blocked?:boolean }[] = [];
+    const candidates: { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null; marketing_blocked?:boolean; company_marketing_blocked?: boolean }[] = [];
     for (const ids of chunks(data.companyIds, 200)) {
       for (let from = 0; ; from += 1000) {
-        const { data: rows, error } = await context.supabase.from("contacts").select("id,company_id,name,email,email_invalid,companies(name)").in("company_id", ids).order("id").range(from, from + 999);
+        const { data: rows, error } = await context.supabase.from("contacts").select("id,company_id,name,email,email_invalid,companies(name,marketing_blocked)").in("company_id", ids).order("id").range(from, from + 999);
         if (error) throw new Error(error.message);
-        for (const r of rows ?? []) candidates.push({ contact_id: r.id, company_id: r.company_id, company_name: (r.companies as unknown as { name: string } | null)?.name ?? null, name: r.name, email: r.email, email_invalid: r.email_invalid });
+        for (const r of rows ?? []) {
+          const company = r.companies as unknown as { name: string; marketing_blocked: boolean | null } | null;
+          if (!company) throw new Error('A kontakt cégszintű tiltása nem ellenőrizhető.');
+          candidates.push({ contact_id: r.id, company_id: r.company_id, company_name: company.name, name: r.name, email: r.email, email_invalid: r.email_invalid, company_marketing_blocked: company.marketing_blocked === true });
+        }
         if (!rows || rows.length < 1000) break;
       }
     }

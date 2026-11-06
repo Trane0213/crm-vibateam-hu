@@ -15,7 +15,7 @@ const EXTRA_KEYS: Record<string, string[]> = {
   emails: ["sales-watch", "mkt-home"],
   email_threads: ["sales-watch", "mkt-home"],
   phone_calls:["mkt-home"],
-  companies:["mkt-home","campaign-list","customers","web-request-intake"],
+  companies:["mkt-home","campaign-list","customers","web-request-intake","campaign-draft","email_campaign_recipients"],
   contacts:["mkt-home","campaign-list","web-request-intake"],
   quote_sends: ["sales-watch"],
   projects: [],

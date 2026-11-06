@@ -43,3 +43,9 @@ it('personal test history excluded and missing historical coverage blocks ready'
   expect(r.historyMessages).toBe(0);
   expect(r.rows[0]?.status).toBe('uncertain');
 });
+it('company block applies to a newly added contact despite sent evidence', async () => {
+  state.tables = { users_profile: [{ auth_user_id: 'info', gmail_email: 'info@vibateam.hu' }], emails: [sent] };
+  const result = await runCampaignPrecheck(client({ contacts: [{ ...contact, id: 'new-contact', companies: { name: 'TESZT Acme', marketing_blocked: true } }] }), ['company']);
+  expect(result.rows[0]?.status).toBe('invalid');
+  expect(result.rows[0]?.reasons).toEqual(['Cégszintű marketingtiltás']);
+});
