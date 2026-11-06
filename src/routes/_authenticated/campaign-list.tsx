@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState, PageHeader } from "@/components/page-header";
 import { supabase } from "@/integrations/supabase/client";
 import { EmailComposer } from "@/components/emails/email-composer";
@@ -65,6 +66,7 @@ function isActiveCampaign(row: CampaignRow): boolean {
 function CampaignListPage() {
   const [scope,setScope]=useState<"campaign"|"all">("campaign");
   const [search, setSearch] = useState("");
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [composer, setComposer] = useState<{ to: string; company: string; companyId: string; contactId?: string } | null>(null);
   const [rejecting, setRejecting] = useState<CampaignRow | null>(null);
   const qc = useQueryClient();
@@ -79,11 +81,15 @@ function CampaignListPage() {
       })();
       const ids = (companies ?? []).map((c) => c.id);
       if (ids.length === 0) return [];
-      const { data: contacts, error: contactsError } = await supabase
-        .from("contacts")
-        .select("id,name,email,phone,company_id")
-        .in("company_id", ids);
-      if(contactsError) throw contactsError;
+      const contacts: any[] = [];
+      for (let chunk=0; chunk<ids.length; chunk+=200) {
+        for (let from=0;;from+=1000) {
+          const r=await supabase.from("contacts").select("id,name,email,phone,company_id").in("company_id",ids.slice(chunk,chunk+200)).order("id").range(from,from+999);
+          if(r.error) throw r.error;
+          contacts.push(...(r.data??[]));
+          if((r.data?.length??0)<1000) break;
+        }
+      }
       const byCompany = new Map<string, CampaignRow["contacts"]>();
       for (const k of contacts ?? []) {
         const arr = byCompany.get(k.company_id as string) ?? [];
@@ -152,7 +158,8 @@ function CampaignListPage() {
         }
       />
       <div className="space-y-3 p-6">
-        <CampaignDraftPrecheck companyIds={filtered.map((r) => r.id)} />
+        <CampaignDraftPrecheck companyIds={selectedCompanies} candidates={(q.data ?? []).filter(r => selectedCompanies.includes(r.id)).flatMap(r => r.contacts.map(c => ({...c,company_id:r.id,company_name:r.name})))} />
+        <div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{selectedCompanies.length} kijelölt cég</Badge><Button variant="outline" size="sm" onClick={() => setSelectedCompanies(prev => [...new Set([...prev,...filtered.map(r=>r.id)])])}>Találatok kijelölése</Button><Button variant="ghost" size="sm" disabled={!selectedCompanies.length} onClick={()=>setSelectedCompanies([])}>Kijelölés törlése</Button></div>
         <div className="flex gap-2"><Button variant={scope==='campaign'?'default':'outline'} onClick={()=>setScope('campaign')}>Aktív kampány</Button><Button variant={scope==='all'?'default':'outline'} onClick={()=>setScope('all')}>Minden cég</Button></div>
         <div className="relative max-w-sm">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
@@ -180,6 +187,7 @@ function CampaignListPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
                   <tr>
+                    <th className="px-3 py-2"><span className="sr-only">Kijelölés</span></th>
                     <th className="px-3 py-2 text-left">Cég</th>
                     <th className="px-3 py-2 text-left">Kapcsolattartó</th>
                     <th className="px-3 py-2 text-left">Email</th>
@@ -194,6 +202,7 @@ function CampaignListPage() {
                     const k = r.contacts[0];
                     return (
                       <tr key={r.id} className="border-t align-top">
+                        <td className="px-3 py-2"><Checkbox aria-label={`${r.name} kijelölése`} checked={selectedCompanies.includes(r.id)} onCheckedChange={v=>setSelectedCompanies(prev=>v===true ? [...new Set([...prev,r.id])] : prev.filter(id=>id!==r.id))} /></td>
                         <td className="px-3 py-2">
                           <Link to="/customers/$id" params={{ id: r.id }} className="font-medium text-primary hover:underline">
                             <Building2 className="mr-1 inline h-3.5 w-3.5 align-text-bottom" />

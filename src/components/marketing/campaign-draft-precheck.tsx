@@ -9,6 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { campaignPreview, explicitContactIds } from "@/lib/marketing/campaign-preparation";
+import { ContactProvenanceSummary } from "@/components/customers/contact-provenance";
 import { listCampaignDrafts, saveCampaignDraft, setCampaignArchived, precheckAndStoreCampaign, getCampaignDraft } from "@/lib/marketing/campaign-drafts.functions";
 import type { EligibilityStatus } from "@/lib/marketing/campaign-eligibility";
 
@@ -19,7 +23,7 @@ const LABEL: Record<EligibilityStatus | "all", string> = {
 const STATUS: Record<string, string> = { draft: "Tervezet", prechecked: "Ellenőrzött (nem küldési engedély)", archived: "Archivált" };
 const fmt = (d: string | null) => (d ? new Date(d).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" }) : "—");
 
-export function CampaignDraftPrecheck({ companyIds }: { companyIds: string[] }) {
+export function CampaignDraftPrecheck({ companyIds, candidates }: { companyIds: string[]; candidates: { id:string; name:string|null; email:string|null; company_id:string; company_name:string }[] }) {
   const qc = useQueryClient();
   const listFn = useServerFn(listCampaignDrafts);
   const saveFn = useServerFn(saveCampaignDraft);
@@ -29,6 +33,10 @@ export function CampaignDraftPrecheck({ companyIds }: { companyIds: string[] }) 
   const [selected, setSelected] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [contactIds, setContactIds] = useState<string[]>([]);
+  const [previewId,setPreviewId] = useState<string|null>(null);
   const [elig, setElig] = useState<EligibilityStatus | "all">("all");
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -36,11 +44,11 @@ export function CampaignDraftPrecheck({ companyIds }: { companyIds: string[] }) 
   const list = useQuery({ queryKey: ["campaign-drafts"], queryFn: () => listFn() });
   const detail = useQuery({
     queryKey: ["campaign-draft", selected, elig, page],
-    queryFn: () => getFn({ data: { id: selected!, eligibility: elig, page } }),
+    queryFn: () => { if (!selected) throw new Error("Nincs kijelölt tervezet."); return getFn({ data: { id: selected, eligibility: elig, page } }); },
     enabled: !!selected, placeholderData: keepPreviousData,
   });
   const camp = detail.data?.campaign;
-  useEffect(() => { if (camp) { setName(camp.name); setTarget(camp.target_group ?? ""); } }, [camp?.id, camp?.updated_at]);
+  useEffect(() => { if (camp) { setName(camp.name); setTarget(camp.target_group ?? ""); setSubject(camp.message_subject ?? ""); setBody(camp.message_body ?? ""); } }, [camp?.id, camp?.updated_at]);
   const refresh = () => { qc.invalidateQueries({ queryKey: ["campaign-drafts"] }); qc.invalidateQueries({ queryKey: ["campaign-draft"] }); };
   const act = async (f: () => Promise<unknown>, ok: string) => {
     setBusy(true);
@@ -50,46 +58,57 @@ export function CampaignDraftPrecheck({ companyIds }: { companyIds: string[] }) 
   const d = detail.data;
   const pages = d ? Math.max(1, Math.ceil(d.total / d.pageSize)) : 1;
   const archived = camp?.status === "archived";
-  const dirty = !!camp && (name.trim() !== camp.name || (target.trim() || null) !== (camp.target_group ?? null));
+  const dirty = !!camp && (name.trim() !== camp.name || (target.trim() || null) !== (camp.target_group ?? null) || subject !== (camp.message_subject ?? "") || body !== (camp.message_body ?? ""));
+  const picked = explicitContactIds(contactIds,candidates.map(c=>c.id));
+  const previewRow = d?.rows.find(r=>r.contact_id===previewId);
+  const preview = camp && previewRow ? campaignPreview(camp.message_subject ?? "",camp.message_body ?? "",previewRow) : null;
 
   return (
     <Card><CardContent className="space-y-3 p-4 text-sm">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium">Kampánytervezetek</span>
         <Badge variant="destructive">Kiküldés tiltott</Badge>
-        <select className="h-8 rounded-md border bg-background px-2" value={selected ?? ""} onChange={e => { setSelected(e.target.value || null); setPage(1); setElig("all"); if (!e.target.value) { setName(""); setTarget(""); } }} aria-label="Kampánytervezet">
+        <select className="h-8 rounded-md border bg-background px-2" value={selected ?? ""} onChange={e => { setSelected(e.target.value || null); setPage(1); setElig("all"); setPreviewId(null); if (!e.target.value) { setName(""); setTarget(""); setSubject(""); setBody(""); } }} aria-label="Kampánytervezet">
           <option value="">+ Új tervezet</option>
           {(list.data?.campaigns ?? []).map(c => <option key={c.id} value={c.id}>{c.name} · {STATUS[c.status] ?? c.status}{list.data?.role === "owner" && c.created_by !== list.data.userId ? " · más felhasználóé" : ""}</option>)}
         </select>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Input className="max-w-xs" placeholder="Kampány neve" value={name} disabled={archived} onChange={e => setName(e.target.value)} />
-        <Input className="max-w-xs" placeholder="Célcsoport" value={target} disabled={archived} onChange={e => setTarget(e.target.value)} />
+        <Input className="max-w-xs" placeholder="Kampány neve" value={name} disabled={archived || busy} onChange={e => setName(e.target.value)} />
+        <Input className="max-w-xs" placeholder="Célcsoport" value={target} disabled={archived || busy} onChange={e => setTarget(e.target.value)} />
         <Button size="sm" disabled={busy || archived || !name.trim() || (!!camp && !dirty)} onClick={() => act(async () => {
-          const r = await saveFn({ data: { id: selected, name, target_group: target } });
+          const r = await saveFn({ data: { id: selected, expectedUpdatedAt: camp?.updated_at ?? null, name, target_group: target, message_subject: subject, message_body: body } });
           setSelected(r.id);
         }, "Tervezet mentve.")}>{selected ? "Módosítás mentése" : "Tervezet mentése"}</Button>
         <span className="text-xs text-muted-foreground">
           {!selected ? "Nincs mentve." : dirty ? "Nem mentett módosítás." : `Mentve: ${fmt(camp?.updated_at ?? null)}`}
         </span>
       </div>
+      <div className="space-y-2">
+        <label className="block">Tárgy<Input aria-label="Kampányüzenet tárgya" value={subject} maxLength={500} disabled={archived || busy} onChange={e=>setSubject(e.target.value)} /></label>
+        <label className="block">Üzenet<Textarea aria-label="Kampányüzenet szövege" value={body} maxLength={20000} disabled={archived || busy} rows={5} onChange={e=>setBody(e.target.value)} /></label>
+      </div>
+      {candidates.length>0 && <fieldset disabled={busy || archived} className="space-y-2"><legend className="font-medium">Kontaktkijelölés · {picked.length} címzett</legend>
+        <div className="max-h-52 overflow-auto divide-y">{candidates.map(c=><label key={c.id} className="flex items-start gap-2 py-2"><Checkbox checked={picked.includes(c.id)} aria-label={`${c.email ?? c.name ?? c.id} kampánykontakt`} onCheckedChange={v=>setContactIds(prev=>v===true ? [...new Set([...prev,c.id])] : prev.filter(id=>id!==c.id))}/><span className="min-w-0 break-words">{c.company_name} · {c.email ?? "Nincs email"} · {c.name}</span></label>)}</div>
+      </fieldset>}
       {camp && (
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline">{STATUS[camp.status] ?? camp.status}</Badge>
           <span className="text-xs">Utolsó ellenőrzés: {fmt(camp.prechecked_at)}</span>
           {d?.staleness.stale && <Badge variant="destructive">Elavult ellenőrzés: {d.staleness.reasons.join(" ")}</Badge>}
-          <Button size="sm" variant="outline" disabled={busy || archived || !companyIds.length} onClick={() => act(async () => {
-            const r = await checkFn({ data: { id: camp.id, companyIds: companyIds.slice(0, 2000) } });
+          <Button size="sm" variant="outline" disabled={busy || archived || dirty || !picked.length || companyIds.length>2000} onClick={() => act(async () => {
+            const r = await checkFn({ data: { id: camp.id, companyIds, contactIds:picked, expectedUpdatedAt:camp.updated_at } });
             if (!r.historyComplete) toast.warning("Az előzményvizsgálat hiányos volt — a kampány tervezet maradt.");
             if (r.skippedDuplicates) toast.info(`${r.skippedDuplicates} duplikált cím kihagyva.`);
           }, "Címzettek ellenőrizve és mentve.")}>
-            Címzettek: a szűrt {Math.min(companyIds.length, 2000)} cég kontaktjainak ellenőrzése és mentése
+            {picked.length} kijelölt kontakt ellenőrzése és mentése
           </Button>
           <Button size="sm" variant="outline" disabled={busy} onClick={() => act(() => archFn({ data: { id: camp.id, archived: !archived } }), archived ? "Visszaállítva tervezetbe." : "Archiválva.")}>
             {archived ? "Visszaállítás" : "Archiválás"}
           </Button>
         </div>
       )}
+      {companyIds.length>2000 && <p className="text-destructive">Legfeljebb 2000 cég ellenőrizhető egyszerre; csökkentsd a kijelölést.</p>}
       {busy && <p className="text-muted-foreground">Folyamatban… (előzmények ellenőrzése a céges postafiókokban)</p>}
       {detail.error && <p className="text-destructive">{(detail.error as Error).message}</p>}
       {d && (<>
@@ -110,12 +129,15 @@ export function CampaignDraftPrecheck({ companyIds }: { companyIds: string[] }) 
                 {r.company_id && <Link to="/customers/$id" params={{ id: r.company_id }} className="underline">{r.company_name ?? "cég"}</Link>}
                 {r.last_at && <span className="text-xs text-muted-foreground">utolsó előzmény: {new Date(r.last_at).toLocaleDateString("hu-HU", { timeZone: "Europe/Budapest" })}</span>}
               </div>
+              <ContactProvenanceSummary contact={r} />
+              <Button size="sm" variant="ghost" onClick={()=>setPreviewId(r.contact_id)}>Üzenet előnézete</Button>
               {r.reasons.length > 0 && <p className="text-xs text-muted-foreground">{r.reasons.join(" ")}</p>}
             </li>
           ))}
           {d.rows.length === 0 && <li className="py-2 text-muted-foreground">Nincs tárolt címzett ebben a csoportban.</li>}
         </ul>
-        <div className="flex items-center gap-2">
+        {preview && previewRow && <section className="border-y py-3 space-y-2"><h3 className="font-medium">Mentett üzenet · {previewRow.email}</h3><p className="break-words">{preview.subject || "(Üres tárgy)"}</p><p className="whitespace-pre-wrap break-words">{preview.body || "(Üres üzenet)"}</p>{dirty && <Badge variant="outline">Nem mentett változások nélkül</Badge>}</section>}
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Előző</Button>
           <span>{page} / {pages} oldal · {d.total} cím</span>
           <Button size="sm" variant="outline" disabled={page >= pages} onClick={() => setPage(p => p + 1)}>Következő</Button>
