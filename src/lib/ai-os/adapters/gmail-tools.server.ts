@@ -19,7 +19,7 @@ async function mailboxes(ctx: ToolContext): Promise<Mailbox[]> {
 
 export function registerGmailContextTools() {
   registerTool({name:'crm_marketing_daily_priorities',domain:'crm.emails',allowed_agents:['scarlet'],allowed_roles:[...OWNER_ROLES,'marketing'],
-    description:'Marketing Ma közös adatai: saját válaszjelzések, kampánycégek, utánkövetések, hiányzó kontaktok. Csak olvas, nem küld és nem ment teendőt.',parameters:{type:'object',properties:{},additionalProperties:false}},async (_args,ctx)=>{
+    description:'Marketing Ma közös adatai: saját feladatok és utánkövetések Budapest napi csoportokkal, közös visszahívások, kampánycégek, minősített cégek és hiányzó kontaktadatok. A válaszjelzés tartalmi ellenőrzést igényel; nem bizonyít ügyféligényt vagy teljes átadhatóságot. partial mellett nem teljes lista. Csak olvas, nem küld és nem ment teendőt.',parameters:{type:'object',properties:{},additionalProperties:false}},async (_args,ctx)=>{
       const {loadMarketingDaily}=await import('@/lib/marketing-daily');
       return {ok:true,data:await loadMarketingDaily(ctx.supabaseUser,ctx.userId)};
     });

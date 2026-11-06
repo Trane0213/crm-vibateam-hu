@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { canSubmitHandoff, openLeads } from "./marketing-handoff-guard";
+import { canSubmitHandoff, openLeads, handoffIdentityMatches } from "./marketing-handoff-guard";
 
 const base = { summary: "x", leadSource: "cold_email", assignee: "u1", submitting: false, openLeadCount: 0, confirmedSeparateOpportunity: false };
 describe("Sales-átadás – meglévő lead", () => {
+  it('részleges átadás nem folytatható más felelőssel, kontakttal vagy összefoglalóval',()=>{
+    const saved={company_id:'TESZT-company',contact_id:'TESZT-contact',summary:'TESZT summary',source:'phone',project_type:null,assigned_to:'TESZT-sales'};
+    expect(handoffIdentityMatches(saved,{...saved})).toBe(true);
+    for(const key of ['company_id','contact_id','summary','source','project_type','assigned_to'] as const)expect(handoffIdentityMatches(saved,{...saved,[key]:'changed'})).toBe(false);
+  });
   it("lezárt (won/lost) lead nem számít nyitottnak", () => {
     expect(openLeads([{ status: "new" }, { status: "won" }, { status: "lost" }, { status: "contract" }]).length).toBe(2);
   });

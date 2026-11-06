@@ -22,6 +22,7 @@ export function decideIntake(input: {
   contactMatches: IntakeMatch[];
   companyNameMatches: { id: string }[];
 }): IntakeDecision {
+  if (input.contactMatches.some(m => !m.company_id)) return { kind: 'ambiguous', reason: 'Az email cég nélküli kapcsolattartónál is szerepel — kézi ellenőrzés kell.' };
   const withCompany = input.contactMatches.filter((m) => m.company_id);
   const companies = new Set(withCompany.map((m) => m.company_id as string));
   if (companies.size === 1) return { kind: "existing", companyId: [...companies][0] };
