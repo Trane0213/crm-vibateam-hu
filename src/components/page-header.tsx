@@ -10,14 +10,14 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b px-6 py-4">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{title}</h1>
+    <div className="flex flex-wrap items-start justify-between gap-3 border-b px-4 py-5 sm:px-6">
+      <div className="min-w-0 flex-1 basis-48">
+        <h1 className="break-words text-2xl font-semibold tracking-normal text-foreground">{title}</h1>
         {description && (
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -34,7 +34,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-muted/20 p-12 text-center">
+    <div className="flex min-h-40 flex-col items-center justify-center gap-3 px-4 py-8 text-center">
       {Icon && (
         <div className="rounded-full bg-muted p-3 text-muted-foreground">
           <Icon className="h-6 w-6" />

@@ -64,6 +64,10 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-primary-glow: var(--primary-glow);
+  --color-status-success: var(--status-success);
+  --color-status-warning: var(--status-warning);
+  --color-status-info: var(--status-info);
+  --color-status-danger: var(--status-danger);
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
 }
@@ -174,7 +178,7 @@
   }
   h1, h2, h3, .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
   }
   ::selection {
     background: color-mix(in oklab, var(--primary) 22%, transparent);
@@ -228,4 +232,35 @@
 }
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Shared CRM workspace: the same reference treatment for every role. */
+.crm-workspace { background: var(--background); }
+.crm-workspace h1, .crm-workspace h2, .crm-workspace h3 { letter-spacing: 0; }
+.crm-workspace table { font-size: 0.8125rem; }
+.crm-workspace thead { background: var(--muted); }
+.crm-workspace th { font-weight: 600; color: var(--muted-foreground); }
+.crm-workspace tbody tr { transition: background-color 150ms; }
+.crm-workspace tbody tr:hover { background: color-mix(in oklab, var(--primary) 4%, var(--card)); }
+.crm-today { min-width: 0; padding-bottom: 1.5rem; }
+.crm-today section { min-width: 0; }
+.crm-today .crm-stat { box-shadow: var(--shadow-card); }
+.crm-stat[data-tone="info"], .crm-stat[data-tone="primary"] { --stat-color: var(--primary); }
+.crm-stat[data-tone="success"] { --stat-color: var(--status-success); }
+.crm-stat[data-tone="warning"] { --stat-color: var(--status-warning); }
+.crm-stat[data-tone="danger"] { --stat-color: var(--status-danger); }
+.crm-stat {
+  color: var(--foreground);
+  border-color: color-mix(in oklab, var(--stat-color) 24%, var(--border));
+  background: color-mix(in oklab, var(--stat-color) 9%, var(--card));
+}
+.crm-stat:hover { background: color-mix(in oklab, var(--stat-color) 14%, var(--card)); }
+.crm-stat-icon { color: var(--stat-color); background: color-mix(in oklab, var(--stat-color) 12%, var(--card)); }
+.crm-stat-value { color: var(--stat-color); }
+.crm-mail-editor:empty::before { content: attr(data-placeholder); color: var(--muted-foreground); pointer-events: none; }
+.crm-mail-editor img, .crm-mail-editor table { max-width: 100%; }
+.crm-mail-editor { overflow-wrap: anywhere; }
+@media (max-width: 639px) {
+  .crm-today > .px-6, .crm-today > section.px-6 { padding-left: 1rem; padding-right: 1rem; }
+  .crm-today > .p-6 { padding-left: 1rem; padding-right: 1rem; }
 }

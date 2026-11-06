@@ -9,11 +9,12 @@ import {
 import { usePermissions } from "@/hooks/use-permissions";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { BrandLogo } from "@/components/brand-logo";
+import { Button } from "@/components/ui/button";
 import { ROLE_LABEL } from "@/lib/permissions";
 import { aiItems, isNavActive, moreGroups, primaryItems, type NavItem } from "@/lib/nav-config";
 
 const itemCls =
-  "h-9 rounded-lg px-3 text-sidebar-foreground/75 transition-all duration-150 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-medium data-[active=true]:shadow-glow";
+  "h-10 rounded-lg px-3 text-sidebar-foreground/85 transition-colors duration-150 hover:bg-sidebar-accent hover:text-sidebar-foreground data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:font-semibold";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -47,16 +48,17 @@ export function AppSidebar() {
 
   const toggle = (label: string, open: boolean, onClick: () => void, Icon: typeof Bot) =>
     collapsed ? null : (
-      <button
+      <Button
+        variant="ghost"
         type="button"
         onClick={onClick}
-        className="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-sidebar-foreground/50 hover:text-sidebar-foreground"
+        className="flex h-8 w-full items-center gap-2 rounded-md px-3 text-xs font-medium text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-foreground"
         aria-expanded={open}
       >
         <Icon className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">{label}</span>
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
+      </Button>
     );
 
   return (

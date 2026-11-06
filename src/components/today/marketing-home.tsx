@@ -95,8 +95,8 @@ export function MarketingHome() {
   const loading = companiesQ.isLoading || allCompaniesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
 
   return (
-    <div className="flex flex-col">
-      <WelcomeHeader subtitle="Marketing minősítés egy képernyőn — kampánycégek, email aktivitás, sales-átadás." />
+    <div className="crm-today flex flex-col">
+      <WelcomeHeader title="Mai marketingmunka" subtitle="Kampánycégek, megkeresések és átadásra váró ügyek." />
 
       <QuickActions>
         <Button size="sm" variant="default" asChild><Link to="/campaign-list"><ListPlus className="mr-1 h-3.5 w-3.5" />Kampánylista</Link></Button>
@@ -110,7 +110,7 @@ export function MarketingHome() {
       <div className="space-y-4 p-6 pt-3">
         {(companiesQ.isError || allCompaniesQ.isError || emailsQ.isError || threadsQ.isError) && <p role="alert" className="text-sm text-destructive">Egyes marketingadatok nem tölthetők be teljesen; az érintett összesítők nem igazoltak.</p>}
         {dailyQ.isError && <p role="alert" className="text-sm text-destructive">A napi marketingfeladatok nem tölthetők be.</p>}
-        {dailyQ.data && <section className="border bg-card">
+        {dailyQ.data && <section className="border-y">
           <SectionHeader title="Mai marketingfeladatok" />
           {dailyQ.data.partial && <p className="p-3 text-sm text-muted-foreground">Részleges adatok; a lista nem teljes.</p>}
           <div className="grid gap-4 p-4 md:grid-cols-3">
@@ -133,7 +133,7 @@ export function MarketingHome() {
             {(["new","contacted","qualified","handoff","rejected"] as const).map((k) => (
               <div
                 key={k}
-                className={`rounded-lg border p-3 ${MARKETING_STATUS_TONE[k]}`}
+                className={`min-w-0 rounded-lg border p-3 ${MARKETING_STATUS_TONE[k]}`}
               >
                 <div className="text-[11px] font-medium uppercase tracking-wider opacity-80">{MARKETING_STATUS_LABEL[k]}</div>
                 <div className="mt-1 text-3xl font-semibold tabular-nums leading-none">{companiesReady ? pipeline[k] : '—'}</div>
@@ -230,9 +230,9 @@ export function MarketingHome() {
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
-    <div className="flex items-end justify-between border-b px-4 py-3">
+    <div className="flex flex-wrap items-end justify-between gap-2 border-b px-4 py-3">
       <div>
-        <h2 className="text-sm font-semibold">{title}</h2>
+        <h2 className="text-base font-semibold">{title}</h2>
         {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </div>
     </div>

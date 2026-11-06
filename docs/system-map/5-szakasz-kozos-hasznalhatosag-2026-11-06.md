@@ -1,0 +1,9 @@
+# 5. SZAKASZ – RÉSZBEN KÉSZ
+
+- **Elkészült:** a csatolt képek alapján közös sötét oldalsáv, világos munkaterület, kompakt színes napi mutatók, egységes fejlécek, kártyák és táblázatok; Owner, Sales, Marketing és PM napi oldala, vezetői irányítópult. A képek adatai és műveletei nem kerültek át a CRM-be.
+- **Újrahasználat:** meglévő közös keret, Card, PageHeader, WelcomeHeader, HeroStat/ListCard, EmailComposer és MailFormatToolbar. A levélíró telefonméretben is elfér, a címzett/másolat/tárgy/törzs és mellékletvezérlők megmaradtak, elérhető nevük javult.
+- **PASS:** 770/770 Vitest (76 fájl), AI acceptance 21/21; elkülönített négy szerepkör és levélíró 1280×1800 / 390×844 megjelenítés, 0 vízszintes túlfutás, 0 végső pageerror; Cc-mező értéke formázás után megmaradt. A próba minden POST-ot helyben blokkolt, ezért nem küldött és nem indított valós AI-műveletet. Harness build OK.
+- **NEM TESZTELT:** hitelesített éles szerepkörös mentés/Gmail/R2/CRM végigpróba. A valódi /today továbbra /auth-ra irányít; external_unmanaged miatt biztonságos átadható munkamenet nincs. A mesterséges próbák nem igazolják az éles adatok vagy jogosultságok teljes működését.
+- **Kód/DB:** csak megjelenítés és hozzáférhető vezérlőnevek; nincs adatbázis-, jogosultság-, üzleti számítás-, modell- vagy küldésváltozás. A meglévő szerepkörös menütartalom megmaradt.
+- **Nyitott:** közös mentett sablon/aláírás/piszkozat teljes folyamata, kampánymellékletek és kétirányú Gmail-piszkozat együttműködés korábbi hiányai nem készültek el; nincs új tárolási vagy küldési kerülőút. Korábbi szakaszok blokkolói megmaradtak. Biztonsági újravizsgálat nem történt; credit nem mért.
+- **STOP:** nincs éles küldés/publikálás, a 6. szakaszhoz új tulajdonosi engedély kell.

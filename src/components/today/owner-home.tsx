@@ -12,8 +12,8 @@ import { SalesWorklists } from "@/components/today/sales-worklists";
  */
 export function OwnerHome() {
   return (
-    <div className="flex flex-col">
-      <WelcomeHeader subtitle="Vezetői napi áttekintés — a teljes csapat mai fókusza." />
+    <div className="crm-today flex flex-col">
+      <WelcomeHeader title="Vezetői áttekintés" subtitle="A teljes csapat mai ügyei és határidői." />
 
       <div className="px-6 pt-4">
         <OwnerKpiStrip />

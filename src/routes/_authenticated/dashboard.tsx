@@ -96,8 +96,8 @@ function Dashboard() {
   const riskyCount = riskyProjectIds.size;
 
   return (
-    <div className="flex flex-col">
-      <WelcomeHeader subtitle="Részletes vezetői irányítópult — a „Ma” oldal KPI-jai bontva." />
+    <div className="crm-today flex flex-col">
+      <WelcomeHeader title="Vezetői irányítópult" subtitle="Ügyek, ajánlatok, projektek és határidők." />
 
       {/* KPI SÁV — ugyanaz, mint a „Ma" oldalon */}
       <div className="px-6 pt-4">

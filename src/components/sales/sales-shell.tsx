@@ -25,10 +25,10 @@ export function SalesShell({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <div className="flex flex-col">
-      <header className="border-b bg-background/80 px-6 py-4 backdrop-blur">
+      <header className="border-b px-4 py-5 sm:px-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
+            <h1 className="break-words text-2xl font-semibold tracking-normal">{title}</h1>
             {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
           </div>
           <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export function SalesShell({
             </Button>
           </div>
         </div>
-        <nav className="-mb-px mt-3 flex gap-1">
+        <nav className="-mb-px mt-3 flex max-w-full gap-1 overflow-x-auto">
           {NAV.map((n) => {
             const active = n.exact ? pathname === n.to : pathname === n.to || pathname.startsWith(n.to + "/");
             return (
@@ -48,9 +48,9 @@ export function SalesShell({
                 key={n.to}
                 to={n.to as "/sales"}
                 className={cn(
-                  "rounded-t-md border-b-2 px-3 py-1.5 text-sm transition",
+                  "shrink-0 rounded-t-md border-b-2 px-3 py-2 text-sm transition-colors",
                   active
-                    ? "border-primary text-foreground"
+                    ? "border-primary bg-primary/10 font-medium text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -60,7 +60,7 @@ export function SalesShell({
           })}
         </nav>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+      <main className="min-w-0 flex-1 p-4 sm:p-6">{children}</main>
     </div>
   );
 }
