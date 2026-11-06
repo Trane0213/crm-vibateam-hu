@@ -1,8 +1,8 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Irányadó Marketing/Sales UI/UX-sorrend – 2026-11-06 19:19 UTC
 - [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.
-- [ ] 19:21 UTC: az 1. szakasz engedélyezett folytatása a meglévő Marketing→Sales átadási út köré rendezett folyamat-térképpel és állapot/következmény visszajelzésekkel; üzleti logika/jog/küldés változatlan.
-- [ ] 1. Közös navigáció, visszajelzések és munkafolyamat-térkép: kész munkasáv/menü/fókusz/animáció megőrzése; hiányos a következmény- és hibaállapotok teljes leltára, szerepkörös folyamat-térkép és hitelesített elfogadás (external_unmanaged). Első folytatandó szakasz; a futó kör jelentése után jóváhagyásra STOP.
+- [x] 19:21 UTC 1. szakasz célzott folytatása: összecsukható Marketing→Sales folyamat-térkép mindkét szerepkörben; átadás gomb = ellenőrzés megnyitása, mentés/új ügy/felelős/automatikus Pipeline-kizárás egyértelmű; átadási hiba tartósan az ablakban, ügyfélbetöltés/hiba/újrapróba; korábbi téves Pipeline-szöveg javítva. 779 teszt/build PASS, meglévő marketing/Sales betöltési regresszió és folyamat 1440/390 PASS. docs/system-map/ui1-sales-atadas-folyamat-2026-11-06.md.
+- [ ] 1. Teljes elfogadás: folyamat-térkép és célzott átadási visszajelzések kész; minden oldal következmény/állapotleltára és hitelesített mentés/readback external_unmanaged miatt NEM TESZTELT. Átadási ablak új visszajelzéseinek teljes UI-végigpróbája hiányzik; nincs teljes szakaszlezárás. STOP.
 - [ ] 2. Marketing Ma és ügyféladatlap: meglévő megjelenítési részek megőrzése, részletes ügyfélmunka hiányainak célzott lezárása.
 - [ ] 3. Kampányszerkesztés és ütemezés: meglévő szerkesztő/előnézet/ütemezési védelem, következmények és visszajelzések.
 - [ ] 4. Marketing–Sales átadás és Sales Ma: meglévő átadási út, felelős és forráshű visszajelzés.
