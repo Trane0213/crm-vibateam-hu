@@ -48,6 +48,7 @@ import { Route as AuthenticatedEmailsThreadIdRouteImport } from './routes/_authe
 import { Route as AuthenticatedHelpMarketingRouteImport } from './routes/_authenticated/help.marketing'
 import { Route as AuthenticatedHelpOwnerRouteImport } from './routes/_authenticated/help.owner'
 import { Route as AuthenticatedHelpSalesRouteImport } from './routes/_authenticated/help.sales'
+import { Route as AuthenticatedImportReviewMailRouteImport } from './routes/_authenticated/import-review_.mail'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
 import { Route as AuthenticatedLeadsLostRouteImport } from './routes/_authenticated/leads.lost'
@@ -307,6 +308,12 @@ const AuthenticatedHelpSalesRoute = AuthenticatedHelpSalesRouteImport.update({
   path: '/help/sales',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedImportReviewMailRoute =
+  AuthenticatedImportReviewMailRouteImport.update({
+    id: '/import-review_/mail',
+    path: '/import-review/mail',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
   id: '/leads/',
   path: '/leads/',
@@ -589,6 +596,7 @@ export interface FileRoutesByFullPath {
   '/help/marketing': typeof AuthenticatedHelpMarketingRoute
   '/help/owner': typeof AuthenticatedHelpOwnerRoute
   '/help/sales': typeof AuthenticatedHelpSalesRoute
+  '/import-review/mail': typeof AuthenticatedImportReviewMailRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/leads/lost': typeof AuthenticatedLeadsLostRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -671,6 +679,7 @@ export interface FileRoutesByTo {
   '/help/marketing': typeof AuthenticatedHelpMarketingRoute
   '/help/owner': typeof AuthenticatedHelpOwnerRoute
   '/help/sales': typeof AuthenticatedHelpSalesRoute
+  '/import-review/mail': typeof AuthenticatedImportReviewMailRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/leads/lost': typeof AuthenticatedLeadsLostRoute
   '/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -757,6 +766,7 @@ export interface FileRoutesById {
   '/_authenticated/help/marketing': typeof AuthenticatedHelpMarketingRoute
   '/_authenticated/help/owner': typeof AuthenticatedHelpOwnerRoute
   '/_authenticated/help/sales': typeof AuthenticatedHelpSalesRoute
+  '/_authenticated/import-review_/mail': typeof AuthenticatedImportReviewMailRoute
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
   '/_authenticated/leads/lost': typeof AuthenticatedLeadsLostRoute
   '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
@@ -843,6 +853,7 @@ export interface FileRouteTypes {
     | '/help/marketing'
     | '/help/owner'
     | '/help/sales'
+    | '/import-review/mail'
     | '/leads/$id'
     | '/leads/lost'
     | '/projects/$id'
@@ -925,6 +936,7 @@ export interface FileRouteTypes {
     | '/help/marketing'
     | '/help/owner'
     | '/help/sales'
+    | '/import-review/mail'
     | '/leads/$id'
     | '/leads/lost'
     | '/projects/$id'
@@ -1010,6 +1022,7 @@ export interface FileRouteTypes {
     | '/_authenticated/help/marketing'
     | '/_authenticated/help/owner'
     | '/_authenticated/help/sales'
+    | '/_authenticated/import-review_/mail'
     | '/_authenticated/leads/$id'
     | '/_authenticated/leads/lost'
     | '/_authenticated/projects/$id'
@@ -1356,6 +1369,13 @@ declare module '@tanstack/react-router' {
       path: '/help/sales'
       fullPath: '/help/sales'
       preLoaderRoute: typeof AuthenticatedHelpSalesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/import-review_/mail': {
+      id: '/_authenticated/import-review_/mail'
+      path: '/import-review/mail'
+      fullPath: '/import-review/mail'
+      preLoaderRoute: typeof AuthenticatedImportReviewMailRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/leads/': {
@@ -1764,6 +1784,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHelpMarketingRoute: typeof AuthenticatedHelpMarketingRoute
   AuthenticatedHelpOwnerRoute: typeof AuthenticatedHelpOwnerRoute
   AuthenticatedHelpSalesRoute: typeof AuthenticatedHelpSalesRoute
+  AuthenticatedImportReviewMailRoute: typeof AuthenticatedImportReviewMailRoute
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
   AuthenticatedLeadsLostRoute: typeof AuthenticatedLeadsLostRoute
   AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
@@ -1809,6 +1830,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHelpMarketingRoute: AuthenticatedHelpMarketingRoute,
   AuthenticatedHelpOwnerRoute: AuthenticatedHelpOwnerRoute,
   AuthenticatedHelpSalesRoute: AuthenticatedHelpSalesRoute,
+  AuthenticatedImportReviewMailRoute: AuthenticatedImportReviewMailRoute,
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
   AuthenticatedLeadsLostRoute: AuthenticatedLeadsLostRoute,
   AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
