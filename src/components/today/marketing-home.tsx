@@ -113,7 +113,10 @@ export function MarketingHome() {
           {dailyQ.data.partial && <p className="p-3 text-sm text-muted-foreground">Részleges adatok; a lista nem teljes.</p>}
           <div className="grid gap-4 p-4 md:grid-cols-3">
             <DailyList title="Közös visszahívások" rows={dailyQ.data.callbacks.filter(c=>c.callback_date && c.callback_date<=budapestDayBounds().end).map(c=>({id:c.id,companyId:c.company_id??'',name:`${c.company_name} · ${fmtDate(c.callback_date??undefined)}`}))}/>
-            <DailyList title="Esedékes / lejárt utánkövetés" rows={dailyQ.data.followups.filter(f=>f.due_date && f.due_date<=budapestDayBounds().end).map(f=>({id:f.id,companyId:f.company_id ?? '',name:`${f.company_name} · ${f.followup_type==='call'?'Telefon':'Utánkövetés'} · ${fmtDate(f.due_date ?? undefined)}`}))} />
+            {(['overdue','today','upcoming','undated'] as const).map(bucket=><DailyList key={bucket} title={{overdue:'Lejárt saját utánkövetés',today:'Mai saját utánkövetés',upcoming:'Későbbi saját utánkövetés',undated:'Határidő nélküli saját utánkövetés'}[bucket]} rows={dailyQ.data.followups.filter(f=>f.bucket===bucket).map(f=>({id:f.id,companyId:f.company_id??'',name:`${f.company_name} · ${f.followup_type==='call'?'Telefon':'Utánkövetés'} · ${fmtDate(f.due_date??undefined)}`}))}/>)}
+            <DailyList title="Saját nyitott feladatok" rows={dailyQ.data.tasks.map(t=>({id:t.id,name:`${t.title} · ${{overdue:'Lejárt',today:'Ma',upcoming:'Későbbi',undated:'Határidő nélkül'}[t.bucket]} · ${fmtDate(t.due_date??undefined)}`}))}/>
+            <DailyList title="Hiányzó kapcsolattartási adat" rows={dailyQ.data.missing_contacts.map(c=>({...c,companyId:c.id}))}/>
+            <DailyList title="Új kampánycégek feldolgozása" rows={dailyQ.data.to_contact.map(c=>({...c,companyId:c.id}))}/>
             <DailyList title="Válaszra reagálni" rows={dailyQ.data.reply_pending.map(c=>({...c,companyId:c.id}))} />
             <DailyList title="Tárolt megkeresés válasz nélkül" rows={dailyQ.data.awaiting_reply.map(c=>({...c,companyId:c.id}))} />
             <DailyList title="Ellenőrizendő emailadat" rows={dailyQ.data.contact_warnings.map(c=>({id:c.id,companyId:c.id,name:`${c.name} · ${c.contact_state.blocked_email?'Tiltott email':c.contact_state.invalid_email?'Hibás email':'Hiányos tiltásellenőrzés'}${c.contact_state.phone_available?' · Telefon megadva':''}`}))} />
@@ -308,7 +311,8 @@ function fmtDate(iso?: string) {
 // A marketing kizárólag company + contact + email szinten dolgozik;
 // a leadek a sales pipeline saját adatai.
 void Send;
-function DailyList({title,rows}:{title:string;rows:{id:string;companyId:string;name:string}[]}) {
+function DailyList({title,rows}:{title:string;rows:{id:string;companyId?:string;name:string}[]}) {
   const [page,setPage]=useState(0);
-  return <div><h3 className="mb-2 text-sm font-semibold">{title} ({rows.length})</h3>{rows.length===0?<p className="text-xs text-muted-foreground">Nincs látható tétel.</p>:<ul className="space-y-2">{rows.slice(page*5,page*5+5).map(row=><li key={row.id}><Link to="/customers/$id" params={{id:row.companyId}} className="text-sm text-primary hover:underline">{row.name}</Link></li>)}</ul>}{rows.length>5&&<div className="mt-2 flex gap-2"><Button size="sm" variant="ghost" disabled={page===0} onClick={()=>setPage(page-1)}>Előző</Button><Button size="sm" variant="ghost" disabled={(page+1)*5>=rows.length} onClick={()=>setPage(page+1)}>Következő</Button></div>}</div>;
+  const currentPage=Math.min(page,Math.max(0,Math.ceil(rows.length/5)-1));
+  return <div><h3 className="mb-2 text-sm font-semibold">{title} ({rows.length})</h3>{rows.length===0?<p className="text-xs text-muted-foreground">Nincs látható tétel.</p>:<ul className="space-y-2">{rows.slice(currentPage*5,currentPage*5+5).map(row=><li key={row.id}>{row.companyId?<Link to="/customers/$id" params={{id:row.companyId}} className="text-sm text-primary hover:underline">{row.name}</Link>:<Link to="/tasks" className="text-sm text-primary hover:underline">{row.name}</Link>}</li>)}</ul>}{rows.length>5&&<div className="mt-2 flex gap-2"><Button size="sm" variant="ghost" disabled={currentPage===0} onClick={()=>setPage(currentPage-1)}>Előző</Button><Button size="sm" variant="ghost" disabled={(currentPage+1)*5>=rows.length} onClick={()=>setPage(currentPage+1)}>Következő</Button></div>}</div>;
 }
