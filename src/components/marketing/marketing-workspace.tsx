@@ -47,7 +47,7 @@ import { computeChecklist, computeNextStep, type StepActionKind } from "@/lib/ma
 import { NextBestAction } from "@/components/marketing/next-best-action";
 import { WorkflowChecklist } from "@/components/marketing/workflow-checklist";
 import { buildTimeline, type TimelineEvent } from "@/lib/marketing-timeline";
-import { canSubmitHandoff, openLeads } from "@/lib/marketing-handoff-guard";
+import { canSubmitHandoff, openLeads, handoffIdentityMatches } from "@/lib/marketing-handoff-guard";
 import { refreshMarketingWork } from '@/lib/marketing-refresh';
 import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
@@ -256,6 +256,11 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
       let leadId = partialHandoffLeadId.current;
+      const requested = {company_id:companyId,contact_id:input.contact_id,summary:input.summary,source:input.lead_source,project_type:input.project_type,assigned_to:input.assigned_to};
+      if (leadId) {
+        const saved = await supabase.from('leads').select('company_id,contact_id,summary,source,project_type,assigned_to').eq('id',leadId).single();
+        if (saved.error || !saved.data || !handoffIdentityMatches(saved.data, requested)) throw new Error(`A korábban létrejött lead (#${leadId.slice(0,8)}) adatai nem egyeznek vagy nem ellenőrizhetők. Nyisd meg a leadet; új leadet nem hozunk létre.`);
+      }
       if (!leadId) {
         const payload: any = {
           company_id: companyId,
@@ -272,6 +277,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         leadId = (data as any).id as string;
         partialHandoffLeadId.current = leadId;
       }
+      const verifiedLead = await supabase.from('leads').select('company_id,contact_id,summary,source,project_type,assigned_to').eq('id',leadId).single();
+      if (verifiedLead.error || !verifiedLead.data || !handoffIdentityMatches(verifiedLead.data,requested)) throw new Error('A létrejött lead pontos adatai nem igazolhatók. Ellenőrizd a meglévő leadet; ne indíts új felvételt.');
       try {
         await setCompanyMarketingStatus({ data: { companyId, status: "handoff", handoffLeadId: leadId, leadSource: input.lead_source, expected: marketingExpected(cust.data ?? {}) } });
       } catch {
