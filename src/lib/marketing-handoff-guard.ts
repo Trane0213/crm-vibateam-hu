@@ -6,6 +6,11 @@
  */
 export const TERMINAL_LEAD_STATUSES = ["won", "lost"];
 
+export type HandoffIdentity = { company_id: string | null; contact_id: string | null; summary: string | null; source: string | null; project_type: string | null; assigned_to: string | null };
+export function handoffIdentityMatches(saved: HandoffIdentity, requested: HandoffIdentity) {
+  return (['company_id','contact_id','summary','source','project_type','assigned_to'] as const).every(key=>saved[key]===requested[key]);
+}
+
 export function openLeads<T extends { status?: string | null }>(leads: T[]): T[] {
   return leads.filter((l) => !TERMINAL_LEAD_STATUSES.includes((l.status ?? "").toLowerCase()));
 }

@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
+- [ ] 18:04 UTC 4. szakasz engedélyezve: meglévő webes felvétel, releváns Sales-átadás és Scarlet kapcsolódási hiányok ellenőrzése/javítása; Pipeline/Timothy/ajánlat változatlan. Korábbi blokkolt ellenőrzések nyitva, STOP az 5. szakasz előtt.
 - [x] 17:59 UTC 3. szakasz célzott javítás: saját tasks profil-ID szerint, kész/más/projekt sor kizárva; Budapest napi utánkövetés-csoportok, dátum nélküli/hiányzó kontakt/új cég megjelenítés, meglévő belépők és mentés utáni napi frissítés. 766 teljes regresszió + AI 21 PASS, izolált desktop/mobil PASS, build OK; nincs DB/RLS/éles adat/Gmail/küldés/publikálás.
 - [ ] 3. szakasz teljes elfogadás: hitelesített Marketing munkanap/mentési végigpróba external_unmanaged; részleges napi forráslefedettség, kézi review és közös visszahívás lezárási szabálya nyitott. 2. szakasz hiányai megmaradnak. STOP, 4. szakasz nem engedélyezett.
 - [ ] 17:43 UTC 2. szakasz engedélyezve: meglévő kampánykezelés hiányai (közös levélíró, forráshű személyre szabás, jóváhagyás/ütemezés/pause-stop/dispatch/valós statisztika), kész részek ismétlése nélkül. Sémát érintő függőséghez célzott hatás/rollback kapu; nincs éles ügyfélküldés/publikálás, 3. szakasz nem indul automatikusan.

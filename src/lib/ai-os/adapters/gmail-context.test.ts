@@ -29,6 +29,12 @@ async function run(ctx: ToolContext, args: Row = {}) {
   return await tool.execute({ company_id: company, thread_id: thread, mailbox: "own@example.com", ...args }, ctx) as any;
 }
 beforeEach(registerGmailContextTools);
+it('Scarlet daily reader has no write/approval capability and is unavailable to Sales',()=>{
+  const available=toolsForAgent({agentId:'scarlet',agentDomains:['crm.emails'],userRole:'marketing'});
+  const daily=available.find(t=>t.name==='crm_marketing_daily_priorities');
+  expect(daily).toBeDefined();expect(daily?.needs_approval).not.toBe(true);expect(daily?.approval??'safe').toBe('safe');
+  expect(toolsForAgent({agentId:'scarlet',agentDomains:['crm.emails'],userRole:'sales'}).some(t=>t.name==='crm_marketing_daily_priorities')).toBe(false);
+});
 describe("Timothy per-account email context", () => {
   it("reads own cached body with source and explicitly incomplete sync", async () => {
     const out = await run(fixture().ctx);
