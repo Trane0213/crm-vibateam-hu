@@ -66,9 +66,10 @@ const ASSISTANTS: AssistantCard[] = [
     name: "Scarlet",
     role: "Marketing Stratéga",
     description:
-      "Segítek új ügyfelek és üzleti lehetőségek felkutatásában.",
+      "Marketingelemző és CRM-segítő: kampánycégek, levelezés és napi teendők áttekintése a CRM adataiból.",
     portrait: scarletPortrait,
-    to: "/sales/research",
+    to: "/ai-assistant",
+    search: { agent: "marketing" },
   },
   {
     id: "michael",

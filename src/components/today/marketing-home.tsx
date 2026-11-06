@@ -143,7 +143,7 @@ export function MarketingHome() {
       <QuickActions>
         <Button size="sm" variant="default" asChild><Link to="/campaign-list"><ListPlus className="mr-1 h-3.5 w-3.5" />Kampánylista</Link></Button>
         <Button size="sm" variant="secondary" asChild><Link to="/emails"><Mail className="mr-1 h-3.5 w-3.5" />Levelek</Link></Button>
-        <Button size="sm" variant="outline" asChild><Link to="/sales/research"><Radar className="mr-1 h-3.5 w-3.5" />Scarlet research</Link></Button>
+
         <Button size="sm" variant="ghost" asChild><Link to="/help/marketing"><BookOpen className="mr-1 h-3.5 w-3.5" />Marketing súgó</Link></Button>
       </QuickActions>
 

@@ -1,7 +1,7 @@
 /**
  * AI OS — Sales Research server function.
  *
- * A `/sales/research` oldal hívja. A `research_companies` agentet futtatja
+ * LETILTVA 2026-11-06 (ellenőrizetlen generálás). Korábban a `/sales/research` oldal hívta. A `research_companies` agentet futtatja
  * (tool nélkül, strukturált JSON kimenet). Nem érinti a régi `src/lib/ai/*`
  * réteget.
  */
@@ -69,10 +69,14 @@ function extractJson(text: string): string {
   return text;
 }
 
+const RESEARCH_DISABLED: boolean = true;
+
 export const researchCompanies = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(validate)
   .handler(async ({ data, context }) => {
+    // Letiltva (2026-11-06): ellenőrizetlen, modell által generált cégkutatás nem futtatható.
+    if (RESEARCH_DISABLED) throw new Error("Az AI-cégkutatás jelenleg nem elérhető.");
     const { ensureBootstrapped } = await import("./bootstrap.server");
     const { runAgent } = await import("./runtime.server");
     const { getAdminClient } = await import("@/integrations/supabase/server");
