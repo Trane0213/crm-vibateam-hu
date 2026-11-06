@@ -83,46 +83,6 @@ export function MarketingHome() {
         .order("last_message_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      const daily = dailyQ.data;
-      const dailyReady = dailyQ.isSuccess && !dailyQ.isError && !daily?.partial;
-      const dueCallbacks =
-        daily?.callbacks.filter(
-          (c) => c.callback_date && c.callback_date <= budapestDayBounds().end,
-        ) ?? [];
-      const priorityRows = [
-        ...(daily?.reply_pending ?? []).map((c) => ({
-          id: `reply-${c.id}`,
-          companyId: c.id,
-          title: c.name,
-          kind: "Válasz feldolgozása",
-          due: null as string | null,
-        })),
-        ...dueCallbacks.map((c) => ({
-          id: `callback-${c.id}`,
-          companyId: c.company_id,
-          title: c.company_name,
-          kind: "Visszahívás",
-          due: c.callback_date,
-        })),
-        ...(daily?.followups ?? [])
-          .filter((f) => f.bucket === "overdue" || f.bucket === "today")
-          .map((f) => ({
-            id: `followup-${f.id}`,
-            companyId: f.company_id,
-            title: f.company_name,
-            kind: f.bucket === "overdue" ? "Lejárt utánkövetés" : "Mai utánkövetés",
-            due: f.due_date,
-          })),
-        ...(daily?.tasks ?? [])
-          .filter((t) => t.bucket === "overdue" || t.bucket === "today")
-          .map((t) => ({
-            id: `task-${t.id}`,
-            companyId: null,
-            title: t.title,
-            kind: t.bucket === "overdue" ? "Lejárt saját feladat" : "Mai saját feladat",
-            due: t.due_date,
-          })),
-      ];
       return (data ?? []) as any[];
     },
   });
@@ -166,6 +126,45 @@ export function MarketingHome() {
   const loading =
     companiesQ.isLoading || allCompaniesQ.isLoading || threadsQ.isLoading || emailsQ.isLoading;
 
+  const daily = dailyQ.data;
+  const dailyReady = dailyQ.isSuccess && !dailyQ.isError && !daily?.partial;
+  const dueCallbacks =
+    daily?.callbacks.filter((c) => c.callback_date && c.callback_date <= budapestDayBounds().end) ??
+    [];
+  const priorityRows = [
+    ...(daily?.reply_pending ?? []).map((c) => ({
+      id: `reply-${c.id}`,
+      companyId: c.id,
+      title: c.name,
+      kind: "Válasz feldolgozása",
+      due: null as string | null,
+    })),
+    ...dueCallbacks.map((c) => ({
+      id: `callback-${c.id}`,
+      companyId: c.company_id,
+      title: c.company_name,
+      kind: "Visszahívás",
+      due: c.callback_date,
+    })),
+    ...(daily?.followups ?? [])
+      .filter((f) => f.bucket === "overdue" || f.bucket === "today")
+      .map((f) => ({
+        id: `followup-${f.id}`,
+        companyId: f.company_id,
+        title: f.company_name,
+        kind: f.bucket === "overdue" ? "Lejárt utánkövetés" : "Mai utánkövetés",
+        due: f.due_date,
+      })),
+    ...(daily?.tasks ?? [])
+      .filter((t) => t.bucket === "overdue" || t.bucket === "today")
+      .map((t) => ({
+        id: `task-${t.id}`,
+        companyId: null,
+        title: t.title,
+        kind: t.bucket === "overdue" ? "Lejárt saját feladat" : "Mai saját feladat",
+        due: t.due_date,
+      })),
+  ];
   return (
     <div className="crm-today flex flex-col">
       <WelcomeHeader
