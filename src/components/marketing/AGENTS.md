@@ -1,0 +1,2 @@
+- Campaign test sending reuses handleGmailSend with service-only atomic claims and exact live/CRM evidence; only approved test recipients are allowed and uncertain claims never retry.
+- Marketing suppression is address-keyed, server-written with authenticated role/contact checks; contact edits never erase a prior address suppression and only Owner can release it.

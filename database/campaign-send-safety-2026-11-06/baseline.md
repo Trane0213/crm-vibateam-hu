@@ -1,0 +1,4 @@
+# Migráció előtti olvasási baseline
+2026-11-06: 664 cég, 701 kontakt, 8 lead, 1 email_campaigns tervezet, 0 címzett. Új tiltási és küldési táblák nem léteztek.
+Kampány f960b846-48f8-41b6-bee4-4a46792f1cfd: draft, created_by 99551050-d92f-4b57-9cf7-b641f1571429, updated_at 2026-11-06T13:50:14.474314+00:00, message_subject/body null. Név/célcsoport és korábbi policyk nem módosultak.
+Kampány Owner/másik saját Marketing SELECT/INSERT/UPDATE, nincs kliens DELETE; kontaktpolicyk és activities policyk változatlanok. A változás csak új táblák/függvények, nem cserél meglévő policyt vagy függvényt. Visszaállítás endpoint-REVOKE, auditmegőrzéssel.
