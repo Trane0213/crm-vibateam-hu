@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Sparkles, LayoutDashboard, List } from "lucide-react";
+import { Sparkles, LayoutDashboard, List, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,9 +65,16 @@ function LeadsPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between gap-2 border-b bg-background/60 px-6 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-background/60 px-4 py-3 sm:px-6">
         <div className="text-sm font-semibold">{mode === "sales" ? "Saját Sales-előkészítés" : "Érdeklődők feldolgozása"}</div>
-        {canSeeList && (
+        {canSeeList && role === "marketing" ? (
+          <DropdownMenu><DropdownMenuTrigger asChild><Button size="icon" variant="ghost" aria-label="Érdeklődők nézetei"><MoreHorizontal /></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setView("workspace")}><LayoutDashboard />Feldolgozás</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setView("list")}><List />Részletes lista</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : canSeeList && (
           <div className="flex gap-1 rounded-md border bg-muted/30 p-0.5 text-[11px]">
             <Button
               size="sm" variant={view === "workspace" ? "default" : "ghost"}
@@ -179,6 +187,11 @@ function LeadsListView() {
 }
 
 export const Route = createFileRoute("/_authenticated/leads/")({
+  head: () => ({ meta: [
+    { title: "Érdeklődők feldolgozása | VIBA CRM" }, { name: "description", content: "Marketinges érdeklődésfeldolgozás és saját Sales-előkészítés." },
+    { property: "og:title", content: "Érdeklődők feldolgozása | VIBA CRM" }, { property: "og:description", content: "Ügyfélmegkeresések feldolgozása a meglévő VIBA munkafolyamatokban." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   validateSearch: (s: Record<string, unknown>): { lead?: string } =>
     typeof s.lead === "string" && /^[0-9a-f-]{36}$/i.test(s.lead) ? { lead: s.lead } : {},
   component: LeadsPage,
