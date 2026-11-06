@@ -65,7 +65,7 @@ function LeadsPage() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-2 border-b bg-background/60 px-6 py-2">
-        <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Érdeklődők</div>
+        <div className="text-sm font-semibold">{mode === "sales" ? "Saját Sales-előkészítés" : "Érdeklődők feldolgozása"}</div>
         {canSeeList && (
           <div className="flex gap-1 rounded-md border bg-muted/30 p-0.5 text-[11px]">
             <Button

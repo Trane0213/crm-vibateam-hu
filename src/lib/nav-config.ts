@@ -32,7 +32,7 @@ export const WORKSPACES_BY_ROLE: Record<RoleSlug, NavItem[]> = {
     { title: "Jelenlét", url: "/attendance", icon: ClipboardList },
   ],
   sales: [
-    { title: "Sales munkafelület", short: "Leadek", url: "/leads", icon: Sparkles },
+    { title: "Sales-előkészítés", short: "Előkészítés", url: "/leads", icon: Sparkles },
     { title: "Pipeline", url: "/sales/leads", icon: Target },
     { title: "Ajánlatok", url: "/quotes", icon: FileText },
     { title: "Projektek", url: "/projects", icon: Briefcase },
