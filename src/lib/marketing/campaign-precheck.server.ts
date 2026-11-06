@@ -14,7 +14,7 @@ export async function runCampaignPrecheck(userClient: SupabaseClient<any>, compa
       for (let from = 0; ; from += 1000) {
         const { data: rows, error } = await context.supabase.from("contacts").select("id,company_id,name,email,email_invalid,companies(name)").in("company_id", ids).order("id").range(from, from + 999);
         if (error) throw new Error(error.message);
-        for (const r of rows ?? []) candidates.push({ contact_id: r.id, company_id: r.company_id, company_name: (r.companies as { name: string } | null)?.name ?? null, name: r.name, email: r.email, email_invalid: r.email_invalid });
+        for (const r of rows ?? []) candidates.push({ contact_id: r.id, company_id: r.company_id, company_name: (r.companies as unknown as { name: string } | null)?.name ?? null, name: r.name, email: r.email, email_invalid: r.email_invalid });
         if (!rows || rows.length < 1000) break;
       }
     }

@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { EligibilityStatus } from "./campaign-eligibility";
-import { runCampaignPrecheck } from "./campaign-precheck.server";
 
 const PAGE = 50;
 const STATUSES: (EligibilityStatus | "all")[] = ["all", "ready", "contacted", "replied", "uncertain", "invalid"];
@@ -26,6 +25,7 @@ export const precheckCampaign = createServerFn({ method: "POST" })
     const { data: role, error: roleErr } = await context.supabase.rpc("crm_role_of", { _auth_user: context.userId });
     if (roleErr || (role !== "owner" && role !== "marketing")) throw new Error("Csak tulajdonos vagy marketing szerepkör használhatja.");
     const isOwner = role === "owner";
+    const { runCampaignPrecheck } = await import("./campaign-precheck.server");
     const { rows, historyComplete, contacts, historyMessages } = await runCampaignPrecheck(context.supabase, data.companyIds);
     const counts = Object.fromEntries(STATUSES.filter(s => s !== "all").map(s => [s, rows.filter(r => r.status === s).length])) as Record<EligibilityStatus, number>;
     const filtered = rows.filter(r => data.status === "all" || r.status === data.status);
