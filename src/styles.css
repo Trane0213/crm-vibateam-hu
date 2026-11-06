@@ -264,6 +264,11 @@
 .crm-tab-content[data-state="active"] { animation: crm-content-enter 150ms ease-out; }
 .crm-work-nav { scrollbar-width: thin; scroll-padding-inline: 1rem; }
 .crm-work-nav a { scroll-margin-inline: 1rem; }
+.crm-work-nav { align-items: center; }
+.crm-work-nav [aria-current="page"] { font-weight: 600; }
+.crm-page-actions { min-height: 2.25rem; }
+.crm-workspace [data-slot="tabs-list"] { border-radius: var(--radius-md); }
+.crm-workspace [data-slot="table-row"]:focus-within { background: var(--accent); }
 .crm-workspace :is(a, button, input, select, textarea):focus-visible { outline-offset: 3px; }
 .crm-workspace [role="dialog"] { max-height: calc(100dvh - 2rem); overflow-y: auto; }
 @keyframes crm-content-enter {
