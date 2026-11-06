@@ -1,4 +1,14 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
+## Irányadó Marketing/Sales UI/UX-sorrend – 2026-11-06 19:19 UTC
+- [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.
+- [ ] 1. Közös navigáció, visszajelzések és munkafolyamat-térkép: kész munkasáv/menü/fókusz/animáció megőrzése; hiányos a következmény- és hibaállapotok teljes leltára, szerepkörös folyamat-térkép és hitelesített elfogadás (external_unmanaged). Első folytatandó szakasz; a futó kör jelentése után jóváhagyásra STOP.
+- [ ] 2. Marketing Ma és ügyféladatlap: meglévő megjelenítési részek megőrzése, részletes ügyfélmunka hiányainak célzott lezárása.
+- [ ] 3. Kampányszerkesztés és ütemezés: meglévő szerkesztő/előnézet/ütemezési védelem, következmények és visszajelzések.
+- [ ] 4. Marketing–Sales átadás és Sales Ma: meglévő átadási út, felelős és forráshű visszajelzés.
+- [ ] 5. Sales Pipeline, ajánlat és utánkövetés: kizárólag vizuális kezelés, változatlan üzleti szabályok.
+- [ ] 6. Teljes használhatósági/regressziós teszt; hitelesített működés hiányát NEM TESZTELT jelölni.
+Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakasz végén tényleges UI-változás/teszt/nem igazolt működés és jóváhagyási kérdés. Más szerepkör új fejlesztése, új funkció, éles küldés és publikálás nem engedélyezett.
+
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
 - [x] 19:15 UTC marketinges többoldalas egyszerűsítési kör: irreleváns pulzussáv rejtve, Továbbiak közös munkasávban, listaműveletek egy menüben, hívás magyar értékek, érdeklődő-listaváltó rejtve, ügyfélaktivitás selector, kampánykijelölés/elutasítás menü és Gmail/TESZT részek összecsukva. 779 regresszió/78 fájl/build PASS; Marketing emails/calls/contacts/customers/campaign-list/leads desktop/mobil és Sales emails regresszió PASS, 0 pageerror/túlfutás; meglévő műveletek/jogok megtartva, nincs publikálás/küldés. docs/system-map/marketing-ui-egyszerusites-2026-11-06.md.
 - [ ] Marketing UI teljes elfogadása: hitelesített CRM/Gmail/R2 mentés/readback external_unmanaged miatt NEM TESZTELT; részletes cégadatlap és webes igény UI célzott következő ellenőrzése, korábbi funkcionális hiányok nyitva. STOP.
