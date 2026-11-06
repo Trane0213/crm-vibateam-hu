@@ -1,4 +1,4 @@
 - Role help uses one shared searchable renderer and source-checked task entries; historical manuals remain collapsible references, not current-button authority.
-- Help does not imply issue persistence or technical AI diagnostics until authorized storage and observation tools exist.
-- Issue reports use authenticated user-RLS server functions and one immutable-report table; owners alone update lifecycle/note, submission UUID deduplicates, and no AI diagnosis is inferred from prose.
-- Additional case categories must remain non-persistable until the approved schema supports them explicitly; never encode unapproved categories or simulated diagnosis into legacy text fields.
+- Issue reports use authenticated user-RLS server functions and one immutable-report table with four categories; owners alone update lifecycle/note, submission UUID deduplicates.
+- George reviews each report via deterministic page/role routing to one specialist (Scarlet/Timothy/Boss) and one bounded model call on report text only; AI fields are service-written, capped per report, and AI can never mark a problem proven, because model text is not evidence.
+- Reporter verification (resolved → closed, not resolved → investigating) runs only on own reports in 'checking' via a service-only RPC after a user-RLS ownership check.
