@@ -1,1 +1,1 @@
-- Marketing resource-list row actions use a single menu and the existing confirmation/mutations; other roles keep their existing controls, so simplification does not change write permissions or payloads.
+- All role resource-list row actions use one menu with existing confirmations and mutations; presentation never changes write permissions or payloads.
