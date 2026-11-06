@@ -10,7 +10,7 @@ export async function runCampaignPrecheck(userClient: SupabaseClient<any>, compa
   const data = { companyIds };
     // Kontaktok a felhasználó saját jogosultságával (RLS): csak látható cégek/kontaktok jelöltek.
     const chunks = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
-    const candidates: { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null }[] = [];
+    const candidates: { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null; marketing_blocked?:boolean }[] = [];
     for (const ids of chunks(data.companyIds, 200)) {
       for (let from = 0; ; from += 1000) {
         const { data: rows, error } = await context.supabase.from("contacts").select("id,company_id,name,email,email_invalid,companies(name)").in("company_id", ids).order("id").range(from, from + 999);
@@ -26,6 +26,12 @@ export async function runCampaignPrecheck(userClient: SupabaseClient<any>, compa
     const mailboxOf = new Map((profiles ?? []).filter(p => isBusinessMailbox(p.gmail_email ?? "")).map(p => [p.auth_user_id as string, normEmail(p.gmail_email)]));
     const owners = [...mailboxOf.keys()];
     const wanted = new Set(candidates.map(c => normEmail(c.email)).filter(Boolean));
+    for (const emails of chunks([...wanted],200)) {
+      const blocked=await db.from('marketing_email_suppressions' as any).select('email_norm').in('email_norm',emails).eq('blocked',true);
+      if(blocked.error) throw new Error(blocked.error.message);
+      const addresses=new Set((blocked.data ?? []).map((r:any)=>r.email_norm));
+      for(const c of candidates) if(addresses.has(normEmail(c.email))) c.marketing_blocked=true;
+    }
     const hits: HistoryHit[] = [];
     // Full normalized scan avoids case-sensitive array matches dropping historic addresses.
     // A completed cache scan is NOT evidence of complete Gmail history (known sync gaps).

@@ -1,0 +1,10 @@
+import { it,expect } from 'vitest';
+import { CAMPAIGN_DAILY_LIMIT,campaignTestInput,campaignDay,testCopy,campaignOutcome } from './campaign-send-policy';
+it('uses exactly the owner-approved 40 daily campaign allowance',()=>expect(CAMPAIGN_DAILY_LIMIT).toBe(40));
+it.each(['viktor.csotai@gmail.com','info@vibateam.hu'])('allows explicit approved TESZT address %s',recipient=>expect(campaignTestInput.safeParse({campaignId:'11111111-1111-4111-8111-111111111111',expectedUpdatedAt:'now',recipient,confirmed:true}).success).toBe(true));
+it('blocks customer test recipient',()=>expect(campaignTestInput.safeParse({campaignId:'11111111-1111-4111-8111-111111111111',expectedUpdatedAt:'now',recipient:'customer@example.com',confirmed:true}).success).toBe(false));
+it('requires explicit confirmation',()=>expect(campaignTestInput.safeParse({campaignId:'11111111-1111-4111-8111-111111111111',expectedUpdatedAt:'now',recipient:'info@vibateam.hu',confirmed:false}).success).toBe(false));
+it('uses Budapest midnight rather than UTC midnight',()=>{expect(campaignDay(new Date('2026-11-06T22:59:59Z'))).toBe('2026-11-06');expect(campaignDay(new Date('2026-11-06T23:00:00Z'))).toBe('2026-11-07');});
+it('requires both live and saved proof for success',()=>{expect(campaignOutcome(true,true,false)).toBe('uncertain');expect(campaignOutcome(true,false,true)).toBe('uncertain');expect(campaignOutcome(true,true,true)).toBe('verified');});
+it('marks test copy and never uses real customer personalization',()=>expect(testCopy('{{ceg}}','{{nev}}')).toEqual({subject:'[TESZT] TESZT VIBA-TEAM',body:'TESZT Címzett'}));
+it('rejects empty saved copy',()=>expect(()=>testCopy('','body')).toThrow());

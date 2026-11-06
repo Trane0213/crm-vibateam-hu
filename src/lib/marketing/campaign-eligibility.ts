@@ -5,7 +5,7 @@
 import { normEmail, isInternal, isBusinessMailbox } from "@/lib/gmail/relink-analysis";
 
 export type EligibilityStatus = "ready" | "contacted" | "replied" | "uncertain" | "invalid";
-export type CampaignCandidate = { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null };
+export type CampaignCandidate = { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null; marketing_blocked?: boolean };
 /** Szerveren minősített előzmény, tartalom nélkül. */
 export type HistoryHit = { email: string; direction: "out" | "in" | "unverified"; at: string | null; mailbox: string; verifiedSent?: boolean; verifiedReply?: boolean };
 export type CompanyHistory = { company_id: string; threads: number; last_at: string | null };
@@ -37,6 +37,7 @@ export function classifyCandidates(
     const mailboxes = [...new Set(own.map(h => h.mailbox))];
     const row = (status: EligibilityStatus) => ({ ...c, norm, status, reasons, last_at, mailboxes });
     if (!norm || !VALID.test(norm)) { reasons.push("Hiányzó vagy formailag hibás email."); return row("invalid"); }
+    if (c.marketing_blocked) { reasons.push("Igazolt marketingküldési tiltás."); return row("invalid"); }
     if (c.email_invalid) { reasons.push("CRM-ben hibásnak jelölt cím."); return row("invalid"); }
     if (isInternal(norm)) { reasons.push("Belső vagy tesztcím."); return row("invalid"); }
     if (!c.contact_id || !c.company_id) { reasons.push("Hiányzó kontaktazonosító vagy cégkapcsolat."); return row("uncertain"); }

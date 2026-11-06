@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CONTACT_KIND, CONTACT_SOURCE, contactProvenanceInput, contactProvenanceLabel, type ContactProvenance } from '@/lib/contact-provenance';
 import { saveContactProvenance } from '@/lib/contact-provenance.functions';
+import { ContactSuppression } from '@/components/marketing/contact-suppression';
 import { usePermissions } from '@/hooks/use-permissions';
 
 export function ContactProvenanceSummary({ contact }: { contact: ContactProvenance }) {
@@ -38,6 +39,7 @@ export function ContactProvenanceEditor({ contact, disabled = false }: { contact
   return <section className="space-y-3 border-t pt-4">
     <h2 className="text-sm font-semibold">Adatforrás és ellenőrzöttség</h2>
     <ContactProvenanceSummary contact={contact} />
+    <ContactSuppression contactId={contact.id} disabled={disabled} />
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="space-y-1"><Label>Besorolás</Label><Select value={kind} onValueChange={setKind} disabled={disabled || mutation.isPending}><SelectTrigger aria-label="Besorolás"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(CONTACT_KIND).map(([key,label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent></Select></div>
       <div className="space-y-1"><Label>Adatforrás</Label><Select value={source} onValueChange={setSource} disabled={disabled || mutation.isPending}><SelectTrigger aria-label="Adatforrás"><SelectValue /></SelectTrigger><SelectContent>{Object.entries(CONTACT_SOURCE).map(([key,label]) => <SelectItem key={key} value={key}>{label}</SelectItem>)}</SelectContent></Select></div>
