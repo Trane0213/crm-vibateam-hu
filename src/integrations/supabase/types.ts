@@ -2157,14 +2157,23 @@ export type Database = {
       issue_reports: {
         Row: {
           actual_result: string
+          ai_analysis: string
+          ai_analyzed_at: string | null
+          ai_evidence: string | null
+          ai_run_count: number
+          ai_specialist: string | null
+          category: string
           created_at: string
           description: string
           expected_result: string
           id: string
           owner_note: string
           page_path: string
+          reporter_feedback: string
           reporter_id: string
           reporter_role: string
+          reporter_verdict: string | null
+          reporter_verdict_at: string | null
           status: string
           submission_key: string
           technical_code: string | null
@@ -2172,14 +2181,23 @@ export type Database = {
         }
         Insert: {
           actual_result: string
+          ai_analysis?: string
+          ai_analyzed_at?: string | null
+          ai_evidence?: string | null
+          ai_run_count?: number
+          ai_specialist?: string | null
+          category?: string
           created_at?: string
           description: string
           expected_result: string
           id?: string
           owner_note?: string
           page_path: string
+          reporter_feedback?: string
           reporter_id: string
           reporter_role: string
+          reporter_verdict?: string | null
+          reporter_verdict_at?: string | null
           status?: string
           submission_key: string
           technical_code?: string | null
@@ -2187,14 +2205,23 @@ export type Database = {
         }
         Update: {
           actual_result?: string
+          ai_analysis?: string
+          ai_analyzed_at?: string | null
+          ai_evidence?: string | null
+          ai_run_count?: number
+          ai_specialist?: string | null
+          category?: string
           created_at?: string
           description?: string
           expected_result?: string
           id?: string
           owner_note?: string
           page_path?: string
+          reporter_feedback?: string
           reporter_id?: string
           reporter_role?: string
+          reporter_verdict?: string | null
+          reporter_verdict_at?: string | null
           status?: string
           submission_key?: string
           technical_code?: string | null
@@ -5215,6 +5242,10 @@ export type Database = {
       }
       is_email_admin: { Args: { _user_id: string }; Returns: boolean }
       is_owner_role: { Args: { _auth_user: string }; Returns: boolean }
+      issue_report_verdict: {
+        Args: { _feedback: string; _id: string; _verdict: string }
+        Returns: undefined
+      }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
       quote_lock_sent: { Args: { p_quote_id: string }; Returns: string }
       quote_new_alternative: {
