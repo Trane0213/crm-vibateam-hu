@@ -1,3 +1,4 @@
 - Campaign test sending reuses handleGmailSend with service-only atomic claims and exact live/CRM evidence; only approved test recipients are allowed and uncertain claims never retry.
 - Marketing suppression is address-keyed, server-written with authenticated role/contact checks; contact edits never erase a prior address suppression and only Owner can release it.
 - Record campaign actions open the existing campaign preparation using validated company/contact IDs; URL selections never grant membership or sending, preserving the server-checked save path.
+- Company marketing blocks live on companies and use the user-RLS transactional company_set_marketing_block RPC plus exact readback; prechecks evaluate the current parent company for every contact, because new contacts cannot bypass a company-wide block.
