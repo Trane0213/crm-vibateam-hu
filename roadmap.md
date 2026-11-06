@@ -10,7 +10,9 @@
 - [ ] Strukturált állapot hitelesített owner/Marketing/Sales/PM mentési végigpróba: external_unmanaged munkamenet hiánya; NEM TESZTELT.
 - [x] 2. kör kontaktforrás és személy/gyűjtőcím/ismeretlen ellenőrzöttség: jóváhagyott nullable contacts mezők, owner/Marketing user-RLS/audit, identity-változás érvénytelenít, közös meglévő editor/összefoglaló. 673 teszt PASS, izolált SQL és desktop/mobil TESZT-megjelenítés PASS, build OK; 701 kontakt és eredeti teljes sorhash változatlan, backfill/küldés/publikálás nélkül. Jelentés docs/system-map/kontakt-ellenorzottseg-2026-11-06.md; STOP.
 - [ ] Kontaktellenőrzöttség hosted owner/Marketing/Sales/PM mentés/readback végigpróba: external_unmanaged, nincs átadható biztonságos munkamenet; NEM TESZTELT.
-- [ ] 3. kör kontrollált kampány: tulajdonosi folytatás alapján meglévő tervezet/kijelölés/üzenet/előellenőrzés hiányainak read-only előkészítése; küldésaktiválás és TESZT-küldés külön kapu, automatikus indulás tilos.
+- [x] 3. kör kampány-előkészítés: jóváhagyott meglévő táblabővítés, explicit cég/kontakt, mentett üzenet/verified-name előnézet, timestamp-védett mentés és atomikus címzettcsere. 681 teszt/izolált SQL/desktop+mobil TESZT-megjelenítés PASS; éles 664/701/8 és 1 tervezet/0 címzett változatlan. Jelentés docs/system-map/kontrollalt-kampany-elokeszites-2026-11-06.md; küldés/publikálás nélkül, STOP.
+- [ ] Kampány hosted Owner/Marketing mentés/readback és szerepkörös E2E: external_unmanaged munkamenet nem elérhető; NEM TESZTELT.
+- [ ] 3. kör küldési aktiválás: leiratkozás/tiltás/limit/ütemezés/idempotencia külön jóváhagyásos kapu; TESZT-küldés és automatikus indulás tilos engedély nélkül.
 - [ ] 4–5. kör: napi munkafolyamat, Scarlet és végigpróba; csak az előző kör elfogadása után, adatjavítás/RLS/küldés külön kapuval.
 ## Marketing és Scarlet — első összevont kör (2026-11-06)
 - [x] Gmail-szinkron pontos kontakt→cég kapcsolattal, domain-találgatás nélkül; történeti kapcsolat érintetlen, eltérés kézi ellenőrzés. Kézi szál-cégválasztó RLS-sel; küldés előtti kapcsolati ellenőrzés.
