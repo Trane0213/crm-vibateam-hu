@@ -132,6 +132,7 @@ export function useUpsert(table: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [table] });
+      if (["tasks", "followups", "phone_calls"].includes(table)) qc.invalidateQueries({ queryKey: ["mkt-home", "daily"] });
       toast.success("Sikeres mentés");
     },
     onError: (e: any) =>
