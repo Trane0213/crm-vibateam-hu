@@ -1,5 +1,6 @@
 # Roadmap – UI/UX és AI megújítás (jóváhagyott terv, lépésenként jóváhagyással)
 ## Irányadó Marketing/Sales UI/UX-sorrend – 2026-11-06 19:19 UTC
+- [ ] 19:31 UTC közös vizuális egységesítés minden szerepkörre: napi menük és ritka oldalak következetes elhelyezése, közös listaműveletek egyszerűsítése, desktop/mobil regresszió; üzleti működés és jogosultság változatlan, nincs publikálás.
 - [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.
 - [x] 19:21 UTC 1. szakasz célzott folytatása: összecsukható Marketing→Sales folyamat-térkép mindkét szerepkörben; átadás gomb = ellenőrzés megnyitása, mentés/új ügy/felelős/automatikus Pipeline-kizárás egyértelmű; átadási hiba tartósan az ablakban, ügyfélbetöltés/hiba/újrapróba; korábbi téves Pipeline-szöveg javítva. 779 teszt/build PASS, meglévő marketing/Sales betöltési regresszió és folyamat 1440/390 PASS. docs/system-map/ui1-sales-atadas-folyamat-2026-11-06.md.
 - [ ] 1. Teljes elfogadás: folyamat-térkép és célzott átadási visszajelzések kész; minden oldal következmény/állapotleltára és hitelesített mentés/readback external_unmanaged miatt NEM TESZTELT. Átadási ablak új visszajelzéseinek teljes UI-végigpróbája hiányzik; nincs teljes szakaszlezárás. STOP.
