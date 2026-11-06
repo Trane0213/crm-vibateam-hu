@@ -17,7 +17,7 @@ old=sql(f"select updated_at from email_campaigns where id='{cid}'")
 sql(act()+f"update email_campaigns set message_body='TESZT másik mentés' where id='{cid}'")
 assert sql(act()+f"update email_campaigns set message_body='STALE' where id='{cid}' and updated_at='{old}' returning id")==''
 sql(act()+f"update email_campaigns set prechecked_at=now() where id='{cid}'",True)
-sql(f"update email_campaigns set status='prechecked' where id='{cid}'")
+sql(f"set test.jwt_role='service_role';update email_campaigns set status='prechecked' where id='{cid}'")
 sql(act()+f"update email_campaigns set message_subject='TESZT új tárgy' where id='{cid}'")
 assert sql(f"select status from email_campaigns where id='{cid}'")=='draft'
 row=dict(contact_id=kid,company_id=co,email_norm='teszt@example.invalid',eligibility='uncertain',reasons=['TESZT hiányos'],last_history_at=None,selected=True)
