@@ -60,3 +60,22 @@ Ebben a második körben továbbra csak SELECT történt. Nincs új kód/séma/R
 Friss SELECT: 39/39 title UUID, 39/39 létező és különböző thread. 11 Viba-Teamhez kapcsolt, 25 más céghez kapcsolt, 3 cég nélküli; 6 mentett kontakt. A postafiókhozzáférésből 29 info, 1 Pretor, 0 Ramon, 9 egyik három céges fiókhoz sem tartozik jelenleg. Ez utóbbi nem törölhető/újracsatlakoztatható indok és nem jelenti, hogy mindenki számára elérhetetlen.
 
 Tételes, tartalommentes lista: `levelszal-dry-run-2026-11-06/import-thread-review.csv`, review_id + thread_id + jelenlegi company/contact + saját jogot megkövetelő szállink. Nincs cégnévből automatikus megfeleltetés, review lezárás vagy cégkapcsolat-írás. A korábbi jelentés téves azonosítóhiány-állítását helyesbítettük; a tulajdonos nyolc jelölttel kapcsolatos „Még kézzel ellenőrzöm” döntése változatlanul érvényes. Hosted tartalmi/jogosultsági ellenőrzés nem történt.
+
+## A 39 vitatott szál ellenőrzési sorrendje – 16:57 UTC
+
+Friss SELECT, az aktuális nyitott email_thread review-k title UUID-ja alapján. Csak a három céges postafiókhoz `email_thread_access.user_id = emails.owner_user_id` szerint tartozó tárolt üzenet-metaadatot vizsgáltuk; levéltartalom, tárgy és token nem került exportálásra. A pontos címegyezés kisbetűsített, szélső szóköz nélküli contacts.email egyezés, nem domain/név/tárgyalapú következtetés. Belső @vibateam.hu és Viktor személyes TESZT-címe kizárva. Legacy to_email és nem egyszerű emailalakok nincsenek teljesen feldolgozva: az eredmény bounded előszűrés, nem teljes levelezéstörténet.
+
+| Diszjunkt ellenőrzési csoport | Szál |
+|---|---:|
+| Egy pontos egyező cég, de eltérő vagy hiányzó mentett szálcég | 21 |
+| Egy pontos egyező cég, azonos a mentett szálcéggel | 3 |
+| Több céghez pontos cím-egyezés | 1 |
+| Saját tárolt üzenet van, pontos kontakt–cég egyezés nincs | 5 |
+| A három fiókhoz tartozó saját tárolt üzenet nincs | 9 |
+| **Összesen** | **39** |
+
+A három mentett céggel egyező tétel sem zárható le automatikusan; a 21 eltérés nem átkötési javaslat. Egyetlen pontos céghez egyezés mellett is lehet több külső szereplő vagy mentett kontakt: teljes kézi ellenőrzés kell.
+
+Két szálnál a vizsgált üzenetek company_id-ja eltér a szál company_id-jától: `391951b4-04ef-4b55-a10f-78c0a3035e2e` (1 üzenet), `e614d553-e5fc-4baf-910a-7bc9efb8d27e` (2 üzenet). Ez mentett kapcsolati eltérés, nem bizonyítja önmagában, melyik kapcsolat helyes. Hat szálnak mentett kontaktja is van. 20 szálon van DRAFT-jelzés, 23 szálon saját tárolt SENT és nem DRAFT címkéjű üzenet; ezek átfedő halmazok, nem 43 megkeresés és nem élő Gmail-küldésigazolás. Külső válaszok számát nem állapítottuk meg.
+
+Tételes tartalommentes prioritási lista: `levelszal-dry-run-2026-11-06/import-thread-priority.csv`. Semmilyen üzleti adat, review-státusz, kapcsolat, jogosultság vagy Gmail-hozzáférés nem változott; küldés/publikálás nincs. Hosted tulajdonosi tartalmi ellenőrzés továbbra NEM TESZTELT. Következő kapu: tulajdonosi kézi döntés; írás kizárólag külön tételes jóváhagyás, friss snapshot és rollback után. STOP.
