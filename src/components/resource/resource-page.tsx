@@ -45,6 +45,7 @@ import {
 import { PageHeader, EmptyState } from "@/components/page-header";
 import { useList, useUpsert, useDelete, useRefOptions } from "@/lib/db-hooks";
 import { RecordCombobox } from "./record-combobox";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { RecordSource } from "@/lib/record-search-model";
 
 export type FieldType =
@@ -156,7 +157,7 @@ export function ResourcePage({
         title={title}
         description={description}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {extraActions}
             {actionsFor?.(rows)}
             <Button
@@ -172,7 +173,7 @@ export function ResourcePage({
           </div>
         }
       />
-      <div className="p-6">
+      <div className="min-w-0 p-4 sm:p-6">
         {toolbar && <div className="mb-3">{toolbar}</div>}
         {error && (
           <div className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -191,7 +192,7 @@ export function ResourcePage({
             }
           />
         ) : (
-          <div className="rounded-md border bg-card">
+          <TooltipProvider delayDuration={250}><div className="rounded-md border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -212,29 +213,30 @@ export function ResourcePage({
                       </TableCell>
                     ))}
                     <TableCell className="text-right">
-                      <Button
+                      <Tooltip><TooltipTrigger asChild><Button
                         size="icon"
                         variant="ghost"
+                        aria-label="Szerkesztés"
                         onClick={() => {
                           setEditing(row);
                           setOpen(true);
                         }}
                       >
                         <Pencil className="h-4 w-4" />
-                      </Button>
+                      </Button></TooltipTrigger><TooltipContent>Szerkesztés</TooltipContent></Tooltip>
                       {canDelete && <DeleteButton onConfirm={() => del.mutate(row.id)} />}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </div>
+          </div></TooltipProvider>
         )}
       </div>
       <RecordDialog
         open={open}
         onOpenChange={setOpen}
-        title={editing ? "Szerkesztés" : "Új rekord"}
+        title={editing ? `${title} · szerkesztés` : newButtonLabel}
         fields={fields}
         defaults={editing}
         submitting={upsert.isPending}
@@ -253,15 +255,16 @@ export function ResourcePage({
 function DeleteButton({ onConfirm }: { onConfirm: () => void }) {
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>
+      <Tooltip><TooltipTrigger asChild><AlertDialogTrigger asChild>
         <Button
           size="icon"
           variant="ghost"
+          aria-label="Törlés"
           className="text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
-      </AlertDialogTrigger>
+      </AlertDialogTrigger></TooltipTrigger><TooltipContent>Törlés</TooltipContent></Tooltip>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Biztosan törlöd?</AlertDialogTitle>
