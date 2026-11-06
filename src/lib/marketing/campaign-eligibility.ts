@@ -2,12 +2,12 @@
  * Kampány előtti deduplikáció/alkalmasság (DRY-RUN). Tiszta függvény: nem ír, nem küld.
  * Szabály: ami nem bizonyíthatóan érintetlen, az nem "kész" — bizonytalan előzmény BLOKKOL.
  */
-import { normEmail, isInternal } from "@/lib/gmail/relink-analysis";
+import { normEmail, isInternal, isBusinessMailbox } from "@/lib/gmail/relink-analysis";
 
 export type EligibilityStatus = "ready" | "contacted" | "replied" | "uncertain" | "invalid";
 export type CampaignCandidate = { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null };
 /** Szerveren minősített előzmény, tartalom nélkül. */
-export type HistoryHit = { email: string; direction: "out" | "in"; at: string | null; mailbox: string };
+export type HistoryHit = { email: string; direction: "out" | "in" | "unverified"; at: string | null; mailbox: string; verifiedSent?: boolean; verifiedReply?: boolean };
 export type CompanyHistory = { company_id: string; threads: number; last_at: string | null };
 export type EligibilityRow = CampaignCandidate & { norm: string; status: EligibilityStatus; reasons: string[]; last_at: string | null; mailboxes: string[] };
 
@@ -21,7 +21,9 @@ export function classifyCandidates(
   opts: { historyComplete: boolean },
 ): EligibilityRow[] {
   const byEmail = new Map<string, HistoryHit[]>();
-  for (const h of hits) { const e = normEmail(h.email); byEmail.set(e, [...(byEmail.get(e) ?? []), h]); }
+  for (const h of hits) { if (!isBusinessMailbox(h.mailbox)) continue; const e = normEmail(h.email); byEmail.set(e, [...(byEmail.get(e) ?? []), h]); }
+  const companiesByEmail = new Map<string, Set<string | null>>();
+  for (const c of candidates) { const e = normEmail(c.email); companiesByEmail.set(e, (companiesByEmail.get(e) ?? new Set()).add(c.company_id)); }
   const coHist = new Map(companyHistory.map(c => [c.company_id, c]));
   // Cégszintű érintettség: a cég bármely kontaktjának kimenő/bejövő előzménye.
   const touchedCompanies = new Set<string>();
@@ -37,11 +39,14 @@ export function classifyCandidates(
     if (!norm || !VALID.test(norm)) { reasons.push("Hiányzó vagy formailag hibás email."); return row("invalid"); }
     if (c.email_invalid) { reasons.push("CRM-ben hibásnak jelölt cím."); return row("invalid"); }
     if (isInternal(norm)) { reasons.push("Belső vagy tesztcím."); return row("invalid"); }
+    if (!c.contact_id || !c.company_id) { reasons.push("Hiányzó kontaktazonosító vagy cégkapcsolat."); return row("uncertain"); }
+    if ((companiesByEmail.get(norm)?.size ?? 0) > 1) { reasons.push("A cím több CRM-céghez tartozik."); return row("uncertain"); }
     if (seen.has(norm)) { reasons.push("Kampányon belüli duplikált cím."); return row("invalid"); }
     seen.add(norm);
-    if (own.some(h => h.direction === "in")) { reasons.push("Bejövő levél érkezett erről a címről."); return row("replied"); }
-    if (own.some(h => h.direction === "out")) { reasons.push("Már ment kimenő megkeresés erre a címre."); return row("contacted"); }
     if (!opts.historyComplete) reasons.push("Az előzményvizsgálat nem teljes.");
+    if (own.some(h => h.direction === "in" && h.verifiedReply)) { reasons.push("Igazolt küldés után azonos fiókban és szálban érkezett válasz."); return row("replied"); }
+    if (own.some(h => h.direction === "out" && h.verifiedSent)) { reasons.push("Tárolt Gmail SENT-bizonyíték, DRAFT nélkül; nem igazolja a levél üzleti célját."); return row("contacted"); }
+    if (own.length) reasons.push("Piszkozat vagy nem igazolt levélkapcsolat — nem küldési bizonyíték.");
     if (!c.company_id) reasons.push("A kontakt nincs céghez kötve.");
     if (COLLECTIVE_LOCAL.test(norm.split("@")[0] ?? "")) reasons.push("Gyűjtőcím — személyes kontakt nélkül nem bizonyítható.");
     if (c.company_id && touchedCompanies.has(c.company_id)) reasons.push("A cég másik kontaktja már kapott/küldött levelet.");

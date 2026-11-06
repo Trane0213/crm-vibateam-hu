@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { analyzeThread, buildContactIndex, type RelinkCategory, type RelinkResult } from "./relink-analysis";
+import { analyzeThread, buildContactIndex, BUSINESS_MAILBOXES, type RelinkCategory, type RelinkResult } from "./relink-analysis";
 
 /** A három valódi céges postafiók; a tesztfiók szándékosan kimarad. */
-export const RELINK_MAILBOXES = ["info@vibateam.hu", "ramon.dencsi@vibateam.hu", "pretor.laszlo@vibateam.hu"] as const;
+export const RELINK_MAILBOXES = BUSINESS_MAILBOXES;
 const CATS: RelinkCategory[] = ["certain", "review", "conflict", "no_contact", "linked", "internal", "self_other_company", "self_conflict", "self_no_contact", "self_bulk", "self_internal"];
 /** A saját cég rekordja (2026-11-01 audit); név szerinti egyezés csak kiegészítés. */
 export const SELF_COMPANY_ID = "b454cd40-3473-4653-9424-9cc5bbebe527";
@@ -77,7 +77,7 @@ export const getMailRelinkReview = createServerFn({ method: "POST" })
       const [t, m] = await Promise.all([
         db.from("email_threads").select("id,company_id,contact_id,subject,last_message_at").in("id", ids),
         // Csak a postafiók saját üzenetei: a közös szál nem ad hozzáférést más fiók leveleihez.
-        all<any>((f, to) => db.from("emails").select("thread_id,from_email,to_emails,cc_emails,is_outbound,internal_date,subject,gmail_label_ids").in("thread_id", ids).eq("owner_user_id", ownerId ?? "00000000-0000-0000-0000-000000000000").order("id").range(f, to)),
+        all<any>((f, to) => db.from("emails").select("thread_id,owner_user_id,gmail_message_id,from_email,to_emails,cc_emails,bcc_emails,is_outbound,internal_date,subject,gmail_label_ids").in("thread_id", ids).eq("owner_user_id", ownerId ?? "00000000-0000-0000-0000-000000000000").order("id").range(f, to)),
       ]);
       if (t.error) throw new Error(t.error.message);
       for (const r of t.data ?? []) threads.set(r.id, r);
