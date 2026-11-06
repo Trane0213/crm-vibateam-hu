@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { ContactProvenance } from '@/lib/contact-provenance';
+import { escapedMailHtml } from './campaign-send-policy';
 
 export const campaignCopyInput = z.object({
   id: z.string().uuid().nullable().optional(),
@@ -17,9 +18,10 @@ export function explicitContactIds(selected: string[], available: string[]) {
   return [...new Set(selected)].filter(id => allowed.has(id));
 }
 
-export function campaignPreview(subject: string, body: string, contact: ContactProvenance & { name?: string | null; company_name?: string | null }) {
+export function campaignPreview(subject: string, body: string, contact: ContactProvenance & { name?: string | null; company_name?: string | null }, html: string | null = null) {
   const personalName = contact.contact_kind === 'person' && contact.verification_state === 'human_verified'
     && contact.verified_at && contact.verified_by ? contact.name ?? '' : '';
   const render = (text: string) => text.replace(/\{\{(ceg|nev)\}\}/g, (_, key: string) => key === 'ceg' ? contact.company_name ?? '' : personalName);
-  return { subject: render(subject), body: render(body), personalNameUsed: !!personalName };
+  const renderHtml = (text: string) => text.replace(/\{\{(ceg|nev)\}\}/g, (_, key: string) => escapedMailHtml(key === 'ceg' ? contact.company_name ?? '' : personalName));
+  return { subject: render(subject), body: render(body), html: html === null ? null : renderHtml(html), personalNameUsed: !!personalName };
 }

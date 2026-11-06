@@ -39,10 +39,7 @@ export const sendCampaignTest=createServerFn({method:'POST'}).middleware([requir
  });
 
 export const listCampaignTestResults=createServerFn({method:'POST'}).middleware([requireSupabaseAuth])
- .inputValidator(z.object({campaignId:z.string().uuid()})).handler(async({data,context})=>{
-  const campaign=await context.supabase.from('email_campaigns').select('id').eq('id',data.campaignId).single();
-  if(campaign.error) throw new Error('A kampány nem olvasható.');
-  const rows=await context.supabase.from('campaign_send_audit' as any).select('id,recipient,mailbox,status,claimed_at,finished_at').eq('campaign_id',data.campaignId).order('claimed_at',{ascending:false}).limit(40);
-  if(rows.error) throw new Error(rows.error.message);
-  return (rows.data ?? []) as unknown as {id:string;recipient:string;mailbox:string;status:string;claimed_at:string;finished_at:string|null}[];
+ .inputValidator(z.object({campaignId:z.string().uuid(),revision:z.string().min(1)}).strict()).handler(async({data,context})=>{
+  const {readCampaignTestResults}=await import('./campaign-test-results.server');
+  return readCampaignTestResults(context.supabase,data.campaignId,data.revision);
  });
