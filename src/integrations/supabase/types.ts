@@ -969,27 +969,87 @@ export type Database = {
           },
         ]
       }
+      email_campaign_recipients: {
+        Row: {
+          campaign_id: string
+          checked_at: string
+          contact_id: string
+          created_at: string
+          eligibility: string
+          email_norm: string | null
+          id: string
+          last_history_at: string | null
+          reasons: Json
+        }
+        Insert: {
+          campaign_id: string
+          checked_at?: string
+          contact_id: string
+          created_at?: string
+          eligibility: string
+          email_norm?: string | null
+          id?: string
+          last_history_at?: string | null
+          reasons?: Json
+        }
+        Update: {
+          campaign_id?: string
+          checked_at?: string
+          contact_id?: string
+          created_at?: string
+          eligibility?: string
+          email_norm?: string | null
+          id?: string
+          last_history_at?: string | null
+          reasons?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_campaign_recipients_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_campaigns: {
         Row: {
           created_at: string | null
+          created_by: string | null
           id: string
           name: string
-          status: string | null
+          prechecked_at: string | null
+          status: string
           target_group: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           name: string
-          status?: string | null
+          prechecked_at?: string | null
+          status?: string
           target_group?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           id?: string
           name?: string
-          status?: string | null
+          prechecked_at?: string | null
+          status?: string
           target_group?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

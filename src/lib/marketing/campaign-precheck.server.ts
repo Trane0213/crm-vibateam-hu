@@ -1,31 +1,12 @@
-import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { classifyCandidates, type EligibilityStatus, type HistoryHit } from "./campaign-eligibility";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { classifyCandidates, type HistoryHit } from "./campaign-eligibility";
 
-const PAGE = 50;
-const STATUSES: (EligibilityStatus | "all")[] = ["all", "ready", "contacted", "replied", "uncertain", "invalid"];
 const TEST_MAILBOXES = ["viktor.csotai@gmail.com"];
 
-type Input = { companyIds: string[]; status: EligibilityStatus | "all"; page: number };
-
-/**
- * DRY-RUN kampány-előellenőrzés (Owner/Marketing). Semmit nem ír és nem küld.
- * Az összes céges postafiók tárolt leveleit szerveren minősíti; csak irányt/időpontot ad vissza,
- * levéltartalmat soha. Más postafiók neve csak tulajdonosnak látszik.
- */
-export const precheckCampaign = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((i: Input) => {
-    const ids = [...new Set((i.companyIds ?? []).filter(x => /^[0-9a-f-]{36}$/i.test(x)))];
-    if (!ids.length) throw new Error("Nincs kiválasztott cég.");
-    if (ids.length > 2000) throw new Error("Legfeljebb 2000 cég ellenőrizhető egyszerre.");
-    if (!STATUSES.includes(i.status)) throw new Error("Ismeretlen állapot.");
-    return { companyIds: ids, status: i.status, page: Math.max(1, Math.floor(i.page || 1)) };
-  })
-  .handler(async ({ data, context }) => {
-    const { data: role, error: roleErr } = await context.supabase.rpc("crm_role_of", { _auth_user: context.userId });
-    if (roleErr || (role !== "owner" && role !== "marketing")) throw new Error("Csak tulajdonos vagy marketing szerepkör használhatja.");
-    const isOwner = role === "owner";
+/** Közös DRY-RUN előellenőrzés: kontaktok user-RLS-sel, előzmény szerveren, tartalom nélkül. */
+export async function runCampaignPrecheck(userClient: SupabaseClient<any>, companyIds: string[]) {
+  const context = { supabase: userClient };
+  const data = { companyIds };
     // Kontaktok a felhasználó saját jogosultságával (RLS): csak látható cégek/kontaktok jelöltek.
     const chunks = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
     const candidates: { contact_id: string; company_id: string | null; company_name: string | null; name: string | null; email: string | null; email_invalid: boolean | null }[] = [];
@@ -33,7 +14,7 @@ export const precheckCampaign = createServerFn({ method: "POST" })
       for (let from = 0; ; from += 1000) {
         const { data: rows, error } = await context.supabase.from("contacts").select("id,company_id,name,email,email_invalid,companies(name)").in("company_id", ids).order("id").range(from, from + 999);
         if (error) throw new Error(error.message);
-        for (const r of rows ?? []) candidates.push({ contact_id: r.id, company_id: r.company_id, company_name: (r.companies as { name: string } | null)?.name ?? null, name: r.name, email: r.email, email_invalid: r.email_invalid });
+        for (const r of rows ?? []) candidates.push({ contact_id: r.id, company_id: r.company_id, company_name: (r.companies as unknown as { name: string } | null)?.name ?? null, name: r.name, email: r.email, email_invalid: r.email_invalid });
         if (!rows || rows.length < 1000) break;
       }
     }
@@ -79,15 +60,35 @@ export const precheckCampaign = createServerFn({ method: "POST" })
       }
     }
     const rows = classifyCandidates(candidates, hits, [...threadCount].map(([company_id, v]) => ({ company_id, threads: v.n, last_at: v.last })), { historyComplete });
-    const counts = Object.fromEntries(STATUSES.filter(s => s !== "all").map(s => [s, rows.filter(r => r.status === s).length])) as Record<EligibilityStatus, number>;
-    const filtered = rows.filter(r => data.status === "all" || r.status === data.status);
-    return {
-      dryRun: true as const, companies: data.companyIds.length, contacts: candidates.length, historyMessages: hits.length, historyComplete, counts,
-      total: filtered.length, page: data.page, pageSize: PAGE,
-      rows: filtered.slice((data.page - 1) * PAGE, data.page * PAGE).map(r => ({
-        contact_id: r.contact_id, company_id: r.company_id, company_name: r.company_name, name: r.name, email: r.norm || r.email,
-        status: r.status, reasons: r.reasons, last_at: r.last_at,
-        mailboxes: isOwner ? r.mailboxes : r.mailboxes.length ? ["céges postafiók"] : [],
-      })),
-    };
-  });
+    return { rows, historyComplete, contacts: candidates.length, historyMessages: hits.length };
+}
+
+/** Elavulás: a tárolt címzettek kontaktadata változott, vagy az ellenőrzés óta új levél érkezett/ment. */
+export async function campaignStaleness(stored: { contact_id: string; email_norm: string | null }[], since: string | null) {
+  if (!since || !stored.length) return { stale: !since && stored.length > 0, reasons: since ? [] : ["Nincs ellenőrzési időpont."] };
+  const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+  const reasons: string[] = [];
+  const chunks = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
+  const byId = new Map(stored.map(r => [r.contact_id, r.email_norm]));
+  let changed = 0;
+  for (const ids of chunks([...byId.keys()], 200)) {
+    const { data, error } = await db.from("contacts").select("id,email").in("id", ids);
+    if (error) throw new Error(error.message);
+    const seen = new Set((data ?? []).map(c => c.id));
+    for (const c of data ?? []) if (((c.email ?? "").trim().toLowerCase() || null) !== (byId.get(c.id) ?? null)) changed++;
+    changed += ids.filter(id => !seen.has(id)).length;
+  }
+  if (changed) reasons.push(`${changed} kontakt email-címe változott vagy törlődött.`);
+  const addrs = [...new Set(stored.map(r => r.email_norm).filter((x): x is string => !!x))];
+  let fresh = 0;
+  for (const part of chunks(addrs, 100)) {
+    for (const col of ["to_emails", "from_email"] as const) {
+      const b = db.from("emails").select("id", { count: "exact", head: true }).gt("created_at", since);
+      const { count, error } = await (col === "from_email" ? b.in("from_email", part) : b.overlaps(col, part));
+      if (error) throw new Error(error.message);
+      fresh += count ?? 0;
+    }
+  }
+  if (fresh) reasons.push(`${fresh} új levél a címzettekkel az ellenőrzés óta.`);
+  return { stale: reasons.length > 0, reasons };
+}
