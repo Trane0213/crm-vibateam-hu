@@ -5,3 +5,5 @@
 - Contactless campaign targets are stored on email_campaigns.target_company_ids via campaign_add_target_company with user RLS, atomic audit and idempotent add; target membership never creates a recipient or send permission.
 - Gmail campaign sources use own-account drafts.list/get; explicit complete import preserves text/HTML and hashed provenance atomically, blocks attachments and stale source/campaign revisions, while protected direct edits require confirmed detach because silent flattening loses the saved source.
 - Handoff guidance describes the existing company workflow and assigned Sales preparation, never automatic Pipeline entry; visual steps and error messages reuse current mutations and do not establish new handoff requirements.
+- Marketing: own followups/tasks only (`*_marketing_own_*` RLS); meetings read-only.
+- Company marketing status writes use company_set_marketing_status with user RLS, immutable server metadata and atomic activities audit; Gmail uses service-only company_marketing_from_sent. All readers prefer structured company state, with notes as read-only legacy fallback, to avoid two writable workflow sources.
