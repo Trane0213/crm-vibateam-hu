@@ -86,7 +86,9 @@ Válasz KIZÁRÓLAG JSON: {"evidence":"assumed"|"not_examinable","analysis":"Mi 
     evidence = clampAiEvidence(parsed?.evidence);
     analysis = String(parsed?.analysis ?? out.text).slice(0, 5500);
   } catch (e) {
-    console.error("[issue-review] AI call failed:", e instanceof Error ? e.message.slice(0, 300) : "unknown");
+    const m = e instanceof Error ? e.message : "";
+    console.error("[issue-review] AI call failed:", m.slice(0, 300));
+    if (/429|insufficient_quota|credit/i.test(m)) throw new Error("George most nem tud vizsgálni: az OpenAI-fiók egyenlege elfogyott. A bejelentés mentve van; feltöltés után a vizsgálat újraindítható.");
     throw new Error("Az AI-vizsgálat most nem futott le. A bejelentés mentve van; később újrapróbálható.");
   }
   const prefix = data.mode === "recheck" ? `\n\n— Utóellenőrzés (${new Date().toISOString()}):\n` : "";
