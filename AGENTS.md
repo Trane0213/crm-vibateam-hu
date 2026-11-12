@@ -37,3 +37,4 @@
 - Timothy read adapters attach saved-state interpretation (Budapest times, followup completion, unverified contact email, mailbox scope); open quote queries filter before pagination and runtime grounds quote URLs in observed record paths and role advice in the existing allowed-tool intersection — stabilizes answers without changing business writes or permissions.
 - Both chats correlate runs by UUID and display only own-run content-free audit progress; risk QA distinguishes deterministic, model and authenticated results — progress is not execution proof or measured reliability.
 - AI OS agent model/provider/api/reasoning come only from `src/lib/ai-os/model-config.ts` (spread into each agent) — one place to switch models.
+- Client RLS never uses USING (true): shared reads require a CRM role (`crm_role_of(auth.uid()) IS NOT NULL`), wage/attendance reads owner/PM, legacy and settings tables owner-only — accounts without a role see nothing.
