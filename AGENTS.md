@@ -38,4 +38,3 @@
 - Both chats correlate runs by UUID and display only own-run content-free audit progress; risk QA distinguishes deterministic, model and authenticated results — progress is not execution proof or measured reliability.
 - AI OS agent model/provider/api/reasoning come only from `src/lib/ai-os/model-config.ts` (spread into each agent) — one place to switch models.
 - Client RLS never uses USING (true): reads need a CRM role, attendance owner/PM, legacy tables owner — roleless users see nothing.
-- Shared AI knowledge = knowledge_documents/chunks: server-only writes, reads via knowledge_source_visible (invoker, parent-row RLS) and knowledge_search (current versions only) — no parallel memory, no access wider than the source document.
