@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
@@ -53,6 +53,8 @@ import { setCompanyMarketingStatus } from "@/lib/company-marketing.functions";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
 import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
 import { ContactProvenanceEditor, ContactProvenanceSummary } from '@/components/customers/contact-provenance';
+import { companyTabFromSearch } from "@/lib/marketing/marketing-day-flow";
+import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 
 /**
  * Marketing Minősítő Munkafelület — `/customers/$id` marketing role-ban.
@@ -68,7 +70,10 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   const [leadSourceOpen, setLeadSourceOpen] = useState(false);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<any | null>(null);
-  const [tab, setTab] = useState<string>("overview");
+  // `?tab=` a Marketing Ma mélylinkjeiből (pl. Válasz érkezett → Levélszálak); csak nézetváltás.
+  const urlTab = companyTabFromSearch((useSearch({ strict: false }) as { tab?: unknown }).tab);
+  const [tab, setTab] = useState<string>(urlTab ?? "overview");
+  useEffect(() => { if (urlTab) setTab(urlTab); }, [urlTab, companyId]);
 
   const cust = useQuery({
     queryKey: ["customers", "detail", companyId],
@@ -484,15 +489,15 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
         </div>
 
         {/* Kompakt KPI csík — informatív, nem akciógomb */}
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
-          <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} />
-          <Mini label="Levélszálak" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail}
+        <nav aria-label="Cég útja: kapcsolattartó → levelezés → Sales-ügy → dokumentumok" className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <Mini label="Kapcsolattartók" value={String(contacts.data?.length ?? 0)} icon={UserPlus} onClick={() => setTab("contacts")} />
+          <Mini label="Levélszálak" value={emailHint ? `${emailCount}*` : String(emailCount)} icon={Mail} onClick={() => setTab("emails")}
                 hint={lastEmail ? `levélszál · utolsó: ${fmtDate(lastEmail)}` : emailHint ? "nincs látható levél (jogosultság)" : "nincs üzenet"} />
-          <Mini label="Meglévő lead" value={String(leadRows.length)} icon={Sparkles}
-                hint={leadRows[0] ? `legutóbbi: ${leadRows[0].status ?? "—"}` : undefined} />
-          <Mini label="Dokumentumok" value={String(docsCount.data ?? 0)} icon={FolderOpen} />
+          <Mini label="Sales-ügy" value={String(leadRows.length)} icon={Sparkles} onClick={() => setTab("timeline")}
+                hint={leadRows[0] ? `legutóbbi: ${LEAD_STATUS_LABEL[leadRows[0].status as keyof typeof LEAD_STATUS_LABEL] ?? leadRows[0].status ?? "—"}` : "még nincs átadva"} />
+          <Mini label="Dokumentumok" value={String(docsCount.data ?? 0)} icon={FolderOpen} onClick={() => setTab("docs")} />
           <Mini label="Felvéve" value={fmtDate(c.created_at)} icon={Calendar} />
-        </div>
+        </nav>
       </div>
 
       {/* ───── Tartalom ───── */}
@@ -513,8 +518,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
               {meta.salesNote && <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-primary" />}
             </TabsTrigger>
             <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
+            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docsCount.data ?? 0})</TabsTrigger>
             <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label="További ügyféladatok"><MoreHorizontal />További adatok</Button></DropdownMenuTrigger><DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setTab("docs")}><FolderOpen />Dokumentumok</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setTab("campaigns")}>Kampányok</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setTab("followups")}>Utánkövetések</DropdownMenuItem>
             </DropdownMenuContent></DropdownMenu>
@@ -765,16 +770,23 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Mini({ label, value, hint, icon: Icon }: { label: string; value: string; hint?: string; icon?: React.ComponentType<{ className?: string }> }) {
-  return (
-    <div className="rounded-md border bg-card px-3 py-2">
+function Mini({ label, value, hint, icon: Icon, onClick }: { label: string; value: string; hint?: string; icon?: React.ComponentType<{ className?: string }>; onClick?: () => void }) {
+  const body = (
+    <>
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
         {Icon && <Icon className="h-3 w-3" />}
         {label}
       </div>
       <div className="mt-0.5 text-base font-semibold tabular-nums">{value}</div>
       {hint && <div className="text-[10px] text-muted-foreground">{hint}</div>}
-    </div>
+    </>
+  );
+  if (!onClick) return <div className="rounded-md border bg-card px-3 py-2">{body}</div>;
+  return (
+    <button type="button" onClick={onClick} title={`${label} megnyitása`}
+      className="rounded-md border bg-card px-3 py-2 text-left transition hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      {body}
+    </button>
   );
 }
 

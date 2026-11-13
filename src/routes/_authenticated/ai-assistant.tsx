@@ -87,6 +87,14 @@ function AiAssistantPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // `?quick=<id>`: csak előre definiált gyorskérdés tölthető elő; elküldeni a felhasználó küldi el.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("quick");
+    const preset = id ? QUICK_ACTIONS[urlAgent ?? agent]?.find((q) => q.id === id) : undefined;
+    if (preset) setInput(preset.prompt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlAgent]);
+
   useEffect(() => { saveThreads(threads); }, [threads]);
   useEffect(() => { inputRef.current?.focus(); }, [activeId]);
   useEffect(() => {

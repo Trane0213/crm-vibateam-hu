@@ -47,9 +47,9 @@ export function ReadinessList({ readiness, title, note }: { readiness: Readiness
 export type FlowStage = { key: string; label: string; count: number | string; to: string; search?: Record<string, string>; hint: string };
 
 /** Sales Ma: a teljes munkafolyamat egy sorban, darabszámmal és közvetlen belépővel. */
-export function SalesFlowMap({ stages }: { stages: FlowStage[] }) {
+export function SalesFlowMap({ stages, label = "Sales munkafolyamat" }: { stages: FlowStage[]; label?: string }) {
   return (
-    <nav aria-label="Sales munkafolyamat" className="rounded-lg border bg-card p-2">
+    <nav aria-label={label} className="rounded-lg border bg-card p-2">
       <ol className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:flex lg:items-stretch">
         {stages.map((s, i) => (
           <li key={s.key} className="flex min-w-0 items-center gap-1 lg:flex-1">

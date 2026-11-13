@@ -154,7 +154,9 @@ export const QUICK_ACTIONS: Record<AgentId, QuickAction[]> = {
     { id: "risks",         label: "Kockázatos projektek", icon: AlertOctagon,  prompt: "Mely projektek kockázatosak (lejárt feladat, nincs utókövetés, nincs dokumentum)? Indoklással." },
   ],
   marketing: [
-    { id: "new-leads", label: "Új érdeklődők", icon: TrendingUp, prompt: "Listázd az új (status = new) leadeket forrás szerint, cégnévvel és létrehozási dátummal." },
+    { id: "mkt-today", label: "Mai marketingteendők", icon: CalendarCheck, prompt: "Mi a mai legfontosabb marketingteendőm? Használd a crm_marketing_daily_priorities forrást (ugyanaz, mint a Marketing Ma), Budapest nap szerint, cégnévvel és forráslinkkel. Csak olvass; részleges listát jelezz." },
+    { id: "mkt-replies", label: "Beérkezett válaszok", icon: AlertTriangle, prompt: "Mely kampánycégeknél érkezett válasz a saját megkeresésemre? A crm_marketing_daily_priorities reply_pending listájából indulj, és csak a jogosult pontos levélszál elolvasása után foglald össze, mit kér az ügyfél. Ne módosíts semmit." },
+    { id: "mkt-handoff", label: "Átadásra kész cégek", icon: Briefcase, prompt: "Mely minősített cégek készek Sales-átadásra? A crm_marketing_daily_priorities qualified listájából indulj, cégenként ellenőrizd a kapcsolattartót, a meglévő nyitott ügyet és az összefoglalót. Csak javasolj; átadást ne indíts." },
     { id: "channels", label: "Csatornák", icon: BarChart3, prompt: "Melyik forrásból jön a legtöbb lead az elmúlt 30 napban? Csak CRM-adatból dolgozz." },
   ],
   ads: [

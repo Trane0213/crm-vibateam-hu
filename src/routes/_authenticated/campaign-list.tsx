@@ -222,7 +222,7 @@ function CampaignListPage() {
     <div className="flex flex-col">
       <PageHeader
         title="Kampányok"
-        description="Címzettek, kampányüzenet és ütemezés."
+        description="1. címzettek kijelölése → 2. üzenet, előnézet és TESZT → 3. ütemezés jóváhagyása. Ügyfélnek automatikus küldés nincs bekapcsolva."
         actions={
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="tabular-nums">
@@ -236,6 +236,7 @@ function CampaignListPage() {
           companyIds={selectedCompanies}
           entryContactId={entry.contactId}
           entryCompanyId={entry.companyId}
+          entryCampaignId={entry.campaignId}
           candidates={(q.data ?? [])
             .filter((r) => selectedCompanies.includes(r.id))
             .flatMap((r) =>

@@ -23,7 +23,7 @@ export const listCampaignDrafts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const role = await requireCampaignRole(context.supabase, context.userId);
-    const { data, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,status,created_by,created_at,updated_at,prechecked_at").order("updated_at", { ascending: false }).limit(200);
+    const { data, error } = await context.supabase.from("email_campaigns").select("id,name,target_group,status,created_by,created_at,updated_at,prechecked_at,approved_at,delivery_state").order("updated_at", { ascending: false }).limit(200);
     if (error) throw new Error(error.message);
     return { role, userId: context.userId, campaigns: data ?? [] };
   });

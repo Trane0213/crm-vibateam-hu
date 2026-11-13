@@ -32,6 +32,8 @@ import { MailHtmlEditor } from "@/components/emails/mail-html-editor";
 import { saveCampaignMessage } from "@/lib/marketing/campaign-delivery.functions";
 import { withCampaignSignature } from "@/lib/marketing/campaign-message";
 import { CampaignDeliveryControl } from "./campaign-delivery-control";
+import { campaignLifecycle } from "@/lib/marketing/marketing-day-flow";
+import { cn } from "@/lib/utils";
 
 const LABEL: Record<EligibilityStatus | "all", string> = {
   all: "Mind",
@@ -54,9 +56,12 @@ export function CampaignDraftPrecheck({
   candidates,
   entryContactId,
   entryCompanyId,
+  entryCampaignId,
   recipientBrowser,
 }: {
   recipientBrowser?: ReactNode;
+  /** Mélylink: csak megnyitja a látható tervezetet, semmit nem ment. */
+  entryCampaignId?: string;
   companyIds: string[];
   entryContactId?: string;
   entryCompanyId?: string;
@@ -95,6 +100,14 @@ export function CampaignDraftPrecheck({
   const entryApplied = useRef<string | null>(null);
 
   const list = useQuery({ queryKey: ["campaign-drafts"], queryFn: () => listFn() });
+  const campaignEntryApplied = useRef<string | null>(null);
+  useEffect(() => {
+    if (!entryCampaignId || campaignEntryApplied.current === entryCampaignId || !list.data) return;
+    campaignEntryApplied.current = entryCampaignId;
+    if (list.data.campaigns.some((c) => c.id === entryCampaignId)) setSelected(entryCampaignId);
+  }, [entryCampaignId, list.data]);
+  const entryCampaignMissing =
+    !!entryCampaignId && !!list.data && !list.data.campaigns.some((c) => c.id === entryCampaignId);
   const detail = useQuery({
     queryKey: ["campaign-draft", selected, elig, page],
     queryFn: () => {
@@ -188,7 +201,7 @@ export function CampaignDraftPrecheck({
     <section className="min-w-0 space-y-4 text-sm" aria-label="Kampány munkaterület">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium">Kampánytervezetek</span>
-        <Badge variant="destructive">Kiküldés tiltott</Badge>
+        <Badge variant="outline" title="Ügyfélcímzettnek automatikus küldés nincs bekapcsolva; csak engedélyezett TESZT-cím kaphat levelet, kézi jóváhagyással.">Ügyfélküldés nem aktív</Badge>
         <select
           disabled={busy}
           className="h-8 max-w-full rounded-md border bg-background px-2"
@@ -223,11 +236,12 @@ export function CampaignDraftPrecheck({
           ))}
         </select>
       </div>
-      <ol className="grid gap-2 border-y py-3 sm:grid-cols-3" aria-label="Kampány lépései">
-        <li className="font-medium text-primary">1 · Címzettek kiválasztása</li>
-        <li className="font-medium">2 · Üzenet és előnézet</li>
-        <li className="font-medium">3 · Jóváhagyás és ütemezés</li>
-      </ol>
+      {entryCampaignMissing && (
+        <p role="alert" className="text-sm text-destructive">
+          A hivatkozott kampánytervezet nem érhető el számodra (törölt, más felhasználóé vagy nincs jogosultság). Válassz a listából.
+        </p>
+      )}
+      <CampaignSteps camp={camp} dirty={dirty} />
       <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)_minmax(0,.8fr)]">
         <section className="min-w-0 space-y-3" aria-label="Kampány címzettjei">
           <h2 className="font-display text-base font-semibold">Címzettek</h2>
@@ -714,5 +728,60 @@ export function CampaignDraftPrecheck({
         )}
       </section>
     </section>
+  );
+}
+
+/** A kampány aktuális lépése a mentett állapotból; a lépésjelzés nem ment és nem küld. */
+function CampaignSteps({
+  camp,
+  dirty,
+}: {
+  camp?: { status: string; prechecked_at: string | null; delivery_state?: string | null } | undefined;
+  dirty: boolean;
+}) {
+  const life = camp ? campaignLifecycle(camp) : null;
+  const step = life?.step ?? 1;
+  const steps = ["Címzettek kiválasztása", "Üzenet, előnézet és TESZT", "Jóváhagyás és ütemezés"];
+  return (
+    <div className="space-y-2 border-y py-3">
+      <ol className="grid gap-2 sm:grid-cols-3" aria-label="Kampány lépései">
+        {steps.map((label, i) => {
+          const n = i + 1;
+          const state = n < step ? "done" : n === step ? "current" : "todo";
+          return (
+            <li
+              key={label}
+              aria-current={state === "current" ? "step" : undefined}
+              className={cn(
+                "flex items-center gap-2 rounded-md border px-2 py-1.5 font-medium transition-colors",
+                state === "current" && "border-primary/50 bg-primary/5 text-primary",
+                state === "done" && "text-muted-foreground",
+              )}
+            >
+              <span
+                className={cn(
+                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px]",
+                  state === "done" && "border-transparent bg-[color:var(--status-success)]/15 text-[color:var(--status-success)]",
+                  state === "current" && "border-primary bg-primary text-primary-foreground",
+                )}
+              >
+                {state === "done" ? "✓" : n}
+              </span>
+              {label}
+            </li>
+          );
+        })}
+      </ol>
+      <p className="text-xs text-muted-foreground" role="status">
+        {life ? (
+          <>
+            <strong className="text-foreground">Állapot: {life.label}.</strong> {life.next}
+          </>
+        ) : (
+          "Új tervezet: adj nevet, tárgyat és szöveget, majd mentsd. Mentés nem küld levelet."
+        )}
+        {dirty && <span className="ml-1 font-medium text-[color:var(--status-warning)]">Nem mentett módosítás van.</span>}
+      </p>
+    </div>
   );
 }

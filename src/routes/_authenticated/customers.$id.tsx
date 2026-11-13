@@ -25,6 +25,7 @@ import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 import { usePermissions } from "@/hooks/use-permissions";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
 import { MarketingWorkspace } from "@/components/marketing/marketing-workspace";
+import { companyTabFromSearch, type CompanyTab } from "@/lib/marketing/marketing-day-flow";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
 import { CompanyMarketingSummary } from "@/components/customers/company-marketing-summary";
 import {
@@ -33,6 +34,11 @@ import {
 } from "@/lib/company-activity";
 
 export const Route = createFileRoute("/_authenticated/customers/$id")({
+  // Csak nézetválasztó (Marketing Ma mélylink); adatot nem szűr, jogosultságot nem ad.
+  validateSearch: (search: Record<string, unknown>): { tab?: CompanyTab } => {
+    const tab = companyTabFromSearch(search.tab);
+    return tab ? { tab } : {};
+  },
   head: () => ({ meta: [{ title: 'Cégadatlap | VIBA CRM' }, { name: 'description', content: 'Céges alapadatok, kapcsolattartók, kampányok és jogosult kommunikáció a VIBA CRM-ben.' }, { property: 'og:title', content: 'Cégadatlap | VIBA CRM' }, { property: 'og:description', content: 'A céghez kapcsolódó adatok és munkafolyamatok.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: CustomerDetail,
 });
