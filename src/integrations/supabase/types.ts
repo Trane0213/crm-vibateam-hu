@@ -2491,25 +2491,37 @@ export type Database = {
       }
       knowledge_chunks: {
         Row: {
+          claim_kind: string
           content: string
           created_at: string | null
           document_id: string | null
           embedding: Json | null
           id: string
+          search: unknown
+          unit_index: number
+          unit_label: string | null
         }
         Insert: {
+          claim_kind?: string
           content: string
           created_at?: string | null
           document_id?: string | null
           embedding?: Json | null
           id?: string
+          search?: unknown
+          unit_index?: number
+          unit_label?: string | null
         }
         Update: {
+          claim_kind?: string
           content?: string
           created_at?: string | null
           document_id?: string | null
           embedding?: Json | null
           id?: string
+          search?: unknown
+          unit_index?: number
+          unit_label?: string | null
         }
         Relationships: [
           {
@@ -2523,25 +2535,79 @@ export type Database = {
       }
       knowledge_documents: {
         Row: {
+          byte_length: number | null
           category: string | null
+          company_id: string | null
+          content_sha256: string | null
           created_at: string | null
+          email_id: string | null
+          error_code: string | null
           file_url: string
           id: string
+          lead_id: string | null
+          limitations: Json
+          parser: string | null
+          processed_at: string | null
+          processing_status: string
+          project_id: string | null
+          quote_id: string | null
+          source_created_at: string | null
+          source_id: string | null
+          source_table: string | null
+          source_updated_at: string | null
+          superseded_at: string | null
           title: string
+          updated_at: string
         }
         Insert: {
+          byte_length?: number | null
           category?: string | null
+          company_id?: string | null
+          content_sha256?: string | null
           created_at?: string | null
+          email_id?: string | null
+          error_code?: string | null
           file_url: string
           id?: string
+          lead_id?: string | null
+          limitations?: Json
+          parser?: string | null
+          processed_at?: string | null
+          processing_status?: string
+          project_id?: string | null
+          quote_id?: string | null
+          source_created_at?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          source_updated_at?: string | null
+          superseded_at?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
+          byte_length?: number | null
           category?: string | null
+          company_id?: string | null
+          content_sha256?: string | null
           created_at?: string | null
+          email_id?: string | null
+          error_code?: string | null
           file_url?: string
           id?: string
+          lead_id?: string | null
+          limitations?: Json
+          parser?: string | null
+          processed_at?: string | null
+          processing_status?: string
+          project_id?: string | null
+          quote_id?: string | null
+          source_created_at?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          source_updated_at?: string | null
+          superseded_at?: string | null
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -5250,6 +5316,14 @@ export type Database = {
           _verdict: string
         }
         Returns: undefined
+      }
+      knowledge_search: {
+        Args: { p_limit?: number; p_page?: number; p_query: string }
+        Returns: Json
+      }
+      knowledge_source_visible: {
+        Args: { p_id: string; p_table: string }
+        Returns: boolean
       }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
       quote_lock_sent: { Args: { p_quote_id: string }; Returns: string }
