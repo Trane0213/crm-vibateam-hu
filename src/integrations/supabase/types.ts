@@ -2999,6 +2999,54 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_ingest_runs: {
+        Row: {
+          claimed: number
+          created_at: string
+          document_ids: string[]
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          outcomes: Json
+          requested_limit: number
+          started_at: string
+          started_by: string
+          status: string
+          trigger: string
+          updated_at: string
+        }
+        Insert: {
+          claimed?: number
+          created_at?: string
+          document_ids?: string[]
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          outcomes?: Json
+          requested_limit: number
+          started_at?: string
+          started_by: string
+          status?: string
+          trigger?: string
+          updated_at?: string
+        }
+        Update: {
+          claimed?: number
+          created_at?: string
+          document_ids?: string[]
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          outcomes?: Json
+          requested_limit?: number
+          started_at?: string
+          started_by?: string
+          status?: string
+          trigger?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lead_status_history: {
         Row: {
           changed_at: string

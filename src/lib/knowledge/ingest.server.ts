@@ -90,5 +90,5 @@ export async function processBatch(admin: SupabaseClient, limit: number = INGEST
     try { outcome = (await processOne(admin, c)).outcome ?? "not_stored"; } catch { outcome = "store_failed"; }
     outcomes[outcome] = (outcomes[outcome] ?? 0) + 1;
   }
-  return { claimed: rows.length, outcomes };
+  return { claimed: rows.length, outcomes, documentIds: rows.map((r) => r.id) };
 }

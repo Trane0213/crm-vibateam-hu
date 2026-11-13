@@ -29,3 +29,15 @@ describe("AI OS 2.0 shared knowledge", () => {
     expect(shapeKnowledgeResult({ items: [] }).coverage.empty_means).toBe("no_visible_indexed_match_not_absence");
   });
 });
+
+describe("AI OS 2.0/9 duplikált fájl", () => {
+  it("azonos tartalmú (sha256 + oldal) találatot egyszer ad vissza, a másolatot forrásként jelzi", () => {
+    const r = shapeKnowledgeResult({ items: [hit({}), hit({ chunk_id: "c2", document_id: "d2", source_id: "s2", source_table: "email_attachments", email_id: "e1" })] });
+    expect(r.items).toHaveLength(1);
+    expect(r.items[0].identical_copies).toEqual([{ table: "email_attachments", id: "s2", document_id: "d2", title: "Szerződés.pdf", link: "/emails/e1" }]);
+  });
+  it("eltérő tartalmú vagy eltérő oldalú találatot nem von össze", () => {
+    expect(shapeKnowledgeResult({ items: [hit({}), hit({ chunk_id: "c2", content_sha256: "xyz" })] }).items).toHaveLength(2);
+    expect(shapeKnowledgeResult({ items: [hit({}), hit({ chunk_id: "c2", unit_label: "4. oldal", unit_index: 3 })] }).items).toHaveLength(2);
+  });
+});

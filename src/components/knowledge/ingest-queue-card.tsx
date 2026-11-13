@@ -43,6 +43,21 @@ export function IngestQueueCard() {
               {run.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />}
               Következő 5 feldolgozása
             </Button>
+            {(q.data?.runs ?? []).length > 0 && (
+              <div className="space-y-1">
+                <div className="text-sm font-medium">Feldolgozási napló (utolsó 5 indítás)</div>
+                <ul className="divide-y rounded-md border text-xs">
+                  {q.data!.runs.map((r) => (
+                    <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5">
+                      <span>{new Date(r.started_at).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })}</span>
+                      <span className={r.status === "error" ? "text-destructive" : "text-muted-foreground"}>
+                        {r.status === "running" ? "Fut / megszakadt" : r.status === "error" ? `Hiba: ${r.error_message ?? "ismeretlen"}` : `${r.claimed} dokumentum`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {(q.data?.problems ?? []).length > 0 && (
               <div className="space-y-1">
                 <div className="text-sm font-medium">Figyelmet igénylő dokumentumok</div>
