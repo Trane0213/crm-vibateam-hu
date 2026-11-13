@@ -26,6 +26,7 @@ import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
 import { RuntimeOutcome } from './runtime-outcome';
+import { TransparencyTracker, type RunTransparency } from './transparency';
 import { collectObservedIds, consultSystemBlock, isConsultReadTool, isReviewTool, MAX_HANDOFFS_PER_RUN, type SpecialistReport } from './consult';
 import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer, collectLeadCompanies, correctLeadAsCompany } from './read-quality';
 
@@ -96,6 +97,8 @@ export type RunAgentResult = {
   observedIds: string[];
   /** A futás alatt ténylegesen lefutott szakértői konzultációk strukturált jelentései. */
   consultations: SpecialistReport[];
+  /** Felhasználói átláthatóság: olvasott/hiányzó források, döntési igény (tartalommentes). */
+  transparency?: RunTransparency;
 };
 
 export async function runAgent(
@@ -165,6 +168,8 @@ export async function runAgent(
   ];
 
   const outcome = new RuntimeOutcome();
+  const seen = new TransparencyTracker();
+  const transparency = () => seen.summary({ consulted: consultations.map((c) => c.agent), observedCount: observed.size, pendingApprovals: pendingApprovals.length });
   const caveats=new Set<string>(); const observedLeadCompanies=new Map<string,string>();
   let stepNo = 0;
   let totalPrompt = 0;
@@ -219,6 +224,7 @@ export async function runAgent(
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
           observedIds: [...observed],
           consultations,
+          transparency: transparency(),
         };
       }
 
@@ -228,7 +234,7 @@ export async function runAgent(
       for (const call of result.tool_calls) {
         const tool = getTool(call.function.name);
         if (!tool) {
-          outcome.record(call.function.name, true, false);
+          outcome.record(call.function.name, true, false); seen.record(call.function.name, 'failed');
           const msg = `Ismeretlen tool: ${call.function.name}`;
           await logStep(adminClient, { runId, stepNo: ++stepNo, kind: "error", toolName: call.function.name, error: msg });
           messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: msg }) });
@@ -247,7 +253,7 @@ export async function runAgent(
           userRole: input.userRole,
         });
         if (denyReason) {
-          outcome.record(tool.name, true, false);
+          outcome.record(tool.name, true, false); seen.record(tool.name, 'denied');
           await logStep(adminClient, {
             runId, stepNo: ++stepNo, kind: "error",
             toolName: tool.name, agentId: agent.id, error: denyReason,
@@ -264,7 +270,7 @@ export async function runAgent(
             ? `Egy futásban legfeljebb ${MAX_HANDOFFS_PER_RUN} szakértői konzultáció indítható; foglald össze az eddigieket.`
             : null;
         if (extraDeny) {
-          outcome.record(tool.name, true, false);
+          outcome.record(tool.name, true, false); seen.record(tool.name, 'denied');
           await logStep(adminClient, { runId, stepNo: ++stepNo, kind: "error", toolName: tool.name, agentId: agent.id, error: extraDeny });
           messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: extraDeny }) });
           continue;
@@ -358,9 +364,9 @@ export async function runAgent(
           }
           break;
         }
-        if (failureResult(output)) { outcome.record(tool.name, true, readOnly); errMsg = "A művelet sikertelen."; }
+        if (failureResult(output)) { outcome.record(tool.name, true, readOnly); seen.record(tool.name, 'failed'); errMsg = "A művelet sikertelen."; }
         else {
-          outcome.observe(output);
+          outcome.observe(output); seen.record(tool.name, 'ok');
           if (tool.domain === "core.handoff") {
             const o = output as { report?: SpecialistReport; verified_source_ids?: unknown };
             if (o && o.report) consultations.push(o.report);
@@ -406,7 +412,7 @@ export async function runAgent(
           runId, agentId: agent.id, finalText: outcome.text(result.text, pendingApprovals.length > 0),
           pendingApprovals, steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
-          observedIds: [...observed], consultations,
+          observedIds: [...observed], consultations, transparency: transparency(),
         };
       }
     }

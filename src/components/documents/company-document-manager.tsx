@@ -17,6 +17,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useServerFn } from "@tanstack/react-start";
 import { r2DeleteDocument, r2GetStatus, r2PresignDownload } from "@/lib/r2.functions";
 import { toast } from "sonner";
+import { DocumentProcessingBadge, DocumentProcessingNotice, useDocumentProcessing } from "@/components/documents/document-processing-badge";
 
 /**
  * Cég-szintű dokumentumkezelő.
@@ -188,6 +189,7 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
   });
 
   const rows = (docs.data ?? []).filter((r) => filter === "all" || getCategory(r) === filter);
+  const processing = useDocumentProcessing("company_documents", (docs.data ?? []).map((d: any) => d.id as string));
   const r2Ok = r2.data?.ok === true;
 
   return (
@@ -239,6 +241,7 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
         <EmptyState icon={FileText} title="Még nincs cég-dokumentum" description="Tölts fel egy fájlt a feltöltés gombbal." />
       ) : (
         <div className="overflow-hidden rounded-md border bg-card">
+          <DocumentProcessingNotice map={processing.data} />
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
@@ -252,7 +255,7 @@ export function CompanyDocumentManager({ companyId }: { companyId: string }) {
             <tbody>
               {rows.map((r: any) => (
                 <tr key={r.id} className="border-t hover:bg-muted/30">
-                  <td className="px-3 py-2 font-medium">{getName(r)}</td>
+                  <td className="px-3 py-2 font-medium"><div>{getName(r)}</div><div className="mt-0.5"><DocumentProcessingBadge row={processing.data?.get(r.id)} loading={processing.isLoading || !!processing.error} /></div></td>
                   <td className="px-3 py-2"><Badge variant="secondary">{COMPANY_CATEGORY_LABEL[getCategory(r)]}</Badge></td>
                   <td className="px-3 py-2 text-xs text-muted-foreground">{r.source ?? "manual"}</td>
                   <td className="px-3 py-2">{formatDateTime(r.created_at)}</td>

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { knowledgeProcessBatch, knowledgeQueueOverview } from "@/lib/knowledge/ingest.functions";
-import { STATUS_LABEL, type IngestStatus } from "@/lib/knowledge/ingest-model";
+import { INGEST_ERROR_HELP, STATUS_LABEL, type IngestStatus } from "@/lib/knowledge/ingest-model";
 
 const ORDER: (IngestStatus | "pending")[] = ["pending", "processed", "partial", "needs_review", "unsupported", "error"];
 const TONE: Record<string, "default" | "secondary" | "destructive" | "outline"> = { processed: "default", error: "destructive", needs_review: "destructive", partial: "secondary" };
@@ -50,7 +50,7 @@ export function IngestQueueCard() {
                   {q.data!.problems.map((p) => (
                     <li key={p.id} className="flex items-center justify-between gap-3 px-3 py-2">
                       <span className="truncate">{p.title}</span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{STATUS_LABEL[p.processing_status as IngestStatus] ?? p.processing_status}{p.error_code ? ` · ${p.error_code}` : ""}</span>
+                      <span className="shrink-0 text-right text-xs text-muted-foreground" title={p.error_code ?? undefined}>{STATUS_LABEL[p.processing_status as IngestStatus] ?? p.processing_status}{p.error_code && INGEST_ERROR_HELP[p.error_code] ? <span className="block max-w-[22rem] whitespace-normal">{INGEST_ERROR_HELP[p.error_code]}</span> : p.error_code ? ` · ${p.error_code}` : ""}</span>
                     </li>
                   ))}
                 </ul>

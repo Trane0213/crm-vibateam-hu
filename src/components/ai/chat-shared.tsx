@@ -22,6 +22,7 @@ import {pipelineStatusSchema} from '@/lib/ai-os/pipeline-status-action';
 import {LEAD_STATUS_LABEL} from '@/lib/sales/constants';
 import {emailSendAction} from '@/lib/ai-os/email-send-action';
 import {EmailSendApproval} from './email-send-approval';
+import { RUN_STATE_LABEL, runState, type RunTransparency } from '@/lib/ai-os/transparency';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 export type AgentId = "crm" | "sales" | "pm" | "marketing" | "ads";
@@ -48,6 +49,12 @@ export type Msg = {
   /** A modellnek küldött tartalom (pl. rejtett rekord-kontextussal); megjelenítés a content-ből. */
   modelContent?: string;
   contextLabel?: string;
+  /** Melyik agent válaszolt (asszisztens üzenetnél). */
+  agent?: AgentId;
+  /** Mit nézett meg ténylegesen a futás, mi hiányzott, kell-e döntés. */
+  transparency?: RunTransparency;
+  /** Hibaüzenet-e (érthető hibaszöveg, nem történt módosítás). */
+  failed?: boolean;
 };
 export type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
 
@@ -236,13 +243,16 @@ export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool, onCheckToo
 }) {
   const isUser = msg.role === "user";
   if (!isUser) {
+    const meta = msg.agent ? AGENT_META[msg.agent] : null;
     return (
       <div className="flex gap-3">
-        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Bot className="h-4 w-4" />
-        </div>
+        {meta ? <img src={meta.portrait} alt="" className="mt-0.5 h-7 w-7 shrink-0 rounded-full object-cover" />
+          : <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><Bot className="h-4 w-4" /></div>}
         <div className="min-w-0 flex-1">
-          <AgentResponse text={msg.content} />
+          {meta && <div className="mb-0.5 text-[11px] font-medium text-muted-foreground">{meta.firstName} · {meta.role}{msg.contextLabel ? ` · vizsgált ügy: ${msg.contextLabel}` : ""}</div>}
+          {msg.failed ? <div role="alert" className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" /><span>{msg.content.replace(/^⚠️ Hiba: /, "")}</span></div>
+            : <AgentResponse text={msg.content} />}
+          {msg.transparency && <RunStatusStrip t={msg.transparency} />}
           {msg.nav && (
             <div className="mt-2 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
               <ExternalLink className="h-3.5 w-3.5 text-primary" />
@@ -273,6 +283,26 @@ export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool, onCheckToo
   );
 }
 
+
+const AGENT_FIRST_NAME: Record<string, string> = { george: "George", scarlet: "Scarlet", timothy: "Timothy", boss: "Boss", michael: "Michael" };
+
+/** Rövid állapotsor egy AI-válasz alatt: kész/hiányos/döntésre vár, mit nézett meg ténylegesen, mi hiányzott. */
+export function RunStatusStrip({ t }: { t: RunTransparency }) {
+  const state = runState(t);
+  const tone = state === "decision" ? "border-status-warning/50 bg-status-warning/10" : state === "partial" ? "border-status-warning/40 bg-muted/40" : "border-border bg-muted/30";
+  const Icon = state === "decision" ? ClipboardList : state === "partial" ? AlertTriangle : CheckCircle2;
+  return (
+    <div className={`mt-2 space-y-1 rounded-md border px-3 py-2 text-[11px] leading-relaxed ${tone}`} aria-label="A válasz állapota">
+      <div className="flex items-center gap-1.5 font-medium"><Icon className="h-3.5 w-3.5" />{RUN_STATE_LABEL[state]}</div>
+      {t.checked.length > 0 && <div><span className="text-muted-foreground">Megnézte: </span>{t.checked.join(", ")}{t.verifiedSources > 0 ? ` (${t.verifiedSources} rekord)` : ""}</div>}
+      {t.consulted.length > 0 && <div><span className="text-muted-foreground">Megkérdezett szakértő: </span>{t.consulted.map((a) => AGENT_FIRST_NAME[a] ?? a).join(", ")}</div>}
+      {t.failed.length > 0 && <div><span className="text-muted-foreground">Nem sikerült beolvasni: </span>{t.failed.join(", ")} — a válasz ezek nélkül készült.</div>}
+      {t.denied.length > 0 && <div><span className="text-muted-foreground">Nincs hozzáférés: </span>{t.denied.join(", ")} — ezt az adatot az asszisztens nem láthatja nálad.</div>}
+      {state === "general" && <div className="text-muted-foreground">Általános válasz: konkrét ügyhöz nyiss meg egy rekordot, vagy nevezd meg az ügyfelet.</div>}
+      {state === "decision" && <div className="text-muted-foreground">Semmi nem módosult. A lenti kártyán dönthetsz: jóváhagyás nélkül nem történik változás.</div>}
+    </div>
+  );
+}
 
 export function ToolApprovalCardView({ approval, onApprove, onReject, onCheck }: {
   approval: ToolApproval;

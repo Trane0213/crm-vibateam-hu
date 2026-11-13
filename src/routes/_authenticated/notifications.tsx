@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useMarkNotificationsRead, useNotifications } from "@/hooks/use-notifications";
-import { isImmediate, safeLink, NOTIFICATION_CATEGORY, NOTIFICATION_SEVERITY, type NotificationRow } from "@/lib/notifications/model";
+import { groupNotifications, isImmediate, safeLink, NOTIFICATION_CATEGORY, NOTIFICATION_SEVERITY, type NotificationGroup, type NotificationRow } from "@/lib/notifications/model";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({ meta: [
@@ -47,18 +47,43 @@ function NotificationsPage() {
         : q.error ? <div role="alert" className="space-y-2"><p className="text-sm text-destructive">Az értesítések nem tölthetők be.</p><Button size="sm" variant="outline" onClick={() => q.refetch()}>Újrapróbálás</Button></div>
         : !rows.length ? <p className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">Ehhez a szűréshez nincs értesítés.</p>
         : <>
-          <Section title="Azonnali figyelem" rows={now} read={read} onRead={(id) => mark.mutate([id])} />
-          <Section title={isOwner ? "Napi összesítőbe" : "Tájékoztatás"} rows={daily} read={read} onRead={(id) => mark.mutate([id])} />
+          <Section title="Azonnali figyelem" rows={now} read={read} onRead={(ids) => mark.mutate(ids)} />
+          <Section title={isOwner ? "Napi összesítőbe" : "Tájékoztatás"} rows={daily} read={read} onRead={(ids) => mark.mutate(ids)} />
         </>}
       {!!q.data && q.data.total > 30 && <div className="flex items-center gap-2"><Button size="sm" variant="outline" disabled={!page} onClick={() => setPage(page - 1)}>Előző</Button><span className="text-sm">{page + 1}. lap / {Math.ceil(q.data.total / 30)}</span><Button size="sm" variant="outline" disabled={(page + 1) * 30 >= q.data.total} onClick={() => setPage(page + 1)}>Következő</Button></div>}
     </div>
   </div>;
 }
 
-function Section({ title, rows, read, onRead }: { title: string; rows: NotificationRow[]; read: Set<string>; onRead: (id: string) => void }) {
+function Section({ title, rows, read, onRead }: { title: string; rows: NotificationRow[]; read: Set<string>; onRead: (ids: string[]) => void }) {
   if (!rows.length) return null;
+  const groups = groupNotifications(rows);
   return <section className="space-y-2"><h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title} ({rows.length})</h2>
-    <ul className="space-y-2">{rows.map((n) => <Item key={n.id} n={n} isRead={read.has(n.id)} onRead={onRead} />)}</ul></section>;
+    <ul className="space-y-2">{groups.map((g) => g.rows.length > 1
+      ? <GroupItem key={g.key} group={g} read={read} onRead={onRead} />
+      : <Item key={g.key} n={g.lead} isRead={read.has(g.lead.id)} onRead={(id) => onRead([id])} />)}</ul></section>;
+}
+
+/** Sok azonos jelzés egy sorban; kinyitva tételesen is látható. */
+function GroupItem({ group, read, onRead }: { group: NotificationGroup; read: Set<string>; onRead: (ids: string[]) => void }) {
+  const n = group.lead, link = safeLink(n.link_path);
+  const unread = group.rows.filter((r) => !read.has(r.id) && !r.resolved_at).map((r) => r.id);
+  const tone = n.severity === "critical" ? "border-destructive/50" : n.severity === "warning" ? "border-status-warning/50" : "border-border";
+  return <li className={`rounded-md border p-3 ${tone} ${unread.length ? "" : "opacity-70"}`}>
+    <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="min-w-0 flex-1">
+        <p className="font-medium">{unread.length > 0 && <span className="mr-2 inline-block h-2 w-2 rounded-full bg-primary align-middle" aria-label="olvasatlan" />}{n.title} — {group.rows.length} db</p>
+        <p className="pt-1 text-xs text-muted-foreground">{NOTIFICATION_CATEGORY[n.category as keyof typeof NOTIFICATION_CATEGORY] ?? n.category} · összevont jelzés{group.requiresDecision ? " · döntést igényel" : ""} · legutóbb {new Date(n.last_occurred_at).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" })}</p>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        {link && <Button asChild size="sm" variant="outline"><Link to={link as "/notifications"}>Megnyitás</Link></Button>}
+        {unread.length > 0 && <Button size="sm" variant="ghost" onClick={() => onRead(unread)}>Mind olvasott ({unread.length})</Button>}
+      </div>
+    </div>
+    <details className="mt-2 text-sm"><summary className="cursor-pointer text-xs text-primary">Tételek megjelenítése</summary>
+      <ul className="mt-2 space-y-1">{group.rows.map((r) => <li key={r.id} className="break-words text-xs text-muted-foreground">{read.has(r.id) || r.resolved_at ? "" : "• "}{r.body || r.title}</li>)}</ul>
+    </details>
+  </li>;
 }
 
 function Item({ n, isRead, onRead }: { n: NotificationRow; isRead: boolean; onRead: (id: string) => void }) {

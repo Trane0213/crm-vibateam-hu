@@ -28,3 +28,22 @@ describe("hivatkozás", () => {
   it("belső útvonal engedett", () => expect(safeLink("/leads/abc")).toBe("/leads/abc"));
   it("külső vagy protokoll-relatív tiltott", () => { expect(safeLink("https://x.hu")).toBeNull(); expect(safeLink("//x.hu")).toBeNull(); });
 });
+
+describe("értesítések csoportosítása", () => {
+  const mk = (id: string, title: string, severity = "info", extra: Partial<NotificationRow> = {}): NotificationRow => ({
+    id, category: "document", severity, requires_decision: false, title, body: "", link_path: "/settings/knowledge-graph",
+    occurrences: 1, created_at: "2026-11-13T10:00:00Z", last_occurred_at: "2026-11-13T10:00:00Z", resolved_at: null, audience_user: null, ...extra,
+  });
+  it("legalább 3 azonos jelzést egy csoportba von, a kevesebbet külön hagyja", async () => {
+    const { groupNotifications } = await import("./model");
+    const rows = [mk("a", "Dokumentum ellenőrzést igényel"), mk("x", "Más"), mk("b", "Dokumentum ellenőrzést igényel", "warning"), mk("c", "Dokumentum ellenőrzést igényel"), mk("y", "Más")];
+    const g = groupNotifications(rows);
+    expect(g.map((x) => x.rows.length)).toEqual([3, 1, 1]);
+    expect(g[0].lead.id).toBe("b");
+  });
+  it("döntést igénylő jelzés a csoportban is látható marad", async () => {
+    const { groupNotifications } = await import("./model");
+    const g = groupNotifications([mk("a", "T"), mk("b", "T", "info", { requires_decision: true }), mk("c", "T")]);
+    expect(g).toHaveLength(1); expect(g[0].requiresDecision).toBe(true);
+  });
+});

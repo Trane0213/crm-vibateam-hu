@@ -13,7 +13,7 @@ import { useCount } from "@/lib/db-hooks";
 import { useQualityOverview } from "@/lib/dedupe/use-quality-overview";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useNotifications } from "@/hooks/use-notifications";
-import { badgeCount, isImmediate, safeLink, NOTIFICATION_CATEGORY } from "@/lib/notifications/model";
+import { badgeCount, groupNotifications, isImmediate, safeLink, NOTIFICATION_CATEGORY } from "@/lib/notifications/model";
 
 export function CrmNotificationsMenu() {
   const { role } = usePermissions();
@@ -33,7 +33,7 @@ export function CrmNotificationsMenu() {
   const evRows = events.data?.rows ?? [];
   const evRead = events.data?.read ?? new Set<string>();
   const evBadge = badgeCount(evRows, evRead, isOwner, events.data?.me);
-  const evOpen = evRows.filter((n) => !n.resolved_at && !evRead.has(n.id)).slice(0, 6);
+  const evOpen = groupNotifications(evRows.filter((n) => !n.resolved_at && !evRead.has(n.id))).slice(0, 6);
 
   // Marketing nem fér hozzá a /followups oldalhoz, ezért az ehhez tartozó
   // sor és számláló elrejtésre kerül (403-as link elkerülése).
@@ -77,13 +77,14 @@ export function CrmNotificationsMenu() {
         {events.isLoading ? <p role="status" className="px-2 py-2 text-sm text-muted-foreground">Betöltés…</p>
           : events.error ? <p role="alert" className="px-2 py-2 text-sm text-destructive">Az események most nem tölthetők be.</p>
           : !evOpen.length ? <p className="px-2 py-2 text-sm text-muted-foreground">Nincs olvasatlan esemény.</p>
-          : evOpen.map((n) => {
+          : evOpen.map((g) => {
+            const n = g.lead, many = g.rows.length > 1;
             const link = safeLink(n.link_path) ?? "/notifications";
-            const now = isImmediate(n, isOwner, events.data?.me);
-            return <DropdownMenuItem key={n.id} asChild><Link to={link as "/notifications"} className="flex items-start gap-2 rounded-md px-2 py-2">
+            const now = g.rows.some((r) => isImmediate(r, isOwner, events.data?.me));
+            return <DropdownMenuItem key={g.key} asChild><Link to={link as "/notifications"} className="flex items-start gap-2 rounded-md px-2 py-2">
               <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.severity === "critical" ? "bg-destructive" : n.severity === "warning" ? "bg-status-warning" : "bg-status-info"}`} />
-              <span className="min-w-0 flex-1"><span className="block text-sm leading-snug">{n.title}{n.occurrences > 1 ? ` (${n.occurrences}×)` : ""}</span>
-                <span className="block truncate text-xs text-muted-foreground">{NOTIFICATION_CATEGORY[n.category as keyof typeof NOTIFICATION_CATEGORY] ?? n.category}{n.requires_decision ? " · döntést igényel" : ""}{now ? "" : " · napi összesítő"}</span></span>
+              <span className="min-w-0 flex-1"><span className="block text-sm leading-snug">{n.title}{many ? ` (${g.rows.length} db)` : n.occurrences > 1 ? ` (${n.occurrences}×)` : ""}</span>
+                <span className="block truncate text-xs text-muted-foreground">{NOTIFICATION_CATEGORY[n.category as keyof typeof NOTIFICATION_CATEGORY] ?? n.category}{g.requiresDecision ? " · döntést igényel" : ""}{now ? "" : " · napi összesítő"}</span></span>
             </Link></DropdownMenuItem>;
           })}
         <DropdownMenuItem asChild><Link to="/notifications" className="flex items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-primary">Összes értesítés megnyitása <ArrowRight className="h-4 w-4" /></Link></DropdownMenuItem>

@@ -18,6 +18,7 @@ import { AgentGate } from "@/components/ai/agent-gate";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { SalesWatch } from '@/components/ai/sales-watch';
 import { useRunProgress } from '@/components/ai/use-run-progress';
+import { friendlyAiError } from '@/lib/ai-os/transparency';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 
@@ -167,14 +168,16 @@ function AiAssistantPage() {
         at: Date.now(),
         approvals,
         runId: result.runId,
+        agent: usedAgent,
+        transparency: result.transparency,
       };
       setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
         ...t, updatedAt: Date.now(), messages: [...t.messages, assistantMsg],
       } : t));
     } catch (err: any) {
-      const msg = err?.message ?? "Ismeretlen AI hiba.";
+      const msg = friendlyAiError(err?.message ?? "Ismeretlen AI hiba.");
       toast.error(msg);
-      const errorMsg: Msg = { id: uid(), role: "assistant", content: `⚠️ Hiba: ${msg}`, at: Date.now() };
+      const errorMsg: Msg = { id: uid(), role: "assistant", content: `⚠️ Hiba: ${msg}`, at: Date.now(), agent: usedAgent, failed: true };
       setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
         ...t, updatedAt: Date.now(), messages: [...t.messages, errorMsg],
       } : t));
@@ -293,7 +296,7 @@ function AiAssistantPage() {
               {busy && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span role="status">{progress}</span>
+                  <span role="status"><span className="font-medium">{AGENT_META[active?.agent ?? agent]?.firstName} dolgozik:</span> {progress}</span>
                 </div>
               )}
             </div>

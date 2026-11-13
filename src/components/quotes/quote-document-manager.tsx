@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload, Download, Trash2, FileText, Loader2, AlertCircle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { DocumentProcessingBadge, DocumentProcessingNotice, useDocumentProcessing } from "@/components/documents/document-processing-badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -93,6 +94,7 @@ export function QuoteDocumentManager({ quoteId }: { quoteId: string }) {
 
   const r2Ok = r2.data?.ok === true;
   const rows = docs.data ?? [];
+  const processing = useDocumentProcessing("quote_documents", (docs.data ?? []).map((d: any) => d.id as string));
 
   return (
     <div className="space-y-4">
@@ -124,6 +126,7 @@ export function QuoteDocumentManager({ quoteId }: { quoteId: string }) {
         <EmptyState icon={FileText} title="Még nincs dokumentum" description="Töltsd fel az eredeti költségvetést vagy a kész ajánlatot." />
       ) : (
         <div className="overflow-hidden rounded-md border">
+          <DocumentProcessingNotice map={processing.data} />
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr><th className="px-3 py-2 text-left">Fájl</th><th className="px-3 py-2 text-left">Típus</th><th className="px-3 py-2 text-left">Feltöltve</th><th className="px-3 py-2 text-right">Művelet</th></tr>
@@ -131,7 +134,7 @@ export function QuoteDocumentManager({ quoteId }: { quoteId: string }) {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.id} className="border-t">
-                  <td className="px-3 py-2 font-medium">{r.name}</td>
+                  <td className="px-3 py-2 font-medium"><div>{r.name}</div><div className="mt-0.5"><DocumentProcessingBadge row={processing.data?.get(r.id)} loading={processing.isLoading || !!processing.error} /></div></td>
                   <td className="px-3 py-2"><Badge variant={r.document_type === "sent_offer" ? "default" : "secondary"}>{QUOTE_DOC_LABEL[r.document_type as Cat] ?? r.document_type}</Badge></td>
                   <td className="px-3 py-2">{formatDateTime(r.created_at)}</td>
                   <td className="px-3 py-2 text-right">

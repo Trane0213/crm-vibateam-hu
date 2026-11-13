@@ -52,3 +52,28 @@ export function cleanText(text: string) {
   const wf = typeof (text as { toWellFormed?: () => string }).toWellFormed === "function" ? (text as unknown as { toWellFormed: () => string }).toWellFormed() : text;
   return wf.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ");
 }
+
+/** AI OS 2.0/7 — felhasználóbarát magyarázat a feldolgozási hibakódokhoz (dokumentumlistákban). */
+export const INGEST_ERROR_HELP: Record<string, string> = {
+  unsupported_type: "Ennek a fájltípusnak a szövegét az AI nem tudja kiolvasni (támogatott: PDF, DOCX, XLSX, TXT, CSV). A fájl letölthető marad.",
+  too_large_ocr_pending: "5 MB feletti fájl: a tartalma még nincs beolvasva, nagyfeldolgozásra vár. Az AI addig nem hivatkozhat rá.",
+  no_text_layer: "Szkennelt vagy képes dokumentum, nincs kiolvasható szöveg. Szövegfelismerés (OCR) kell hozzá.",
+  large_document: "Nagyon hosszú dokumentum: csak egy része került feldolgozásra, ellenőrzést igényel.",
+  sensitive_withheld: "Jelszó vagy hozzáférési adat gyanúja miatt a tartalom nem került az AI tudásbázisába.",
+  corrupt_or_unreadable: "A fájl sérült vagy nem nyitható meg. Töltsd fel újra egy ép példányt.",
+  external_or_invalid_key: "A fájl nem a CRM tárhelyén van, ezért nem olvasható be.",
+};
+
+export type ProcessingView = { label: string; tone: "ok" | "info" | "warning" | "error"; help: string };
+/** Egy dokumentum AI-feldolgozási állapota a felhasználó nyelvén. */
+export function processingView(status: string | null | undefined, code: string | null | undefined): ProcessingView {
+  const help = (code && INGEST_ERROR_HELP[code]) || "";
+  switch (status) {
+    case "processed": return { label: "AI számára olvasható", tone: "ok", help: "A dokumentum szövege bekerült a közös tudásbázisba." };
+    case "partial": return { label: "Részben olvasható", tone: "info", help: help || "A dokumentum egy része (pl. képes oldalak) nem olvasható; az AI csak a kiolvasott részre támaszkodhat." };
+    case "needs_review": return { label: "Ellenőrzést igényel", tone: "warning", help: help || "A feldolgozás nem volt teljes, kézi ellenőrzés szükséges." };
+    case "unsupported": return { label: "AI nem olvassa", tone: "info", help: help || INGEST_ERROR_HELP.unsupported_type };
+    case "error": return { label: "Feldolgozási hiba", tone: "error", help: help || "A feldolgozás nem sikerült; a tulajdonos újraindíthatja." };
+    default: return { label: "Feldolgozásra vár", tone: "info", help: "A dokumentum még nincs beolvasva; a tulajdonos indítja a feldolgozást." };
+  }
+}

@@ -17,6 +17,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { SalesWatch } from './sales-watch';
 import { useRunProgress } from './use-run-progress';
+import { friendlyAiError } from '@/lib/ai-os/transparency';
 import { contextPrefix, detectRecordContext, type RecordContext, CONTEXT_QUESTIONS, GENERAL_QUESTIONS } from "@/lib/ai-panel-context";
 import {
   AGENT_IDS, AGENT_META, Bubble, THREADS_EVENT, isLegacyErrorMessage, loadThreads, saveThreads,
@@ -163,13 +164,13 @@ function PanelBody({ onClose }: { onClose: () => void }) {
             action_id: p.action_id, expires_at: p.expires_at, status: p.status, verified: true, approval: (p as any).approval, supports_dry_run: (p as any).supports_dry_run,
           }))
         : undefined;
-      const msg: Msg = { id: uid(), role: "assistant", at: Date.now(), runId: result.runId, approvals,
+      const msg: Msg = { id: uid(), role: "assistant", at: Date.now(), runId: result.runId, approvals, agent: thread.agent, contextLabel: userMsg.contextLabel, transparency: result.transparency,
         content: result.finalText || (approvals ? "Jóváhagyást igénylő művelet vár rád." : "(üres válasz)") };
       commit((prev) => prev.map((t) => t.id === tid ? { ...t, updatedAt: Date.now(), messages: [...t.messages, msg] } : t));
     } catch (err: any) {
-      const m = err?.message ?? "Ismeretlen AI hiba.";
+      const m = friendlyAiError(err?.message ?? "Ismeretlen AI hiba.");
       toast.error("Az AI most nem tudott válaszolni", { description: m });
-      commit((prev) => prev.map((t) => t.id === tid ? { ...t, messages: [...t.messages, { id: uid(), role: "assistant", at: Date.now(), content: `⚠️ Hiba: ${m}` }] } : t));
+      commit((prev) => prev.map((t) => t.id === tid ? { ...t, messages: [...t.messages, { id: uid(), role: "assistant", at: Date.now(), content: `⚠️ Hiba: ${m}`, agent: t.agent, failed: true }] } : t));
     } finally {
       setBusy(false);
       requestAnimationFrame(() => inputRef.current?.focus());
@@ -270,7 +271,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
           )}
           {busy && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> <span role="status">{progress}</span>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> <span role="status"><span className="font-medium">{AGENT_META[active?.agent ?? agent]?.firstName} dolgozik:</span> {progress}</span>
             </div>
           )}
         </div>
