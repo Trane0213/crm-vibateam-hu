@@ -27,6 +27,7 @@ import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedImportReviewRouteImport } from './routes/_authenticated/import-review'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedOwnerReportRouteImport } from './routes/_authenticated/owner-report'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
@@ -191,6 +192,12 @@ const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
     path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOwnerReportRoute =
+  AuthenticatedOwnerReportRouteImport.update({
+    id: '/owner-report',
+    path: '/owner-report',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -606,6 +613,7 @@ export interface FileRoutesByFullPath {
   '/import-review': typeof AuthenticatedImportReviewRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/owner-report': typeof AuthenticatedOwnerReportRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
@@ -694,6 +702,7 @@ export interface FileRoutesByTo {
   '/import-review': typeof AuthenticatedImportReviewRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/owner-report': typeof AuthenticatedOwnerReportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
@@ -784,6 +793,7 @@ export interface FileRoutesById {
   '/_authenticated/import-review': typeof AuthenticatedImportReviewRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/owner-report': typeof AuthenticatedOwnerReportRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
@@ -875,6 +885,7 @@ export interface FileRouteTypes {
     | '/import-review'
     | '/meetings'
     | '/notifications'
+    | '/owner-report'
     | '/settings'
     | '/tasks'
     | '/today'
@@ -963,6 +974,7 @@ export interface FileRouteTypes {
     | '/import-review'
     | '/meetings'
     | '/notifications'
+    | '/owner-report'
     | '/tasks'
     | '/today'
     | '/api/r2-upload'
@@ -1052,6 +1064,7 @@ export interface FileRouteTypes {
     | '/_authenticated/import-review'
     | '/_authenticated/meetings'
     | '/_authenticated/notifications'
+    | '/_authenticated/owner-report'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
@@ -1272,6 +1285,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/owner-report': {
+      id: '/_authenticated/owner-report'
+      path: '/owner-report'
+      fullPath: '/owner-report'
+      preLoaderRoute: typeof AuthenticatedOwnerReportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -1855,6 +1875,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedImportReviewRoute: typeof AuthenticatedImportReviewRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedOwnerReportRoute: typeof AuthenticatedOwnerReportRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
@@ -1904,6 +1925,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedImportReviewRoute: AuthenticatedImportReviewRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedOwnerReportRoute: AuthenticatedOwnerReportRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,

@@ -78,6 +78,7 @@ export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/settings/gmail", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/settings/profile", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/settings", roles: ["owner"] },
+  { prefix: "/owner-report", roles: ["owner"] },
   { prefix: "/import-review", roles: ["owner"] },
 ];
 

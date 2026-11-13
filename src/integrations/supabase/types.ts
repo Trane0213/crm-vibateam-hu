@@ -498,6 +498,63 @@ export type Database = {
           },
         ]
       }
+      ai_owner_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          error: string | null
+          facts: Json
+          facts_hash: string
+          finished_at: string | null
+          id: string
+          kind: string
+          lease_until: string
+          period_end: string
+          period_label: string
+          period_start: string
+          report: Json | null
+          run_id: string | null
+          status: string
+          tokens_used: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          error?: string | null
+          facts: Json
+          facts_hash: string
+          finished_at?: string | null
+          id?: string
+          kind: string
+          lease_until?: string
+          period_end: string
+          period_label: string
+          period_start: string
+          report?: Json | null
+          run_id?: string | null
+          status?: string
+          tokens_used?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          error?: string | null
+          facts?: Json
+          facts_hash?: string
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          lease_until?: string
+          period_end?: string
+          period_label?: string
+          period_start?: string
+          report?: Json | null
+          run_id?: string | null
+          status?: string
+          tokens_used?: number
+        }
+        Relationships: []
+      }
       ai_review_config: {
         Row: {
           approved_at: string | null

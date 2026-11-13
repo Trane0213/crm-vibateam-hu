@@ -18,7 +18,11 @@ export async function usageToday(admin: Db) {
   const { data, error } = await t(admin, "ai_review_runs").select("llm_reviews,tokens_used").eq("kind", "review").gte("started_at", since);
   if (error) throw new Error("A napi keret nem ellenőrizhető.");
   const rows = (data ?? []) as { llm_reviews: number; tokens_used: number }[];
-  return { reviewsToday: rows.reduce((a, r) => a + r.llm_reviews, 0), tokensToday: rows.reduce((a, r) => a + r.tokens_used, 0) };
+  // A tulajdonosi AI-jelentések ugyanabból a napi tokenkeretből fogyasztanak (egy közös költségkeret).
+  const rep = await admin.from("ai_owner_reports").select("tokens_used").gte("created_at", since);
+  if (rep.error) throw new Error("A napi keret nem ellenőrizhető.");
+  const reportTokens = (rep.data ?? []).reduce((a, r) => a + (r.tokens_used ?? 0), 0);
+  return { reviewsToday: rows.reduce((a, r) => a + r.llm_reviews, 0), tokensToday: rows.reduce((a, r) => a + r.tokens_used, 0) + reportTokens };
 }
 
 async function tokensOf(admin: Db, runIds: string[]) {
