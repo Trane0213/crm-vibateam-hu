@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Navigate, Outlet, useRouterState } from "@tanstack/react-router";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessRoute } from "@/lib/permissions";
-import { Settings, Mail, FolderOpen, Users, Shield, ShieldCheck, KeyRound, UserCog, Activity, Bot, BarChart3, Network, Globe, ClipboardList } from "lucide-react";
+import { Settings, Mail, FolderOpen, Users, Shield, ShieldCheck, KeyRound, UserCog, Activity, Bot, BarChart3, Network, Globe, ClipboardList, ScanSearch } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsLayout,
@@ -19,6 +19,7 @@ const items = [
   { to: "/settings/dashboard-status", label: "Dashboard státusz", icon: Activity },
   { to: "/settings/agent-visibility", label: "AI agent láthatóság", icon: Bot },
   { to: "/settings/agent-audit", label: "AI agent audit", icon: ClipboardList },
+  { to: "/settings/ai-review", label: "AI-felülvizsgálat", icon: ScanSearch },
   { to: "/settings/google-ads", label: "Google Ads (Michael)", icon: BarChart3 },
   { to: "/settings/knowledge-graph", label: "Knowledge Graph", icon: Network },
   { to: "/settings/website-knowledge", label: "Website Knowledge", icon: Globe },

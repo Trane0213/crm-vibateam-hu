@@ -68,6 +68,7 @@ import { Route as AuthenticatedSalesTodoRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings.index'
 import { Route as AuthenticatedSettingsAgentAuditRouteImport } from './routes/_authenticated/settings.agent-audit'
 import { Route as AuthenticatedSettingsAgentVisibilityRouteImport } from './routes/_authenticated/settings.agent-visibility'
+import { Route as AuthenticatedSettingsAiReviewRouteImport } from './routes/_authenticated/settings.ai-review'
 import { Route as AuthenticatedSettingsAuditRouteImport } from './routes/_authenticated/settings.audit'
 import { Route as AuthenticatedSettingsDashboardStatusRouteImport } from './routes/_authenticated/settings.dashboard-status'
 import { Route as AuthenticatedSettingsGmailRouteImport } from './routes/_authenticated/settings.gmail'
@@ -421,6 +422,12 @@ const AuthenticatedSettingsAgentVisibilityRoute =
     path: '/agent-visibility',
     getParentRoute: () => AuthenticatedSettingsRoute,
   } as any)
+const AuthenticatedSettingsAiReviewRoute =
+  AuthenticatedSettingsAiReviewRouteImport.update({
+    id: '/ai-review',
+    path: '/ai-review',
+    getParentRoute: () => AuthenticatedSettingsRoute,
+  } as any)
 const AuthenticatedSettingsAuditRoute =
   AuthenticatedSettingsAuditRouteImport.update({
     id: '/audit',
@@ -629,6 +636,7 @@ export interface FileRoutesByFullPath {
   '/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/settings/agent-audit': typeof AuthenticatedSettingsAgentAuditRoute
   '/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
+  '/settings/ai-review': typeof AuthenticatedSettingsAiReviewRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
@@ -715,6 +723,7 @@ export interface FileRoutesByTo {
   '/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/settings/agent-audit': typeof AuthenticatedSettingsAgentAuditRoute
   '/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
+  '/settings/ai-review': typeof AuthenticatedSettingsAiReviewRoute
   '/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/settings/gmail': typeof AuthenticatedSettingsGmailRoute
@@ -805,6 +814,7 @@ export interface FileRoutesById {
   '/_authenticated/sales/todo': typeof AuthenticatedSalesTodoRoute
   '/_authenticated/settings/agent-audit': typeof AuthenticatedSettingsAgentAuditRoute
   '/_authenticated/settings/agent-visibility': typeof AuthenticatedSettingsAgentVisibilityRoute
+  '/_authenticated/settings/ai-review': typeof AuthenticatedSettingsAiReviewRoute
   '/_authenticated/settings/audit': typeof AuthenticatedSettingsAuditRoute
   '/_authenticated/settings/dashboard-status': typeof AuthenticatedSettingsDashboardStatusRoute
   '/_authenticated/settings/gmail': typeof AuthenticatedSettingsGmailRoute
@@ -895,6 +905,7 @@ export interface FileRouteTypes {
     | '/sales/todo'
     | '/settings/agent-audit'
     | '/settings/agent-visibility'
+    | '/settings/ai-review'
     | '/settings/audit'
     | '/settings/dashboard-status'
     | '/settings/gmail'
@@ -981,6 +992,7 @@ export interface FileRouteTypes {
     | '/sales/todo'
     | '/settings/agent-audit'
     | '/settings/agent-visibility'
+    | '/settings/ai-review'
     | '/settings/audit'
     | '/settings/dashboard-status'
     | '/settings/gmail'
@@ -1070,6 +1082,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sales/todo'
     | '/_authenticated/settings/agent-audit'
     | '/_authenticated/settings/agent-visibility'
+    | '/_authenticated/settings/ai-review'
     | '/_authenticated/settings/audit'
     | '/_authenticated/settings/dashboard-status'
     | '/_authenticated/settings/gmail'
@@ -1548,6 +1561,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAgentVisibilityRouteImport
       parentRoute: typeof AuthenticatedSettingsRoute
     }
+    '/_authenticated/settings/ai-review': {
+      id: '/_authenticated/settings/ai-review'
+      path: '/ai-review'
+      fullPath: '/settings/ai-review'
+      preLoaderRoute: typeof AuthenticatedSettingsAiReviewRouteImport
+      parentRoute: typeof AuthenticatedSettingsRoute
+    }
     '/_authenticated/settings/audit': {
       id: '/_authenticated/settings/audit'
       path: '/audit'
@@ -1776,6 +1796,7 @@ const AuthenticatedAttendanceRouteWithChildren =
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAgentAuditRoute: typeof AuthenticatedSettingsAgentAuditRoute
   AuthenticatedSettingsAgentVisibilityRoute: typeof AuthenticatedSettingsAgentVisibilityRoute
+  AuthenticatedSettingsAiReviewRoute: typeof AuthenticatedSettingsAiReviewRoute
   AuthenticatedSettingsAuditRoute: typeof AuthenticatedSettingsAuditRoute
   AuthenticatedSettingsDashboardStatusRoute: typeof AuthenticatedSettingsDashboardStatusRoute
   AuthenticatedSettingsGmailRoute: typeof AuthenticatedSettingsGmailRoute
@@ -1795,6 +1816,7 @@ const AuthenticatedSettingsRouteChildren: AuthenticatedSettingsRouteChildren = {
   AuthenticatedSettingsAgentAuditRoute: AuthenticatedSettingsAgentAuditRoute,
   AuthenticatedSettingsAgentVisibilityRoute:
     AuthenticatedSettingsAgentVisibilityRoute,
+  AuthenticatedSettingsAiReviewRoute: AuthenticatedSettingsAiReviewRoute,
   AuthenticatedSettingsAuditRoute: AuthenticatedSettingsAuditRoute,
   AuthenticatedSettingsDashboardStatusRoute:
     AuthenticatedSettingsDashboardStatusRoute,

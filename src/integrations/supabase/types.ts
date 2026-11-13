@@ -498,6 +498,180 @@ export type Database = {
           },
         ]
       }
+      ai_review_config: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          daily_review_limit: number
+          daily_token_limit: number
+          enabled: boolean
+          id: number
+          max_reviews_per_run: number
+          paused_at: string | null
+          paused_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          daily_review_limit?: number
+          daily_token_limit?: number
+          enabled?: boolean
+          id?: number
+          max_reviews_per_run?: number
+          paused_at?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          daily_review_limit?: number
+          daily_token_limit?: number
+          enabled?: boolean
+          id?: number
+          max_reviews_per_run?: number
+          paused_at?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_review_runs: {
+        Row: {
+          finished_at: string | null
+          id: string
+          kind: string
+          lease_until: string
+          llm_reviews: number
+          new_signal_count: number
+          note: string
+          requested_by: string | null
+          signal_count: number
+          started_at: string
+          status: string
+          tokens_used: number
+          trigger: string
+          window_from: string | null
+          window_to: string | null
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          kind: string
+          lease_until?: string
+          llm_reviews?: number
+          new_signal_count?: number
+          note?: string
+          requested_by?: string | null
+          signal_count?: number
+          started_at?: string
+          status?: string
+          tokens_used?: number
+          trigger: string
+          window_from?: string | null
+          window_to?: string | null
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          lease_until?: string
+          llm_reviews?: number
+          new_signal_count?: number
+          note?: string
+          requested_by?: string | null
+          signal_count?: number
+          started_at?: string
+          status?: string
+          tokens_used?: number
+          trigger?: string
+          window_from?: string | null
+          window_to?: string | null
+        }
+        Relationships: []
+      }
+      ai_review_signals: {
+        Row: {
+          agent: string
+          detail: Json
+          domain: string
+          first_seen_at: string
+          id: string
+          issue_id: string | null
+          kind: string
+          last_run_id: string | null
+          last_seen_at: string
+          occurrences: number
+          resolved_at: string | null
+          review_attempts: number
+          review_status: string
+          reviewed_at: string | null
+          severity: string
+          signal_key: string
+          source_id: string | null
+          source_table: string | null
+          title: string
+        }
+        Insert: {
+          agent: string
+          detail?: Json
+          domain: string
+          first_seen_at?: string
+          id?: string
+          issue_id?: string | null
+          kind: string
+          last_run_id?: string | null
+          last_seen_at?: string
+          occurrences?: number
+          resolved_at?: string | null
+          review_attempts?: number
+          review_status?: string
+          reviewed_at?: string | null
+          severity: string
+          signal_key: string
+          source_id?: string | null
+          source_table?: string | null
+          title: string
+        }
+        Update: {
+          agent?: string
+          detail?: Json
+          domain?: string
+          first_seen_at?: string
+          id?: string
+          issue_id?: string | null
+          kind?: string
+          last_run_id?: string | null
+          last_seen_at?: string
+          occurrences?: number
+          resolved_at?: string | null
+          review_attempts?: number
+          review_status?: string
+          reviewed_at?: string | null
+          severity?: string
+          signal_key?: string
+          source_id?: string | null
+          source_table?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_review_signals_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issue_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_review_signals_last_run_id_fkey"
+            columns: ["last_run_id"]
+            isOneToOne: false
+            referencedRelation: "ai_review_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_threads: {
         Row: {
           agent_id: string
@@ -5269,6 +5443,10 @@ export type Database = {
       ai_os_email_dispatch_claim: {
         Args: { p_action: string; p_args: Json; p_user: string }
         Returns: boolean
+      }
+      ai_review_collect: {
+        Args: { p_trigger: string; p_user?: string }
+        Returns: Json
       }
       campaign_add_target_company: {
         Args: { p_campaign: string; p_company: string; p_expected: string }
