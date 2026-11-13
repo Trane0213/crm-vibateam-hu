@@ -1082,6 +1082,89 @@ export type Database = {
           },
         ]
       }
+      crm_notification_reads: {
+        Row: {
+          notification_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          notification_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          notification_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "crm_notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_notifications: {
+        Row: {
+          audience_roles: string[]
+          audience_user: string | null
+          body: string
+          category: string
+          created_at: string
+          dedupe_key: string
+          id: string
+          last_occurred_at: string
+          link_path: string | null
+          occurrences: number
+          requires_decision: boolean
+          resolved_at: string | null
+          severity: string
+          source_id: string | null
+          source_table: string | null
+          title: string
+        }
+        Insert: {
+          audience_roles?: string[]
+          audience_user?: string | null
+          body?: string
+          category: string
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          last_occurred_at?: string
+          link_path?: string | null
+          occurrences?: number
+          requires_decision?: boolean
+          resolved_at?: string | null
+          severity: string
+          source_id?: string | null
+          source_table?: string | null
+          title: string
+        }
+        Update: {
+          audience_roles?: string[]
+          audience_user?: string | null
+          body?: string
+          category?: string
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          last_occurred_at?: string
+          link_path?: string | null
+          occurrences?: number
+          requires_decision?: boolean
+          resolved_at?: string | null
+          severity?: string
+          source_id?: string | null
+          source_table?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       dashboard_status_config: {
         Row: {
           id: string
@@ -5357,6 +5440,31 @@ export type Database = {
         Returns: Json
       }
       crm_mailboxes: { Args: never; Returns: Json }
+      crm_notification_resolve: {
+        Args: { p_prefix: string }
+        Returns: undefined
+      }
+      crm_notification_source_visible: {
+        Args: { p_id: string; p_table: string }
+        Returns: boolean
+      }
+      crm_notify: {
+        Args: {
+          p_aggregate?: boolean
+          p_body: string
+          p_category: string
+          p_decision: boolean
+          p_key: string
+          p_link: string
+          p_roles: string[]
+          p_severity: string
+          p_source_id: string
+          p_source_table: string
+          p_title: string
+          p_user: string
+        }
+        Returns: undefined
+      }
       crm_record_search: {
         Args: {
           p_filters?: Json
