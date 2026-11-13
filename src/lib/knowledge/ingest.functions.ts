@@ -2,14 +2,13 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-async function assertOwner(context: { supabase: { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<{ data: unknown; error: unknown }> }; userId: string }) {
-  const owner = await context.supabase.rpc("is_owner_role", { _auth_user: context.userId });
+function requireOwner(owner: { data: unknown; error: unknown }) {
   if (owner.error) throw new Error("A jogosultság nem ellenőrizhető.");
   if (owner.data !== true) throw new Error("Csak Tulajdonos indíthatja és láthatja a teljes feldolgozási sort.");
 }
 
 export const knowledgeQueueOverview = createServerFn({ method: "GET" }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
-  await assertOwner(context);
+  requireOwner(await context.supabase.rpc("is_owner_role", { _auth_user: context.userId }));
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.from("knowledge_documents").select("source_table,processing_status,superseded_at").not("source_table", "is", null).range(0, 9999);
   if (error) throw new Error("A feldolgozási állapot nem tölthető be.");
@@ -24,7 +23,7 @@ export const knowledgeQueueOverview = createServerFn({ method: "GET" }).middlewa
 export const knowledgeProcessBatch = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator(z.object({ limit: z.number().int().min(1).max(10).default(5) }).strict())
   .handler(async ({ data, context }) => {
-    await assertOwner(context);
+    requireOwner(await context.supabase.rpc("is_owner_role", { _auth_user: context.userId }));
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { processBatch } = await import("./ingest.server");
     return processBatch(supabaseAdmin, data.limit);
