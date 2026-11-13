@@ -25,9 +25,16 @@ export async function contractHash(tool: ToolSpec): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical(tool)));
   return Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("");
 }
+/** AI OS 2.0/8 — szöveges hozzáférési adatok (magyar „jelszó” is, ismert kulcsformátumok, JWT, privát kulcs); a levélolvasó szabályával egyező. */
+const CREDENTIAL_TEXT = /-----BEGIN[^\n]*PRIVATE KEY-----|\b(?:sk-|sb_secret_|ghp_|AIza)[a-z0-9_-]{12,}|\b(?:jelsz[oó]|passw(?:or)?d|client[_ -]?secret|access[ _-]token|refresh[ _-]token|api[ _-]key)\s*[:=]\s*\S+|\beyJ[a-z0-9_-]{8,}\.[a-z0-9_-]{8,}\.[a-z0-9_-]{8,}/i;
+const CREDENTIAL_GLOBAL = new RegExp(`${CREDENTIAL_TEXT.source}|Bearer\\s+\\S+|(?:api[_-]?key|password|secret|access_token|refresh_token)\\s*[=:]\\s*\\S+`, "gi");
+/** A felhasználói szövegből csak a titkot cseréli le, a kérdés többi része megmarad (a modell és a napló nem kapja meg). */
+export function redactSecrets(text: string): string {
+  return text.replace(CREDENTIAL_GLOBAL, "[védett adat]");
+}
 const sensitiveKey = /^(authorization|password|secret|.*token.*|.*secret.*|api[_-]?key|refresh_token_cipher|refresh_token_iv|signature)$/i;
 export function hasSensitive(value: unknown): boolean {
-  if (typeof value === "string") return /Bearer\s+\S+|(?:api[_-]?key|password|secret|access_token|refresh_token)\s*[=:]\s*\S+|[?&](token|signature|x-amz-signature|x-goog-signature|attachment_token)=/i.test(value);
+  if (typeof value === "string") return /Bearer\s+\S+|(?:api[_-]?key|password|secret|access_token|refresh_token)\s*[=:]\s*\S+|[?&](token|signature|x-amz-signature|x-goog-signature|attachment_token)=/i.test(value) || CREDENTIAL_TEXT.test(value);
   if (!value || typeof value !== "object") return false;
   return Object.entries(value).some(([k, v]) => sensitiveKey.test(k) || hasSensitive(v));
 }

@@ -7,6 +7,7 @@
  *   - memory_read       : adott objektum memóriadarabjainak lekérése
  */
 
+import { hasSensitive } from "./approval";
 import { registerTool } from "./tool-registry";
 import { listHandoffTargets } from "./agents";
 import { DAILY_CACHE_PATTERN } from './daily-sales';
@@ -141,6 +142,8 @@ export function registerCoreTools() {
       },
     },
     async (args, ctx) => {
+      // AI OS 2.0/8: hozzáférési titok nem kerülhet AI-memóriába.
+      if (hasSensitive(args)) return { error: "A memória nem tartalmazhat jelszót, kulcsot vagy tokent; nem mentettem." };
       const { data, error } = await ctx.supabaseUser
         .from("ai_memory")
         .upsert(

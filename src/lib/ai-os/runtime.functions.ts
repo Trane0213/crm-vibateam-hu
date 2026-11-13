@@ -6,6 +6,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { redactSecrets } from "./approval";
 import { requireSupabaseAuth } from "@/integrations/supabase/middleware";
 import type { ChatMessage } from "./types";
 import { z } from "zod";
@@ -57,7 +58,7 @@ export const runAiAgent = createServerFn({ method: "POST" })
       userId: context.userId,
       userRole,
       threadId,
-      history: data.history,
+      history: data.history.map((m) => ({ ...m, content: redactSecrets(m.content) })),
       memorySubjects: data.memorySubjects,
     });
   });
