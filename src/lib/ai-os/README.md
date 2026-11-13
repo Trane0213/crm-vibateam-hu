@@ -42,7 +42,9 @@ dokumentálatlanul — mindegyiket az `ai:acceptance` regressziós teszt védi.
 - **Domain-tisztítás (AI-1.4a)** — George elvesztette a `crm.quotes` domaint
   (Timothy hatásköre). Scarlet-től eltávolítva `marketing.workflow`, Bosstól
   `pm.workflow` (üres domainek voltak).
-- **Handoff-modell (AI-1.5)** — `handoff_to` deklaratív, nem chained-run.
+- **Handoff-modell (AI OS 2.0/3, felülírja AI-1.5-öt)** — `handoff_to` ténylegesen lefuttatja a
+  specialistát egy szint mélyen (`consult` mód: csak olvasó eszközök, JSON-jelentés, forrás-ellenőrzés
+  `consult.ts`), futásonként max. `MAX_HANDOFFS_PER_RUN`; a célagent szerepkör-hozzáférése (authorizeAgent) érvényes.
   Célagentek dinamikusan `listHandoffTargets()`-ből (non-orchestrator +
   non-background). Az `agent_run_steps.kind` = `"handoff"` a `core.handoff`
   domainű tool-hívásoknál — az audit szét tudja választani.

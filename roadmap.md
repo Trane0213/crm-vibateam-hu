@@ -215,3 +215,12 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [ ] 6. Listák és táblázatok, mobil kártyanézet
 - [ ] 7. Adatlapok
 - [ ] 8. Végső teljes körű teszt és jelentés
+
+## AI OS 2.0 (szakaszonként külön jóváhagyással)
+- [x] 1. Közös tudásbázis séma + jogosultság
+- [x] 2. Dokumentumfeldolgozó sor (OCR nélkül; OpenAI-alapú OCR jóváhagyva, megvalósítás külön lépés)
+- [x] 3. George ↔ szakértő strukturált együttműködés (valódi konzultáció, forrás-ellenőrzött jelentések a közös hibajegyzékben)
+- [ ] 3/b. Bejelentkezett felületi próba (/help) — saját belépés szükséges
+- [ ] 4. Egységes értesítési központ — jóváhagyásra vár
+- [ ] 5. Óránkénti automatikus AI-felülvizsgálat — jóváhagyásra vár
+- [ ] 6. Tulajdonosi AI-összesítő — jóváhagyásra vár
