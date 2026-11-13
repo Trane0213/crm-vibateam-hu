@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { kgGetNode, kgStats } from "@/lib/knowledge-graph/kg.functions";
+import { IngestQueueCard } from "@/components/knowledge/ingest-queue-card";
 
 export const Route = createFileRoute("/_authenticated/settings/knowledge-graph")({
   component: KnowledgeGraphSettingsPage,
@@ -67,6 +68,7 @@ function KnowledgeGraphSettingsPage() {
         </p>
       </div>
 
+      <IngestQueueCard />
       <StatsSection />
       <NodeExplorer />
     </div>

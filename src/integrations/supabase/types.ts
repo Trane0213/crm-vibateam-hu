@@ -2535,14 +2535,17 @@ export type Database = {
       }
       knowledge_documents: {
         Row: {
+          attempts: number
           byte_length: number | null
           category: string | null
+          claim_token: string | null
+          claimed_at: string | null
           company_id: string | null
           content_sha256: string | null
           created_at: string | null
           email_id: string | null
           error_code: string | null
-          file_url: string
+          file_url: string | null
           id: string
           lead_id: string | null
           limitations: Json
@@ -2560,14 +2563,17 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attempts?: number
           byte_length?: number | null
           category?: string | null
+          claim_token?: string | null
+          claimed_at?: string | null
           company_id?: string | null
           content_sha256?: string | null
           created_at?: string | null
           email_id?: string | null
           error_code?: string | null
-          file_url: string
+          file_url?: string | null
           id?: string
           lead_id?: string | null
           limitations?: Json
@@ -2585,14 +2591,17 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attempts?: number
           byte_length?: number | null
           category?: string | null
+          claim_token?: string | null
+          claimed_at?: string | null
           company_id?: string | null
           content_sha256?: string | null
           created_at?: string | null
           email_id?: string | null
           error_code?: string | null
-          file_url?: string
+          file_url?: string | null
           id?: string
           lead_id?: string | null
           limitations?: Json
@@ -5317,6 +5326,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      knowledge_claim_batch: {
+        Args: { p_limit: number }
+        Returns: {
+          claim_token: string
+          content_sha256: string
+          id: string
+          processing_status: string
+          source_id: string
+          source_table: string
+        }[]
+      }
       knowledge_search: {
         Args: { p_limit?: number; p_page?: number; p_query: string }
         Returns: Json
@@ -5324,6 +5344,22 @@ export type Database = {
       knowledge_source_visible: {
         Args: { p_id: string; p_table: string }
         Returns: boolean
+      }
+      knowledge_store_result: {
+        Args: {
+          p_bytes: number
+          p_chunks: Json
+          p_doc_type: string
+          p_error: string
+          p_hash: string
+          p_id: string
+          p_limitations: Json
+          p_parser: string
+          p_retry: boolean
+          p_status: string
+          p_token: string
+        }
+        Returns: Json
       }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
       quote_lock_sent: { Args: { p_quote_id: string }; Returns: string }

@@ -8,6 +8,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { safeAudit } from "./approval";
 
+export const STALE_RUN_MS = 30 * 60 * 1000;
+export const STALE_RUN_MESSAGE = "stale_timeout: a futás lezárás nélkül megszakadt (Worker időkorlát)";
+
 export type RunStartInput = {
   userId: string;
   agentId: string;
@@ -20,6 +23,11 @@ export async function startRun(
   admin: SupabaseClient,
   input: RunStartInput,
 ): Promise<string> {
+  // A Worker időkorlátja megszakíthatja a futást a lezárás előtt: a felhasználó
+  // 30 percnél régebbi nyitott futásait lezárjuk, hogy ne ragadjanak "running" állapotban.
+  await admin.from("agent_runs").update({ status: "error", error_message: STALE_RUN_MESSAGE, finished_at: new Date().toISOString() })
+    .eq("user_id", input.userId).eq("status", "running").lt("started_at", new Date(Date.now() - STALE_RUN_MS).toISOString())
+    .then(() => undefined, () => undefined);
   const { data, error } = await admin
     .from("agent_runs")
     .insert({
