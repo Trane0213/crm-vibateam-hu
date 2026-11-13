@@ -10,6 +10,7 @@ import { registerCoreTools } from "./core-tools.server";
 import { registerCrmTools } from "./adapters/crm-tools.server";
 import { registerGoogleAdsTools } from "./adapters/google-ads-tools.server";
 import { registerKgTools } from "./adapters/kg-tools.server";
+import { registerKnowledgeTools } from "./adapters/knowledge-tools.server";
 import { registerWebsiteTools } from "./adapters/website-tools.server";
 import { registerGmailContextTools } from "./adapters/gmail-tools.server";
 import { registerDocumentTools } from "./adapters/document-tools.server";
@@ -26,6 +27,7 @@ export function ensureBootstrapped() {
   registerEmailSendTool();
   registerGoogleAdsTools();
   registerKgTools();
+  registerKnowledgeTools();
   registerWebsiteTools();
   booted = true;
 }
