@@ -221,6 +221,7 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [x] 2. Dokumentumfeldolgozó sor (OCR nélkül; OpenAI-alapú OCR jóváhagyva, megvalósítás külön lépés)
 - [x] 3. George ↔ szakértő strukturált együttműködés (valódi konzultáció, forrás-ellenőrzött jelentések a közös hibajegyzékben)
 - [ ] 3/b. Bejelentkezett felületi próba (/help) — saját belépés szükséges
-- [ ] 4. Egységes értesítési központ — jóváhagyásra vár
+- [x] 4. Egységes értesítési központ (CRM-en belüli eseménytár, szerepkör + rekordjogosultság, fejléc + /notifications)
+- [ ] 4/b. Bejelentkezett felületi próba (/notifications, csengő) — saját belépés szükséges
 - [ ] 5. Óránkénti automatikus AI-felülvizsgálat — jóváhagyásra vár
 - [ ] 6. Tulajdonosi AI-összesítő — jóváhagyásra vár

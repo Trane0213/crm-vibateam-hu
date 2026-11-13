@@ -72,6 +72,8 @@ export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/data-quality", roles: ["owner", "project_manager", "marketing"] },
   { prefix: "/attendance", roles: ["owner", "project_manager"] },
   { prefix: "/help", roles: ["owner", "project_manager", "sales", "marketing"] },
+  // Értesítési központ: mindenki csak a neki címzett, általa látható rekordhoz kötött eseményt kapja (RLS).
+  { prefix: "/notifications", roles: ["owner", "project_manager", "sales", "marketing"] },
   // Saját Gmail-fiók és saját profil minden szerepkörnek (a fiók személyes, a szerver a hívóhoz köti).
   { prefix: "/settings/gmail", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/settings/profile", roles: ["owner", "project_manager", "sales", "marketing"] },

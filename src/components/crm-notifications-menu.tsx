@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, BellRing, Copy, Link2, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertTriangle, BellRing, Copy, Link2, Mail, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,6 +12,8 @@ import {
 import { useCount } from "@/lib/db-hooks";
 import { useQualityOverview } from "@/lib/dedupe/use-quality-overview";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useNotifications } from "@/hooks/use-notifications";
+import { badgeCount, isImmediate, safeLink, NOTIFICATION_CATEGORY } from "@/lib/notifications/model";
 
 export function CrmNotificationsMenu() {
   const { role } = usePermissions();
@@ -26,11 +28,17 @@ export function CrmNotificationsMenu() {
   // jóváhagyott flow-ban. A számláló 0-val helyettesítve a UI átépítéséig.
   const transferableLeads = { data: 0 as number | null };
   const overview = useQualityOverview();
+  const events = useNotifications(0, 30);
+  const isOwner = role === "owner";
+  const evRows = events.data?.rows ?? [];
+  const evRead = events.data?.read ?? new Set<string>();
+  const evBadge = badgeCount(evRows, evRead, isOwner, events.data?.me);
+  const evOpen = evRows.filter((n) => !n.resolved_at && !evRead.has(n.id)).slice(0, 6);
 
   // Marketing nem fér hozzá a /followups oldalhoz, ezért az ehhez tartozó
   // sor és számláló elrejtésre kerül (403-as link elkerülése).
   const overdueCount = isMarketing ? 0 : (overdueFollowups.data ?? 0);
-  const urgent = overdueCount + (transferableLeads.data ?? 0);
+  const urgent = overdueCount + (transferableLeads.data ?? 0) + evBadge;
   const warnings =
     overview.counts.incompleteCompanies +
     overview.counts.companyDuplicates +
@@ -48,8 +56,8 @@ export function CrmNotificationsMenu() {
             <span className="h-2 w-2 rounded-full bg-destructive" />
             {urgent}
           </span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-amber-700">
-            <span className="h-2 w-2 rounded-full bg-amber-500" />
+          <span className="inline-flex items-center gap-1 text-[11px] text-status-warning">
+            <span className="h-2 w-2 rounded-full bg-status-warning" />
             {warnings}
           </span>
         </Button>
@@ -60,11 +68,27 @@ export function CrmNotificationsMenu() {
             <span>CRM Értesítések</span>
             <div className="flex items-center gap-3 text-[11px] font-normal">
               <span className="text-destructive">🔴 {urgent} sürgős</span>
-              <span className="text-amber-700">🟡 {warnings} figyelmeztetés</span>
+              <span className="text-status-warning">🟡 {warnings} figyelmeztetés</span>
             </div>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <p className="px-2 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Események</p>
+        {events.isLoading ? <p role="status" className="px-2 py-2 text-sm text-muted-foreground">Betöltés…</p>
+          : events.error ? <p role="alert" className="px-2 py-2 text-sm text-destructive">Az események most nem tölthetők be.</p>
+          : !evOpen.length ? <p className="px-2 py-2 text-sm text-muted-foreground">Nincs olvasatlan esemény.</p>
+          : evOpen.map((n) => {
+            const link = safeLink(n.link_path) ?? "/notifications";
+            const now = isImmediate(n, isOwner, events.data?.me);
+            return <DropdownMenuItem key={n.id} asChild><Link to={link as "/notifications"} className="flex items-start gap-2 rounded-md px-2 py-2">
+              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.severity === "critical" ? "bg-destructive" : n.severity === "warning" ? "bg-status-warning" : "bg-status-info"}`} />
+              <span className="min-w-0 flex-1"><span className="block text-sm leading-snug">{n.title}{n.occurrences > 1 ? ` (${n.occurrences}×)` : ""}</span>
+                <span className="block truncate text-xs text-muted-foreground">{NOTIFICATION_CATEGORY[n.category as keyof typeof NOTIFICATION_CATEGORY] ?? n.category}{n.requires_decision ? " · döntést igényel" : ""}{now ? "" : " · napi összesítő"}</span></span>
+            </Link></DropdownMenuItem>;
+          })}
+        <DropdownMenuItem asChild><Link to="/notifications" className="flex items-center justify-between rounded-md px-2 py-2 text-sm font-medium text-primary">Összes értesítés megnyitása <ArrowRight className="h-4 w-4" /></Link></DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <p className="px-2 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Nyitott teendők</p>
 
         {!isMarketing && (
           <NotificationLink to="/followups" icon={AlertTriangle} tone="danger" label="Lejárt utánkövetések" count={overdueFollowups.data ?? 0} />
@@ -75,9 +99,9 @@ export function CrmNotificationsMenu() {
         <NotificationLink to="/data-quality" icon={Link2} tone="info" label="Linkeletlen leadek" count={overview.counts.unlinkedLeads} />
         <NotificationLink to="/data-quality" icon={Mail} tone="info" label="Linkeletlen email threadek" count={overview.counts.unlinkedThreads} />
 
-        {urgent + warnings === 0 && (
+        {overdueCount + warnings === 0 && (
           <div className="rounded-md border border-dashed px-3 py-4 text-center text-sm text-muted-foreground">
-            Nincs nyitott CRM értesítés.
+            Nincs nyitott CRM teendő.
           </div>
         )}
       </DropdownMenuContent>
@@ -102,7 +126,7 @@ function NotificationLink({
     tone === "danger"
       ? "text-destructive"
       : tone === "warning"
-        ? "text-amber-700"
+        ? "text-status-warning"
         : "text-primary";
 
   return (

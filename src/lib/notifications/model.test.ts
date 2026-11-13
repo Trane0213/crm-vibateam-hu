@@ -1,0 +1,30 @@
+import { describe, expect, it } from "vitest";
+import { badgeCount, isImmediate, safeLink, type NotificationRow } from "./model";
+
+const base: NotificationRow = { id: "1", category: "business", severity: "info", requires_decision: false, title: "t", body: "", link_path: "/leads", occurrences: 1, created_at: "", last_occurred_at: "", resolved_at: null, audience_user: null };
+
+describe("értesítés kézbesítési szabály", () => {
+  it("tulajdonosnak a kritikus azonnali", () => expect(isImmediate({ ...base, severity: "critical" }, true)).toBe(true));
+  it("tulajdonosnak a döntést igénylő azonnali", () => expect(isImmediate({ ...base, requires_decision: true }, true)).toBe(true));
+  it("tulajdonosnak a szerepkörös figyelmeztetés napi összesítőbe megy", () => expect(isImmediate({ ...base, severity: "warning" }, true)).toBe(false));
+  it("tulajdonosnak a tájékoztatás napi összesítőbe megy", () => expect(isImmediate(base, true)).toBe(false));
+  it("Salesnek a figyelmeztetés (pl. hozzárendelt ügy) azonnali", () => expect(isImmediate({ ...base, severity: "warning" }, false)).toBe(true));
+  it("tájékoztatás senkinek nem azonnali", () => expect(isImmediate(base, false)).toBe(false));
+  it("tulajdonosnak személyesen címzett figyelmeztetés azonnali", () => expect(isImmediate({ ...base, severity: "warning", audience_user: "me" }, true, "me")).toBe(true));
+});
+
+describe("csengő számláló", () => {
+  const rows: NotificationRow[] = [
+    { ...base, id: "a", severity: "critical" },
+    { ...base, id: "b", severity: "critical", resolved_at: "2026-11-13" },
+    { ...base, id: "c", requires_decision: true },
+    { ...base, id: "d", severity: "warning" },
+  ];
+  it("lezárt és olvasott nem számít", () => expect(badgeCount(rows, new Set(["c"]), true)).toBe(1));
+  it("nem tulajdonosnál a figyelmeztetés is számít", () => expect(badgeCount(rows, new Set(), false)).toBe(3));
+});
+
+describe("hivatkozás", () => {
+  it("belső útvonal engedett", () => expect(safeLink("/leads/abc")).toBe("/leads/abc"));
+  it("külső vagy protokoll-relatív tiltott", () => { expect(safeLink("https://x.hu")).toBeNull(); expect(safeLink("//x.hu")).toBeNull(); });
+});
