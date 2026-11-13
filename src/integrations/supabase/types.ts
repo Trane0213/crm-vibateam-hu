@@ -2154,6 +2154,71 @@ export type Database = {
           },
         ]
       }
+      issue_report_findings: {
+        Row: {
+          agent_id: string
+          confidence: string
+          contribution: string
+          created_at: string
+          findings: Json
+          id: string
+          issue_id: string
+          open_questions: Json
+          recommended_actions: Json
+          report_status: string
+          requested_by: string
+          requested_role: string | null
+          run_id: string | null
+          summary: string
+          unverified_claim_count: number
+          verified_source_count: number
+        }
+        Insert: {
+          agent_id: string
+          confidence?: string
+          contribution: string
+          created_at?: string
+          findings?: Json
+          id?: string
+          issue_id: string
+          open_questions?: Json
+          recommended_actions?: Json
+          report_status: string
+          requested_by: string
+          requested_role?: string | null
+          run_id?: string | null
+          summary?: string
+          unverified_claim_count?: number
+          verified_source_count?: number
+        }
+        Update: {
+          agent_id?: string
+          confidence?: string
+          contribution?: string
+          created_at?: string
+          findings?: Json
+          id?: string
+          issue_id?: string
+          open_questions?: Json
+          recommended_actions?: Json
+          report_status?: string
+          requested_by?: string
+          requested_role?: string | null
+          run_id?: string | null
+          summary?: string
+          unverified_claim_count?: number
+          verified_source_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_report_findings_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issue_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       issue_reports: {
         Row: {
           actual_result: string

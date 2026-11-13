@@ -7,7 +7,7 @@ export type IssueSpecialist = keyof typeof ISSUE_SPECIALIST;
 export const ISSUE_EVIDENCE = { proven: "Igazolt", assumed: "Feltételezés (nem igazolt)", not_examinable: "Nem vizsgálható" } as const;
 /** All four categories are persisted on the single issue_reports table (category column). */
 export function canPersistIssueCategory(category: IssueCategory) { return category in ISSUE_CATEGORY; }
-export const AI_REVIEW_LIMIT = 3;
+export const AI_REVIEW_LIMIT = 5;
 export const issueInput = z.object({ submissionKey: z.string().uuid(), category: z.enum(["usage", "bug", "ux", "feature"]).default("bug"), pagePath: z.string().max(250).regex(/^\/[A-Za-z0-9/_-]*$/), description: z.string().trim().min(1).max(2000), expectedResult: z.string().trim().min(1).max(1000), actualResult: z.string().trim().min(1).max(1000), technicalCode: z.string().max(80).regex(/^[A-Za-z0-9_.:-]*$/).default("") }).strict();
 export function issuePath(path: string) { return path.split(/[?#]/)[0].replace(/[^A-Za-z0-9/_-]/g, "").slice(0, 250) || "/"; }
 

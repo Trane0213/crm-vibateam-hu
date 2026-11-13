@@ -26,6 +26,7 @@ import { modelToolPayload } from "./tool-payload";
 import { emailToolAudit } from "./email-audit";
 import { documentToolAudit } from "./document-audit";
 import { RuntimeOutcome } from './runtime-outcome';
+import { collectObservedIds, consultSystemBlock, isConsultReadTool, isReviewTool, MAX_HANDOFFS_PER_RUN, type SpecialistReport } from './consult';
 import { validateReadIds, localModelDates, readCaveats, groundedReadAnswer, collectLeadCompanies, correctLeadAsCompany } from './read-quality';
 
 const MAX_STEPS = 50;
@@ -77,6 +78,10 @@ export type RunAgentInput = {
   memorySubjects?: Array<{ subject_type: string; subject_id: string }>;
   /** Legacy callers are rejected; these IDs never grant permission. */
   approvedToolCallIds?: string[];
+  /** AI OS 2.0/3: George által indított szakértői konzultáció — csak olvasó eszközök, JSON-szerződés. */
+  consult?: { fromAgent: string; parentRunId: string };
+  /** Csak olvasó futás (konzultáció engedélyezett), pl. George hibajegy-vizsgálata. */
+  readOnly?: boolean;
 };
 
 export type RunAgentResult = {
@@ -87,6 +92,10 @@ export type RunAgentResult = {
   pendingApprovals: ApprovalSnapshot[];
   steps: number;
   usage: { prompt_tokens: number; completion_tokens: number };
+  /** Az eszköz-eredményekben ténylegesen látott azonosítók (forrás-ellenőrzéshez). */
+  observedIds: string[];
+  /** A futás alatt ténylegesen lefutott szakértői konzultációk strukturált jelentései. */
+  consultations: SpecialistReport[];
 };
 
 export async function runAgent(
@@ -104,7 +113,7 @@ export async function runAgent(
     agentDomains: agent.tool_domains,
     agentExtraTools: agent.extra_tools,
     userRole: input.userRole,
-  });
+  }).filter((t) => (input.consult ? isConsultReadTool(t) : input.readOnly ? isReviewTool(t) : true));
   const toolSpecs = allowedTools.map(toSpec);
 
   // 2) Memória betöltés (user + explicit subjectek).
@@ -139,6 +148,8 @@ export async function runAgent(
     }
   }
 
+  if (input.consult) systemPrompt += `\n\n${consultSystemBlock(input.consult.fromAgent)}`;
+
   // 4) Run létrehozás.
   const runId = await startRun(adminClient, {
     userId: input.userId,
@@ -159,6 +170,9 @@ export async function runAgent(
   let totalPrompt = 0;
   let totalCompletion = 0;
   const pendingApprovals: RunAgentResult["pendingApprovals"] = [];
+  const observed = new Set<string>();
+  const consultations: SpecialistReport[] = [];
+  let handoffs = 0;
 
   try {
     for (let i = 0; i < MAX_STEPS; i++) {
@@ -199,10 +213,12 @@ export async function runAgent(
         return {
           runId,
           agentId: agent.id,
-          finalText: outcome.text(agent.id==='timothy' ? groundedReadAnswer(result.text,[...caveats],input.userRole) : result.text, pendingApprovals.length > 0),
+          finalText: input.consult ? result.text : outcome.text(agent.id==='timothy' ? groundedReadAnswer(result.text,[...caveats],input.userRole) : result.text, pendingApprovals.length > 0),
           pendingApprovals,
           steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
+          observedIds: [...observed],
+          consultations,
         };
       }
 
@@ -242,6 +258,18 @@ export async function runAgent(
           });
           continue;
         }
+        const extraDeny = (input.consult && !isConsultReadTool(tool)) || (input.readOnly && !isReviewTool(tool))
+          ? `Access denied: ebben a vizsgálati módban csak olvasó eszköz hívható ("${tool.name}").`
+          : tool.domain === "core.handoff" && handoffs >= MAX_HANDOFFS_PER_RUN
+            ? `Egy futásban legfeljebb ${MAX_HANDOFFS_PER_RUN} szakértői konzultáció indítható; foglald össze az eddigieket.`
+            : null;
+        if (extraDeny) {
+          outcome.record(tool.name, true, false);
+          await logStep(adminClient, { runId, stepNo: ++stepNo, kind: "error", toolName: tool.name, agentId: agent.id, error: extraDeny });
+          messages.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify({ error: extraDeny }) });
+          continue;
+        }
+        if (tool.domain === "core.handoff") handoffs++;
         // M5 approval + dry_run állapotgép.
         // 1) Approval szint meghatározása (backward compat: needs_approval → confirm).
         const approvalLevel: ApprovalLevel =
@@ -331,7 +359,14 @@ export async function runAgent(
           break;
         }
         if (failureResult(output)) { outcome.record(tool.name, true, readOnly); errMsg = "A művelet sikertelen."; }
-        else {outcome.observe(output);if(agent.id==='timothy'){for(const c of readCaveats(output))caveats.add(c);collectLeadCompanies(tool.name,output,observedLeadCompanies);}}
+        else {
+          outcome.observe(output);
+          if (tool.domain === "core.handoff") {
+            const o = output as { report?: SpecialistReport; verified_source_ids?: unknown };
+            if (o && o.report) consultations.push(o.report);
+            if (Array.isArray(o?.verified_source_ids)) for (const id of o.verified_source_ids) if (typeof id === "string") observed.add(id.toLowerCase());
+          } else collectObservedIds(output, observed);
+          if(agent.id==='timothy'){for(const c of readCaveats(output))caveats.add(c);collectLeadCompanies(tool.name,output,observedLeadCompanies);}}
         // Az LLM-hez sanitizált változat megy — a technical_reason audit-only.
         const llmPayload: unknown = isToolErrorEnvelope(output)
           ? { ok: false, error: sanitizeErrorForLlm(output.error) }
@@ -371,6 +406,7 @@ export async function runAgent(
           runId, agentId: agent.id, finalText: outcome.text(result.text, pendingApprovals.length > 0),
           pendingApprovals, steps: stepNo,
           usage: { prompt_tokens: totalPrompt, completion_tokens: totalCompletion },
+          observedIds: [...observed], consultations,
         };
       }
     }

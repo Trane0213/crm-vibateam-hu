@@ -2,7 +2,7 @@
  * AI OS — beépített core toolok regisztrálása.
  *
  * Ezek a toolok CRM-függetlenek:
- *   - handoff_to        : George átadja a kérdést egy specialistának
+ *   - handoff_to        : George ténylegesen lefuttatja a specialistát (olvasó konzultáció)
  *   - memory_write      : objektum-alapú memóriába írás (jóváhagyás kötelező)
  *   - memory_read       : adott objektum memóriadarabjainak lekérése
  */
@@ -17,10 +17,10 @@ export function registerCoreTools() {
     {
       name: "handoff_to",
       description:
-        "Deklarálja, hogy a kérdést egy specialista agentnek kell átadni. " +
-        "Csak az orchestrator (George) hívhatja. A tool nem futtat le másik agentet — " +
-        "a runtime naplózza mint `handoff` lépést, és George a saját válaszában " +
-        "foglalja össze a specialistának feltett kérdést a felhasználó felé.",
+        "Szakértői konzultáció: lefuttatja a megnevezett specialistát a felhasználó jogosultságával, " +
+        "kizárólag olvasó eszközökkel, és strukturált jelentést ad vissza (összefoglaló, forrásokkal " +
+        "alátámasztott megállapítások, javasolt lépések, nyitott kérdések). Csak az orchestrator (George) hívhatja. " +
+        "A specialista semmit nem módosít; írási művelethez a felhasználónak külön kell kérnie.",
       domain: "core.handoff",
       allowed_agents: ["george"],
       parameters: {
@@ -32,15 +32,14 @@ export function registerCoreTools() {
             description: "A célagent id-ja. Csak nem-orchestrator agent lehet.",
           },
           reason: { type: "string", description: "Miért adod át." },
-          question: { type: "string", description: "A specialistának feltett kérdés." },
+          question: { type: "string", description: "A specialistának feltett, önmagában érthető kérdés (minden szükséges azonosítóval)." },
         },
         required: ["agent", "reason", "question"],
       },
     },
     async (args, ctx) => {
-      // AI-1.5: kizárólag deklaratív. A tényleges chained-run később, külön
-      // sprintben (nem stabilizációs feladat). Itt szerveroldalon még egyszer
-      // validáljuk a célt — a runtime access-check nem látja a tool argumentumát.
+      // AI OS 2.0/3: tényleges, egyszintű chained-run. A célt szerveroldalon újra validáljuk —
+      // a runtime access-check nem látja a tool argumentumát.
       const target = String(args.agent ?? "");
       const validTargets = listHandoffTargets();
       if (!validTargets.includes(target)) {
@@ -51,13 +50,38 @@ export function registerCoreTools() {
       if (target === ctx.agentId) {
         return { error: "Handoff önmagára nem megengedett." };
       }
-      return {
-        handoff_requested: true,
-        from: ctx.agentId,
-        agent: target,
-        reason: String(args.reason ?? ""),
-        question: String(args.question ?? ""),
-      };
+      const question = String(args.question ?? "").trim().slice(0, 6000);
+      const reason = String(args.reason ?? "").trim().slice(0, 500);
+      if (!question) return { error: "Üres kérdés nem adható át." };
+      const base = { handoff_requested: true, from: ctx.agentId, agent: target, reason, question };
+      try {
+        // A szerepkörönkénti asszisztens-hozzáférés (agent_role_access, Michael = Owner) konzultációnál is érvényes.
+        const { authorizeAgent } = await import("./approval.server");
+        try { await authorizeAgent(ctx.supabaseUser, ctx.userId, target); }
+        catch { return { ...base, executed: false, error: `A(z) ${target} szakértő a felhasználó szerepköréhez nem érhető el; a kérdést saját eszközeiddel vizsgáld, vagy jelezd a korlátot.` }; }
+        const { runAgent } = await import("./runtime.server");
+        const { parseSpecialistReport, verifiedSourceIds } = await import("./consult");
+        const child = await runAgent(ctx.supabaseUser, ctx.supabaseAdmin, {
+          agentId: target,
+          userId: ctx.userId,
+          userRole: ctx.userRole ?? null,
+          threadId: ctx.threadId,
+          history: [{ role: "user", content: `George kérdése (indok: ${reason || "—"}):\n${question}` }],
+          consult: { fromAgent: ctx.agentId, parentRunId: ctx.runId },
+        });
+        const report = { ...parseSpecialistReport(target, child.finalText, new Set(child.observedIds)), run_id: child.runId };
+        return { ...base, executed: true, child_run_id: child.runId, report, verified_source_ids: verifiedSourceIds(report) };
+      } catch (e) {
+        const m = e instanceof Error ? e.message : String(e);
+        const credit = /429|insufficient_quota|credit/i.test(m);
+        return {
+          ...base,
+          executed: false,
+          error: credit
+            ? "A szakértő nem futott le: az OpenAI-fiók egyenlege elfogyott. Ne állíts semmit a szakértő nevében."
+            : "A szakértői konzultáció most nem futott le. Ne állíts semmit a szakértő nevében.",
+        };
+      }
     },
   );
 

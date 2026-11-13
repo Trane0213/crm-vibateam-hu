@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { submitIssue, listIssues, updateIssue, reviewIssue, verifyIssue } from "@/lib/issue-reports.functions";
+import { submitIssue, listIssues, updateIssue, reviewIssue, verifyIssue, listIssueFindings } from "@/lib/issue-reports.functions";
 import { issuePath, ISSUE_STATUS, ISSUE_CATEGORY, ISSUE_SPECIALIST, ISSUE_EVIDENCE, AI_REVIEW_LIMIT, type IssueCategory } from "@/lib/issue-reports-model";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -54,7 +54,7 @@ export function IssueCenter({ sourcePath }: { sourcePath?: string }) {
   </div>;
 }
 
-function IssueRow({ row, owner, mine, refresh, review, verify, save }: { row: Row; owner: boolean; mine: boolean; refresh: () => Promise<void>; review: (m: "initial" | "recheck") => Promise<unknown>; verify: (v: "resolved" | "not_resolved", f: string) => Promise<unknown>; save: (s: Status, n: string) => Promise<unknown> }) {
+function IssueRow({ row, owner, mine, refresh, review, verify, save }: { row: Row; owner: boolean; mine: boolean; refresh: () => Promise<void>; review: (m: "initial" | "recheck" | "rerun") => Promise<unknown>; verify: (v: "resolved" | "not_resolved", f: string) => Promise<unknown>; save: (s: Status, n: string) => Promise<unknown> }) {
   const [busy, setBusy] = useState(""), [err, setErr] = useState(""), [feedback, setFeedback] = useState("");
   async function run(label: string, fn: () => Promise<unknown>) { setBusy(label); setErr(""); try { await fn(); await refresh(); } catch (e) { setErr(msg(e, "Nem sikerült.")); } finally { setBusy(""); } }
   const canAi = row.ai_run_count < AI_REVIEW_LIMIT;
@@ -66,7 +66,9 @@ function IssueRow({ row, owner, mine, refresh, review, verify, save }: { row: Ro
       <div className="rounded-md border bg-muted/40 p-3"><p className="font-medium">AI-vizsgálat{row.ai_specialist ? ` · ${ISSUE_SPECIALIST[row.ai_specialist as keyof typeof ISSUE_SPECIALIST]}` : ""}{row.ai_evidence ? ` · ${ISSUE_EVIDENCE[row.ai_evidence as keyof typeof ISSUE_EVIDENCE]}` : ""}</p>
         <p className="whitespace-pre-wrap">{row.ai_analysis || "Még nem készült AI-vizsgálat."}</p>
         {canAi && !row.ai_analyzed_at && <Button size="sm" variant="outline" className="mt-2" disabled={!!busy} onClick={() => run("ai", () => review("initial"))}>{busy === "ai" ? "George vizsgál…" : "George vizsgálatának indítása"}</Button>}
-        <p className="pt-1 text-xs text-muted-foreground">Vizsgálatok: {row.ai_run_count}/{AI_REVIEW_LIMIT}. Az AI csak a bejelentés szövegét látja; állítása önmagában nem bizonyíték.</p></div>
+        {canAi && !!row.ai_analyzed_at && (owner || mine) && <Button size="sm" variant="outline" className="mt-2" disabled={!!busy} onClick={() => run("ai2", () => review(row.status === "checking" ? "recheck" : "rerun"))}>{busy === "ai2" ? "George és a szakértők vizsgálnak…" : row.status === "checking" ? "Utóellenőrzés kérése George-tól" : "Újravizsgálat"}</Button>}
+        <p className="pt-1 text-xs text-muted-foreground">Vizsgálatok: {row.ai_run_count}/{AI_REVIEW_LIMIT}. George és a szakértő AI-k a te jogosultságoddal, csak olvasva vizsgálnak; semmit nem módosítanak. AI-állítás önmagában nem bizonyíték.</p>
+        {!!row.ai_analyzed_at && <ExpertReports issueId={row.id} stamp={row.ai_analyzed_at} />}</div>
       <p>Tulajdonosi megjegyzés: {row.owner_note || "Még nincs."}</p>
       {row.reporter_verdict && <p><strong>Bejelentő visszajelzése:</strong> {row.reporter_verdict === "resolved" ? "Megoldódott" : "Nem oldódott meg"}{row.reporter_feedback ? ` — ${row.reporter_feedback}` : ""}</p>}
       {mine && row.status === "checking" && <div className="space-y-2 rounded-md border border-status-warning/40 p-3"><p className="font-medium">A javítás elkészült. Kérjük, próbáld ki: megoldódott a probléma?</p>
@@ -81,4 +83,42 @@ function IssueRow({ row, owner, mine, refresh, review, verify, save }: { row: Ro
 function OwnerStatus({ row, busy, save }: { row: { status: string; owner_note: string }; busy: boolean; save: (s: Status, n: string) => Promise<void> }) {
   const [status, setStatus] = useState(row.status as Status), [note, setNote] = useState(row.owner_note);
   return <form className="space-y-2 border-t pt-3" onSubmit={e => { e.preventDefault(); void save(status, note); }}><select aria-label="Státusz" className="w-full rounded-md border bg-background p-2" value={status} onChange={e => setStatus(e.target.value as Status)}>{Object.entries(ISSUE_STATUS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}</select><Textarea aria-label="Tulajdonosi megjegyzés" value={note} maxLength={2000} onChange={e => setNote(e.target.value)} placeholder="Bizonyított / Feltételezés / Nem vizsgálható – rögzítsd a forrást." /><p className="text-xs text-muted-foreground">„Ellenőrzés alatt” állapotra váltáskor George utóellenőrzési lépéseket ír, és a bejelentő felkérést kap a kipróbálásra.</p><Button size="sm" disabled={busy}>{busy ? "Mentés…" : "Státusz és megjegyzés mentése"}</Button></form>;
+}
+
+type Finding = Awaited<ReturnType<typeof listIssueFindings>>[number];
+const AGENT_LABEL: Record<string, string> = { george: "George · összegzés", scarlet: "Scarlet · Marketing", timothy: "Timothy · Sales", boss: "Boss · Projektek", michael: "Michael · Google Ads" };
+const REPORT_STATUS: Record<string, string> = { answered: "Megválaszolva", insufficient_data: "Nincs elég adat", out_of_scope: "Nem a szakterülete", blocked: "Akadályozott", invalid_format: "Nem értelmezhető válasz" };
+const BASIS: Record<string, { label: string; cls: string }> = {
+  source_fact: { label: "Forrásra hivatkozik (azonosító ellenőrizve)", cls: "border-status-success/40 text-status-success" },
+  ai_inference: { label: "AI-következtetés", cls: "border-status-info/40 text-status-info" },
+  unverified: { label: "Nem ellenőrzött", cls: "border-status-warning/40 text-status-warning" },
+};
+const CONF: Record<string, string> = { low: "alacsony", medium: "közepes", high: "magas" };
+type Src = { type?: string; id?: string; label?: string };
+type Fnd = { statement?: string; basis?: string; sources?: Src[] };
+type Act = { action?: string; owner_role?: string };
+
+function ExpertReports({ issueId, stamp }: { issueId: string; stamp: string }) {
+  const load = useServerFn(listIssueFindings);
+  const q = useQuery({ queryKey: ["issue-findings", issueId, stamp], queryFn: () => load({ data: { id: issueId } }), retry: false });
+  if (q.isLoading) return <p role="status" className="pt-2 text-xs text-muted-foreground">Szakértői jelentések betöltése…</p>;
+  if (q.error) return <p role="alert" className="pt-2 text-xs text-destructive">A szakértői jelentések nem tölthetők be.</p>;
+  if (!q.data?.length) return null;
+  return <div className="space-y-2 pt-3"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Szakértői jelentések ({q.data.length})</p>{q.data.map((f) => <ReportCard key={f.id} f={f} />)}</div>;
+}
+
+function ReportCard({ f }: { f: Finding }) {
+  const findings = (Array.isArray(f.findings) ? f.findings : []) as Fnd[];
+  const actions = (Array.isArray(f.recommended_actions) ? f.recommended_actions : []) as Act[];
+  const questions = (Array.isArray(f.open_questions) ? f.open_questions : []) as string[];
+  return <details className="rounded-md border bg-background p-2" open={f.contribution === "coordinator"}>
+    <summary className="cursor-pointer text-sm"><span className="font-medium">{AGENT_LABEL[f.agent_id] ?? f.agent_id}</span> · {REPORT_STATUS[f.report_status] ?? f.report_status} · megbízhatóság: {CONF[f.confidence] ?? f.confidence} · {new Date(f.created_at).toLocaleString("hu-HU")}</summary>
+    <div className="space-y-2 pt-2 text-sm">
+      {f.summary && <p className="whitespace-pre-wrap">{f.summary}</p>}
+      <p className="text-xs text-muted-foreground">Ellenőrzött forrás-hivatkozás: {f.verified_source_count} · nem ellenőrzött állítás: {f.unverified_claim_count}</p>
+      {!!findings.length && <ul className="space-y-1">{findings.map((x, i) => { const b = BASIS[x.basis ?? "unverified"] ?? BASIS.unverified; return <li key={i} className="rounded border p-2"><span className={`mr-2 inline-block rounded border px-1.5 text-xs ${b.cls}`}>{b.label}</span>{x.statement}{!!x.sources?.length && <span className="block break-all pt-1 text-xs text-muted-foreground">Forrás: {x.sources.map((s) => `${s.label ? s.label + " " : ""}(${s.type ?? "?"}: ${s.id})`).join("; ")}</span>}</li>; })}</ul>}
+      {!!actions.length && <div><p className="text-xs font-medium">Javasolt lépések — mind emberi döntést / jóváhagyást igényel:</p><ul className="list-disc pl-5">{actions.map((a, i) => <li key={i}>{a.action}{a.owner_role ? ` (${a.owner_role})` : ""}</li>)}</ul></div>}
+      {!!questions.length && <div><p className="text-xs font-medium">Nyitott kérdések:</p><ul className="list-disc pl-5">{questions.map((x, i) => <li key={i}>{x}</li>)}</ul></div>}
+    </div>
+  </details>;
 }
