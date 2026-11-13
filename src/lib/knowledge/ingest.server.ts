@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { DOCUMENT_LIMITS, extractDocument, LargeDocumentError } from "@/lib/ai-os/adapters/document-extract.server";
 import { fetchDocumentBytes } from "@/lib/ai-os/adapters/document-access.server";
-import { documentTypeOf, finalStatus, INGEST_LIMITS, planIngest, type UnitResult } from "./ingest-model";
+import { cleanText, documentTypeOf, finalStatus, INGEST_LIMITS, planIngest, type UnitResult } from "./ingest-model";
 
 type Claimed = { id: string; claim_token: string; source_table: string; source_id: string };
 const SOURCE_COLUMNS: Record<string, string> = {
@@ -37,7 +37,7 @@ async function extractAll(bytes: Uint8Array, name: string) {
     if (offset === 0) units.push({ status: u?.status ?? "missing", text: u?.text ?? null });
     else if (u?.text) units[units.length - 1].text = (units[units.length - 1].text ?? "") + u.text;
     if (u?.status === "sensitive_withheld") units[units.length - 1].status = "sensitive_withheld";
-    if (u?.text) { chunks.push({ index: chunks.length, label: u.label, text: u.text }); chars += u.text.length; }
+    if (u?.text) { chunks.push({ index: chunks.length, label: cleanText(u.label), text: cleanText(u.text) }); chars += u.text.length; }
     if (chars >= INGEST_LIMITS.maxChars) { truncated = page.next_text_offset != null || page.next_unit != null; break; }
     if (page.next_text_offset != null) { offset = page.next_text_offset; continue; }
     if (page.next_unit == null) break;

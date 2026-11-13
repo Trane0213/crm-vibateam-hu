@@ -46,3 +46,9 @@ export function finalStatus(units: UnitResult[], truncated: boolean): { status: 
   if (truncated) limitations.push("Méret-/oldalkorlát miatt nem a teljes dokumentum indexelt.");
   return { status: truncated || empty > 0 ? "partial" : "processed", code: null, limitations };
 }
+
+/** Postgres jsonb rejects NUL and lone surrogates: normalize extracted text before storing. */
+export function cleanText(text: string) {
+  const wf = typeof (text as { toWellFormed?: () => string }).toWellFormed === "function" ? (text as unknown as { toWellFormed: () => string }).toWellFormed() : text;
+  return wf.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, " ");
+}

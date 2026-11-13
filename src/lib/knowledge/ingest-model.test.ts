@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { finalStatus, planIngest } from "./ingest-model";
+import { cleanText, finalStatus, planIngest } from "./ingest-model";
 
 describe("document ingestion rules", () => {
   it("never downloads unsupported types such as images", () => {
@@ -23,5 +23,8 @@ describe("document ingestion rules", () => {
   it("only a complete extraction counts as processed", () => {
     expect(finalStatus([{ status: "cached", text: "teljes" }], false).status).toBe("processed");
     expect(finalStatus([{ status: "cached", text: "teljes" }], true).status).toBe("partial");
+  });
+  it("removes NUL characters that the database cannot store", () => {
+    expect(cleanText("a\u0000b")).toBe("a b");
   });
 });
