@@ -15,4 +15,14 @@ it("closing uses pipeline-entered contract rows; quote stages remain unchanged",
   expect(view.closing).toBe(1);
   expect(view.stages.find(stage => stage.key === "quote")?.rows.map(row => row.id)).toEqual(["sent", "follow"]);
   expect(data.leads.find(row => row.id === "follow")?.status).toBe("follow_up");
+});it("primary focus follows the daily priority order: overdue before today", async () => {
+  const { salesPrimaryFocus } = await import("./workspace-view");
+  const data = dailyWork([lead("today"), lead("late", { next_step_due_at: "2026-11-04T09:00:00Z" })], [], "me", false, now);
+  expect(salesPrimaryFocus(data)).toMatchObject({ lead: { id: "late" }, reason: "Lejárt határidő" });
+  expect(salesPrimaryFocus(dailyWork([], [], "me", false, now))).toBeNull();
+});
+it("flow counts split preparation and pipeline stages for own leads only", async () => {
+  const { salesFlowCounts } = await import("./workspace-view");
+  const data = dailyWork([lead("p", { pipeline_entered_at: null }), lead("q", { status: "quote_prep" }), lead("s", { status: "quote_sent" }), lead("f", { status: "follow_up" }), lead("c", { status: "contract" }), lead("x", { status: "contract", assigned_to: "other" })], [], "me", false, now);
+  expect(salesFlowCounts(data)).toEqual({ prep: 1, quote: 1, followup: 2, contract: 1 });
 });

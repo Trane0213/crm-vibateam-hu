@@ -17,6 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/sales/")({
+  head: () => ({ meta: [
+    { title: "Sales áttekintés | VIBA CRM" },
+    { name: "description", content: "Pipeline-szakaszok, teendők és csapatterhelés a VIBA CRM-ben." },
+    { property: "og:title", content: "Sales áttekintés | VIBA CRM" },
+    { property: "og:description", content: "Értékesítési áttekintés a VIBA CRM-ben." },
+    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
+  ] }),
   component: SalesDashboardPage,
 });
 
@@ -74,7 +81,7 @@ function PipelineTiles() {
                 ? ({ to: "/projects" } as const)
                 : s === "lost"
                 ? ({ to: "/leads/lost" } as const)
-                : ({ to: "/sales/leads" } as const);
+                : ({ to: "/sales/leads", search: {} } as const);
             return (
               <Link
                 key={s}
@@ -136,7 +143,7 @@ function DueBucketsCard() {
 }
 
 function MyLoadCard() {
-  const { data } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["sales", "user-load"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -153,7 +160,7 @@ function MyLoadCard() {
         <CardTitle className="text-sm font-medium">Csapat terhelés</CardTitle>
       </CardHeader>
       <CardContent>
-        {!data || data.length === 0 ? (
+        {isLoading ? <p className="text-sm text-muted-foreground">Betöltés…</p> : isError ? <p role="alert" className="text-sm text-destructive">A terhelés nem tölthető be.</p> : !data || data.length === 0 ? (
           <p className="text-sm text-muted-foreground">Még nincs sales felhasználó vagy lead.</p>
         ) : (
           <ul className="space-y-1.5">
@@ -171,7 +178,7 @@ function MyLoadCard() {
 }
 
 function RecentActivityCard() {
-  const { data } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["sales", "recent-status"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -189,7 +196,7 @@ function RecentActivityCard() {
         <CardTitle className="text-sm font-medium">Legutóbbi státuszváltások</CardTitle>
       </CardHeader>
       <CardContent>
-        {!data || data.length === 0 ? (
+        {isLoading ? <p className="text-sm text-muted-foreground">Betöltés…</p> : isError ? <p role="alert" className="text-sm text-destructive">A státuszváltások nem tölthetők be.</p> : !data || data.length === 0 ? (
           <p className="text-sm text-muted-foreground">Még nincs státuszváltás.</p>
         ) : (
           <ul className="divide-y">
@@ -199,16 +206,16 @@ function RecentActivityCard() {
                   {new Date(h.changed_at).toLocaleString("hu-HU")}
                 </span>
                 <span className="flex items-center gap-2">
-                  <Badge variant="outline">{h.from_status ?? "—"}</Badge>
+                  <Badge variant="outline">{LEAD_STATUS_LABEL[h.from_status as LeadStatus] ?? h.from_status ?? "—"}</Badge>
                   <span className="text-muted-foreground">→</span>
-                  <Badge>{h.to_status}</Badge>
+                  <Badge>{LEAD_STATUS_LABEL[h.to_status as LeadStatus] ?? h.to_status}</Badge>
                 </span>
                 <Link
                   to="/leads/$id"
                   params={{ id: h.lead_id }}
                   className="text-xs text-primary hover:underline"
                 >
-                  megnyitás
+                  ügy megnyitása
                 </Link>
               </li>
             ))}

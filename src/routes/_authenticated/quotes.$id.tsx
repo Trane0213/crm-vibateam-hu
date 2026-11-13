@@ -25,6 +25,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { QuoteWorkflowChoice } from "@/components/quotes/quote-workflow-choice";
 import { quoteWorkflowFeatures, type QuoteWorkflow } from "@/lib/quotes/workflow";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { QuoteReadinessCard } from "@/components/quotes/quote-readiness-card";
+import { quoteFormDirty } from "@/lib/quotes/form-dirty";
 
 const NONE = "__none";
 const KIND_LABEL: Record<string, string> = { received_budget: "Kapott költségvetés", viba_offer: "Saját VIBA-ajánlat" };
@@ -94,12 +96,14 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
 
   const [form, setForm] = useState<FormState>(() => Object.fromEntries(FIELDS.map((f) => [f, ""])) as FormState);
   const [workspace, setWorkspace] = useState("overview");
+  const [formFor, setFormFor] = useState<string | null>(null);
   const set = (k: keyof FormState, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   useEffect(() => {
     if (!q.data) return;
     const d = q.data as any;
     setForm(Object.fromEntries(FIELDS.map((f) => [f, d[f] == null ? "" : String(d[f])])) as FormState);
+    setFormFor(d.id);
   }, [q.data?.id]);
 
   const lead = useQuery({
@@ -145,6 +149,13 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
     },
   });
   const items = useListWhere<any>("quote_items", "quote_id", id);
+  const dirty = !!q.data && formFor === q.data.id && quoteFormDirty(FIELDS, form, q.data as any);
+  useEffect(() => {
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [dirty]);
 
   if (q.isLoading) {
     return <div className="p-6 text-sm text-muted-foreground">Ajánlat betöltése…</div>;
@@ -280,6 +291,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
               {quote.is_current && <Badge variant="outline">aktuális</Badge>}
               <Badge variant="outline">{(quote as any).alternative_key ?? "A"} alt.</Badge>
               {(quote as any).locked_at && <Badge>kiküldve</Badge>}
+              {dirty && <Badge variant="outline" className="border-[color:var(--status-warning)]/50 text-[color:var(--status-warning)]">Nem mentett módosítás</Badge>}
               {quote.version != null && (
                 <span className="text-xs font-normal text-muted-foreground">v{quote.version}</span>
               )}
@@ -317,7 +329,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           <span>Azonosító: #{String(quote.id).slice(0, 8)}</span>
           {quote.lead_id && (
             <span>
-              Lead:{" "}
+              Ügy:{" "}
               <Link to="/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">
                 <Radar className="mr-1 inline h-3.5 w-3.5" />
                 {lead.data?.summary?.slice(0, 60) ?? `#${quote.lead_id.slice(0, 8)}`}
@@ -334,7 +346,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           <TabsList aria-label="Ajánlat munkaterületei" className="h-auto w-max justify-start">
             <TabsTrigger value="overview">1. {own ? "Alapadatok" : "Excel és tervek"}</TabsTrigger>
             <TabsTrigger value="pricing">2. {own ? "Ajánlat összeállítása" : "Összeg és megjegyzések"}</TabsTrigger>
-            <TabsTrigger value="send">3. {own ? "PDF és kiküldés" : "Kiküldés"}</TabsTrigger>
+            <TabsTrigger value="send">3. Ellenőrzés és kiküldés</TabsTrigger>
             <TabsTrigger value="status">4. Utánkövetés</TabsTrigger>
           </TabsList>
         </div>
@@ -386,6 +398,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           </QuoteTemplatePanel> : pricingEditor}
         </TabsContent>
         <TabsContent value="send" forceMount hidden={workspace !== "send"} className="py-5">
+          <div className="mb-6 max-w-2xl"><QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} /></div>
           {own && <div className="mb-6 space-y-4">
             <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
             <QuoteDocumentManager quoteId={quote.id} />
@@ -394,6 +407,11 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
         </TabsContent>
         <TabsContent value="status" forceMount hidden={workspace !== "status"} className="py-5">
           <QuoteStatusPanel quote={quote as any} />
+          {quote.status === "accepted" && <div className="mt-6 max-w-2xl rounded-lg border border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 p-3 text-sm">
+            <p className="font-semibold">Elfogadott ajánlat — következik a szerződés</p>
+            <p className="mt-1 text-xs text-muted-foreground">A szerződés-előkészítés és a „Megnyertük → projektátadás” a Pipeline ügy-adatlapján történik. Elektronikus aláírás a CRM-ben nem érhető el; a szerződési feltételek fájlja az 1. lépésben „Szerződési / fizetési feltételek” típusként tölthető fel.</p>
+            {quote.lead_id && (role === "sales" || role === "owner") && <Link to="/sales/leads" search={{ lead: quote.lead_id }} className="mt-2 inline-block text-xs font-medium text-primary hover:underline">Ügy megnyitása a Pipeline-ban →</Link>}
+          </div>}
         </TabsContent>
       </Tabs>}
     </div>

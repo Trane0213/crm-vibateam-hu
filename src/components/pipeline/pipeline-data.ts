@@ -10,7 +10,7 @@ export async function fetchPipelineLeads(): Promise<PipelineLead[]> {
   const { data: leads, error } = await supabase
     .from("leads")
     .select(
-      "id, status, source, summary, assigned_to, next_step_type, next_step_due_at, next_step_note, created_at, pipeline_entered_at, company_id, won_at, lost_at, lost_reason",
+      "id, status, source, summary, assigned_to, next_step_type, next_step_due_at, next_step_note, created_at, pipeline_entered_at, company_id, contact_id, won_at, lost_at, lost_reason",
     )
     .not("pipeline_entered_at", "is", null)
     .in("status", statuses)

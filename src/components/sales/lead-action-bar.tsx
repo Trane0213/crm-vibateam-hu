@@ -8,13 +8,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, Trophy, XCircle } from "lucide-react";
-import {
-  LEAD_STATUSES,
-  LEAD_STATUS_LABEL,
-  STATUS_TRANSITIONS,
-  type LeadStatus,
-} from "@/lib/sales/constants";
+import { LEAD_STATUS_LABEL, STATUS_TRANSITIONS, type LeadStatus } from "@/lib/sales/constants";
+import { menuTransitions } from "@/lib/sales/sales-flow";
 
+/**
+ * Pipeline műveletek. A menü csak a meglévő állapotgép (STATUS_TRANSITIONS)
+ * által engedett köztes szakaszokat mutatja — tiltott elemek nem jelennek meg.
+ * Megnyerés/Elveszett külön gombon; a szabályokat a DB triggerek érvényesítik.
+ */
 export function LeadActionBar({
   status,
   onChangeStatus,
@@ -30,37 +31,38 @@ export function LeadActionBar({
 }) {
   const current = (status ?? "new") as LeadStatus;
   const allowed = new Set(STATUS_TRANSITIONS[current] ?? []);
-  // A Won / Lost külön gombokon megy, a dropdown a köztes átmenetekért felel.
-  const dropdownTargets = LEAD_STATUSES.filter((s) => s !== current && s !== "won" && s !== "lost");
+  const targets = menuTransitions(current);
+  const canWin = allowed.has("won");
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" disabled={busy}>
-            Státuszváltás <ChevronDown className="ml-1 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel>Engedélyezett átmenet</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {dropdownTargets.map((s) => {
-            const ok = allowed.has(s);
-            return (
-              <DropdownMenuItem key={s} disabled={!ok} onClick={() => onChangeStatus(s)}>
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" disabled={busy || targets.length === 0}>
+              Szakasz módosítása <ChevronDown className="ml-1 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-60">
+            <DropdownMenuLabel>Áthelyezés ide</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {targets.map((s) => (
+              <DropdownMenuItem key={s} onClick={() => onChangeStatus(s)}>
                 {LEAD_STATUS_LABEL[s]}
-                {!ok && <span className="ml-auto text-[10px] text-muted-foreground">tiltott</span>}
               </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button size="sm" variant="default" disabled={!allowed.has("won") || busy} onClick={onWon}>
-        <Trophy className="mr-1 h-4 w-4" /> Megnyerés
-      </Button>
-      <Button size="sm" variant="destructive" disabled={!allowed.has("lost") || busy} onClick={onLost}>
-        <XCircle className="mr-1 h-4 w-4" /> Elveszett
-      </Button>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button size="sm" variant="default" disabled={!canWin || busy} onClick={onWon}>
+          <Trophy className="mr-1 h-4 w-4" /> Megnyertük
+        </Button>
+        <Button size="sm" variant="outline" className="text-destructive" disabled={!allowed.has("lost") || busy} onClick={onLost}>
+          <XCircle className="mr-1 h-4 w-4" /> Elveszett
+        </Button>
+      </div>
+      {!canWin && current !== "won" && current !== "lost" && (
+        <p className="text-[11px] text-muted-foreground">„Megnyertük” csak a Szerződés szakaszból indítható; egy lépésben létrehozza a projektet.</p>
+      )}
     </div>
   );
 }

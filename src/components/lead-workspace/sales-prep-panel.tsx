@@ -10,6 +10,9 @@
  * Pipeline-ba kerülés egyirányú (DB trigger védi). Projekt fogalom itt nincs.
  */
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { CheckCircle2, Circle } from "lucide-react";
+import { NEXT_STEP_LABEL, type NextStepType } from "@/lib/sales/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Phone, Mail, Users, ListChecks, Activity, ArrowRight, XCircle, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -179,7 +182,8 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
       <div className="flex-1 space-y-3 p-3">
         {inPipeline && (
           <Banner tone="success">
-            Ez a lead {fmtDate(l.pipeline_entered_at)} óta a Pipeline-ban van. A további munka a Pipeline menüben történik.
+            Ez az ügy {fmtDate(l.pipeline_entered_at)} óta a Pipeline-ban van. Az ajánlat, kiküldés, utánkövetés és szerződés ott folytatódik.
+            {l.status !== "won" && l.status !== "lost" && <Button asChild size="sm" className="mt-2 w-full"><Link to="/sales/leads" search={{ lead: l.id }}>Megnyitás a Pipeline-ban<ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>}
           </Banner>
         )}
         {isLost && (
@@ -216,7 +220,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         {/* B. Következő lépés */}
         <Block icon={ListChecks} title="Következő lépés">
           {!hasNextStep && (
-            <div className="mb-2 rounded-md border border-amber-300 bg-amber-50 px-2 py-1.5 text-[11px] text-amber-800">
+            <div className="mb-2 rounded-md border border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 px-2 py-1.5 text-[11px]">
               Még nincs következő lépés. A Pipeline-ba léptetéshez kötelező.
             </div>
           )}
@@ -272,10 +276,19 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
               <ArrowRight className="mr-1.5 h-3.5 w-3.5" />
               Pipeline-ba
             </Button>
-            {!inPipeline && !isLost && !canMoveToPipeline && (
-              <div className="mt-1 text-[10px] text-muted-foreground">
-                Feltétel: ≥1 aktivitás{activityCount >= 1 ? " ✓" : ""}, köv. lépés típusa{hasNextStepType ? " ✓" : ""}, mentett határidő (dátum + időpont){hasNextStepDue ? " ✓" : ""}.
-              </div>
+            {!inPipeline && !isLost && (
+              <ul aria-label="Pipeline-ba lépés feltételei" className="mt-1.5 space-y-0.5 text-[11px]">
+                {[
+                  { ok: activityCount >= 1, label: "Legalább 1 rögzített hívás vagy e-mail" },
+                  { ok: hasNextStepType, label: "Következő lépés típusa" },
+                  { ok: hasNextStepDue, label: "Mentett határidő (dátum + időpont)" },
+                ].map((c) => (
+                  <li key={c.label} className="flex items-center gap-1.5">
+                    {c.ok ? <CheckCircle2 className="h-3 w-3 text-[color:var(--status-success)]" /> : <Circle className="h-3 w-3 text-muted-foreground" />}
+                    <span className={c.ok ? "text-muted-foreground" : undefined}>{c.label}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
           <Button
@@ -309,8 +322,8 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
             </DialogDescription>
           </DialogHeader>
           <ul className="space-y-1 rounded-md border bg-muted/30 p-2 text-xs">
-            <li className="flex items-center gap-1.5"><ChevronRight className="h-3 w-3 text-emerald-600" /> Rögzített aktivitások: <b>{activityCount}</b></li>
-            <li className="flex items-center gap-1.5"><ChevronRight className="h-3 w-3 text-emerald-600" /> Következő lépés: <b>{l.next_step_type ?? "—"}</b>{l.next_step_due_at ? ` · ${fmtDateTime(l.next_step_due_at)}` : ""}</li>
+            <li className="flex items-center gap-1.5"><ChevronRight className="h-3 w-3 text-[color:var(--status-success)]" /> Rögzített aktivitások: <b>{activityCount}</b></li>
+            <li className="flex items-center gap-1.5"><ChevronRight className="h-3 w-3 text-[color:var(--status-success)]" /> Következő lépés: <b>{NEXT_STEP_LABEL[l.next_step_type as NextStepType] ?? l.next_step_type ?? "—"}</b>{l.next_step_due_at ? ` · ${fmtDateTime(l.next_step_due_at)}` : ""}</li>
           </ul>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPipelineOpen(false)} disabled={moveToPipeline.isPending}>Mégse</Button>
@@ -353,7 +366,7 @@ function Block({ icon: Icon, title, children }: { icon: React.ComponentType<{ cl
 
 function Banner({ tone, children }: { tone: "success" | "destructive"; children: React.ReactNode }) {
   const cls = tone === "success"
-    ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+    ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 text-foreground"
     : "border-destructive/40 bg-destructive/10 text-destructive";
   return <div className={`rounded-md border px-2 py-1.5 text-[11px] ${cls}`}>{children}</div>;
 }

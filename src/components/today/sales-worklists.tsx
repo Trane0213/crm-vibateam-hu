@@ -4,6 +4,7 @@ import { useDailyWork } from "@/lib/sales/use-daily-work";
 import { DUE_BUCKET_LABEL, NEXT_STEP_LABEL, type DueBucket, type NextStepType } from "@/lib/sales/constants";
 import { salesFocusSections, type DailyLead } from "@/lib/sales/daily-work";
 import { isTestLabel } from "@/lib/owner-kpis";
+import { dailyLeadTarget } from "@/lib/sales/sales-flow";
 import { Badge } from "@/components/ui/badge";
 
 type Tone = "danger" | "warning" | "info" | "primary" | "muted";
@@ -21,7 +22,7 @@ export function DailyLeadRows({ leads, compact = false }: { leads: DailyLead[]; 
   return <ul className={compact ? "grid gap-2 sm:grid-cols-2 xl:grid-cols-3" : "divide-y"}>{leads.map(l => {
     const missing = [!l.next_step_type && "következő lépés", !l.next_step_due_at && "határidő", !l.contact_id && "kapcsolattartó"].filter(Boolean) as string[];
     return <li key={l.id} className={compact ? "min-w-0 rounded-lg border bg-card" : undefined}>
-      <Link to="/leads" search={{ lead: l.id }} className="group flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-muted/50">
+      <Link {...dailyLeadTarget(l)} className="group flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-muted/50">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="min-w-0 truncate font-medium group-hover:text-primary">{(compact && l.company_name) || l.summary || l.source || `Ügy #${l.id.slice(0, 8)}`}</span>
@@ -29,7 +30,7 @@ export function DailyLeadRows({ leads, compact = false }: { leads: DailyLead[]; 
           </div>
           {compact && l.company_name && l.summary && <div className="mt-0.5 truncate text-xs text-muted-foreground">{l.summary}</div>}
           <div className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-            {l.next_step_type && <span>Következő: {compact ? NEXT_STEP_LABEL[l.next_step_type as NextStepType] ?? l.next_step_type : l.next_step_type}</span>}
+            {l.next_step_type && <span>Következő: {NEXT_STEP_LABEL[l.next_step_type as NextStepType] ?? l.next_step_type}</span>}
             {l.next_step_due_at && <span className="tabular-nums">Határidő: {fmtDue(l.next_step_due_at)}</span>}
             {missing.length > 0 && <span className="text-[color:var(--status-warning)]">Hiányzik: {missing.join(", ")}</span>}
           </div>

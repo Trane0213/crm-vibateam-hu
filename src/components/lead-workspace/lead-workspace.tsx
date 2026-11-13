@@ -8,6 +8,9 @@ import { LeadDetailColumn } from "./lead-detail-column";
 import { LeadActionPanel } from "./lead-action-panel";
 import { useAuth } from "@/hooks/use-auth";
 import { isOwnSalesLead } from "@/lib/sales/lead-visibility";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * Lead Workspace — 3 oszlop.
@@ -52,6 +55,26 @@ export function LeadWorkspace({
   const shell =
     className ??
     "mx-6 mb-6 flex h-[calc(100vh-9rem)] min-h-[560px] overflow-hidden rounded-lg border bg-card";
+
+  const isMobile = useIsMobile();
+  if (mode === "sales" && isMobile) {
+    // Mobilon egyszerre egy nézet: lista → kiválasztott ügy (előbb a teendő, alatta az előzmények).
+    return (
+      <div className="mx-3 mb-4 overflow-hidden rounded-lg border bg-card">
+        {!selectedId ? (
+          <div className="h-[calc(100vh-11rem)] min-h-[420px]"><LeadListColumn selectedId={selectedId} onSelect={setSelectedId} mode="sales" /></div>
+        ) : (
+          <div>
+            <div className="sticky top-0 z-10 border-b bg-card p-2">
+              <Button size="sm" variant="ghost" onClick={() => setSelectedId(null)}><ArrowLeft className="mr-1 h-4 w-4" />Vissza a listához</Button>
+            </div>
+            <SalesPrepPanel leadId={selectedId} />
+            <div className="border-t"><LeadDossierColumn leadId={selectedId} /></div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (mode === "sales") {
     return (

@@ -6,9 +6,9 @@ import { Plus } from "lucide-react";
 
 const NAV: { to: string; label: string; exact?: boolean }[] = [
   { to: "/sales", label: "Áttekintés", exact: true },
-  { to: "/sales/leads", label: "Leadek" },
+  { to: "/sales/leads", label: "Pipeline" },
   { to: "/sales/todo", label: "Teendők" },
-  { to: "/sales/quotes", label: "Ajánlatok" },
+  { to: "/sales/quotes", label: "Ajánlat-riport" },
 ];
 
 export function SalesShell({
@@ -35,7 +35,7 @@ export function SalesShell({
             {actions}
             <Button asChild size="sm" variant="secondary">
               <Link to="/leads">
-                <Plus className="mr-1 h-4 w-4" /> Új lead
+                <Plus className="mr-1 h-4 w-4" /> Sales-előkészítés
               </Link>
             </Button>
           </div>

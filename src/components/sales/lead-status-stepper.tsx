@@ -29,7 +29,7 @@ export function LeadStatusStepper({ status }: { status: LeadStatus | string | nu
                 isCurrent
                   ? "border-primary bg-primary text-primary-foreground"
                   : reached
-                    ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                    ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 text-foreground"
                     : "border-border bg-muted text-muted-foreground",
               )}
             >
@@ -40,7 +40,7 @@ export function LeadStatusStepper({ status }: { status: LeadStatus | string | nu
         );
       })}
       {isLost && (
-        <span className="ml-2 rounded-full border border-rose-300 bg-rose-100 px-2 py-0.5 text-[11px] font-medium text-rose-800">
+        <span className="ml-2 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">
           {LEAD_STATUS_LABEL.lost}
         </span>
       )}

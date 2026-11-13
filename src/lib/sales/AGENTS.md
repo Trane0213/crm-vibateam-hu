@@ -1,0 +1,2 @@
+- Sales workflow guidance (next action, send readiness, contract preparation) comes only from presentation-only `sales-flow.ts`; it never writes, suggests only STATUS_TRANSITIONS moves, and contract/e-signature stay UI-only until an approved data model exists — keeps one rule source without bypassing DB triggers.
+- Daily Sales rows open Pipeline leads at `/sales/leads?lead=` and pre-pipeline leads at `/leads?lead=` via `dailyLeadTarget` — one click to the screen where the next action happens.

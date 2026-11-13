@@ -12,6 +12,7 @@ export type PipelineLead = {
   created_at: string;
   pipeline_entered_at: string | null;
   company_id: string | null;
+  contact_id?: string | null;
   company_name?: string | null;
   assignee_name?: string | null;
   quote_total?: number | null;

@@ -11,3 +11,21 @@ export function salesWorkspaceView(data: ReturnType<typeof dailyWork>, now = new
   return { focus: salesFocusSections(data).flat(), stages, upcoming, closing: stages.find(stage => stage.key === "contract")?.rows.length ?? 0 };
 }
 export const salesLeadName = (lead: DailyLead) => lead.company_name || lead.summary || lead.source || `Ügy #${lead.id.slice(0, 8)}`;
+const FOCUS_REASON = ["Lejárt határidő", "Mai teendő", "Új érdeklődő", "Válaszra váró ajánlat", "Hiányos ügy"] as const;
+/** A napi lista legmagasabb prioritású ügye és annak oka (ugyanaz a sorrend, mint a listában). */
+export function salesPrimaryFocus(data: ReturnType<typeof dailyWork>): { lead: DailyLead; reason: (typeof FOCUS_REASON)[number] } | null {
+  const sections = salesFocusSections(data);
+  for (let i = 0; i < sections.length; i++) if (sections[i].length) return { lead: sections[i][0], reason: FOCUS_REASON[i] };
+  return null;
+}
+
+/** Munkafolyamat-sáv darabszámai a meglévő saját napi adatokból. */
+export function salesFlowCounts(data: ReturnType<typeof dailyWork>) {
+  const inPipe = (statuses: string[]) => data.leads.filter(l => !!l.pipeline_entered_at && statuses.includes(l.status ?? "")).length;
+  return {
+    prep: data.leads.filter(l => !l.pipeline_entered_at).length,
+    quote: inPipe(["quote_prep"]),
+    followup: inPipe(["quote_sent", "follow_up"]),
+    contract: inPipe(["contract"]),
+  };
+}

@@ -35,8 +35,8 @@ export function NextStepCell({
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
       <span>{label}</span>
       {due && (
-        <span className={cn("rounded px-1.5 py-0.5 text-[10px]", overdue ? "bg-rose-100 text-rose-800" : "bg-muted text-muted-foreground")}>
-          {due.toLocaleDateString("hu-HU", { month: "short", day: "numeric" })}
+        <span className={cn("rounded px-1.5 py-0.5 text-[10px]", overdue ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground")}>
+          {overdue ? "Lejárt · " : ""}{due.toLocaleDateString("hu-HU", { month: "short", day: "numeric" })}
         </span>
       )}
     </span>

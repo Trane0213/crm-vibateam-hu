@@ -24,18 +24,17 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   lost: "Elveszett",
 };
 
-// Tailwind szín-paletta (semantic-aware). A skeleton fázisban közvetlen
-// utility-osztályok; a végleges színek a Sales UI v2-ben kerülnek semantic
-// tokenné a styles.css-ben (lásd plan: Státuszok és színek).
+// Státusz-színek a közös szemantikus tokenekből (styles.css --status-*).
+// Tailwind csak literál osztályneveket ismer fel, ezért nincs osztálygeneráló segédfüggvény.
 export const LEAD_STATUS_TONE: Record<LeadStatus, string> = {
-  new: "bg-slate-100 text-slate-700 border-slate-300",
-  contacted: "bg-sky-100 text-sky-800 border-sky-300",
-  quote_prep: "bg-amber-100 text-amber-800 border-amber-300",
-  quote_sent: "bg-indigo-100 text-indigo-800 border-indigo-300",
-  follow_up: "bg-violet-100 text-violet-800 border-violet-300",
-  contract: "bg-emerald-100 text-emerald-800 border-emerald-300",
-  won: "bg-emerald-600 text-white border-emerald-700",
-  lost: "bg-rose-100 text-rose-800 border-rose-300",
+  new: "bg-muted text-muted-foreground border-border",
+  contacted: "bg-[color:var(--status-info)]/12 text-[color:var(--status-info)] border-[color:var(--status-info)]/35",
+  quote_prep: "bg-[color:var(--status-warning)]/12 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/35",
+  quote_sent: "bg-primary/10 text-primary border-primary/30",
+  follow_up: "bg-primary/10 text-primary border-primary/30",
+  contract: "bg-[color:var(--status-success)]/12 text-[color:var(--status-success)] border-[color:var(--status-success)]/35",
+  won: "bg-[color:var(--status-success)] text-primary-foreground border-[color:var(--status-success)]",
+  lost: "bg-destructive/10 text-destructive border-destructive/30",
 };
 
 // Engedélyezett státuszváltások — 4. szekció (state machine).
@@ -137,9 +136,9 @@ export const DUE_BUCKET_LABEL: Record<DueBucket, string> = {
 };
 
 export const DUE_BUCKET_TONE: Record<DueBucket, string> = {
-  overdue: "bg-rose-100 text-rose-800 border-rose-300",
-  today: "bg-amber-100 text-amber-800 border-amber-300",
-  tomorrow: "bg-sky-100 text-sky-800 border-sky-300",
+  overdue: "bg-destructive/10 text-destructive border-destructive/30",
+  today: "bg-[color:var(--status-warning)]/12 text-[color:var(--status-warning)] border-[color:var(--status-warning)]/35",
+  tomorrow: "bg-[color:var(--status-info)]/12 text-[color:var(--status-info)] border-[color:var(--status-info)]/35",
   later: "bg-muted text-muted-foreground border-border",
   missing: "bg-muted text-muted-foreground border-dashed border-border",
 };

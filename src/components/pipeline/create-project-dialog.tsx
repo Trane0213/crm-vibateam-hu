@@ -74,9 +74,9 @@ export function CreateProjectDialog({
       });
       return { id: projectId };
     },
-    onError: (e: any) => toast.error("Projekt létrehozás sikertelen", { description: humanizeSupabaseError(e) }),
+    onError: (e: any) => toast.error("A megnyerés nem sikerült — semmi nem módosult", { description: humanizeSupabaseError(e) }),
     onSuccess: (data) => {
-      toast.success("Projekt létrehozva");
+      toast.success("Megnyert ügy — a projekt létrejött és átadva a projektvezetőnek");
       qc.invalidateQueries({ queryKey: ["pipeline"] });
       qc.invalidateQueries({ queryKey: ["projects"] });
       // A lead won-né vált → a Ma oldal Workspace/Pipeline számlálói és a
@@ -97,12 +97,10 @@ export function CreateProjectDialog({
         onEscapeKeyDown={(e) => { if (busy) e.preventDefault(); }}
       >
         <DialogHeader>
-          <DialogTitle>Projekt létrehozása a megnyert leadből</DialogTitle>
+          <DialogTitle>Megnyertük → projektátadás</DialogTitle>
           <DialogDescription>
-            A Megnyerés és a Projekt létrehozása egyetlen atomi lépés. A lead
-            csak akkor vált <strong>megnyert</strong> állapotra, ha a projekt
-            sikeresen létrejön. A Mégse gomb biztonsággal bezárja a dialógust —
-            a lead a jelenlegi pipeline-szakaszában marad.
+            Add meg a projektvezetőt és az indulást. A Mégse gomb semmit nem
+            módosít — az ügy a Szerződés szakaszban marad.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -110,7 +108,7 @@ export function CreateProjectDialog({
             <Label>Projekt címe *</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="pl. Társasház felújítás – 2026 Q3" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Projektvezető *</Label>
               <RecordCombobox source="v_sales_user_load" value={managerId} onChange={setManagerId} label="Projektvezető" disabled={busy} />
@@ -126,14 +124,14 @@ export function CreateProjectDialog({
           </div>
           <div className="space-y-1.5">
             <Label>Átadási jegyzet</Label>
-            <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Mit kell a PM-nek tudnia a leadről?" />
+            <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Mit kell a projektvezetőnek tudnia az ügyről, szerződésről, határidőkről?" />
           </div>
-          <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div className="flex items-start gap-2 rounded-md border border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 px-3 py-2 text-[11px]">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--status-warning)]" />
             <span>
-              Backend invariáns: a lead csak az RPC útján kerülhet
-              <code className="mx-1">won</code> állapotba — egyetlen projekt
-              létrehozásával együtt, egy tranzakcióban.
+              Visszavonhatatlan lépés: a megnyert ügy később nem nyitható újra. A projekt és a
+              „Megnyert” állapot egyszerre jön létre — ha bármelyik hibára fut, egyik sem.
+              Az ajánlatok, utánkövetések és a kapcsolattartó automatikusan a projekthez kapcsolódnak.
             </span>
           </div>
         </div>
@@ -149,7 +147,7 @@ export function CreateProjectDialog({
             onClick={() => create.mutate()}
             disabled={!title.trim() || !managerId || !startDate || busy}
           >
-            {create.isPending ? "Megnyerés és projekt…" : "Megnyerés és projekt"}
+            {create.isPending ? "Mentés…" : "Megnyertük, projekt létrehozása"}
           </Button>
         </DialogFooter>
       </DialogContent>
