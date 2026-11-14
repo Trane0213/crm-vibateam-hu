@@ -5,7 +5,7 @@ import { toolError } from "../tool-errors";
 import type { ToolContext } from "../types";
 import { CRM_PAGE_PROPERTIES, crmReadPage, readWindow } from "./crm-read-page";
 import { authorizeDocumentScope, authorizedDocument, documentInput, fetchDocumentBytes } from "./document-access.server";
-import { DOCUMENT_LIMITS, extractDocument, LargeDocumentError } from "./document-extract.server";
+import { DOCUMENT_LIMITS, extractDocument, LargeDocumentError, pdfTextLayerPages } from "./document-extract.server";
 import { safeMailText } from "./gmail-context";
 import { imageMime, isImageName, VISION_LIMITS, VISION_VERIFICATION, VisionFailure, visionExtract, type VisionCaller, type VisionResult } from "./vision-extract.server";
 
@@ -47,7 +47,10 @@ export async function readDocument(args: Record<string, unknown>, ctx: ToolConte
     return { ok: true, data: { source, status: "requires_large_processing", provenance: { sha256: hash, processed_at: new Date().toISOString(), quote_version: version }, limits: DOCUMENT_LIMITS, completeness: { full_document: false }, limitations: ["A tartalmi méret/oldal/sorkorlát miatt nincs teljes feldolgozás, háttérmunka nem indult."] } };
   }
   const isPdf = name.toLowerCase().endsWith(".pdf");
-  if (data.ocr && isPdf && extracted.status === "no_extractable_text" && data.text_offset === 0) {
+  // Többoldalas szkennelt PDF első oldala "partial" (van következő oldal) — ezért nem a státuszt, hanem az összes oldal szövegrétegét nézzük.
+  const scanned = data.ocr && isPdf && data.unit === 0 && data.text_offset === 0 && !extracted.units[0]?.text
+    && (extracted.total_units === 1 ? extracted.status === "no_extractable_text" : extracted.total_units > VISION_LIMITS.pdfPages || (await pdfTextLayerPages(bytes, VISION_LIMITS.pdfPages)).textPages === 0);
+  if (scanned) {
     if (extracted.total_units > VISION_LIMITS.pdfPages) return { ok: true, data: { source, status: "requires_large_processing", provenance: { ...provenanceBase, parser: extracted.parser }, limits: { ...DOCUMENT_LIMITS, ocr_pdf_pages: VISION_LIMITS.pdfPages }, completeness: { full_document: false },
       limitations: [`Kérésre futó képfelismerés legfeljebb ${VISION_LIMITS.pdfPages} oldalas PDF-en; ez ${extracted.total_units} oldalas, tartalom nem lett olvasva.`] } };
     return visionResponse(await visionExtract(bytes, name, { type: "pdf", pages: extracted.total_units }, { cacheKey, call: vision }));

@@ -43,6 +43,29 @@ function textPage(text: string, label: string, total: number, unit: number, offs
     units: [{ label: safeMailText(label).text ?? "[visszatartott egységnév]", text: safe.text, status: safe.status }], total_units: total, next_unit: nextUnit, next_text_offset: safe.next_offset, parser, limitations };
 }
 
+/** Szkennelt PDF felismerése: hány oldalon van szövegréteg (legfeljebb maxPages oldalt vizsgál, egy betöltéssel). */
+export async function pdfTextLayerPages(bytes: Uint8Array, maxPages: number): Promise<{ pages: number; textPages: number; checked: number }> {
+  if (!decoder.decode(bytes.slice(0, 5)).startsWith("%PDF-")) throw new Error("Nem PDF-tartalom.");
+  const { getDocumentProxy } = await import("unpdf");
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("PDF-feldolgozás időkorlát.")), DOCUMENT_LIMITS.pdfDeadlineMs); });
+  const loading = getDocumentProxy(bytes.slice(), { useSystemFonts: false, useWasm: false, maxImageSize: 0, isOffscreenCanvasSupported: false, isImageDecoderSupported: false, disableFontFace: true });
+  const pdf = await Promise.race([loading, deadline]).catch((e) => {
+    if (timer) clearTimeout(timer);
+    void loading.then((late) => late.loadingTask.destroy()).catch(() => undefined);
+    throw e;
+  });
+  try {
+    const checked = Math.min(pdf.numPages, maxPages); let textPages = 0;
+    for (let i = 1; i <= checked; i++) {
+      const page = await Promise.race([pdf.getPage(i), deadline]);
+      const content = await Promise.race([page.getTextContent(), deadline]);
+      if (content.items.some((item) => "str" in item && item.str.trim())) textPages++;
+    }
+    return { pages: pdf.numPages, textPages, checked };
+  } finally { if (timer) clearTimeout(timer); await pdf.loadingTask.destroy(); }
+}
+
 export async function extractDocument(bytes: Uint8Array, name: string, unit = 0, textOffset = 0): Promise<ExtractedDocument> {
   if (bytes.length > DOCUMENT_LIMITS.bytes) throw new LargeDocumentError("A fájl nagyfeldolgozást igényel; az olvasási korlát 5 MB.");
   if (!Number.isSafeInteger(unit) || unit < 0 || !Number.isSafeInteger(textOffset) || textOffset < 0) throw new Error("Érvénytelen tartalomlapozás.");

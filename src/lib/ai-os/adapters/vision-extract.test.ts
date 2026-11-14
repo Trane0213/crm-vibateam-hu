@@ -31,6 +31,16 @@ function pdf(text = "") {
   out += `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
   return strToU8(out);
 }
+function pdfPages(texts: string[]) {
+  const n = texts.length, objs: string[] = ["<< /Type /Catalog /Pages 2 0 R >>", `<< /Type /Pages /Kids [${texts.map((_, i) => `${4 + i * 2} 0 R`).join(" ")}] /Count ${n} >>`, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"];
+  texts.forEach((t, i) => { const stream = t ? `BT /F1 12 Tf 20 200 Td (${t}) Tj ET` : "";
+    objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] /Resources << /Font << /F1 3 0 R >> >> /Contents ${5 + i * 2} 0 R >>`, `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`); });
+  let out = "%PDF-1.4\n"; const offsets: number[] = [];
+  objs.forEach((o, i) => { offsets.push(out.length); out += `${i + 1} 0 obj\n${o}\nendobj\n`; });
+  const xref = out.length; out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n` + offsets.map((o) => `${String(o).padStart(10, "0")} 00000 n \n`).join("");
+  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return strToU8(out);
+}
 function model(pages: { page: number; text: string; description?: string; uncertain?: string[] }[], extra: Partial<{ status: string }> = {}) {
   const seen: MultimodalArgs[] = [];
   const call: VisionCaller = async (args) => { seen.push(args); return { text: JSON.stringify({ document_kind: "TESZT", pages: pages.map((p) => ({ description: "TESZT leírás", uncertain: [], ...p })) }), status: extra.status ?? "completed", model: AI_MODEL.model, usage: { input_tokens: 1000, output_tokens: 200 } }; };
@@ -109,6 +119,16 @@ describe("Képfelismerés a dokumentumolvasóban — jogosultság, jelölés, k�
     const f = fixture({ quotes: [{ id: quoteId }], quote_documents: [row("TESZT.pdf")] }); const m = model([{ page: 1, text: "x" }]);
     const out = await readDocument({ ...args, ocr: true }, f.ctx, async () => pdf("TESZT SZOVEG"), m.call) as any;
     expect(m.seen.length).toBe(0); expect(out.data.units[0].text).toContain("TESZT SZOVEG"); expect(out.data.limitations.join(" ")).toContain("Képfelismerés nem futott");
+  });
+  it("többoldalas szkennelt PDF (élő próbán talált hiba): mind a 3 oldal szöveg nélkül → egy OCR-hívás, 3 oldallal", async () => {
+    const f = fixture({ quotes: [{ id: quoteId }], quote_documents: [row("TESZT-szkennelt-3.pdf")] }); const m = model([{ page: 1, text: "A" }, { page: 2, text: "B" }, { page: 3, text: "C" }]);
+    const out = await readDocument({ ...args, ocr: true }, f.ctx, async () => pdfPages(["", "", ""]), m.call) as any;
+    expect(m.seen.length).toBe(1); expect(out.data.total_units).toBe(3); expect(out.data.status).toBe("extracted"); expect(out.data.ai_extracted).toBe(true);
+  });
+  it("vegyes PDF (1. oldal üres, 2. oldalon szövegréteg): nem fizet, a szövegréteg-olvasás marad", async () => {
+    const f = fixture({ quotes: [{ id: quoteId }], quote_documents: [row("TESZT-vegyes.pdf")] }); const m = model([{ page: 1, text: "x" }]);
+    const out = await readDocument({ ...args, ocr: true }, f.ctx, async () => pdfPages(["", "TESZT MASODIK"]), m.call) as any;
+    expect(m.seen.length).toBe(0); expect(out.data.ai_extracted).toBeUndefined(); expect(out.data.next_unit).toBe(1);
   });
   it("azonos fájl ismételt olvasása ugyanannak a felhasználónak nem fizet újra; másik felhasználónak külön", async () => {
     const tables = { quotes: [{ id: quoteId }], quote_documents: [row("TESZT.png")] }; const m = model([{ page: 1, text: "TESZT" }]);
