@@ -166,7 +166,6 @@ function UploadDialog({ parent, resume, onClose }: { parent: PackageParent | nul
     window.addEventListener("beforeunload", h);
     return () => window.removeEventListener("beforeunload", h);
   }, [phase]);
-  useEffect(() => { if (dirRef.current) dirRef.current.setAttribute("webkitdirectory", ""); }, []);
 
   const add = (list: LocalFile[], kind: typeof source) => {
     if (!list.length) return;
@@ -194,7 +193,14 @@ function UploadDialog({ parent, resume, onClose }: { parent: PackageParent | nul
         onEvent: (e) => {
           if (e.type === "hash") { hashedPer.set(e.relativePath, e.done); hashed = [...hashedPer.values()].reduce((a, b) => a + b, 0); setStatus({ label: `Ellenőrzés: ${baseName(e.relativePath)}`, done: hashed, total: totalBytes }); }
           if (e.type === "progress") { sent.set(e.relativePath, e.sentBytes); setStatus({ label: `Feltöltés: ${baseName(e.relativePath)}`, done: [...sent.values()].reduce((a, b) => a + b, 0), total: totalBytes }); }
-          if (e.type === "file") setOutcomes((o) => [...o, e.outcome]);
+          if (e.type === "file") {
+            setOutcomes((o) => [...o, e.outcome]);
+            // A korábban már kész vagy duplikált fájl is a teljes mennyiség része.
+            if (e.outcome.state === "already" || e.outcome.state === "duplicate" || e.outcome.state === "verified") {
+              sent.set(e.outcome.relativePath, sizes.get(e.outcome.relativePath) ?? 0);
+              setStatus((st) => ({ label: st.label, done: [...sent.values()].reduce((a, b) => a + b, 0), total: totalBytes }));
+            }
+          }
           if (e.type === "mode") sessionStorage.setItem("viba-pkg-mode", e.mode);
         },
       });
@@ -203,7 +209,7 @@ function UploadDialog({ parent, resume, onClose }: { parent: PackageParent | nul
       else toast.success("A dokumentáció feltöltése kész");
       setPhase("done");
     } catch (e) {
-      if (e instanceof UploadAborted || ac.signal.aborted) { toast.info("Feltöltés szüneteltetve", { description: "Később a „Feltöltés folytatása” gombbal ugyanonnan folytatható." }); setPhase("done"); }
+      if (e instanceof UploadAborted || ac.signal.aborted) { toast.info("Feltöltés szüneteltetve", { description: "Később a „Feltöltés folytatása” gombbal ugyanonnan folytatható." }); setStatus((st) => ({ ...st, label: "Szüneteltetve – folytatható" })); setPhase("done"); }
       else { toast.error("A feltöltés megszakadt", { description: (e as Error)?.message ?? "Később folytatható." }); setPhase("done"); }
     } finally {
       qc.invalidateQueries({ queryKey: ["documents"] });
@@ -234,7 +240,7 @@ function UploadDialog({ parent, resume, onClose }: { parent: PackageParent | nul
                 <Button type="button" variant="outline" onClick={() => zipRef.current?.click()}><FileArchive className="mr-1.5 h-4 w-4" />ZIP</Button>
               </div>
               <input ref={fileRef} type="file" multiple hidden onChange={(e) => { add(fromInput(e.target.files), "files"); e.target.value = ""; }} />
-              <input ref={dirRef} type="file" multiple hidden onChange={(e) => { add(fromInput(e.target.files), "folder"); e.target.value = ""; }} />
+              <input ref={dirRef} type="file" multiple hidden {...({ webkitdirectory: "", directory: "" } as Record<string, string>)} onChange={(e) => { add(fromInput(e.target.files), "folder"); e.target.value = ""; }} />
               <input ref={zipRef} type="file" accept=".zip,application/zip" multiple hidden onChange={(e) => { add(fromInput(e.target.files), "zip"); e.target.value = ""; }} />
             </div>
             {!resume && <div><label className="text-xs font-medium" htmlFor="pkg-title">A csomag neve</label><Input id="pkg-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="pl. Kiviteli terv – 2. revízió" maxLength={200} /></div>}
@@ -254,7 +260,7 @@ function UploadDialog({ parent, resume, onClose }: { parent: PackageParent | nul
         {phase !== "choose" && (
           <div className="space-y-3">
             <div>
-              <div className="mb-1 flex justify-between text-xs text-muted-foreground"><span className="truncate">{phase === "done" ? "Befejezve" : status.label || "Előkészítés…"}</span><span>{formatBytes(status.done)} / {formatBytes(status.total || total)}</span></div>
+              <div className="mb-1 flex justify-between text-xs text-muted-foreground"><span className="truncate">{phase === "done" && !status.label.startsWith("Szüneteltetve") ? "Befejezve" : status.label || "Előkészítés…"}</span><span>{formatBytes(status.done)} / {formatBytes(status.total || total)}</span></div>
               <Progress value={status.total ? (status.done / status.total) * 100 : 0} aria-label="Feltöltés állapota" />
             </div>
             <p className="text-sm">{counts.ok} fájl kész{counts.dup ? ` · ${counts.dup} már korábban feltöltve (nem tároltuk újra)` : ""}{counts.bad.length ? ` · ${counts.bad.length} hibás` : ""}</p>

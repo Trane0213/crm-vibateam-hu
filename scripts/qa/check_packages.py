@@ -74,7 +74,7 @@ def strings(body):
 LOCAL={}
 for d,_,fs in os.walk(PKG_DIR):
  for f in fs:
-  p=os.path.join(d,f); rel=os.path.relpath(p,PKG_DIR).replace(os.sep,'/')
+  p=os.path.join(d,f); rel=os.path.basename(PKG_DIR.rstrip('/'))+'/'+os.path.relpath(p,PKG_DIR).replace(os.sep,'/')
   LOCAL[rel]=p
 def sha_local(rel):
  h=hashlib.sha256()
@@ -151,8 +151,8 @@ async def main():
   browser=await p.chromium.launch(headless=True)
   ctx=await browser.new_context(viewport={'width':1280,'height':1800}, user_agent=None if MODE!='mobile' else 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1')
   page=await ctx.new_page()
-  errors=[]; page.on('pageerror',lambda e:errors.append(str(e)[:300])); page.on('console',lambda m: print('CONSOLE',m.type,m.text[:300]) if m.type in ('error','warning') else None)
-  writes=[]; log=[]
+  errors=[]; page.on('pageerror',lambda e:errors.append(str(e)[:300])); page.on('console',lambda m: CONS.append(m) if m.type in ('error','warning') else None)
+  writes=[]; log=[]; global CONS; CONS=[]
   await page.goto('http://localhost:8080/auth',wait_until='networkidle')
   async def intercept(route):
    req=route.request;url=req.url
@@ -214,14 +214,13 @@ async def main():
    tab=page.get_by_role('tab',name=re.compile('Dokumentumok'))
    if await tab.count(): await tab.first.click(); await page.wait_for_timeout(1500)
    print(ROLE,MODE,'panel',await panel.count(),'| upload btn',await page.get_by_role('button',name='Új dokumentáció feltöltése').count(),'| overflow',await ovf())
-   print('PANEL TEXT',(await panel.first.inner_text())[:400].replace('\n',' | '))
-   if MODE!='notready':
+   if MODE!='notready' and await panel.count():
     await page.get_by_role('button',name=re.compile('TESZT Kiviteli terv')).click(); await page.wait_for_timeout(1500)
     print(ROLE,MODE,'folders',await panel.locator('p:has(svg.lucide-folder-open)').all_inner_texts(),'| open btns',await panel.get_by_role('button',name='Megnyitás').count(),'| rev2 shown',await panel.get_by_text('(2. változat)').count(),'| CAD note',await panel.get_by_text('csak tárolva').count())
     await panel.get_by_role('button',name=re.compile('Hibák')).click(); await page.wait_for_timeout(500)
     print(ROLE,MODE,'problems list',await panel.locator('li span.block.truncate').all_inner_texts())
     await panel.get_by_role('button',name=re.compile('Hibák')).click()
-   await panel.screenshot(path=str(OUT/f'{ROLE}-{MODE}-panel.png'))
+   await (panel.first if await panel.count() else page).screenshot(path=str(OUT/f'{ROLE}-{MODE}-panel.png'))
    if await page.get_by_role('button',name='Új dokumentáció feltöltése').count():
     await page.get_by_role('button',name='Új dokumentáció feltöltése').click(); await page.wait_for_timeout(800)
     dlg=page.get_by_role('dialog')
@@ -256,11 +255,15 @@ async def main():
    else:
     for _ in range(500):
      await page.wait_for_timeout(1000)
-     if await dlg.get_by_role('button',name='Bezárás').count(): break
+     if not await dlg.get_by_role('button',name='Szüneteltetés').count(): break
     print(ROLE,MODE,'finished after s',int(time.time()-t0),'| text',(await dlg.inner_text()).replace('\n',' | ')[:400])
    await page.screenshot(path=str(OUT/f'{ROLE}-{MODE}-end.png'))
    s=json.load(open(STATE_F))
    print(ROLE,MODE,'files',{k:v['status'] for k,v in s['files'].items()},'| puts',s['puts'],'| MB',round(s['put_bytes']/1e6,1),'| sha mismatch',s['sha_mismatch'],'| md5≠etag',sum(1 for f in s['files'].values() for k in f['etag'] if f['md5'].get(k) and f['md5'][k]!=f['etag'][k]))
+  for m in CONS:
+   if 'descendant' in m.text or 'nested' in m.text:
+    try: print('NEST', str(await m.args[-1].json_value())[-900:])
+    except Exception as e: print('NEST?',e)
   print(ROLE,MODE,'log',log[:12],'| errors',errors[:3],'| supabase writes',writes[:5])
   await browser.close()
 asyncio.run(main())
