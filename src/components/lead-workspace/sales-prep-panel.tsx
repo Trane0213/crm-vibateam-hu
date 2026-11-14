@@ -32,6 +32,7 @@ import { NextStepEditor } from "@/components/sales/next-step-editor";
 import { canEnterPipeline } from "@/lib/sales/next-step-input";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { useUpdateLead } from "./use-lead-mutations";
+import { WonLeadHandoff } from "@/components/handoff/lead-handoff-card";
 import { updateLeadOrThrow } from "@/lib/sales/lead-update";
 import { logActivity } from "@/lib/activity-log";
 import { statusToLostStage } from "@/lib/sales/constants";
@@ -180,7 +181,15 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
       </div>
 
       <div className="flex-1 space-y-3 p-3">
-        {inPipeline && (
+        {l.status === "won" && (
+          <>
+            <Banner tone="success">
+              Megnyert ügy{l.won_at ? ` (${fmtDate(l.won_at)})` : ""} — a munka a projekten folytatódik. Következő lépést itt már nem kell vezetni.
+            </Banner>
+            <WonLeadHandoff leadId={l.id} />
+          </>
+        )}
+        {inPipeline && l.status !== "won" && (
           <Banner tone="success">
             Ez az ügy {fmtDate(l.pipeline_entered_at)} óta a Pipeline-ban van. Az ajánlat, kiküldés, utánkövetés és szerződés ott folytatódik.
             {l.status !== "won" && l.status !== "lost" && <Button asChild size="sm" className="mt-2 w-full"><Link to="/sales/leads" search={{ lead: l.id }}>Megnyitás a Pipeline-ban<ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>}
@@ -217,8 +226,8 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
           </div>
         </Block>
 
-        {/* B. Következő lépés */}
-        <Block icon={ListChecks} title="Következő lépés">
+        {/* B. Következő lépés — megnyert ügynél nincs értelme (a teendő a projekten van). */}
+        {l.status !== "won" && <Block icon={ListChecks} title="Következő lépés">
           {!hasNextStep && (
             <div className="mb-2 rounded-md border border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 px-2 py-1.5 text-[11px]">
               Még nincs következő lépés. A Pipeline-ba léptetéshez kötelező.
@@ -232,7 +241,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
             onSave={(p) => updateLead.mutate(p)}
             onClear={() => updateLead.mutate({ next_step_type: null, next_step_due_at: null, next_step_note: null })}
           />
-        </Block>
+        </Block>}
 
         {/* C. Legutóbbi aktivitások */}
         <Block icon={Activity} title="Legutóbbi aktivitások">

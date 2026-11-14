@@ -182,10 +182,24 @@ export function projectDay(
 
 export type PmActionKind =
   | "overdue_tasks" | "blocked_tasks" | "today_tasks" | "deadline_passed"
-  | "handover_check" | "daily_note" | "no_docs" | "none";
+  | "handoff_intake" | "handover_check" | "daily_note" | "no_docs" | "none";
 export const PM_ACTION_ORDER: PmActionKind[] = [
-  "overdue_tasks", "blocked_tasks", "today_tasks", "deadline_passed", "handover_check", "daily_note", "no_docs", "none",
+  "overdue_tasks", "blocked_tasks", "today_tasks", "deadline_passed", "handoff_intake", "handover_check", "daily_note", "no_docs", "none",
 ];
+
+/**
+ * Sales-átadás átvétele: „Átadás / előkészítés” állapotú projekt, amelynél a
+ * projektvezetői alapadat (cím, határidő, első feladat) még hiányzik. Ugyanazt
+ * a három tételt a `sales-pm-handoff.ts` ellenőrzőlistája is PM-feladatként mutatja.
+ */
+export function pmIntakeGaps(day: Pick<PmProjectDay, "project" | "openTasks">): string[] {
+  if (day.project.status !== "atadas") return [];
+  const gaps: string[] = [];
+  if (!day.project.address?.trim()) gaps.push("helyszín címe");
+  if (!day.project.deadline) gaps.push("határidő");
+  if (day.openTasks.length === 0) gaps.push("első feladat");
+  return gaps;
+}
 export type PmNextAction = { kind: PmActionKind; title: string; detail: string; tab: PmTab; button: string; warnings: string[] };
 
 /** Egy projekt elsődleges következő teendője — rögzített, magyarázható sorrendben. */
@@ -206,6 +220,9 @@ export function pmNextAction(day: PmProjectDay): PmNextAction {
     return { kind: "today_tasks", title: `Mai feladat: ${day.today[0].title ?? "feladat"}`, detail: `${day.today.length} feladat esedékes ma.`, tab: "tasks", button: "Mai feladatok", warnings };
   if (day.deadline.passed)
     return { kind: "deadline_passed", title: "A projekt határideje lejárt", detail: "Ellenőrizd az állapotot; ha a munka folytatódik, egyeztesd az új határidőt.", tab: "overview", button: "Projekt áttekintése", warnings };
+  const intake = pmIntakeGaps(day);
+  if (intake.length)
+    return { kind: "handoff_intake", title: "Sales-átadás átvétele", detail: `Hiányzik: ${intake.join(", ")}. Az Átadás fülön egy helyen pótolható, ott látod a Sales átadási adatait is.`, tab: "handover", button: "Átadás megnyitása", warnings };
   if (status === "muszaki_atadas")
     return { kind: "handover_check", title: "Átadás-előkészítés ellenőrzése", detail: "Nézd át a nyitott feladatokat, fotókat és dokumentumokat az átadás előtt.", tab: "handover", button: "Átadás-ellenőrzés", warnings };
   if (status === "kivitelezes" && !day.noteToday)
@@ -292,11 +309,14 @@ export function pmProjectSteps(day: PmProjectDay): PmProjectStep[] {
       state: day.docs.total === 0 ? "missing" : day.docs.photo === 0 ? "warn" : "ok",
       summary: `${day.docs.total} fájl · ${day.docs.photo} fotó`,
     },
-    {
-      key: "handover", label: "Átadás-előkészítés", tab: "handover",
-      state: day.project.status === "muszaki_atadas" ? (open ? "missing" : "warn") : open ? "warn" : "ok",
-      summary: day.project.status === "muszaki_atadas" ? "Műszaki átadás alatt" : "Tájékoztató ellenőrzőlista",
-    },
+    (() => {
+      const intake = pmIntakeGaps(day);
+      return {
+        key: "handover", label: intake.length ? "Sales-átadás átvétele" : "Átadás-előkészítés", tab: "handover" as PmTab,
+        state: (intake.length ? "missing" : day.project.status === "muszaki_atadas" ? (open ? "missing" : "warn") : open ? "warn" : "ok") as StepState,
+        summary: intake.length ? `Hiányzik: ${intake.join(", ")}` : day.project.status === "muszaki_atadas" ? "Műszaki átadás alatt" : "Tájékoztató ellenőrzőlista",
+      };
+    })(),
   ];
 }
 

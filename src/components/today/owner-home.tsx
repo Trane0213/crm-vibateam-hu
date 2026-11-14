@@ -356,7 +356,7 @@ function OrgSignalsLine() {
   return (
     <p className="mt-1 text-xs">
       Szervezeti jelzések: <b>{s.byStatus.open}</b> nyitott, <b>{s.byStatus.verify}</b> ellenőrizendő{s.critical ? <>, <b className="text-destructive">{s.critical} súlyos</b></> : null}
-      {(s.byDomain.handoff ?? 0) > 0 ? ` · ebből ${s.byDomain.handoff} hiányos Sales→PM átadás` : ""}
+      {(s.byDomain.handoff ?? 0) > 0 && <> · ebből <Link to="/settings/ai-review" search={{ domain: "handoff" }} hash="george-jelzesek" className="font-medium text-primary hover:underline">{s.byDomain.handoff} hiányos Sales→PM átadás</Link></>}
     </p>
   );
 }

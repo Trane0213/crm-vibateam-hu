@@ -37,10 +37,10 @@ function RecordLink({ link, children, variant = "outline" }: { link: OrgLink; ch
   return <Button asChild size="sm" variant={variant}><Link to={link.to as "/today"} search={(link.search ?? {}) as never}>{children}<ArrowUpRight /></Link></Button>;
 }
 
-export function OrgSignalsPanel() {
+export function OrgSignalsPanel({ initialDomain }: { initialDomain?: OrgDomain } = {}) {
   const q = useOrgSignals();
   const [status, setStatus] = useState<OrgStatus | "all">("all");
-  const [domain, setDomain] = useState<OrgDomain | "all">("all");
+  const [domain, setDomain] = useState<OrgDomain | "all">(initialDomain ?? "all");
   const items = q.data?.items ?? [];
   const shown = useMemo(() => items.filter((i) => (status === "all" || i.status === status) && (domain === "all" || i.domain === domain)), [items, status, domain]);
   const domains = DOMAIN_ORDER.filter((d) => items.some((i) => i.domain === d));

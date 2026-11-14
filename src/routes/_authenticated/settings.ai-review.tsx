@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { aiReviewCollectNow, aiReviewOverview, aiReviewRunNow, aiReviewUpdateConfig } from "@/lib/ai-review/ai-review.functions";
 import { AREA_LABEL, type ReviewAgent } from "@/lib/ai-review/model";
 import { OrgSignalsPanel } from "@/components/george/org-signals-panel";
+import { isOrgDomain, type OrgDomain } from "@/lib/george/org-signals";
 
 export const Route = createFileRoute("/_authenticated/settings/ai-review")({
   head: () => ({ meta: [
@@ -24,6 +25,8 @@ export const Route = createFileRoute("/_authenticated/settings/ai-review")({
     { property: "og:description", content: "Változásfigyelés, súlyos jelzések, költségkeret és vizsgálati előzmények." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
+  // `?domain=`: a George-jelzések területszűrőjének kezdőértéke (pl. a Mai vezetői munka „átadás” linkjéről).
+  validateSearch: (s: Record<string, unknown>): { domain?: OrgDomain } => (isOrgDomain(s.domain) ? { domain: s.domain } : {}),
   component: AiReviewPage,
 });
 
@@ -36,6 +39,7 @@ const fmt = (s: string | null) => (s ? new Date(s).toLocaleString("hu-HU", { tim
 const num = (n: number) => n.toLocaleString("hu-HU");
 
 function AiReviewPage() {
+  const { domain } = Route.useSearch();
   const qc = useQueryClient();
   const overview = useServerFn(aiReviewOverview);
   const save = useServerFn(aiReviewUpdateConfig);
@@ -82,7 +86,7 @@ function AiReviewPage() {
   const criticalOpen = signals.filter((s) => s.severity === "critical" && ["pending", "in_review", "failed"].includes(s.review_status)).length;
 
   if (q.isLoading) return <p className="text-sm text-muted-foreground">Betöltés…</p>;
-  if (q.isError || !cfg) return <div className="space-y-6"><p className="text-sm text-destructive">{q.error instanceof Error ? q.error.message : "Az állapot nem tölthető be."}</p><OrgSignalsPanel /></div>;
+  if (q.isError || !cfg) return <div className="space-y-6"><p className="text-sm text-destructive">{q.error instanceof Error ? q.error.message : "Az állapot nem tölthető be."}</p><OrgSignalsPanel initialDomain={domain} /></div>;
 
   return (
     <div className="space-y-6">
@@ -104,7 +108,7 @@ function AiReviewPage() {
         </Card>
       )}
 
-      <OrgSignalsPanel />
+      <OrgSignalsPanel initialDomain={domain} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

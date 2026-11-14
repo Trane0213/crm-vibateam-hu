@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RecordCombobox } from "@/components/resource/record-combobox";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleDashed, ArrowRightCircle } from "lucide-react";
+import { winHandoffPreview } from "@/lib/handoff/sales-pm-handoff";
+import { budapestYmd } from "@/lib/pm/pm-day-flow";
+import { LEAD_SOURCE_LABEL } from "@/lib/marketing-status";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
@@ -30,10 +33,13 @@ export function CreateProjectDialog({
   lead,
   open,
   onOpenChange,
+  currentQuoteCount = null,
 }: {
   lead: PipelineLead | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** Az ügy aktuális ajánlatainak száma (null = nem ismert) — csak az előnézethez. */
+  currentQuoteCount?: number | null;
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -45,9 +51,11 @@ export function CreateProjectDialog({
   useEffect(() => {
     if (open && lead) {
       setTitle(lead.company_name ? `${lead.company_name} – projekt` : lead.summary ?? "Új projekt");
-      setNotes(lead.summary ?? "");
+      // Az ügy összefoglalója automatikusan átkerül (handoff_payload.summary) —
+      // a jegyzetbe nem másoljuk be újra, hogy ne legyen kettős adat.
+      setNotes("");
       setManagerId("");
-      setStartDate(new Date().toISOString().slice(0, 10));
+      setStartDate(budapestYmd());
     }
   }, [open, lead]);
 
@@ -83,7 +91,8 @@ export function CreateProjectDialog({
       // Workspace lista (["leads", ...]) is változnak.
       qc.invalidateQueries({ queryKey: ["leads"] });
       onOpenChange(false);
-      navigate({ to: "/projects/$id", params: { id: data.id } });
+      // Közvetlenül az Átadás fülre: ott látszik, mi ment át és mi hiányzik.
+      navigate({ to: "/projects/$id", params: { id: data.id }, search: { tab: "handover" } });
     },
   });
 
@@ -122,9 +131,10 @@ export function CreateProjectDialog({
               />
             </div>
           </div>
+          {lead && <WinPreview lead={lead} currentQuoteCount={currentQuoteCount} />}
           <div className="space-y-1.5">
-            <Label>Átadási jegyzet</Label>
-            <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Mit kell a projektvezetőnek tudnia az ügyről, szerződésről, határidőkről?" />
+            <Label>Átadási jegyzet (csak ami az összefoglalóban nincs)</Label>
+            <Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Pl. szerződéses feltételek, ügyfél kérései, helyszíni tudnivalók, ígért határidő." />
           </div>
           <div className="flex items-start gap-2 rounded-md border border-[color:var(--status-warning)]/40 bg-[color:var(--status-warning)]/10 px-3 py-2 text-[11px]">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--status-warning)]" />
@@ -152,5 +162,27 @@ export function CreateProjectDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+const PREVIEW_ICON = { auto: CheckCircle2, missing: AlertTriangle, later: ArrowRightCircle } as const;
+const PREVIEW_TONE = { auto: "text-[color:var(--status-success)]", missing: "text-[color:var(--status-warning)]", later: "text-muted-foreground" } as const;
+const PREVIEW_LABEL = { auto: "Automatikusan átkerül", missing: "Hiányzik", later: "Később, a projektvezető" } as const;
+
+/** Mi kerül át a megnyeréskor és mit kell pótolni — a meglévő RPC/trigger viselkedése alapján, írás nélkül. */
+function WinPreview({ lead, currentQuoteCount }: { lead: PipelineLead; currentQuoteCount: number | null }) {
+  const rows = winHandoffPreview(lead, currentQuoteCount);
+  return (
+    <section aria-label="Átadás előnézete" className="rounded-md border bg-muted/20 p-2">
+      <div className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"><CircleDashed className="h-3 w-3" />Mi kerül át a projektvezetőhöz?</div>
+      <ul className="space-y-1 text-xs">
+        {rows.map((r) => { const I = PREVIEW_ICON[r.state]; return (
+          <li key={r.key} data-preview={r.key} data-state={r.state} className="flex items-start gap-1.5">
+            <I className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${PREVIEW_TONE[r.state]}`} aria-label={PREVIEW_LABEL[r.state]} />
+            <span><span className="font-medium">{r.label}</span>{r.key === "source" && lead.source ? ` (${(LEAD_SOURCE_LABEL as Record<string, string>)[lead.source] ?? lead.source})` : ""}: <span className="text-muted-foreground">{r.detail}</span></span>
+          </li>
+        ); })}
+      </ul>
+      {lead.summary && <p className="mt-1.5 line-clamp-3 rounded bg-background p-1.5 text-[11px] text-muted-foreground">„{lead.summary}”</p>}
+    </section>
   );
 }

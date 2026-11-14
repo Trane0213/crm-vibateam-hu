@@ -317,7 +317,7 @@ export function PipelineDetailSheet({
                     <li>Itt: Pipeline-szakasz, következő lépés, Megnyertük / Elveszett.</li>
                     <li>Ajánlat tartalma, kiküldése, állapota: az ajánlat adatlapján.</li>
                     <li>Felelős átadása: csak tulajdonos.</li>
-                    <li>Projekt adatai: a megnyerés után a Projektek között.</li>
+                    <li>Projekt adatai: a megnyerés után a projekt Átadás fülén (ott látszik, mi ment át és mi hiányzik).</li>
                   </ul>
                 </details>
               </aside>
@@ -326,6 +326,7 @@ export function PipelineDetailSheet({
             <LostDialog open={lostOpen} onOpenChange={setLostOpen} busy={lostMut.isPending} onConfirm={(p) => lostMut.mutate(p)} />
             <CreateProjectDialog
               lead={lead}
+              currentQuoteCount={leadQuotes.isSuccess ? quotes.length : null}
               open={projOpen}
               onOpenChange={setProjOpen}
             />

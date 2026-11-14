@@ -15,6 +15,7 @@
 import { routeSpecialist, ISSUE_SPECIALIST } from "@/lib/issue-reports-model";
 import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 import { PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
+import { handoffGaps, handoffPmOf } from "@/lib/handoff/sales-pm-handoff";
 
 export type OrgLink = { to: string; search?: Record<string, string> };
 export type OrgDomain = "handoff" | "sales" | "projects" | "evidence" | "complaint" | "signal" | "decision" | "documents" | "import";
@@ -49,6 +50,7 @@ export const DOMAIN_LABEL: Record<OrgDomain, string> = {
   complaint: "Dolgozói jelzések", signal: "Automatikus jelzések", decision: "Döntésre váró értesítés", documents: "Dokumentumfeldolgozás", import: "Adatminőség / import",
 };
 export const DOMAIN_ORDER: OrgDomain[] = ["evidence", "handoff", "sales", "projects", "decision", "complaint", "signal", "documents", "import"];
+export const isOrgDomain = (v: unknown): v is OrgDomain => typeof v === "string" && (DOMAIN_ORDER as string[]).includes(v);
 export const EVIDENCE_LABEL: Record<OrgEvidence, string> = {
   fact: "Tény (forrásrekord igazolja)",
   signal: "Automatikus észlelés — gyanú, nem igazolt hiba",
@@ -105,7 +107,6 @@ export type OrgInputs = {
 
 const CLOSED_PROJECT = new Set(["lezart", "felfuggesztve"]);
 const CLOSED_TASK = new Set(["done", "completed", "cancelled"]);
-const HANDOFF_GRACE_MS = 48 * 3600_000;
 const NO_NEXT_GRACE_MS = 24 * 3600_000;
 const SEV_RANK: Record<OrgSeverity, number> = { critical: 0, warning: 1, info: 2 };
 const STATUS_RANK: Record<OrgStatus, number> = { open: 0, verify: 1, closed: 2 };
@@ -123,15 +124,7 @@ export function normalizePagePath(path: string): string {
   return p || "/";
 }
 
-function pmOf(p: InProject): string | null {
-  if (p.project_manager_user_id) return p.project_manager_user_id;
-  const v = (p.handoff_payload as Record<string, unknown> | null)?.project_manager_user_id;
-  return typeof v === "string" && v ? v : null;
-}
-function payloadText(p: InProject): number {
-  const pl = (p.handoff_payload ?? {}) as Record<string, unknown>;
-  return ["summary", "notes"].reduce((n, k) => n + (typeof pl[k] === "string" ? (pl[k] as string).trim().length : 0), 0);
-}
+const pmOf = (p: InProject): string | null => handoffPmOf(p);
 function projectLabel(inp: OrgInputs, p: InProject) {
   const company = p.company_id ? inp.companies[p.company_id] : null;
   return `${p.title?.trim() || `Projekt ${short(p.id)}`}${company ? ` · ${company}` : ""}`;
@@ -175,16 +168,12 @@ export function buildOrgSignals(inp: OrgInputs): OrgItem[] {
   const activeProjects = [...inp.projects].filter((p) => !CLOSED_PROJECT.has(p.status ?? "")).sort((a, b) => a.id.localeCompare(b.id));
   for (const p of activeProjects) {
     const pm = pmOf(p);
-    const gaps: string[] = [];
-    if (!pm) gaps.push("Nincs projektvezető kijelölve");
-    const handoffAge = p.handoff_at ? now - new Date(p.handoff_at).getTime() : null;
-    const noTasks = (tasksByProject.get(p.id) ?? []).length === 0 && handoffAge != null && handoffAge > HANDOFF_GRACE_MS;
-    if (noTasks) gaps.push("Az átadás óta (48 óránál régebben) nincs projektfeladat felvéve");
-    if (!p.address?.trim()) gaps.push("Hiányzik a helyszín címe");
-    if (!p.deadline) gaps.push("Nincs határidő");
-    if (!contactsOf.has(p.id)) gaps.push("Nincs projekt-kapcsolattartó");
-    if (p.lead_id && !quotesOf.has(p.id)) gaps.push("Nincs ajánlat a projekthez kötve");
-    if (p.lead_id && payloadText(p) < 20) gaps.push("Rövid vagy hiányzó Sales átadási összefoglaló (20 karakternél kevesebb)");
+    // Közös szabályforrás a projekt Átadás fülével (sales-pm-handoff.ts) — azonos hiánylista és sorrend.
+    const gaps = handoffGaps({
+      project: p, quoteCount: quotesOf.has(p.id) ? 1 : 0, acceptedCount: null, contactCount: contactsOf.has(p.id) ? 1 : 0,
+      contractDocCount: null, taskCount: (tasksByProject.get(p.id) ?? []).length, now: inp.now,
+    });
+    const noTasks = gaps.includes("Az átadás óta (48 óránál régebben) nincs projektfeladat felvéve");
     if (!gaps.length) continue;
     const viaSales = !!p.lead_id;
     put({
@@ -193,7 +182,7 @@ export function buildOrgSignals(inp: OrgInputs): OrgItem[] {
       detail: `${PROJECT_STATUS_LABEL[p.status ?? ""] ?? p.status ?? "—"} · ${gaps.length} hiányzó elem${p.handoff_at ? ` · átadva ${p.handoff_at.slice(0, 10)}` : ""}`,
       gaps, role: pm ? "project_manager" : "owner", responsibleId: pm ?? null,
       nextAction: !pm
-        ? "Tulajdonos: jelölj ki projektvezetőt a projekt adatlapján, utána a PM pótolja a többi hiányt."
+        ? "Tulajdonos: jelölj ki projektvezetőt a projekt Átadás fülén (Alapadatok pótlása), utána a PM pótolja a többi hiányt."
         : `Projektvezető: pótold a projekt Átadás fülén${viaSales ? "; a hiányzó összefoglalót / kapcsolattartót / ajánlatot a Sales-felelőssel egyeztesd" : ""}. Amit nem lehet pótolni, írd projektjegyzetbe.`,
       testHint: "Ellenőrzés: a hiány pótlása után az oldal frissítésekor a tétel eltűnik vagy a hiánylista rövidül; a projekt Átadás fülének ellenőrzőlistája ugyanezt mutatja.",
       link: projectLink(p.id, "handover"),

@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
+import { WonLeadHandoff } from "@/components/handoff/lead-handoff-card";
+import { usePermissions } from "@/hooks/use-permissions";
+import { PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
 import { useLookup, fmtDate, fmtDateTime } from "@/components/resource/resource-page";
 import { LEAD_STATUS_OPTIONS } from "./lead-list-column";
 import { useUpdateLead } from "./use-lead-mutations";
@@ -71,6 +74,7 @@ export function LeadDetailColumn({
   mode?: "marketing" | "sales";
 }) {
   const enrichmentResult = useAutoEnrich("lead", leadId);
+  const { role: viewerRole } = usePermissions();
   const companyLabel = useLookup("companies", "name");
   const contactLabel = useLookup("contacts", "name");
   const assigneeName = useAssigneeLookup();
@@ -405,6 +409,11 @@ export function LeadDetailColumn({
           </div>
         )}
 
+        {/* Megnyert ügy → projektátadás állapota (forrás: a megnyeréskor létrejött projekt, RLS-sel olvasva). Marketing nem nyitja a projektet. */}
+        {currentStatus === "won" && (mode !== "marketing" || viewerRole === "owner") && (
+          <div className="mt-3"><WonLeadHandoff leadId={l.id} /></div>
+        )}
+
         {/* Inline source / project_type szerkesztés */}
         <div className="mt-3 grid grid-cols-2 gap-2">
           <div>
@@ -616,10 +625,10 @@ export function LeadDetailColumn({
               <ul className="space-y-1.5">
                 {(projects.data ?? []).map((p: any) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
-                    <Link to="/projects/$id" params={{ id: p.id }} className="truncate text-primary hover:underline">
+                    <Link to="/projects/$id" params={{ id: p.id }} search={{ tab: "handover" }} className="truncate text-primary hover:underline">
                       {p.title ?? p.name ?? "—"}
                     </Link>
-                    <span className="text-muted-foreground">{p.status ?? "—"}</span>
+                    <span className="text-muted-foreground">{PROJECT_STATUS_LABEL[p.status] ?? p.status ?? "—"}</span>
                   </li>
                 ))}
               </ul>

@@ -170,10 +170,10 @@ export function projectRisks(projects: OwnerProject[], tasks: OwnerTask[], now: 
       blocked ? `${blocked} akadályozott feladat` : null,
       deadlinePassed ? "a projekt határideje lejárt" : null,
       noPm ? "nincs kijelölt projektvezető" : null,
-      handover ? "Műszaki átadás állapotban" : null,
+      handover ? "Sales-átadás átvétele folyamatban (Átadás / előkészítés)" : null,
     ].filter((x): x is string => !!x);
     if (!reasons.length) continue;
-    out.push({ project: p, overdue, blocked, deadlinePassed, noPm, handover, reasons, tab: overdue || blocked ? "tasks" : handover ? "handover" : "overview" });
+    out.push({ project: p, overdue, blocked, deadlinePassed, noPm, handover, reasons, tab: overdue || blocked ? "tasks" : handover || noPm ? "handover" : "overview" });
   }
   const score = (r: ProjectRisk) => r.overdue * 4 + r.blocked * 3 + (r.deadlinePassed ? 3 : 0) + (r.noPm ? 2 : 0) + (r.handover ? 1 : 0);
   return out.sort((a, b) => score(b) - score(a) || (a.project.title ?? "").localeCompare(b.project.title ?? "", "hu"));

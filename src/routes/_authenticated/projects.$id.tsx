@@ -43,6 +43,10 @@ import {
   budapestYmd, classifyTask, handoverReadiness, pmNextAction, pmProjectSteps, pmTabFromSearch, projectDay,
   type PmAttendanceEntry, type PmAttendanceProject, type PmProjectDay, type PmTab, type PmTask, type StepState,
 } from "@/lib/pm/pm-day-flow";
+import { handoffNext, handoffSummary, HANDOFF_ROLE_LABEL, type HandoffItem, type HandoffSummary } from "@/lib/handoff/sales-pm-handoff";
+import { HandoffChecklist, HandoffNotInCrm, HandoffPhaseBadge } from "@/components/handoff/handoff-checklist";
+import { ProjectBasicsForm } from "@/components/handoff/project-basics-form";
+import { handoffEditRights } from "@/lib/handoff/project-basics";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
   head: () => ({ meta: [
@@ -195,14 +199,54 @@ function ProjectDetail() {
   const readiness = handoverReadiness(day, { hasContact: (projectContacts.data ?? []).length > 0 });
   const openTasksCount = day.openTasks.length;
   const canEditTasks = role === "owner" || role === "project_manager" || role === "sales";
+  // Sales → PM átadás: ugyanaz a szabály, mint George szervezeti jelzéseinél. Be nem töltött forrás = NINCS ADAT.
+  const handoff = handoffSummary({
+    project: { ...project, id } as any,
+    quoteCount: quotes.isSuccess ? (quotes.data ?? []).length : null,
+    acceptedCount: quotes.isSuccess ? (quotes.data ?? []).filter((q) => q.status === "accepted").length : null,
+    contactCount: projectContacts.isSuccess ? (projectContacts.data ?? []).length : null,
+    contractDocCount: docs.isSuccess ? (docs.data ?? []).filter((d) => d.document_type === "contract").length : null,
+    taskCount: tasks.isSuccess ? (tasks.data ?? []).length : null,
+  });
+  const handoffReady = quotes.isSuccess && projectContacts.isSuccess && docs.isSuccess && tasks.isSuccess;
+  const handoffStep = handoffNext(handoff, role);
+  const rights = handoffEditRights(role);
+  const canEditBasics = rights.basics;
+  const canOpenLeads = canAccessRoute(role, "/leads");
+  const backLink = role === "owner" ? "Mai vezetői munka" : role === "sales" ? "Ma" : "Mai projektmunka";
+  const scrollTo = (elId: string) => requestAnimationFrame(() => document.getElementById(elId)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+  const fixHandoff = (i: HandoffItem) => {
+    if (i.fix.kind === "tab") { if (i.key === "contract_doc") openDocs("contract"); else setTab(i.fix.tab); return; }
+    if (i.fix.kind === "basics") { setTab("handover"); scrollTo("projekt-alapadatok"); return; }
+    if (i.fix.kind === "status") { scrollTo("projekt-allapot"); return; }
+  };
+  const fixLabel = (i: HandoffItem): string | null => {
+    if (i.state === "ok" || i.state === "not_linked" || i.state === "unknown") return null;
+    switch (i.key) {
+      case "pm": return rights.assignPm ? "Projektvezető kijelölése" : null;
+      case "address": case "deadline": return canEditBasics ? "Pótlás" : null;
+      case "tasks": return "Feladatok";
+      case "start": return "Állapot a fejlécben";
+      case "quote": case "accepted": return "Ajánlatok";
+      case "contact": return "Kapcsolatok";
+      case "contract_doc": return "Szerződés feltöltése";
+      case "summary": return "Projektjegyzet";
+      default: return null;
+    }
+  };
 
   return (
     <div className="flex flex-col">
       {/* HEADER */}
       <div className="border-b bg-background px-4 py-4 sm:px-6">
         <Link to="/today" className="mb-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
-          <ArrowLeft className="h-3.5 w-3.5" />Mai projektmunka
+          <ArrowLeft className="h-3.5 w-3.5" />{backLink}
         </Link>
+        {project.lead_id && canOpenLeads && (
+          <Link to="/leads/$id" params={{ id: project.lead_id }} className="mb-2 ml-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
+            Megnyert Sales-ügy
+          </Link>
+        )}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Ügyfél</div>
@@ -227,7 +271,7 @@ function ProjectDetail() {
               {project.deadline && <> · Határidő: <span className={cn("font-medium", day.deadline.passed ? "text-destructive" : "text-foreground")}>{fmtDate(project.deadline)}</span></>}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div id="projekt-allapot" className="flex flex-wrap items-center gap-2">
             <ProjectStatusSelect projectId={id} value={project.status} />
             <Badge variant="outline">{formatHuf(totalQuoteValue)}</Badge>
             <AiSummaryDialog
@@ -269,7 +313,15 @@ function ProjectDetail() {
 
       {/* KÖVETKEZŐ TEENDŐ + NAPI ÚT */}
       <div className="grid gap-3 px-4 pt-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        {coreReady ? (
+        {coreReady && role === "sales" && project.lead_id && handoffReady ? (
+          // Sales-nek a saját átadási teendője (nem a projektvezetői napi teendő).
+          <PrimaryActionCard
+            eyebrow={handoffStep.mine ? "Következő lépésed (Sales)" : "Átadás állapota"}
+            title={handoffStep.title}
+            detail={handoffStep.detail}
+            action={<Button size="sm" onClick={() => setTab("handover")}>Átadás fül</Button>}
+          />
+        ) : coreReady ? (
           <PrimaryActionCard
             eyebrow="Következő teendő"
             title={next.title}
@@ -320,7 +372,7 @@ function ProjectDetail() {
             <TabsTrigger value="overview"><Briefcase className="mr-1.5 h-3.5 w-3.5" />Áttekintés · napi lap</TabsTrigger>
             <TabsTrigger value="tasks"><ListChecks className="mr-1.5 h-3.5 w-3.5" />Feladatok ({openTasksCount} nyitott)</TabsTrigger>
             <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({docs.data?.length ?? 0})</TabsTrigger>
-            <TabsTrigger value="handover"><ClipboardCheck className="mr-1.5 h-3.5 w-3.5" />Átadás</TabsTrigger>
+            <TabsTrigger value="handover"><ClipboardCheck className="mr-1.5 h-3.5 w-3.5" />Átadás{handoffReady && handoff.missing > 0 ? ` (${handoff.missing} hiány)` : ""}</TabsTrigger>
             <TabsTrigger value="contacts"><UserPlus className="mr-1.5 h-3.5 w-3.5" />Kapcsolatok ({projectContacts.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="quotes"><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlatok ({quotes.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="followups"><BellRing className="mr-1.5 h-3.5 w-3.5" />Utókövetés ({openFollowups.length})</TabsTrigger>
@@ -342,7 +394,7 @@ function ProjectDetail() {
               onOpenTasks={() => setTab("tasks")}
               onOpenPhotos={() => openDocs("photo")}
             />
-            <SalesHandoffCard project={project} assigneeName={assigneeName} />
+            <HandoffOverviewCard ready={handoffReady} summary={handoff} next={handoffStep} onOpen={() => setTab("handover")} />
             <Card>
               <CardHeader><CardTitle className="text-sm">Ajánlat-állapot</CardTitle></CardHeader>
               <CardContent className="text-sm">
@@ -458,8 +510,40 @@ function ProjectDetail() {
             <DocSummaryBar day={day} active={docFilter} onPick={(f) => setDocFilter(f)} />
             <DocumentManager key={docFilter} projectId={id} initialFilter={docFilter} />
           </TabsContent>
-          <TabsContent value="handover" className="mt-4">
-            <HandoverPanel readiness={readiness} status={project.status} onTab={(t) => setTab(t)} onPhotos={() => openDocs("photo")} />
+          <TabsContent value="handover" className="mt-4 space-y-6">
+            <section aria-labelledby="sales-pm-atvetel" className="space-y-3">
+              <h2 id="sales-pm-atvetel" className="text-sm font-semibold">1. Sales → projektvezető átvétel</h2>
+              {handoffReady ? (
+                <PrimaryActionCard
+                  eyebrow={handoffStep.mine && !handoffStep.waitingFor ? "Következő lépésed" : "Átadás állapota"}
+                  title={handoffStep.title}
+                  detail={handoffStep.detail}
+                  warnings={handoffStep.waitingFor ? [`Felelős: ${HANDOFF_ROLE_LABEL[handoffStep.waitingFor]}`] : undefined}
+                  action={handoffStep.item && fixLabel(handoffStep.item) ? <Button size="sm" onClick={() => fixHandoff(handoffStep.item!)}>{fixLabel(handoffStep.item)}</Button> : undefined}
+                />
+              ) : (quotes.isError || projectContacts.isError || docs.isError || tasks.isError) ? (
+                <div role="alert" className="flex flex-wrap items-center gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                  Egyes átadási források nem tölthetők be (NINCS ADAT), ezért az átadás nem minősíthető.
+                  <Button size="sm" variant="outline" onClick={() => { quotes.refetch(); projectContacts.refetch(); docs.refetch(); tasks.refetch(); }}>Újrapróbálás</Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 rounded-md border bg-card p-3 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Átadási források ellenőrzése…</div>
+              )}
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                <HandoffChecklist summary={handoff} onFix={fixHandoff} fixLabel={fixLabel} highlightRole={role} />
+                <div className="space-y-4">
+                  <div id="projekt-alapadatok">
+                    <ProjectBasicsForm project={{ ...project, id } as any} canEdit={canEditBasics} canAssignPm={rights.assignPm} pmLabel={assigneeName(project.project_manager_user_id ?? (project.handoff_payload as any)?.project_manager_user_id ?? null)} />
+                  </div>
+                  <SalesHandoffCard project={project} assigneeName={assigneeName} />
+                  <HandoffNotInCrm />
+                </div>
+              </div>
+            </section>
+            <section aria-labelledby="muszaki-atadas" className="space-y-3">
+              <h2 id="muszaki-atadas" className="text-sm font-semibold">2. Műszaki átadás a megrendelőnek (TIG-előkészítés)</h2>
+              <HandoverPanel readiness={readiness} status={project.status} onTab={(t) => setTab(t)} onPhotos={() => openDocs("photo")} />
+            </section>
           </TabsContent>
           <TabsContent value="contacts" className="mt-4">
             <ProjectContactsPanel projectId={id} companyId={project.company_id} />
@@ -631,6 +715,38 @@ function Mini({ label, value, tone = "primary", onClick }: { label: string; valu
       <div className="text-[10px] uppercase tracking-wider opacity-70">{label}</div>
       <div className="mt-0.5 text-sm font-semibold tabular-nums">{value}</div>
     </button>
+  );
+}
+
+// ---------------------------------------------------------------------
+// Áttekintés: rövid Sales→PM átadási állapot; a részletek az Átadás fülön.
+// ---------------------------------------------------------------------
+function HandoffOverviewCard({ ready, summary, next, onOpen }: {
+  ready: boolean; summary: HandoffSummary; next: ReturnType<typeof handoffNext>; onOpen: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0">
+        <CardTitle className="text-sm">Sales → projektvezető átadás</CardTitle>
+        {ready && <HandoffPhaseBadge phase={summary.phase} />}
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm">
+        {!ready ? (
+          <p className="text-xs text-muted-foreground">Átadási források ellenőrzése…</p>
+        ) : (
+          <>
+            <p className="text-xs"><span className="font-semibold">{next.title}.</span> <span className="text-muted-foreground">{next.detail}</span></p>
+            <div className="flex flex-wrap gap-1.5 text-[11px]">
+              {(["owner", "sales", "project_manager"] as const).map((r) => summary.byRole[r].missing > 0 && (
+                <Badge key={r} variant="outline" className="border-destructive/40 text-destructive">{HANDOFF_ROLE_LABEL[r]}: {summary.byRole[r].missing} hiány</Badge>
+              ))}
+              {summary.pending > 0 && <Badge variant="outline" className="text-[color:var(--status-warning)]">{summary.pending} ellenőrizendő</Badge>}
+            </div>
+          </>
+        )}
+        <Button size="sm" variant="outline" onClick={onOpen}><ClipboardCheck className="h-4 w-4" />Átadás fül</Button>
+      </CardContent>
+    </Card>
   );
 }
 
