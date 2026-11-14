@@ -68,7 +68,7 @@ Módosított: `src/routes/_authenticated/projects.$id.tsx`, `src/components/pipe
 
 ## 5. Commit, diff, rollback
 
-Commit: lásd a jelentés utolsó sorát. Diff: `git show --stat <commit>`. Visszavonás: `git revert <commit>` — csak kód változott, adat-visszaállítás nem kell (a csomag nem írt éles adatot).
+Commit: `e7f0aa0` (25 fájl, +1360 / −56). Diff: `git show --stat e7f0aa0`. Visszavonás: `git revert e7f0aa0` — csak kód változott, adat-visszaállítás nem kell (a csomag nem írt éles adatot).
 
 ## 6. Megmaradt hiányok / külön döntés
 
