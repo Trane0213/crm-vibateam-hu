@@ -5,8 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentManager } from "@/components/documents/document-manager";
 import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
 import { ChatUploadsBrowser } from "@/components/ai/chat-attachments";
+import { DocumentPackagesPanel } from "@/components/packages/document-packages-panel";
 
-type View = "projekt" | "tobbi" | "chat";
+type View = "projekt" | "csomagok" | "tobbi" | "chat";
 
 export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({ meta: [
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
     { property: "og:description", content: "Projekt-, ajánlati és ügyfél-dokumentumok egy helyen, jogosultság szerint." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
-  validateSearch: (s: Record<string, unknown>): { nezet?: View } => (s.nezet === "tobbi" || s.nezet === "chat" ? { nezet: s.nezet } : {}),
+  validateSearch: (s: Record<string, unknown>): { nezet?: View } => (s.nezet === "tobbi" || s.nezet === "chat" || s.nezet === "csomagok" ? { nezet: s.nezet } : {}),
   component: DocumentsPage,
 });
 
@@ -33,11 +34,16 @@ function DocumentsPage() {
         <Tabs value={view} onValueChange={(v) => setView(v as View)}>
           <TabsList className="h-auto max-w-full flex-wrap justify-start">
             <TabsTrigger value="projekt">Projektdokumentumok és feltöltés</TabsTrigger>
+            <TabsTrigger value="csomagok">Tervcsomagok</TabsTrigger>
             <TabsTrigger value="tobbi">Ajánlati és ügyfél-dokumentumok</TabsTrigger>
             <TabsTrigger value="chat">AI chatbe feltöltött fájlok</TabsTrigger>
           </TabsList>
           <TabsContent value="projekt" className="mt-4">
             <DocumentManager />
+          </TabsContent>
+          <TabsContent value="csomagok" className="mt-4 space-y-2">
+            <p className="text-sm text-muted-foreground">Feltölteni a projekt Dokumentumok fülén vagy az ajánlat első lépésénél lehet, hogy a csomag a megfelelő ügyhöz kapcsolódjon.</p>
+            <DocumentPackagesPanel parent={null} />
           </TabsContent>
           <TabsContent value="tobbi" className="mt-4">
             <RelatedDocumentsPanel

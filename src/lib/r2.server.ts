@@ -120,3 +120,7 @@ export function r2Status() {
     return { ok: false, error: err?.message ?? String(err) };
   }
 }
+/** P1 tervcsomagok: a többrészes feltöltés saját aláírója ugyanazt a konfigurációt használja. */
+export function r2Env() {
+  return getEnv();
+}

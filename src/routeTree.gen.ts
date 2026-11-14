@@ -31,6 +31,7 @@ import { Route as AuthenticatedOwnerReportRouteImport } from './routes/_authenti
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as ApiPackageUploadPartRouteImport } from './routes/api/package-upload-part'
 import { Route as ApiR2UploadRouteImport } from './routes/api/r2-upload'
 import { Route as AuthenticatedAttendanceIndexRouteImport } from './routes/_authenticated/attendance.index'
 import { Route as AuthenticatedAttendanceGuideRouteImport } from './routes/_authenticated/attendance.guide'
@@ -214,6 +215,11 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   id: '/today',
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiPackageUploadPartRoute = ApiPackageUploadPartRouteImport.update({
+  id: '/api/package-upload-part',
+  path: '/api/package-upload-part',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiR2UploadRoute = ApiR2UploadRouteImport.update({
   id: '/api/r2-upload',
@@ -617,6 +623,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/api/package-upload-part': typeof ApiPackageUploadPartRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
@@ -705,6 +712,7 @@ export interface FileRoutesByTo {
   '/owner-report': typeof AuthenticatedOwnerReportRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/api/package-upload-part': typeof ApiPackageUploadPartRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/attendance/new': typeof AuthenticatedAttendanceNewRoute
@@ -797,6 +805,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
+  '/api/package-upload-part': typeof ApiPackageUploadPartRoute
   '/api/r2-upload': typeof ApiR2UploadRoute
   '/_authenticated/attendance/guide': typeof AuthenticatedAttendanceGuideRoute
   '/_authenticated/attendance/new': typeof AuthenticatedAttendanceNewRoute
@@ -889,6 +898,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/today'
+    | '/api/package-upload-part'
     | '/api/r2-upload'
     | '/attendance/guide'
     | '/attendance/new'
@@ -977,6 +987,7 @@ export interface FileRouteTypes {
     | '/owner-report'
     | '/tasks'
     | '/today'
+    | '/api/package-upload-part'
     | '/api/r2-upload'
     | '/attendance/guide'
     | '/attendance/new'
@@ -1068,6 +1079,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
+    | '/api/package-upload-part'
     | '/api/r2-upload'
     | '/_authenticated/attendance/guide'
     | '/_authenticated/attendance/new'
@@ -1143,6 +1155,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPackageUploadPartRoute: typeof ApiPackageUploadPartRoute
   ApiR2UploadRoute: typeof ApiR2UploadRoute
   ApiGmailDisconnectRoute: typeof ApiGmailDisconnectRoute
   ApiGmailRefreshBodyRoute: typeof ApiGmailRefreshBodyRoute
@@ -1314,6 +1327,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/today'
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/package-upload-part': {
+      id: '/api/package-upload-part'
+      path: '/api/package-upload-part'
+      fullPath: '/api/package-upload-part'
+      preLoaderRoute: typeof ApiPackageUploadPartRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/r2-upload': {
       id: '/api/r2-upload'
@@ -1971,6 +1991,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPackageUploadPartRoute: ApiPackageUploadPartRoute,
   ApiR2UploadRoute: ApiR2UploadRoute,
   ApiGmailDisconnectRoute: ApiGmailDisconnectRoute,
   ApiGmailRefreshBodyRoute: ApiGmailRefreshBodyRoute,

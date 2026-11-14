@@ -25,6 +25,8 @@ export const r2PresignDownload = createServerFn({ method: "POST" })
       sb.from("quote_documents").select("id").eq("file_url", data.key).limit(1),
       sb.from("email_attachments").select("id").eq("r2_key", data.key).limit(1),
       sb.from("ai_chat_uploads").select("id").eq("file_url", data.key).limit(1),
+      // P1 tervcsomag: csak ellenőrzött (teljesen feltöltött) eredeti, a szülő ügy RLS-láthatósága szerint.
+      sb.from("package_files").select("id").eq("r2_key", data.key).eq("status", "verified").limit(1),
     ]);
     const visible = checks.some((r: any) => !r.error && (r.data?.length ?? 0) > 0);
     if (!visible) throw new Error("Nincs jogosultságod ehhez a fájlhoz.");

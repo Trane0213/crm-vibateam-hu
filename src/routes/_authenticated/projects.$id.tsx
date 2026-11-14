@@ -22,6 +22,7 @@ import { useListWhere, humanizeSupabaseError, useUpsert } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import { DocumentManager, type DocCategory } from "@/components/documents/document-manager";
 import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
+import { DocumentPackagesPanel } from "@/components/packages/document-packages-panel";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { toast } from "sonner";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
@@ -509,6 +510,7 @@ function ProjectDetail() {
             <ProjectEmailAttach projectId={id} />
           </TabsContent>
           <TabsContent value="docs" className="mt-4 space-y-3">
+            <DocumentPackagesPanel parent={{ kind: "project", id }} title="Tervcsomagok (teljes dokumentáció)" />
             <DocSummaryBar day={day} active={docFilter} onPick={(f) => setDocFilter(f)} />
             <DocumentManager key={docFilter} projectId={id} initialFilter={docFilter} categoryFilter={false} />
             {/* Sales-időszak fájljai (ajánlat minden verziója, ügyfél) — újrafeltöltés helyett itt nyithatók meg, jogosultság szerint. */}

@@ -14,6 +14,7 @@ import { fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import { useUpsert, useListWhere } from "@/lib/db-hooks";
 import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
+import { DocumentPackagesPanel } from "@/components/packages/document-packages-panel";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
 import { QuoteSendPanel } from "@/components/quotes/quote-send-panel";
 import { QuoteTemplatePanel } from "@/components/quotes/quote-template-panel";
@@ -355,6 +356,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
         <details className="border-b py-3"><summary className="cursor-pointer text-sm font-medium">Verziók és további műveletek</summary><div className="py-3"><QuoteVersionsBar quote={quote as any} /></div>
           {!(quote as any).locked_at && <div className="max-w-sm py-3">{sel("quote_kind", "Ajánlat típusa", Object.entries(KIND_LABEL))}</div>}
         </details>
+        <div className="pt-5"><DocumentPackagesPanel parent={{ kind: "quote", id: quote.id }} title="Tervcsomagok (teljes projektdokumentáció)" /></div>
         {!own && <div className="py-5"><QuoteDocumentManager quoteId={quote.id} locked={!!(quote as any).locked_at} /></div>}
         <div className="py-5">
           <div className="mb-4 flex items-center justify-between">
