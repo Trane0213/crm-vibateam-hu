@@ -6,7 +6,7 @@ OUT=Path('/tmp/browser/pm/shots'); OUT.mkdir(parents=True, exist_ok=True)
 import urllib.request
 _src=urllib.request.urlopen('http://localhost:8080/src/components/today/pm-home.tsx').read().decode()
 _rt=urllib.request.urlopen('http://localhost:8080/src/router.tsx').read().decode()
-def _u(pat,src): return re.search(r'"(/node_modules/[^"]*'+pat+r'[^"]*)"',src).group(1)
+def _u(pat,src): return re.search(r'"((?:/@fs/[^"]*)?/node_modules/[^"]*'+pat+r'[^"]*)"',src).group(1)
 REACT=_u(r'\.vite/deps/react\.js',_src); RQ=_u('tanstack_react-query',_rt); RR=_u('react-router/dist/esm/index.dev.js',_rt)
 RDC=REACT.replace('react.js','react-dom_client.js')
 P1='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'; P2='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'; A1='cccccccc-cccc-4ccc-8ccc-cccccccccccc'

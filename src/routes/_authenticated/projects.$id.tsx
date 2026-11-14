@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useListWhere, humanizeSupabaseError, useUpsert } from "@/lib/db-hooks";
 import { fmtDate, fmtDateTime, useLookup } from "@/components/resource/resource-page";
 import { DocumentManager, type DocCategory } from "@/components/documents/document-manager";
+import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
 import { ProjectTimeline } from "@/components/projects/project-timeline";
 import { toast } from "sonner";
 import { AiSummaryDialog } from "@/components/ai/ai-summary-dialog";
@@ -509,7 +510,17 @@ function ProjectDetail() {
           </TabsContent>
           <TabsContent value="docs" className="mt-4 space-y-3">
             <DocSummaryBar day={day} active={docFilter} onPick={(f) => setDocFilter(f)} />
-            <DocumentManager key={docFilter} projectId={id} initialFilter={docFilter} />
+            <DocumentManager key={docFilter} projectId={id} initialFilter={docFilter} categoryFilter={false} />
+            {/* Sales-időszak fájljai (ajánlat minden verziója, ügyfél) — újrafeltöltés helyett itt nyithatók meg, jogosultság szerint. */}
+            <RelatedDocumentsPanel
+              ctx={{ leadId: project.lead_id ?? null, quoteIds: (quotes.data ?? []).map((q) => q.id), companyIds: [project.company_id] }}
+              exclude={["project_documents"]}
+              enabled={!quotes.isLoading}
+              title="Ajánlati és ügyfél-dokumentumok (Sales-időszak)"
+              description="A megnyert ajánlat és az ügyfél fájljai — nem kell újra feltölteni a projekthez. Csak a számodra látható fájlok jelennek meg."
+              emptyTitle="Nincs látható ajánlati vagy ügyfél-dokumentum"
+              emptyDescription={project.lead_id ? undefined : "A projekt nincs Sales-ügyhöz kötve (NINCS ÖSSZEKÖTVE)."}
+            />
           </TabsContent>
           <TabsContent value="handover" className="mt-4 space-y-6">
             <section aria-labelledby="sales-pm-atvetel" className="space-y-3">

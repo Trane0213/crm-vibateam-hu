@@ -23,6 +23,7 @@ import { buildTimeline } from "@/lib/marketing-timeline";
 import { LOST_REASON_LABEL, type LostReason } from "@/lib/sales/constants";
 import { relativeTime } from "@/components/marketing-ui";
 import { SalesWatch } from '@/components/ai/sales-watch';
+import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
 
 export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
   const contactLookup = useLookup("contacts", "name");
@@ -240,19 +241,13 @@ export function LeadDossierColumn({ leadId }: { leadId: string | null }) {
           </TabsContent>
 
           <TabsContent value="docs" className="mt-0">
-            {(docs.data ?? []).length === 0 ? (
-              <Empty>Nincs dokumentum.</Empty>
-            ) : (
-              <ul className="divide-y rounded-md border">
-                {docs.data!.map((d) => (
-                  <li key={d.id} className="flex items-center gap-2 px-3 py-2 text-xs">
-                    <FileText className="h-3 w-3 text-muted-foreground" />
-                    <span className="truncate font-medium">{d.name ?? "—"}</span>
-                    <span className="ml-auto shrink-0 text-muted-foreground">{fmtDateTime(d.created_at)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <RelatedDocumentsPanel
+              bare
+              ctx={{ leadId, companyIds: [companyId] }}
+              title="Dosszié dokumentumai"
+              emptyTitle="Nincs látható dokumentum"
+              emptyDescription={companyId ? undefined : "Cég nincs hozzárendelve (NINCS ÖSSZEKÖTVE)."}
+            />
           </TabsContent>
 
           <TabsContent value="timeline" className="mt-0">

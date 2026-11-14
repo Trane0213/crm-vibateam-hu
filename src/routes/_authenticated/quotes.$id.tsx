@@ -355,7 +355,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
         <details className="border-b py-3"><summary className="cursor-pointer text-sm font-medium">Verziók és további műveletek</summary><div className="py-3"><QuoteVersionsBar quote={quote as any} /></div>
           {!(quote as any).locked_at && <div className="max-w-sm py-3">{sel("quote_kind", "Ajánlat típusa", Object.entries(KIND_LABEL))}</div>}
         </details>
-        {!own && <div className="py-5"><QuoteDocumentManager quoteId={quote.id} /></div>}
+        {!own && <div className="py-5"><QuoteDocumentManager quoteId={quote.id} locked={!!(quote as any).locked_at} /></div>}
         <div className="py-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold">Ügyfél és alapadatok</h2>
@@ -402,7 +402,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           <div className="mb-6 max-w-2xl"><QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} /></div>
           {own && <div className="mb-6 space-y-4">
             <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
-            <QuoteDocumentManager quoteId={quote.id} />
+            <QuoteDocumentManager quoteId={quote.id} locked={!!(quote as any).locked_at} />
           </div>}
           <QuoteSendPanel quote={quote as any} companyId={companyId} />
         </TabsContent>

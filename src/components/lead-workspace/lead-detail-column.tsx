@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useListWhere } from "@/lib/db-hooks";
 import { WonLeadHandoff } from "@/components/handoff/lead-handoff-card";
+import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
 import { usePermissions } from "@/hooks/use-permissions";
 import { PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
 import { useLookup, fmtDate, fmtDateTime } from "@/components/resource/resource-page";
@@ -706,23 +707,17 @@ export function LeadDetailColumn({
         </TabsContent>
 
         <TabsContent value="docs" className="space-y-2 p-5 pt-3">
-          {!companyId ? (
-            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Cég nincs hozzárendelve.</div>
-          ) : (companyDocs.data ?? []).length === 0 ? (
-            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Nincs dokumentum.</div>
-          ) : (
-            <ul className="space-y-1.5">
-              {(companyDocs.data ?? []).map((d: any) => (
-                <li key={d.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <FolderOpen className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="truncate">{d.name ?? "—"}</span>
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">{fmtDate(d.created_at)}</span>
-                </li>
-              ))}
-            </ul>
+          {!companyId && (
+            <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">Cég nincs hozzárendelve (NINCS ÖSSZEKÖTVE) — ügyfél-dokumentum nem jeleníthető meg.</div>
           )}
+          <RelatedDocumentsPanel
+            bare
+            ctx={{ leadId, companyIds: [companyId] }}
+            enabled={lead.isSuccess}
+            title="Ügy dokumentumai"
+            emptyTitle="Nincs látható dokumentum"
+            emptyDescription="Ügyfél-dokumentumot az ügyfél adatlapján, ajánlati fájlt az ajánlat adatlapján lehet feltölteni."
+          />
         </TabsContent>
 
         <TabsContent value="timeline" className="space-y-2 p-5 pt-3">

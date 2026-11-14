@@ -5,17 +5,13 @@
  * letöltési úton nyílnak meg.
  */
 import { Link } from "@tanstack/react-router";
-import { useMutation } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
 import { AlertTriangle, ArrowUpRight, Ban, CheckCircle2, CircleDashed, CircleHelp, FileText, Link2Off, Loader2, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/use-permissions";
 import { canAccessRoute } from "@/lib/permissions";
-import { humanizeSupabaseError } from "@/lib/db-hooks";
-import { r2PresignDownload } from "@/lib/r2.functions";
+import { useOpenDocument } from "@/components/documents/use-open-document";
 import { useContractPrep } from "@/hooks/use-contract-prep";
 import { HANDOFF_ROLE_LABEL, HANDOFF_STATE_LABEL, type HandoffSummary } from "@/lib/handoff/sales-pm-handoff";
 import {
@@ -84,28 +80,30 @@ export function ContractChecklist({ items, can, highlightRole }: { items: Contra
   );
 }
 
-/** Valóban feltöltött szerződés- és feltételfájlok; megnyitás a meglévő, RLS-ellenőrzött letöltési úton. */
+/** Valóban feltöltött szerződés- és feltételfájlok; megnyitás a meglévő, RLS-ellenőrzött letöltési úton (közös `useOpenDocument`). */
 export function ContractDocs({ docs }: { docs: ContractDoc[] }) {
-  const presign = useServerFn(r2PresignDownload);
-  const open = useMutation({
-    mutationFn: async (d: ContractDoc) => {
-      if (!d.file_url) throw new Error("A rekordhoz nem tartozik fájl.");
-      const { url } = await presign({ data: { key: d.file_url } });
-      window.open(url, "_blank", "noopener,noreferrer");
-    },
-    onError: (e: any) => toast.error("A fájl nem nyitható meg", { description: humanizeSupabaseError(e) }),
-  });
+  const { open, pending, failures } = useOpenDocument();
   if (!docs.length) return <p className="px-3 py-2 text-xs text-muted-foreground">Nincs feltöltött szerződés- vagy feltételfájl, amelyhez hozzáférésed van.</p>;
   return (
     <ul className="divide-y text-sm" aria-label="Szerződés- és feltételfájlok">
-      {docs.map((d) => (
-        <li key={`${d.table}:${d.id}`} data-contract-doc={d.table} className="flex flex-wrap items-center gap-2 px-3 py-2">
-          <FileText className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
-          <span className="min-w-0 flex-1 truncate">{d.name ?? "Névtelen fájl"}</span>
-          <Badge variant="secondary" className="text-[10px]">{d.table === "project_documents" ? "Szerződés (projekt)" : "Szerződési / fizetési feltételek (ajánlat)"}</Badge>
-          <Button size="sm" variant="outline" className="h-7" disabled={open.isPending || !d.file_url} onClick={() => open.mutate(d)}>Megnyitás</Button>
-        </li>
-      ))}
+      {docs.map((d) => {
+        const uid = `${d.table}:${d.id}`;
+        const failure = failures[uid];
+        return (
+          <li key={uid} data-contract-doc={d.table} className="px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <FileText className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="min-w-0 flex-1 break-words">{d.name ?? "Névtelen fájl"}</span>
+              <Badge variant="secondary" className="text-[10px]">{d.table === "project_documents" ? "Szerződés (projekt)" : "Szerződési / fizetési feltételek (ajánlat)"}</Badge>
+              {!d.file_url && <Badge variant="outline" className="border-destructive/60 text-[10px] text-destructive">Nincs tárolt fájl</Badge>}
+              <Button size="sm" variant="outline" className="h-8" disabled={pending === uid || !d.file_url} onClick={() => open({ uid, fileKey: d.file_url, name: d.name })}>
+                {pending === uid && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}Megnyitás
+              </Button>
+            </div>
+            {failure && <p role="alert" data-open-failure={failure.kind} className="mt-1 text-xs text-destructive">{failure.title}: {failure.detail}</p>}
+          </li>
+        );
+      })}
     </ul>
   );
 }

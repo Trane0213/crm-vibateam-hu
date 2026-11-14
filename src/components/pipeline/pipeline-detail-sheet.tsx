@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { quoteStatusLabel } from "@/lib/quotes/quote-status";
 import { leadNextAction, currentQuotes } from "@/lib/sales/sales-flow";
 import { ContractPrepPanel } from "@/components/contract/contract-prep-panel";
+import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
 import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 import { PrimaryActionCard } from "@/components/sales/sales-flow-ui";
 import { createDraftQuote } from "@/lib/quotes/create";
@@ -237,6 +238,17 @@ export function PipelineDetailSheet({
                     ))}
                   </ul>
                 )}
+
+                <div className="mb-6">
+                  {/* Ügy dokumentumai: ajánlat (minden verzió), ügyfél és a megnyerésből lett projekt — csak a látható fájlok, megnyitás jogosultság szerint. */}
+                  <RelatedDocumentsPanel
+                    ctx={{ leadId: lead.id, companyIds: [lead.company_id] }}
+                    enabled={open}
+                    title="Ügy dokumentumai"
+                    description="Ajánlati, ügyfél- és projektfájlok ehhez az ügyhöz. Feltölteni az ajánlat, az ügyfél vagy a projekt adatlapján lehet."
+                    emptyTitle="Ehhez az ügyhöz még nincs látható dokumentum"
+                  />
+                </div>
 
                 {(lead.status === "contract" || accepted) && (
                   <div className="mb-6">

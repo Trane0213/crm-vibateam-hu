@@ -231,7 +231,9 @@ describe("forrásszintű biztonsági határ", () => {
   });
   it("a panel fájlt csak a meglévő jogosultság-ellenőrzött letöltéssel nyit, törlést nem kínál", () => {
     const s = src("src/components/contract/contract-prep-panel.tsx");
-    expect(s).toContain("r2PresignDownload");
+    // 8. csomag: a megnyitás a közös useOpenDocument hookon át, amely kizárólag a meglévő r2PresignDownload-ot hívja.
+    expect(s).toContain("useOpenDocument");
+    expect(src("src/components/documents/use-open-document.ts")).toContain("r2PresignDownload");
     expect(s).not.toContain("r2DeleteDocument");
     expect(s).not.toMatch(/Jóváhagyom|Aláírom|Jóváhagyva/);
   });

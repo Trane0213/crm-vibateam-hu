@@ -24,6 +24,9 @@ import { useAutoEnrich } from "@/lib/enrichment/use-auto-enrich";
 import { resolveCompanyIdentity } from "@/lib/dedupe/company-identity";
 import { usePermissions } from "@/hooks/use-permissions";
 import { CompanyDocumentManager } from "@/components/documents/company-document-manager";
+import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
+import { useRelatedDocuments } from "@/hooks/use-related-documents";
+import { documentSourcesForRole } from "@/lib/documents/document-access";
 import { MarketingWorkspace } from "@/components/marketing/marketing-workspace";
 import { companyTabFromSearch, type CompanyTab } from "@/lib/marketing/marketing-day-flow";
 import { CompanyCampaigns } from "@/components/customers/company-campaigns";
@@ -63,6 +66,7 @@ function CustomerDetail() {
 
 function LegacyCustomerDetail({ id }: { id: string }) {
   const isMarketing = false;
+  const { role } = usePermissions();
   const cust = useQuery({
     queryKey: ["customers", "detail", id],
     queryFn: async () => {
@@ -154,7 +158,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
   });
   // Cég-szintű dokumentumok (project-független — marketing fázis is használja).
   const companyDocs = useQuery({
-    queryKey: ["company_documents", "list", id],
+    queryKey: ["company_documents", "ids", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("company_documents" as any)
@@ -164,6 +168,12 @@ function LegacyCustomerDetail({ id }: { id: string }) {
       return (data ?? []) as any[];
     },
   });
+  // Ugyanaz a lekérés (és gyorsítótár-kulcs), mint a Dokumentumok fül „Projekt- és ajánlati dokumentumok” paneljéé — a fül száma így pontos.
+  const relatedDocs = useRelatedDocuments(
+    { projectIds, quoteIds: (quotes.data ?? []).map((q: any) => q.id) },
+    documentSourcesForRole(role).filter((s) => s !== "company_documents"),
+    !isMarketing && !projects.isLoading && !leads.isLoading && !quotes.isLoading,
+  );
   const notes = useQuery({
     queryKey: ["customer", id, "notes", projectIds.length],
     enabled: projectIds.length > 0,
@@ -260,7 +270,7 @@ function LegacyCustomerDetail({ id }: { id: string }) {
             <TabsTrigger value="emails"><Mail className="mr-1.5 h-3.5 w-3.5" />Emailek ({threadTotal}{emailHint ? "*" : ""})</TabsTrigger>
             {!isMarketing && <TabsTrigger value="calls"><Phone className="mr-1.5 h-3.5 w-3.5" />Hívások ({calls.data?.length ?? 0})</TabsTrigger>}
             {!isMarketing && <TabsTrigger value="meetings"><Calendar className="mr-1.5 h-3.5 w-3.5" />Találkozók ({meetings.data?.length ?? 0})</TabsTrigger>}
-            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({(companyDocs.data?.length ?? 0) + (isMarketing ? 0 : (docs.data?.length ?? 0))})</TabsTrigger>
+            <TabsTrigger value="docs"><FolderOpen className="mr-1.5 h-3.5 w-3.5" />Dokumentumok ({(companyDocs.data?.length ?? 0) + (isMarketing ? 0 : (relatedDocs.data?.docs.length ?? docs.data?.length ?? 0))})</TabsTrigger>
             <TabsTrigger value="notes"><StickyNote className="mr-1.5 h-3.5 w-3.5" />Jegyzetek ({notes.data?.length ?? 0})</TabsTrigger>
             <TabsTrigger value="timeline"><History className="mr-1.5 h-3.5 w-3.5" />Idővonal</TabsTrigger>
           </TabsList>
@@ -431,18 +441,16 @@ function LegacyCustomerDetail({ id }: { id: string }) {
                 <CompanyDocumentManager companyId={id} />
               </section>
               {!isMarketing && (
-                <section>
-                  <div className="mb-2 flex items-center justify-between">
-                    <h3 className="text-sm font-semibold">Projekt dokumentumok ({docs.data?.length ?? 0})</h3>
-                    <span className="text-xs text-muted-foreground">A cég projektjeihez tartozó fájlok</span>
-                  </div>
-                  <SimpleList rows={docs.data} cols={[
-                    { label: "Név", get: (r) => r.name ?? "—" },
-                    { label: "Típus", get: (r) => r.document_type ?? "—" },
-                    { label: "Feltöltve", get: (r) => fmtDateTime(r.created_at) },
-                  ]} empty="Nincs projekt dokumentum." emptyIcon={FolderOpen} />
-                </section>
+                <RelatedDocumentsPanel
+                  ctx={{ projectIds, quoteIds: (quotes.data ?? []).map((q: any) => q.id) }}
+                  exclude={["company_documents"]}
+                  enabled={!projects.isLoading && !leads.isLoading && !quotes.isLoading}
+                  title="Projekt- és ajánlati dokumentumok"
+                  description="A cég projektjeihez és ajánlataihoz feltöltött fájlok. Feltölteni a projekt vagy az ajánlat adatlapján lehet."
+                  emptyTitle="Nincs látható projekt- vagy ajánlati dokumentum"
+                />
               )}
+              {quotes.isError && <p role="alert" className="text-xs text-destructive">Az ügyfél ajánlatai nem tölthetők be, ezért az ajánlati dokumentumok listája nem teljes (NINCS ADAT).</p>}
             </div>
           </TabsContent>
           <TabsContent value="notes" className="mt-4">

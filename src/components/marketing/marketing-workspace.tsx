@@ -140,7 +140,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   });
 
   const docs = useQuery({
-    queryKey: ["company_documents", "list", companyId],
+    queryKey: ["company_documents", "names", companyId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("company_documents" as any)

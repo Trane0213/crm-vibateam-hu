@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEnsureProfile } from "@/hooks/use-ensure-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ROLE_LABEL } from "@/lib/permissions";
+import { documentLibraryHints, type DocHint } from "@/lib/documents/document-access";
 import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permissions";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, Sparkles } from "lucide-react";
@@ -69,7 +70,7 @@ function AppShell() {
             {allowed ? (
               <Outlet />
             ) : (
-              <Forbidden role={ROLE_LABEL[role]} />
+              <Forbidden role={ROLE_LABEL[role]} hints={pathname === "/documents" || pathname.startsWith("/documents/") ? documentLibraryHints(role) : []} />
             )}
           </main>
           <MobileBottomNav />
@@ -81,7 +82,7 @@ function AppShell() {
   );
 }
 
-function Forbidden({ role }: { role: string }) {
+function Forbidden({ role, hints = [] }: { role: string; hints?: DocHint[] }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-4">
       <div className="max-w-md text-center">
@@ -93,6 +94,16 @@ function Forbidden({ role }: { role: string }) {
           A jelenlegi szerepkörödhöz ({role}) ez az oldal nem érhető el.
           Ha hozzáférést szeretnél, kérd a rendszergazdát.
         </p>
+        {hints.length > 0 && (
+          <div className="mt-4 rounded-md border bg-card p-3 text-left text-sm">
+            <p className="font-medium">A neked engedélyezett dokumentumokat itt éred el:</p>
+            <ul className="mt-2 space-y-1.5">
+              {hints.map((h) => (
+                <li key={h.to + h.label}><Link to={h.to as any} className="text-primary hover:underline">{h.label}</Link></li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div className="mt-5">
           <Button asChild size="sm">
             <Link to="/today">Vissza a kezdőoldalra</Link>
