@@ -6,7 +6,7 @@ import { DOCUMENT_LIMITS } from "./document-extract.server";
 export const documentInput = z.object({ source: z.enum(["quote_documents", "company_documents", "project_documents", "email_attachments"]), document_id: z.string().uuid(),
   quote_id: z.string().uuid().optional(), company_id: z.string().uuid().optional(), project_id: z.string().uuid().optional(),
   thread_id: z.string().uuid().optional(), email_id: z.string().uuid().optional(), mailbox: z.string().email().optional(),
-  unit: z.number().int().min(0).default(0), text_offset: z.number().int().min(0).default(0), expected_hash: z.string().regex(/^[a-f0-9]{64}$/).optional() });
+  unit: z.number().int().min(0).default(0), text_offset: z.number().int().min(0).default(0), expected_hash: z.string().regex(/^[a-f0-9]{64}$/).optional(), ocr: z.boolean().default(false) });
 export type DocumentInput = z.infer<typeof documentInput>;
 
 export async function authorizeDocumentScope(data: Partial<DocumentInput> & { source: DocumentInput["source"] }, ctx: ToolContext) {

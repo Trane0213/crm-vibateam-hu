@@ -184,3 +184,45 @@ export async function callLlm(args: CallLlmArgs): Promise<LlmResult> {
     provider: args.provider,
   };
 }
+/** Multimodális Responses-tartalom (kép / PDF-fájl / szöveg) egyetlen felhasználói üzenetben. */
+export type MultimodalPart =
+  | { type: "input_text"; text: string }
+  | { type: "input_image"; image_url: string; detail?: "low" | "high" | "auto" }
+  | { type: "input_file"; filename: string; file_data: string };
+
+export type MultimodalArgs = {
+  provider: ProviderId;
+  model: string;
+  reasoning_effort?: "low" | "medium" | "high";
+  instructions: string;
+  content: MultimodalPart[];
+  json_schema?: { name: string; schema: Record<string, unknown> };
+  max_tokens?: number;
+  timeout_ms?: number;
+};
+
+export type MultimodalResult = { text: string; status: string | null; model: string; usage: { input_tokens?: number; output_tokens?: number } };
+
+/**
+ * Egyetlen közvetlen OpenAI Responses hívás kép/PDF bemenettel (OCR / képfelismerés).
+ * Csak az "openai" provider engedélyezett (tulajdonosi döntés: nincs Gateway/Gemini fallback).
+ * A szolgáltatói hibaszöveg nem kerül a hibaüzenetbe (fájltartalmat/azonosítót tartalmazhat).
+ */
+export async function callResponsesMultimodal(args: MultimodalArgs): Promise<MultimodalResult> {
+  if (args.provider !== "openai") throw new Error("Képfelismerés csak a közvetlen OpenAI fiókkal engedélyezett.");
+  const cfg = resolveProvider(args.provider);
+  if (!cfg) throw new Error("AI provider \"openai\" nincs konfigurálva (hiányzó API kulcs).");
+  const body: Record<string, unknown> = { model: args.model, instructions: args.instructions, input: [{ role: "user", content: args.content }], store: false };
+  if (args.reasoning_effort) body.reasoning = { effort: args.reasoning_effort };
+  if (args.max_tokens != null) body.max_output_tokens = args.max_tokens;
+  if (args.json_schema) body.text = { format: { type: "json_schema", name: args.json_schema.name, schema: args.json_schema.schema, strict: true } };
+  const res = await fetchWithTimeout(`${cfg.baseUrl}/responses`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${cfg.apiKey}`, "Content-Type": "application/json", ...(cfg.extraHeaders ?? {}) },
+    body: JSON.stringify(body),
+  }, args.timeout_ms ?? Number(process.env.AI_REASONING_TIMEOUT_MS ?? 180_000));
+  if (!res.ok) { await res.text().catch(() => ""); throw new Error(`AI (openai/${args.model}) képfelismerési hiba HTTP ${res.status}`); }
+  const json: any = await res.json();
+  const parsed = fromResponsesOutput(json, args.provider, args.model);
+  return { text: parsed.text, status: json?.status ?? null, model: parsed.model, usage: { input_tokens: json?.usage?.input_tokens, output_tokens: json?.usage?.output_tokens } };
+}

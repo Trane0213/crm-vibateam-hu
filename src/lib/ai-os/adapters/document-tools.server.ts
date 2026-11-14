@@ -7,11 +7,12 @@ import { CRM_PAGE_PROPERTIES, crmReadPage, readWindow } from "./crm-read-page";
 import { authorizeDocumentScope, authorizedDocument, documentInput, fetchDocumentBytes } from "./document-access.server";
 import { DOCUMENT_LIMITS, extractDocument, LargeDocumentError } from "./document-extract.server";
 import { safeMailText } from "./gmail-context";
+import { imageMime, isImageName, VISION_LIMITS, VISION_VERIFICATION, VisionFailure, visionExtract, type VisionCaller, type VisionResult } from "./vision-extract.server";
 
 const properties = { source: { type: "string", enum: ["quote_documents", "company_documents", "project_documents", "email_attachments"] },
   quote_id: { type: "string" }, company_id: { type: "string" }, project_id: { type: "string" }, email_id: { type: "string" }, thread_id: { type: "string" }, mailbox: { type: "string" } };
 
-export async function readDocument(args: Record<string, unknown>, ctx: ToolContext, download = fetchDocumentBytes) {
+export async function readDocument(args: Record<string, unknown>, ctx: ToolContext, download = fetchDocumentBytes, vision?: VisionCaller) {
   const data = documentInput.parse(args);
   if ((data.unit > 0 || data.text_offset > 0) && !data.expected_hash) throw new Error("Folytatáshoz fájl-hash szükséges.");
   const { row, key, version } = await authorizedDocument(data, ctx);
@@ -21,18 +22,53 @@ export async function readDocument(args: Record<string, unknown>, ctx: ToolConte
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer))).map((b) => b.toString(16).padStart(2, "0")).join("");
   if (data.expected_hash && data.expected_hash !== hash) throw new Error("A fájltartalom megváltozott; a korábbi folytatás nem használható.");
   const name = String(row.name ?? row.filename ?? "");
+  const provenanceBase = { sha256: hash, byte_length: bytes.length, uploaded_at: row.created_at, processed_at: new Date().toISOString(), quote_version: version };
+  const visionResponse = (v: VisionResult) => ({ ok: true as const, data: { source, name: safeMailText(name).text, document_type: row.document_type ?? null,
+    provenance: { ...provenanceBase, parser: v.parser, file_version: "content_sha256; quote_version is separate business version", persistence: "on_demand_no_extracted_copy_or_background_job",
+      ocr: { model: v.ai.model, input_tokens: v.ai.input_tokens, output_tokens: v.ai.output_tokens, cache: v.ai.cache } },
+    status: v.status, units: v.units, total_units: v.total_units, next_unit: null, next_text_offset: null, parser: v.parser, document_kind: v.document_kind, limitations: v.limitations,
+    untrusted_content: true, ai_extracted: true, source_fact: false, verification: VISION_VERIFICATION,
+    completeness: { full_document: v.status === "extracted", full_technical_audit: false, status: v.status, human_verified: false },
+    pagination: { unit: 0, text_offset: 0, next_unit: null, next_text_offset: null, expected_hash: hash }, limits: { ...DOCUMENT_LIMITS, ocr_pdf_pages: VISION_LIMITS.pdfPages, ocr_output_chars: VISION_LIMITS.outputChars } } });
+  const cacheKey = `${ctx.userId}:${hash}`;
+  if (isImageName(name)) {
+    const mime = imageMime(bytes);
+    if (!mime) throw new Error("A fájl tartalma nem támogatott kép (PNG/JPEG/GIF/WEBP).");
+    if (!data.ocr) return { ok: true, data: { source, name: safeMailText(name).text, document_type: row.document_type ?? null, provenance: { ...provenanceBase, parser: "none" },
+      status: "requires_ocr", units: [], total_units: 1, untrusted_content: true, completeness: { full_document: false, status: "requires_ocr" },
+      limitations: ["Kép: a tartalma csak ocr=true képfelismeréssel olvasható (kérésre futó OpenAI-hívás; az eredmény AI-kiolvasás, nem ellenőrzött forrás)."], limits: DOCUMENT_LIMITS } };
+    if (data.unit > 0 || data.text_offset > 0) throw new Error("A képfelismerés egy lépésben fut, lapozás nélkül.");
+    return visionResponse(await visionExtract(bytes, name, { type: "image", mime }, { cacheKey, call: vision }));
+  }
   let extracted;
   try { extracted = await extractDocument(bytes, name, data.unit, data.text_offset); }
   catch (e) {
     if (!(e instanceof LargeDocumentError)) throw e;
     return { ok: true, data: { source, status: "requires_large_processing", provenance: { sha256: hash, processed_at: new Date().toISOString(), quote_version: version }, limits: DOCUMENT_LIMITS, completeness: { full_document: false }, limitations: ["A tartalmi méret/oldal/sorkorlát miatt nincs teljes feldolgozás, háttérmunka nem indult."] } };
   }
+  const isPdf = name.toLowerCase().endsWith(".pdf");
+  if (data.ocr && isPdf && extracted.status === "no_extractable_text" && data.text_offset === 0) {
+    if (extracted.total_units > VISION_LIMITS.pdfPages) return { ok: true, data: { source, status: "requires_large_processing", provenance: { ...provenanceBase, parser: extracted.parser }, limits: { ...DOCUMENT_LIMITS, ocr_pdf_pages: VISION_LIMITS.pdfPages }, completeness: { full_document: false },
+      limitations: [`Kérésre futó képfelismerés legfeljebb ${VISION_LIMITS.pdfPages} oldalas PDF-en; ez ${extracted.total_units} oldalas, tartalom nem lett olvasva.`] } };
+    return visionResponse(await visionExtract(bytes, name, { type: "pdf", pages: extracted.total_units }, { cacheKey, call: vision }));
+  }
+  if (data.ocr) extracted = { ...extracted, limitations: [...extracted.limitations, isPdf || ["docx", "xlsx", "txt", "csv"].some((e) => name.toLowerCase().endsWith(`.${e}`))
+    ? "Képfelismerés nem futott: ennek az egységnek van olvasható szövegrétege, vagy nem szkennelt formátum."
+    : "Képfelismerés ennél a formátumnál nem támogatott."] };
   return { ok: true, data: { source, name: safeMailText(name).text, document_type: row.document_type ?? null,
     provenance: { sha256: hash, byte_length: bytes.length, uploaded_at: row.created_at, processed_at: new Date().toISOString(), quote_version: version,
       parser: extracted.parser, file_version: "content_sha256; quote_version is separate business version", persistence: "on_demand_no_extracted_copy_or_background_job" },
     ...extracted, untrusted_content: true, completeness: { full_document: false, full_technical_audit: false, status: extracted.status },
     pagination: { unit: data.unit, text_offset: data.text_offset, next_unit: extracted.next_unit, next_text_offset: extracted.next_text_offset, expected_hash: hash },
     limits: DOCUMENT_LIMITS } };
+}
+
+/** Tool-level error mapping. Paid OCR is never retried automatically; provider/parser details are not exposed. */
+export function readDocumentFailure(e: unknown) {
+  if (e instanceof VisionFailure) { const failed = toolError.upstream(400, "vision_ocr_failed"); failed.error.user_safe_message = `${e.message} A tartalom nem lett kiolvasva, ezért nem állítható.`; return failed; }
+  // Parser/network exceptions may contain file text, storage URL or credentials; never audit them.
+  const message = e instanceof z.ZodError ? "Érvénytelen dokumentumazonosító vagy lapozás." : "A dokumentum nem feldolgozható vagy nem hozzáférhető; korlát/hibás/titkosított fájl esetén nincs teljes ellenőrzés.";
+  return toolError.fromException(message);
 }
 
 export function registerDocumentTools() {
@@ -55,17 +91,13 @@ export function registerDocumentTools() {
     } catch { return toolError.fromException("A dokumentumlista nem olvasható; ellenőrizd a pontos ügyazonosítót és jogosultságot."); }
   });
   registerTool({ name: "crm_read_document", domain: "crm.quotes", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
-    description: "Meglévő R2 fájl PDF/XLSX/DOCX/TXT/CSV szövege, pontos forrás+document_id+ügy vagy fióklevél alapján. 5 MB korlát; unit=PDF-oldal/munkalap (0-alapú), text_offset szövegfolytatás. Folytatáshoz expected_hash kötelező; teljes műszaki auditot nem állít, URL/kulcs nem paraméter.",
-    parameters: { type: "object", properties: { ...properties, document_id: { type: "string" }, unit: { type: "integer", minimum: 0 }, text_offset: { type: "integer", minimum: 0 }, expected_hash: { type: "string" } }, required: ["source", "document_id"] },
+    description: "Meglévő R2 fájl PDF/XLSX/DOCX/TXT/CSV szövege, pontos forrás+document_id+ügy vagy fióklevél alapján. 5 MB korlát; unit=PDF-oldal/munkalap (0-alapú), text_offset szövegfolytatás. Folytatáshoz expected_hash kötelező; teljes műszaki auditot nem állít, URL/kulcs nem paraméter. ocr=true: kép (PNG/JPEG/GIF/WEBP) vagy szövegréteg nélküli (szkennelt, legfeljebb 20 oldalas) PDF képfelismerése egy lépésben; az eredmény AI-kiolvasás (ai_extracted, source_fact=false), nem ellenőrzött forrás.",
+    parameters: { type: "object", properties: { ...properties, document_id: { type: "string" }, unit: { type: "integer", minimum: 0 }, text_offset: { type: "integer", minimum: 0 }, expected_hash: { type: "string" }, ocr: { type: "boolean" } }, required: ["source", "document_id"] },
   }, async (args, ctx) => {
     try {
       const data = documentInput.parse(args);
       if ((data.unit > 0 || data.text_offset > 0) && !data.expected_hash) throw new Error("Folytatáshoz fájl-hash szükséges.");
       return await readDocument(data, ctx);
-    } catch (e) {
-      // Parser/network exceptions may contain file text, storage URL or credentials; never audit them.
-      const message = e instanceof z.ZodError ? "Érvénytelen dokumentumazonosító vagy lapozás." : "A dokumentum nem feldolgozható vagy nem hozzáférhető; korlát/hibás/titkosított fájl esetén nincs teljes ellenőrzés.";
-      return toolError.fromException(message);
-    }
+    } catch (e) { return readDocumentFailure(e); }
   });
 }
