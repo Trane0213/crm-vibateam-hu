@@ -167,7 +167,7 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoke
   const sDiff = p && sessionPrev ? diffPackages(sessionPrev, snapshot(p, p.gates)) : null;
 
   const steps: { label: string; done: boolean }[] = [
-    { label: "Összeállítás", done: contentReady }, { label: "Fájlok mentése", done: linkage.slice(0, 2).every((g) => g.ok) && !!p },
+    { label: "Összeállítás", done: contentReady && !stale.length }, { label: "Fájlok mentése", done: linkage.slice(0, 2).every((g) => g.ok) && !!p },
     { label: "Nettó mentése", done: !!linkage[2]?.ok }, { label: "Belső jóváhagyás", done: approvalValid },
     { label: "Kiküldés (meglévő út)", done: locked || quote.status === "sent" }, { label: "Elfogadás → szerződés-előkészítés", done: quote.status === "accepted" },
   ];
@@ -203,10 +203,10 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoke
 
       {p && !locked && (
         <div className="space-y-4" aria-live="polite">
-          <div className={`flex flex-wrap items-start gap-3 rounded-md border p-3 text-sm ${contentReady ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10" : "border-destructive/40 bg-destructive/10"}`}>
-            {contentReady ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />}
+          <div className={`flex flex-wrap items-start gap-3 rounded-md border p-3 text-sm ${contentReady && !stale.length ? "border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10" : "border-destructive/40 bg-destructive/10"}`}>
+            {contentReady && !stale.length ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />}
             <div className="min-w-0 flex-1">
-              <p className="font-medium">{contentReady ? "A csomag tartalmilag jóváhagyásra kész" : "A csomag hiányos — a pirossal jelölt feltételek nélkül nem hagyható jóvá"}</p>
+              <p className="font-medium">{stale.length ? "Elavult összeállítás — az alábbi adatok a korábbi beállításokra szólnak" : contentReady ? "A csomag tartalmilag jóváhagyásra kész" : "A csomag hiányos — a pirossal jelölt feltételek nélkül nem hagyható jóvá"}</p>
               <p className="text-xs text-muted-foreground">Ajánlati nettó: <strong className="text-foreground">{p.offerNetHuf == null ? "—" : formatHuf(p.offerNetHuf)}</strong> · {p.asOf} · ujjlenyomat {p.fingerprint.slice(0, 12)}…{p.internal ? ` · belső: anyag ${formatHuf(p.internal.materialHuf)}, munkadíj ${formatHuf(p.internal.laborHuf)}` : ""}</p>
             </div>
           </div>

@@ -136,6 +136,16 @@ async def main():
    await dlg.screenshot(path=str(OUT/f'{ROLE}-{MODE}-2-approval.png'))
    await dlg.get_by_role('button',name='Előkészítem').click(); await page.wait_for_timeout(600)
    print(ROLE,MODE,'approved',await panel.get_by_text('Belső jóváhagyás előkészítve:').count(),'| handoff enabled',not await handoff.is_disabled())
+   if MODE=='stale':
+    # P7: összeállítás utáni beállítás-változás → elavult csomag: nem menthető, nem hagyható jóvá, nem adható át.
+    rate=panel.get_by_label('Óradíj (Ft/óra)')
+    await rate.fill('7000'); await page.wait_for_timeout(400)
+    alert=panel.get_by_role('alert')
+    print(ROLE,MODE,'STALE banner',await alert.count(),'|',(await alert.inner_text())[:110] if await alert.count() else '')
+    print(ROLE,MODE,'STALE handoff disabled',await handoff.is_disabled(),'| approval text hidden',await panel.get_by_text('Belső jóváhagyás előkészítve:').count()==0,'| approve btn disabled',await panel.get_by_role('button',name='Belső jóváhagyás-előkészítés').is_disabled())
+    await panel.screenshot(path=str(OUT/f'{ROLE}-{MODE}-2b-stale.png'))
+    await rate.fill('6 500'); await page.wait_for_timeout(400)
+    print(ROLE,MODE,'RESTORED banner',await panel.get_by_role('alert').count(),'| handoff enabled',not await handoff.is_disabled(),'| approval valid again',await panel.get_by_text('Belső jóváhagyás előkészítve:').count())
    await panel.get_by_role('tab',name='Változások').click(); await page.wait_for_timeout(300)
    await panel.screenshot(path=str(OUT/f'{ROLE}-{MODE}-3-gates.png'))
    await handoff.click(); await page.wait_for_timeout(1200)
@@ -145,6 +155,13 @@ async def main():
    checked=[await c.is_checked() for c in await send.get_by_role('checkbox').all()]
    print(ROLE,MODE,'attachments checked',checked,'| send disabled w/o confirm',await send.get_by_role('button',name='Küldés',exact=True).is_disabled())
    await send.screenshot(path=str(OUT/f'{ROLE}-{MODE}-4-send.png'))
+   if MODE=='stale':
+    # Nyitott küldési ablak mellett megváltozik a csomag beállítása (pl. más munkamenet/szinkron) → a címke visszavonódik.
+    await page.evaluate('''()=>{const i=document.getElementById('pk-rate');const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;set.call(i,'7100');i.dispatchEvent(new Event('input',{bubbles:true}));}''')
+    await page.wait_for_timeout(600)
+    t2=await send.inner_text()
+    print(ROLE,MODE,'SEND revoked notice',('már NEM a belső jóváhagyás' in t2),'| package label gone',('Ajánlatcsomagból előkészítve' not in t2),'| send still needs confirm',await send.get_by_role('button',name='Küldés',exact=True).is_disabled())
+    await send.screenshot(path=str(OUT/f'{ROLE}-{MODE}-5-revoked.png'))
   print(ROLE,MODE,'SIM writes',SIM,'| other writes',writes,'| gmail send calls',GMAIL,'| page errors',errors[:3])
   await browser.close()
 asyncio.run(main())
