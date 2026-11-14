@@ -82,7 +82,7 @@ Adatpillanatkép read-only SQL-lel, 2026-11-14 ~02:10 UTC.
 Módosított: `src/routes/_authenticated/settings.ai-review.tsx`, `src/components/today/owner-home.tsx`, `src/components/help/issue-center.tsx`, `src/routes/_authenticated/help.index.tsx`, `src/lib/help-guide.ts`, `roadmap.md`.
 
 ## 6. Commit és rollback
-Commit: lásd a git naplóban az „5. csomag: George szervezeti jelzések” üzenetet (a hash a csomag utáni dokumentációs commitban). Visszavonás: `git revert <hash>` — csak kódot érint, adat- vagy sémaváltozás nincs, így adat-visszaállítás nem szükséges.
+Commit: `4e8e0e8`. Visszavonás: `git revert 4e8e0e8` — csak kódot érint, adat- vagy sémaváltozás nincs, így adat-visszaállítás nem szükséges.
 
 ## 7. Blokkolók (külön emberi jóváhagyás kell)
 1. Óránkénti AI nélküli gyűjtő bekapcsolása (napi keret-jóváhagyás) — enélkül a jelzéstábla üres marad; az élő nézet ezt pótolja megtekintéskor.
