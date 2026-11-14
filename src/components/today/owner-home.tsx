@@ -31,6 +31,7 @@ import { quoteAmounts } from "@/lib/quotes/amounts";
 import { ACTIVE_PROJECT_STATUSES } from "@/lib/viba-constants";
 import { ownerReportOverview } from "@/lib/owner-report/owner-report.functions";
 import { budapestYmd } from "@/lib/pm/pm-day-flow";
+import { useOrgSignals } from "@/components/george/org-signals-panel";
 import {
   OWNER_LANES, OWNER_LANE_LABEL, ownerFocus, ownerItems, ownerStages, todayBusiness, truncatedSections,
   type OwnerApproval, type OwnerItem, type OwnerLane, type OwnerLead, type OwnerLink, type OwnerProject,
@@ -264,9 +265,10 @@ function GeorgeCard({ q, approvals }: { q: { data?: { hash: string; reports: unk
       <p className="mt-1 text-xs text-muted-foreground">{status}</p>
       <p className="mt-1 text-xs text-muted-foreground">George csak olvas és javasol, önállóan nem hajt végre semmit. Az új jelentés és a célzott vizsgálat fizetős AI-hívás, csak megerősítéssel indul.</p>
       {approvals != null && approvals > 0 && <p className="mt-1 text-xs font-medium text-[color:var(--status-warning)]">{approvals} saját AI-művelet vár a döntésedre.</p>}
+      <OrgSignalsLine />
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Button asChild size="sm" variant="outline"><Link to="/owner-report"><ShieldAlert />George jelentése</Link></Button>
-        <Button asChild size="sm" variant="outline"><Link to="/settings/ai-review">AI-felülvizsgálat</Link></Button>
+        <Button asChild size="sm" variant="outline"><Link to="/settings/ai-review" hash="george-jelzesek">Szervezeti jelzések</Link></Button>
         <Button asChild size="sm" variant="ghost"><Link to="/ai-assistant" search={{ agent: "crm" } as never}>Kérdés George-nak</Link></Button>
       </div>
     </section>
@@ -345,3 +347,16 @@ function QuickLink({ to, icon: Icon, children }: { to: string; icon: React.Compo
   return <Button asChild variant="outline" className="h-auto flex-col gap-2 py-4 text-xs"><Link to={to as "/today"}><Icon />{children}</Link></Button>;
 }
 
+/** George élő, determinisztikus szervezeti jelzéseinek összesítője (0 AI-hívás, írás nélkül). */
+function OrgSignalsLine() {
+  const q = useOrgSignals();
+  if (q.isPending) return <p className="mt-1 text-xs text-muted-foreground">Szervezeti jelzések ellenőrzése…</p>;
+  if (q.isError) return <p className="mt-1 text-xs text-destructive">A szervezeti jelzések nem tölthetők be.</p>;
+  const s = q.data.summary;
+  return (
+    <p className="mt-1 text-xs">
+      Szervezeti jelzések: <b>{s.byStatus.open}</b> nyitott, <b>{s.byStatus.verify}</b> ellenőrizendő{s.critical ? <>, <b className="text-destructive">{s.critical} súlyos</b></> : null}
+      {(s.byDomain.handoff ?? 0) > 0 ? ` · ebből ${s.byDomain.handoff} hiányos Sales→PM átadás` : ""}
+    </p>
+  );
+}

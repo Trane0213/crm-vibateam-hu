@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useRouterState } from "@tanstack/react-router";
@@ -15,7 +15,7 @@ type Row = Awaited<ReturnType<typeof listIssues>>["rows"][number];
 type Status = keyof typeof ISSUE_STATUS;
 const msg = (e: unknown, d: string) => (e instanceof Error ? e.message : d);
 
-export function IssueCenter({ sourcePath }: { sourcePath?: string }) {
+export function IssueCenter({ sourcePath, focusIssue }: { sourcePath?: string; focusIssue?: string }) {
   const pathname = useRouterState({ select: s => s.location.pathname });
   const submit = useServerFn(submitIssue), list = useServerFn(listIssues), update = useServerFn(updateIssue), review = useServerFn(reviewIssue), verify = useServerFn(verifyIssue);
   const [page, setPage] = useState(0), [description, setDescription] = useState(""), [expected, setExpected] = useState(""), [actual, setActual] = useState(""), [code, setCode] = useState("");
@@ -48,17 +48,20 @@ export function IssueCenter({ sourcePath }: { sourcePath?: string }) {
       <Button type="submit" className="h-auto min-h-9 whitespace-normal text-left" disabled={busy || !description.trim() || !expected.trim() || !actual.trim()}>{busy && <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" />}{busy ? "Mentés és George vizsgálata…" : "Beküldés George-nak"}</Button>
     </form>
     <section className="space-y-3 border-t pt-4"><h2 className="font-semibold">{q.data?.owner ? "Összesített fejlesztési lista (minden bejelentés)" : "Saját bejelentéseim"}</h2>
-      {q.isLoading ? <p role="status">Betöltés…</p> : q.error ? <div role="alert"><p className="text-sm text-destructive">A bejelentések nem tölthetők be.</p><Button size="sm" variant="outline" onClick={() => q.refetch()}>Újrapróbálás</Button></div> : !q.data?.rows.length ? <p className="text-sm text-muted-foreground">Még nincs látható bejelentés.</p> : q.data.rows.map(row => <IssueRow key={row.id} row={row} owner={q.data.owner} mine={row.reporter_id === q.data.me} refresh={async () => { await q.refetch(); }} review={mode => review({ data: { id: row.id, mode } })} verify={(verdict, feedback) => verify({ data: { id: row.id, verdict, feedback } })} save={(status, note) => update({ data: { id: row.id, status, note, expectedUpdatedAt: row.updated_at } })} />)}
+      {q.isLoading ? <p role="status">Betöltés…</p> : q.error ? <div role="alert"><p className="text-sm text-destructive">A bejelentések nem tölthetők be.</p><Button size="sm" variant="outline" onClick={() => q.refetch()}>Újrapróbálás</Button></div> : !q.data?.rows.length ? <p className="text-sm text-muted-foreground">Még nincs látható bejelentés.</p> : q.data.rows.map(row => <IssueRow key={row.id} focused={row.id === focusIssue} row={row} owner={q.data.owner} mine={row.reporter_id === q.data.me} refresh={async () => { await q.refetch(); }} review={mode => review({ data: { id: row.id, mode } })} verify={(verdict, feedback) => verify({ data: { id: row.id, verdict, feedback } })} save={(status, note) => update({ data: { id: row.id, status, note, expectedUpdatedAt: row.updated_at } })} />)}
+      {!!focusIssue && !!q.data && !q.data.rows.some(r => r.id === focusIssue) && <p role="status" className="text-xs text-muted-foreground">A keresett bejelentés ({focusIssue.slice(0, 8)}) nincs ezen az oldalon — lapozz, vagy nem a te jogosultságodban látható.</p>}
       {!!q.data && q.data.total > 20 && <div className="flex gap-2"><Button variant="outline" size="sm" disabled={!page} onClick={() => setPage(page - 1)}>Előző</Button><span>{page + 1}</span><Button variant="outline" size="sm" disabled={(page + 1) * 20 >= q.data.total} onClick={() => setPage(page + 1)}>Következő</Button></div>}
     </section>
   </div>;
 }
 
-function IssueRow({ row, owner, mine, refresh, review, verify, save }: { row: Row; owner: boolean; mine: boolean; refresh: () => Promise<void>; review: (m: "initial" | "recheck" | "rerun") => Promise<unknown>; verify: (v: "resolved" | "not_resolved", f: string) => Promise<unknown>; save: (s: Status, n: string) => Promise<unknown> }) {
+function IssueRow({ row, owner, mine, refresh, review, verify, save, focused = false }: { focused?: boolean; row: Row; owner: boolean; mine: boolean; refresh: () => Promise<void>; review: (m: "initial" | "recheck" | "rerun") => Promise<unknown>; verify: (v: "resolved" | "not_resolved", f: string) => Promise<unknown>; save: (s: Status, n: string) => Promise<unknown> }) {
   const [busy, setBusy] = useState(""), [err, setErr] = useState(""), [feedback, setFeedback] = useState("");
   async function run(label: string, fn: () => Promise<unknown>) { setBusy(label); setErr(""); try { await fn(); await refresh(); } catch (e) { setErr(msg(e, "Nem sikerült.")); } finally { setBusy(""); } }
   const canAi = row.ai_run_count < AI_REVIEW_LIMIT;
-  return <details className="rounded-md border p-3" open={mine && row.status === "checking"}>
+  // George szervezeti jelzéseiből érkező mélylink (?issue=): a jegy nyitva, látható helyen.
+  useEffect(() => { if (focused) document.getElementById(`issue-${row.id}`)?.scrollIntoView({ block: "center" }); }, [focused, row.id]);
+  return <details id={`issue-${row.id}`} className={`rounded-md border p-3${focused ? " ring-2 ring-primary" : ""}`} open={focused || (mine && row.status === "checking")}>
     <summary className="cursor-pointer break-words text-sm">{ISSUE_STATUS[row.status as Status]} · {ISSUE_CATEGORY[row.category as IssueCategory] ?? row.category} · {row.description.slice(0, 90)}</summary>
     <div className="space-y-2 pt-3 text-sm">
       <p className="break-all text-xs text-muted-foreground">{row.id} · {row.reporter_role} · {new Date(row.created_at).toLocaleString("hu-HU")} · {row.page_path}</p>

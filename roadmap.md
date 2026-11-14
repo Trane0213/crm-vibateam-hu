@@ -229,3 +229,11 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [ ] 4/b. Bejelentkezett felületi próba (/notifications, csengő) — saját belépés szükséges
 - [ ] 5. Óránkénti automatikus AI-felülvizsgálat — jóváhagyásra vár
 - [ ] 6. Tulajdonosi AI-összesítő — jóváhagyásra vár
+
+## George központi szervezeti agy — 1. biztonságos ütem (5. csomag, 2026-11-14)
+- [x] Read-only audit és VALÓS / KÓD-SZINTEN / HIÁNYZIK / NEM TESZTELT / ENGEDÉLYKÖTELES mátrix (docs/system-map/george-kozponti-agy-5-csomag-2026-11-14.md).
+- [x] Élő, determinisztikus George-jelzések (átadás, Sales, projekt, bizonyíték, panasz, automatikus jelzés, import), forrás + felelős + állapot + következő teendő + tesztjavaslat; 0 AI, 0 írás, Tulajdonos-only.
+- [x] Beépítés: AI-felülvizsgálat oldal, Mai vezetői munka George-kártya, hibajegy mélylink (/help?issue=), tulajdonosi súgó.
+- [ ] Bejelentkezett Owner végigpróba éles adattal — saját belépés szükséges (external_unmanaged).
+- [ ] Óránkénti jelzésgyűjtő bekapcsolása — tulajdonosi költségkeret-jóváhagyás kell (most KIKAPCSOLVA, 0 futás).
+- [ ] Szerepkörös (Sales/PM) George-nézet, tétel-szintű „elfogadva/elvetve” tárolás — új adatmodell/RLS döntést igényel.

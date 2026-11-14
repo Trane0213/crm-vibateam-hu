@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { aiReviewCollectNow, aiReviewOverview, aiReviewRunNow, aiReviewUpdateConfig } from "@/lib/ai-review/ai-review.functions";
 import { AREA_LABEL, type ReviewAgent } from "@/lib/ai-review/model";
+import { OrgSignalsPanel } from "@/components/george/org-signals-panel";
 
 export const Route = createFileRoute("/_authenticated/settings/ai-review")({
   head: () => ({ meta: [
@@ -81,7 +82,7 @@ function AiReviewPage() {
   const criticalOpen = signals.filter((s) => s.severity === "critical" && ["pending", "in_review", "failed"].includes(s.review_status)).length;
 
   if (q.isLoading) return <p className="text-sm text-muted-foreground">Betöltés…</p>;
-  if (q.isError || !cfg) return <p className="text-sm text-destructive">{q.error instanceof Error ? q.error.message : "Az állapot nem tölthető be."}</p>;
+  if (q.isError || !cfg) return <div className="space-y-6"><p className="text-sm text-destructive">{q.error instanceof Error ? q.error.message : "Az állapot nem tölthető be."}</p><OrgSignalsPanel /></div>;
 
   return (
     <div className="space-y-6">
@@ -102,6 +103,8 @@ function AiReviewPage() {
           </CardContent>
         </Card>
       )}
+
+      <OrgSignalsPanel />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -176,7 +179,7 @@ function AiReviewPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Jelzések területenként</CardTitle>
+          <CardTitle className="text-base">Jelzéstábla területenként (óránkénti, AI nélküli gyűjtő)</CardTitle>
           <CardDescription>Ismétlődő jelzés a korábbihoz kapcsolódik (észlelésszám). Megszűnt állapot automatikusan lezárul.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -190,7 +193,7 @@ function AiReviewPage() {
                     <span className="flex min-w-0 items-center gap-2"><Badge variant={SEV[s.severity]?.variant ?? "outline"}>{SEV[s.severity]?.label ?? s.severity}</Badge><span className="truncate">{s.title}</span></span>
                     <span className="shrink-0 text-xs text-muted-foreground">
                       {REVIEW_STATUS[s.review_status] ?? s.review_status} · {s.occurrences}× · utoljára {fmt(s.last_seen_at)}
-                      {s.issue_id && <> · <Link to="/help" search={{ from: "/settings/ai-review" }} className="underline">hibajegy</Link></>}
+                      {s.issue_id && <> · <Link to="/help" search={{ from: "/settings/ai-review", issue: s.issue_id }} className="underline">hibajegy</Link></>}
                     </span>
                   </li>
                 ))}
