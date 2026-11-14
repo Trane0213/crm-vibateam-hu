@@ -4,7 +4,7 @@
  * ár-cellák írhatósági állapota. Bizonytalan oszlopértelmezés jelölve, soha nem csendes.
  */
 import { addr, isErr, numToCol, type Scalar, type SheetModel, type WorkbookEvaluator, type WorkbookModel } from "./formula";
-import { norm, normUnit, parseNumber } from "./normalize";
+import { isShortName, norm, normUnit, parseNumber } from "./normalize";
 
 export type ColumnRole = "item_no" | "name" | "designation" | "type" | "note" | "qty" | "unit" | "unit_price" | "material_unit" | "labor_unit" | "total" | "material_total" | "labor_total";
 export type PriceCellRole = "unit_price" | "material_unit" | "labor_unit";
@@ -20,20 +20,22 @@ export type BudgetRow = {
   key: string; sheet: string; row: number; kind: "item" | "zero_qty" | "section" | "subtotal" | "text";
   itemNo: string | null; name: string; designation: string | null; type: string | null; note: string | null;
   qty: number | null; unitRaw: string | null; unit: string; section: string; flags: string[];
+  /** Rövid altétel (pl. „3x4 mm2”) esetén a megelőző leíró tétel neve — párosítási kontextus. */
+  context: string | null;
   priceCells: PriceCell[]; totalCells: { role: "total" | "material_total" | "labor_total"; address: string; formula?: string }[];
 };
 export type BudgetExtract = { layouts: SheetLayout[]; skippedSheets: { sheet: string; reason: string }[]; rows: BudgetRow[] };
 
 const has = (tokens: string[], ...w: string[]) => w.some((x) => tokens.includes(x));
-const TOTAL_W = ["osszesen", "ossz", "osszes", "szum", "osszeg", "ertek", "total", "sum"];
+const TOTAL_W = ["osszesen", "ossz", "osszes", "szum", "osszeg", "ertek", "total", "sum", "osszar"];
 
 /** Fejléccímke → oszlopszerep. Sorrend számít: mennyiség → összeg → egységár → egység → szöveges szerepek. */
 export function classifyHeader(label: string): ColumnRole | null {
-  const n = norm(label); if (!n) return null;
+  const n = norm(String(label).replace(/(\p{L})-\s*(\p{L})/gu, "$1$2")).replace(/\begsegar\b/g, "egysegar"); if (!n) return null;
   const t = n.split(" ");
   const material = has(t, "anyag", "anyagar", "anyagegysegar", "anyagkoltseg");
-  const labor = has(t, "dij", "munkadij", "dijegysegar", "munkadijegysegar", "dijtetel");
-  if (has(t, "menny", "mennyiseg", "mennyisege", "qty", "quantity")) return "qty";
+  const labor = has(t, "dij", "munkadij", "munka", "dijegysegar", "munkadijegysegar", "dijtetel");
+  if (has(t, "menny", "mennyiseg", "mennyisege", "qty", "quantity")) return has(t, "egyseg", "me", "egys", "mertekegyseg") && !has(t, ...TOTAL_W) ? "unit" : "qty";
   if (has(t, ...TOTAL_W) && !has(t, "egysegar", "egysegre")) return material && !labor ? "material_total" : labor && !material ? "labor_total" : "total";
   if (has(t, "egysegar", "egysegre", "anyagegysegar", "dijegysegar", "munkadijegysegar") || (has(t, "egyseg", "ar") && (material || labor)) || (t.length <= 2 && (material || labor || has(t, "ar")))) {
     return material && !labor ? "material_unit" : labor && !material ? "labor_unit" : "unit_price";
@@ -47,6 +49,9 @@ export function classifyHeader(label: string): ColumnRole | null {
   return null;
 }
 
+/** Kizárás-kereséshez: ékezet nélküli kisbetűs szöveg, szótörlés nélkül (a norm() az „opcionális” szót párosításhoz elhagyja). */
+const plain = (v: unknown) => String(v ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+const UNIT_RE = /^(m|m2|m3|db|tetel|klt|ktg|ora|kg|t|l|pld|gar|par|csomag|tekercs)$/;
 const text = (v: Scalar) => (v == null || isErr(v) ? "" : typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : "");
 const headerish = (s: string) => s.length > 0 && s.length <= 40 && !/^[-+]?\d+([.,]\d+)?$/.test(s);
 
@@ -59,6 +64,8 @@ function rowLabels(sheet: SheetModel, r: number): Map<number, string> {
 function layoutFrom(labels: Map<number, string>) {
   const roles = new Map<number, ColumnRole>();
   for (const [c, l] of labels) { const r = classifyHeader(l); if (r) roles.set(c, r); }
+  // „M | E” rövid fejléc (mennyiség | egység) — csak egymás melletti párként értelmezve.
+  for (const [c, l] of labels) if (norm(l) === "m" && norm(labels.get(c + 1)) === "e" && !roles.has(c) && ![...roles.values()].includes("qty")) { roles.set(c, "qty"); if (!roles.has(c + 1)) roles.set(c + 1, "unit"); }
   const vals = [...roles.values()];
   const score = (vals.includes("name") ? 2 : 0) + (vals.includes("qty") ? 2 : 0) + (vals.includes("unit") ? 1 : 0) + (vals.some((v) => v.endsWith("unit") || v === "unit_price") ? 2 : 0) + (vals.some((v) => v.endsWith("total")) ? 1 : 0);
   return { roles, score };
@@ -132,14 +139,25 @@ export function extractBudget(model: WorkbookModel, ev: WorkbookEvaluator): Budg
       for (const c of [cols.qty + 1, cols.qty - 1]) {
         if (c < 1 || [...h.roles.keys()].includes(c)) continue;
         const vals = sample.filter((r) => qtyNum(r) != null).map((r) => text(sheet.cells.get(addr(c, r))?.v ?? null)).filter(Boolean);
-        const known = vals.filter((v) => /^(m|m2|m3|db|tetel|klt|ktg|ora|kg|t|l|pld|gar|par|csomag|tekercs)$/.test(normUnit(v)));
+        const known = vals.filter((v) => UNIT_RE.test(normUnit(v)));
         if (vals.length >= 3 && known.length / vals.length >= 0.7) { cols.unit = c; inferred.push(`Mértékegység-oszlop fejléc nélkül: ${numToCol(c)} (értékei alapján).`); break; }
+      }
+    }
+    // Fejléchez képest felcserélt mennyiség/egység oszlop (valós mintában előfordult): értékek alapján, jelölve.
+    if (cols.qty && cols.unit) {
+      const qv = sample.map((r) => sheet.cells.get(addr(cols.qty!, r))?.v ?? null).filter((v) => v != null && v !== "");
+      const uv = sample.map((r) => sheet.cells.get(addr(cols.unit!, r))?.v ?? null).filter((v) => v != null && v !== "");
+      const qUnits = qv.filter((v) => typeof v === "string" && UNIT_RE.test(normUnit(v))).length, uNums = uv.filter((v) => typeof v === "number").length;
+      if (qv.length >= 3 && qUnits / qv.length >= 0.7 && uNums / Math.max(1, uv.length) >= 0.7) {
+        const q = cols.qty; cols.qty = cols.unit; cols.unit = q;
+        inferred.push(`A mennyiség (${numToCol(cols.qty)}) és a mértékegység (${numToCol(cols.unit)}) oszlop a fejléchez képest felcserélve szerepel — az értékek alapján használva, ellenőrizendő.`);
       }
     }
     if (!cols.name.length && cols.qty) {
       let bestC = 0, bestLen = 0;
+      const secondaryNo = (byRole.get("item_no") ?? []).slice(1);
       for (let c = 1; c < cols.qty; c++) {
-        if ([...h.roles.keys()].includes(c)) continue;
+        if ([...h.roles.keys()].includes(c) && !secondaryNo.includes(c)) continue;
         const len = sample.reduce((a, r) => a + text(sheet.cells.get(addr(c, r))?.v ?? null).length, 0);
         if (len > bestLen) { bestLen = len; bestC = c; }
       }
@@ -150,7 +168,7 @@ export function extractBudget(model: WorkbookModel, ev: WorkbookEvaluator): Budg
     const layout: SheetLayout = { sheet: sheet.name, hidden: sheet.hidden, headerRows: h.rows, dataStartRow: dataStart, columns: cols, labels, inferred, ambiguous };
     layouts.push(layout);
 
-    let section = "";
+    let section = "", lastDescriptive: string | null = null;
     for (let r = dataStart; r <= sheet.maxRow; r++) {
       const nameText = cols.name.map((c) => text(ev.value(sheet, addr(c, r)))).filter(Boolean).join(" · ");
       const get = (c?: number) => (c ? text(ev.value(sheet, addr(c, r))) || null : null);
@@ -164,7 +182,7 @@ export function extractBudget(model: WorkbookModel, ev: WorkbookEvaluator): Budg
       let kind: BudgetRow["kind"];
       if (qty == null) {
         if (SUBTOTAL.test(n)) kind = "subtotal";
-        else if (nameText && (itemNo || /^\d+(\.\d+)*\.?\s/.test(nameText) || nameText === nameText.toUpperCase() || nameText.length <= 60)) { kind = "section"; section = nameText.slice(0, 160); }
+        else if (nameText && (itemNo || /^\d+(\.\d+)*\.?\s/.test(nameText) || nameText === nameText.toUpperCase() || nameText.length <= 60)) { kind = "section"; section = nameText.slice(0, 160); lastDescriptive = null; }
         else kind = "text";
       } else if (SUBTOTAL.test(n) && !unitRaw) kind = "subtotal";
       else kind = qty === 0 ? "zero_qty" : "item";
@@ -172,14 +190,16 @@ export function extractBudget(model: WorkbookModel, ev: WorkbookEvaluator): Budg
       if (kind === "item" || kind === "zero_qty") {
         if (!nameText) flags.push("no_name");
         if (!unitRaw) flags.push("no_unit");
-        if (EXCLUSION.test(`${n} ${norm(get(cols.note))} ${norm(get(cols.type))}`)) flags.push("possible_exclusion");
+        if (EXCLUSION.test(`${plain(nameText)} ${plain(get(cols.note))} ${plain(get(cols.type))}`)) flags.push("possible_exclusion");
         if (sheet.hiddenRows.has(r)) flags.push("hidden_row");
         if (qtyRaw && typeof qtyRaw === "object") flags.push("qty_error");
       }
+      let context: string | null = null;
+      if (nameText && (kind === "item" || kind === "zero_qty" || kind === "text")) { if (isShortName(nameText)) context = lastDescriptive; else lastDescriptive = nameText; }
       const priceCells: PriceCell[] = (["unit_price", "material_unit", "labor_unit"] as const).filter((role) => cols[role]).map((role) => { const a = addr(cols[role]!, r); return { role, col: cols[role]!, address: a, ...cellState(sheet, a) }; });
       const totalCells = (["total", "material_total", "labor_total"] as const).filter((role) => cols[role]).map((role) => { const a = addr(cols[role]!, r); return { role, address: a, formula: sheet.cells.get(a)?.f }; });
       rows.push({ key: `${sheet.name}!${r}`, sheet: sheet.name, row: r, kind, itemNo, name: nameText, designation: get(cols.designation), type: get(cols.type), note: get(cols.note),
-        qty, unitRaw, unit: normUnit(unitRaw), section, flags, priceCells, totalCells });
+        qty, unitRaw, unit: normUnit(unitRaw), section, flags, context, priceCells, totalCells });
     }
   }
   return { layouts, skippedSheets, rows };

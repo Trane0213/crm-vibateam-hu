@@ -62,3 +62,9 @@ export function parseNumber(x: unknown): number | null {
   const n = Number(t);
   return Number.isFinite(n) ? n : null;
 }
+
+/** Rövid, önmagában nem azonosító tételnév (pl. „3x4 mm2”, „kék”): legfeljebb egy legalább 3 betűs szó. */
+export function isShortName(v: unknown): boolean {
+  const words = norm(v).split(" ").filter((w) => /^[a-z]{3,}$/.test(w) && !["mm2", "mm"].includes(w));
+  return words.length <= 1;
+}

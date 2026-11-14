@@ -88,11 +88,12 @@ export function parseFormula(src: string): Node {
         const args: Node[] = [];
         if (peek()?.t === ")") { next(); return { k: "call", fn: t.v, args }; }
         while (true) {
-          if (peek()?.t === "," ) { args.push({ k: "str", v: "" }); next(); continue; }
+          if (peek()?.t === ",") { args.push({ k: "str", v: "" }); next(); if (peek()?.t === ")") { args.push({ k: "str", v: "" }); next(); break; } continue; }
           args.push(cmp());
           const n = next();
           if (n?.t === ")") break;
           if (n?.t !== ",") throw new Error("Hibás argumentumlista");
+          if (peek()?.t === ")") { args.push({ k: "str", v: "" }); next(); break; }
         }
         return { k: "call", fn: t.v, args };
       }

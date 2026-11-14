@@ -15,6 +15,7 @@ import { registerWebsiteTools } from "./adapters/website-tools.server";
 import { registerGmailContextTools } from "./adapters/gmail-tools.server";
 import { registerDocumentTools } from "./adapters/document-tools.server";
 import { registerPackageTools } from "./adapters/package-tools.server";
+import { registerPricingTools } from "./adapters/pricing-tools.server";
 import { registerEmailSendTool } from './adapters/email-send-action.server';
 
 let booted = false;
@@ -26,6 +27,7 @@ export function ensureBootstrapped() {
   registerGmailContextTools();
   registerDocumentTools();
   registerPackageTools();
+  registerPricingTools();
   registerEmailSendTool();
   registerGoogleAdsTools();
   registerKgTools();
