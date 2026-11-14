@@ -55,6 +55,12 @@ function laborUnit(hours: number, p: CalculationProfile, contBp: number, approve
   return { filler: r, steps, blocked: null };
 }
 
+/** Az árforrás-párosításhoz használt determinisztikus megnevezés (készülékosztály + rajzi szöveg + névleges áram + pólus). */
+export function bomMatchName(b: BomLine): string {
+  const head = DEVICE_LABEL[b.cls].split(/[ /(]/)[0]!.toLowerCase();
+  return `${b.description.toLowerCase().includes(head) ? b.description : `${DEVICE_LABEL[b.cls]} ${b.description}`}${b.rating && !b.description.includes(b.rating) ? ` ${b.rating}` : ""}${b.poles && !b.description.includes(b.poles) ? ` ${b.poles}` : ""}`;
+}
+
 type Dir = { contBp: Map<string, number>; remove: Set<string>; setUnit: Map<string, { filler: number; reason: string }>; extra: CabinetCostLine[] };
 
 function estimateCabinet(cab: Cabinet, idx: ReturnType<typeof indexSources>, p: CalculationProfile, rules: CabinetRules, asOf: string, d: Dir): CabinetEstimate {
@@ -77,17 +83,15 @@ function estimateCabinet(cab: Cabinet, idx: ReturnType<typeof indexSources>, p: 
     const l = base({ id: `M:${b.id}`, category: "material", description: `${DEVICE_LABEL[b.cls]}: ${b.description}${b.rating && !b.description.includes(b.rating) ? ` ${b.rating}` : ""}${b.poles ? ` ${b.poles}` : ""}`.slice(0, 240), qty: b.qty, evidence: b.evidence, bomLineId: b.id });
     if (brokenDown.has(b.cls) && b.parentId !== "rating_breakdown" && !b.rating) { l.status = "summarized"; l.reasons.push("Névleges áram szerinti alsorokban árazva (dupla számolás nélkül)."); lines.push(l); continue; }
     if (p.mode === "subcontractor_labor") { l.status = "excluded"; l.reasons.push("Alvállalkozói munkadíjas mód: anyag nem árazható."); lines.push(finish(l, null)); continue; }
-    const head = DEVICE_LABEL[b.cls].split(/[ /(]/)[0]!.toLowerCase();
-    const matchName = `${b.description.toLowerCase().includes(head) ? b.description : `${DEVICE_LABEL[b.cls]} ${b.description}`}${b.rating && !b.description.includes(b.rating) ? ` ${b.rating}` : ""}${b.poles && !b.description.includes(b.poles) ? ` ${b.poles}` : ""}`;
-    const r = priceDescriptor({ name: matchName, unit: "db", type: b.productRef }, "material", idx, p, asOf);
+    const cMat = contOf(l.id, "material");
+    const r = priceDescriptor({ name: bomMatchName(b), unit: "db", type: b.productRef }, "material", idx, cMat === toBp(p.contingencyPct) ? p : { ...p, contingencyPct: cMat / 100 }, asOf);
     l.candidates = r.candidates; l.source = r.source; l.steps = r.steps; l.confidence = r.confidence;
     if (b.notes.length) l.reasons.push(...b.notes);
     if (b.qty == null) { l.status = "review"; l.reasons.push("A darabszám nincs a rajzon — ár nem számítható."); }
     else if (b.uncertain.length) { l.status = "review"; l.reasons.push(...b.uncertain); if (r.status === "priced") l.reasons.push(`Javasolt egységár ${huf(r.unitFiller!)} — bizonytalanság miatt nem számolva.`); }
     else if (r.status === "priced") {
-      let f = r.unitFiller!; const c = contOf(l.id, "material"), dflt = toBp(p.contingencyPct);
-      if (c !== dflt) { f = roundToStep(addPct(f, c - dflt), p.rounding.stepHuf, p.rounding.mode); l.steps = [...l.steps, { label: `Egyedi tartalék ${(c - dflt) / 100}% (kérésre)`, filler: f }]; }
-      l.status = "priced"; lines.push(finish(l, f)); continue;
+      if (cMat !== toBp(p.contingencyPct)) l.reasons.push(`Egyedi tartalék ${cMat / 100}% (kérésre, az alap ${p.contingencyPct}% helyett).`);
+      l.status = "priced"; lines.push(finish(l, r.unitFiller!)); continue;
     } else { l.status = r.status === "blocked" ? "blocked" : r.status === "review" ? "review" : "missing"; if (r.reason) l.reasons.push(r.reason); }
     lines.push(finish(l, null));
   }

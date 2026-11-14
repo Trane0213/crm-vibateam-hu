@@ -85,8 +85,10 @@ export function identifyPage(file: Pick<PlanFile, "fileId" | "fileName">, p: Pla
     docType: { value: "unknown", score: 0, evidence: null }, discipline: { value: "ismeretlen", evidence: null }, cabinetIds: [] };
   if (p.source === "sheet") res.docType = { value: "budget_sheet", score: 3, evidence: ev(file, p.page, "munkalap", "plan") };
 
-  const cands = drawingCandidates(p, lines, file.fileName);
-  if (cands[0]) { const [key, c] = cands[0]; res.drawingNo = { value: key, confidence: c.score >= 4 ? "high" : c.score >= 2 ? "medium" : "low", evidence: ev(file, p.page, c.line, "plan", p.aiExtracted) }; }
+  // A4 álló oldal (leírás, levél, Q&A) hivatkozott tervjelei nem a lap saját azonosítói — ott csak címkézett rajzszám fogadható el.
+  const a4Portrait = p.width != null && p.height != null && p.width <= 620 && p.height >= 800;
+  const cands = drawingCandidates(p, lines, file.fileName).filter(([, c]) => !a4Portrait || c.labelled);
+  if (cands[0]) { const [key, c] = cands[0]; res.drawingNo = { value: key, confidence: c.score >= 4 || c.labelled ? "high" : c.score >= 2 ? "medium" : "low", evidence: ev(file, p.page, c.line, "plan", p.aiExtracted) }; }
   else {
     const stemTok = fileStem(file.fileName).split(/[\s_]+/)[0] ?? "";
     if (DRAWING_RE.test(stemTok) && !NOT_DRAWING.test(stemTok)) res.drawingNo = { value: normDrawingNo(stemTok), confidence: "low", evidence: { kind: "file_name", fileId: file.fileId, fileName: file.fileName, page: p.page, snippet: file.fileName } };

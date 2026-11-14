@@ -75,7 +75,7 @@ function schematicOf(f: { fileId: string; fileName: string }, p: PlanPage, maxX:
   };
   const items: (PlanItem & { line: string })[] = [];
   for (const l of lines) {
-    if (isLegend(l.text) || /^aramkor|^beep|^aramkor:/.test(fold(l.text))) continue;
+    if (isLegend(l.text) || /^aramkor\s*:|^beep/.test(fold(l.text))) continue;
     if (l.items) for (const it of l.items) items.push({ ...it, line: l.text });
     else for (const w of l.text.split(/\s+/)) items.push({ s: w, x: NaN, y: NaN, line: l.text });
   }
@@ -118,7 +118,7 @@ export function cableKeys(text: string): { key: string; type: string; cores: num
 
 function circuitsOf(f: { fileId: string; fileName: string }, p: PlanPage): Circuit[] {
   const lines = pageLines(p);
-  const head = lines.find((l) => /^aramkor/.test(fold(l.text)));
+  const head = lines.find((l) => /^aramkor\s*:/.test(fold(l.text)));
   if (!head) return [];
   const ids = (head.items ? head.items.slice(1).map((i) => i.s.trim()) : head.text.replace(/^Áramkör:?/i, "").trim().split(/\s+/)).filter((s) => /^[A-Z0-9]{1,4}$/.test(s));
   const idItems = head.items?.slice(1).filter((i) => /^[A-Z0-9]{1,4}$/.test(i.s.trim())) ?? [];
@@ -200,7 +200,7 @@ export function buildCabinets(files: PlanFile[], pages: PlanPage[], ids: PageIde
         const ex = explicitLines(id, f, page, cab.lines.length);
         cab.lines.push(...ex.lines); if (ex.enclosure && !cab.enclosure) cab.enclosure = ex.enclosure;
         // Közös lap: bal oldali kapcsolási rajz + jobb oldali készüléklista.
-        if (ex.listX != null && lines.some((l) => /^aramkor/.test(fold(l.text)))) { isSchematic = true; schematicMaxX = ex.listX; }
+        if (ex.listX != null && lines.some((l) => /^aramkor\s*:/.test(fold(l.text)))) { isSchematic = true; schematicMaxX = ex.listX; }
       }
       if (isSchematic) {
         const s = schematicOf(f, page, schematicMaxX); geoAll = geoAll && s.geo;

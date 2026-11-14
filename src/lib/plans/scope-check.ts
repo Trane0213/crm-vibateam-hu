@@ -44,8 +44,9 @@ function relatedRows(text: string, rows: BudgetRow[], max = 3) {
 }
 
 function sentences(p: PlanPage): { text: string; page: number }[] {
-  const joined = pageLines(p).map((l) => l.text).join(" ").replace(/-\s+(?=\p{Ll})/gu, "");
-  return joined.split(/(?<=[.!?;])\s+(?=[A-ZÁÉÍÓÖŐÚÜŰ„"(−–-])/u).map((t) => ({ text: clean(t), page: p.page })).filter((s) => s.text.length >= 25 && s.text.length <= 600);
+  const heading = (t: string) => t.length < 90 && /\p{Lu}/u.test(t) && t === t.toUpperCase();
+  const joined = pageLines(p).map((l) => (heading(l.text) ? "\u0000" : l.text)).join(" ").replace(/-\s+(?=\p{Ll})/gu, "");
+  return joined.split(/\u0000/).flatMap((seg) => seg.trim().split(/(?<=[.!?;])\s+(?=[A-ZÁÉÍÓÖŐÚÜŰ„"(−–-])/u).map((t) => ({ text: clean(t), page: p.page }))).filter((s) => s.text.length >= 25 && s.text.length <= 600);
 }
 
 export function checkScope(input: {
@@ -101,7 +102,8 @@ export function checkScope(input: {
   }
   for (const [key, pc] of planCables) {
     if (budgetCables.some((b) => b.key === key)) continue;
-    const sameCores = budgetCables.filter((b) => (b.type === pc.type || b.type == null) && b.cores === pc.cores && b.section !== pc.section);
+    const planHas = (b: { cores: number; section: string }) => [...planCables.values()].some((x) => x.cores === b.cores && x.section === b.section && x.type === pc.type);
+    const sameCores = budgetCables.filter((b) => (b.type === pc.type || b.type == null) && b.cores === pc.cores && b.section !== pc.section && !planHas(b));
     const sameSection = budgetCables.filter((b) => b.cores === pc.cores && b.section === pc.section);
     if (sameSection.length) { if (sameSection.every((b) => b.type && b.type !== pc.type)) add({ category: "elteres", severity: "low", topic: "kabel", title: `Kábeltípus: a terven ${key}, a költségvetésben ${sameSection[0]!.key}.`, rows: sameSection.slice(0, 3).map((b) => rowRef(b.row)), evidence: [pc.ev, rowEv(sameSection[0]!.row, bfile)], question: `A ${pc.cores}×${pc.section} mm² kábel típusa ${pc.type} (terv) vagy ${sameSection[0]!.type} (kiírás)?`, impact: "Anyagár eltérhet." }); continue; }
     if (sameCores.length && input.budget) add({ category: "elteres", severity: "high", topic: "kabel", title: `Keresztmetszet-eltérés: a terven ${key}, a költségvetésben ${[...new Set(sameCores.map((b) => `${b.cores}×${b.section}`))].join(", ")} mm².`, rows: sameCores.slice(0, 4).map((b) => rowRef(b.row)), evidence: [pc.ev, rowEv(sameCores[0]!.row, bfile)], question: `Melyik az érvényes keresztmetszet: ${pc.cores}×${pc.section} mm² (terv) vagy ${sameCores[0]!.cores}×${sameCores[0]!.section} mm² (kiírás)?`, impact: "Kábel anyag- és szerelési költsége jelentősen eltérhet." });

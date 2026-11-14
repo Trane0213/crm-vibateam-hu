@@ -1,0 +1,22 @@
+/** QA: a „Tervellenőrzés és szekrénykalkuláció” panel izolált próbájához valódi P4 motorral számolt TESZT-eredmény (kitalált tervek, árak, normák). */
+import { runPlanReview } from "../../src/lib/plans/plan-review";
+import { planReviewDto } from "../../src/lib/plans/plan-review-dto";
+import { buildCabinets } from "../../src/lib/plans/cabinet-bom";
+import { bomMatchName } from "../../src/lib/plans/cabinet-pricing";
+import { identifyPage } from "../../src/lib/plans/sheet-identify";
+import { resolveProfile } from "../../src/lib/pricing/profiles";
+import { cabinetPlan, FIVE_CABINETS, materialSources, TEST_RULES } from "../../src/lib/plans/__fixtures__/plans";
+import type { BudgetRow } from "../../src/lib/pricing/budget-extract";
+const out = process.argv[2] ?? "/tmp/browser/plans/payload.json";
+const all = FIVE_CABINETS.map(cabinetPlan); const files = all.map((x) => x.file), pages = all.flatMap((x) => x.pages);
+files.push({ fileId: "scan", fileName: "TESZT_szkennelt_V-1.pdf", path: null, origin: "fixture", pageCount: 1, status: "read" });
+pages.push({ fileId: "scan", page: 1, source: "text_layer", aiExtracted: false, width: 842, height: 1191, items: [], text: "" });
+const cabs = buildCabinets(files, pages, pages.map((p) => identifyPage(files.find((f) => f.fileId === p.fileId)!, p)));
+const sources = materialSources(Object.fromEntries(cabs.flatMap((c) => [...(c.enclosure ? [c.enclosure] : []), ...c.lines]).map((b, i) => [bomMatchName(b), 800 + i * 37])));
+let n = 0; const row = (name: string, qty: number, unit: string, context: string | null = null): BudgetRow => ({ key: `Kiírás!${++n + 4}`, sheet: "Kiírás", row: n + 4, kind: "item", itemNo: String(n), name, designation: null, type: null, note: null, qty, unitRaw: unit, unit, section: "Erősáram", flags: [], context, priceCells: [], totalCells: [] });
+const rows = [row("„FE” főelosztó T-5 terv szerint, összeszerelve, bekötve, beüzemelve", 1, "klt"), row("„X9” elosztó Z-9 terv szerint", 1, "klt"), row("4×150 mm2", 40, "m", "NYY 1,0kV kábel"), row("3×2,5 mm2", 300, "m", "NYY 1,0kV kábel")];
+const profile = resolveProfile("full_construction", { marginPct: 20, contingencyPct: 5, laborRateHuf: 6500 });
+const result = runPlanReview({ files, pages, budget: { extract: { layouts: [], skippedSheets: [], rows }, fileName: "TESZT_kiiras.xlsx" }, clarifications: [], sources, profile, rules: TEST_RULES, asOf: "2026-11-15" });
+const dto = planReviewDto({ result, files, budgetFile: "TESZT_kiiras.xlsx", budgetWarnings: [], clarifications: { accepted: [], rejected: [] }, template: null, profile: { id: profile.id, label: profile.label, mode: profile.mode, laborRateHuf: 6500, contingencyPct: 5, marginPct: 20 } } as never);
+await Bun.write(out, JSON.stringify({ ok: true, review: dto }));
+console.log("payload cabinets", dto.cabinets.length, "complete", dto.estimates.filter((e) => e.totals.complete).length, "findings", dto.findingsTotal, "questions", dto.questions.length);

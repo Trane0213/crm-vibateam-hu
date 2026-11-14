@@ -37,7 +37,7 @@ export function cabinetPlan(c: CabinetSpec): { file: PlanFile; pages: PlanPage[]
 }
 
 const circuits = (n: number, rating: number, cable = "NYY 3×1,5²", rcdEvery = 0): CircuitSpec[] =>
-  Array.from({ length: n }, (_, i) => ({ id: String(i + 1), rating, name: `Áramkör ${i + 1}`, cable, power: 500 + i * 10, ...(rcdEvery && i % rcdEvery === 0 ? { rcd: { rating: 40 } } : {}) }));
+  Array.from({ length: n }, (_, i) => ({ id: String(i + 1), rating, name: `Fogyasztó ${i + 1}`, cable, power: 500 + i * 10, ...(rcdEvery && i % rcdEvery === 0 ? { rcd: { rating: 40 } } : {}) }));
 
 /** Öt különböző, hiánytalan TESZT elosztó (nézeti rajz darabszám = kapcsolási rajz jelölésszám). */
 export const FIVE_CABINETS: CabinetSpec[] = [
