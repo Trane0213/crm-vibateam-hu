@@ -23,6 +23,7 @@ function download(bytes: Uint8Array | string, name: string, type: string) {
   const url = URL.createObjectURL(blob), a = document.createElement("a");
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+const huf2 = (n: number) => `${new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 2 }).format(n)} Ft`;
 const numOrUndef = (s: string) => (s.trim() === "" ? undefined : Number(s.replace(",", ".")));
 
 /**
@@ -192,7 +193,7 @@ function LineTrace({ line }: { line: LineDto }) {
         <div key={k} className="space-y-1">
           <p className="font-medium">{k === "material" ? "Anyag" : "Munkadíj"}{c.unitHuf != null ? ` — ${formatHuf(c.unitHuf)}/ME` : ""}</p>
           {c.source && <p className="text-muted-foreground">Forrás: {c.source.label} · {c.source.name.slice(0, 120)}{c.source.file ? ` · ${c.source.file}${c.source.row ? ` #${c.source.row}` : ""}` : ""}{c.source.date ? ` · ${c.source.date}` : ""}{c.category ? ` · egyezés: ${c.category} (${c.score})` : ""}</p>}
-          {c.steps.length > 0 && <ol className="list-decimal pl-4">{c.steps.map((s, i) => <li key={i}>{s.label}{s.huf != null ? `: ${formatHuf(s.huf)}` : ""}</li>)}</ol>}
+          {c.steps.length > 0 && <ol className="list-decimal pl-4">{c.steps.map((s, i) => <li key={i}>{s.label}{s.huf != null ? `: ${huf2(s.huf)}` : ""}</li>)}</ol>}
           {c.status !== "priced" && c.candidates.length > 0 && <p className="text-muted-foreground">Jelöltek: {c.candidates.map((x) => `${x.name.slice(0, 60)} (${x.unitPriceHuf ?? "—"} Ft, ${x.score})`).join(" · ")}</p>}
         </div>); })}
       {line.writes.length > 0 && <p className="text-muted-foreground sm:col-span-2">Írt cellák: {line.writes.map((w) => `${w.address}=${w.valueHuf}`).join(", ")}</p>}

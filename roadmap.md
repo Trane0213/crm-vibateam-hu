@@ -250,3 +250,9 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [x] P2 Timothy-előkészítés: csak olvasó tervcsomag-eszközök (áttekintés, fájlolvasás, keresés)
 - [ ] Feldolgozó telepítése a Cloudflare-fiókba — tulajdonosi lépés (Workers Paid, Docker + wrangler deploy, közös titkos kulcs + CRM beállítások)
 - [ ] Élő végigpróba 500 MB-os TESZT-csomaggal a telepítés után (valódi OCR-költséggel)
+
+## P3 árazási motor (2026-11-14)
+- [x] Árforrás-rangsor, kalkulációs profilok, determinisztikus motor, szerkezettartó TERVEZET XLSX, Ramon-sablon import, Timothy-eszköz, ajánlat-panel; 1242 teszt, 21 AI, valós Excel- és LibreOffice-ellenőrzés
+- [ ] Tartós árazási adatmodell (verziók, ártörzs, módosítási napló, pricing_mode) — tulajdonosi migrációs döntés
+- [ ] Bejelentkezett éles végigpróba — external_unmanaged, saját belépés szükséges
+- [ ] P4: tervolvasás, BOM, szekrénykalkulátor — a feldolgozó telepítésére és P4 indítására vár

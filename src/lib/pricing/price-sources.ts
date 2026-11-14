@@ -52,12 +52,15 @@ export function indexSources(items: PriceSourceItem[]): SourceIndex {
   return { items: out, byToken };
 }
 
-/** A régi VIBA árazó pontszáma: 0,59 × szóegyezés + 0,41 × trigram; azonos egység kötelező; műszaki token-ütközés legfeljebb 0,68. */
+/** Számot tartalmazó szavak (tételszám, jel, méret: „l04”, „36”, „300”) — eltérésük nem lehet automatikus egyezés. */
+const digitWords = (n: string) => [...new Set(n.split(" ").filter((w) => /\d/.test(w)))].sort().join(" ");
+
+/** A régi VIBA árazó pontszáma: 0,59 × szóegyezés + 0,41 × trigram; azonos egység kötelező; műszaki token- vagy számos szó-ütközés legfeljebb 0,68. */
 export function scoreCandidate(desc: string, unit: string, type: string | null, it: Indexed): number {
   if (it._unit !== normUnit(unit)) return -1;
   const a = norm(desc); if (!a || !it._key) return -1;
   const A = techTokens(desc), B = it._tech;
-  const conflict = A.some((x) => !B.includes(x)) || B.some((x) => !A.includes(x));
+  const conflict = A.some((x) => !B.includes(x)) || B.some((x) => !A.includes(x)) || digitWords(a) !== digitWords(it._key);
   const exact = a === it._key;
   let score = exact ? 1 : 0.59 * tokenScore(a, it._key) + 0.41 * trigramScore(a, it._key);
   if (type && it._type && norm(type) === it._type) score = Math.min(1, score + 0.03);
@@ -71,7 +74,7 @@ export function textSimilarity(a: string, b: string): number {
   if (x === y) return 1;
   const A = techTokens(a), B = techTokens(b);
   const s = 0.59 * tokenScore(x, y) + 0.41 * trigramScore(x, y);
-  return A.some((t) => !B.includes(t)) || B.some((t) => !A.includes(t)) ? Math.min(s, 0.68) : s;
+  return A.some((t) => !B.includes(t)) || B.some((t) => !A.includes(t)) || digitWords(x) !== digitWords(y) ? Math.min(s, 0.68) : s;
 }
 
 export function matchRow(index: SourceIndex, desc: string, unit: string, type: string | null, component: PriceComponent): MatchResult {

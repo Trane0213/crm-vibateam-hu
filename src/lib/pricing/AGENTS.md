@@ -1,0 +1,7 @@
+- Received-budget pricing (quote panel and Timothy `crm_price_received_budget`) runs only through this pure engine: Owner/Sales, user-RLS quote+document checks, no DB writes; amounts are never computed by the model or a second path.
+- Money is integer fillér, percentages basis points; contingency and target margin are separate steps; sell-basis (historical quote) prices get no margin, cost-basis prices are blocked without an explicit margin — keeps every line hand-recomputable.
+- Automatic prices come only from exact/strong matches with same unit, no technical/number-word conflict, known fresh date and eligible source rank (supplier verified > template > historical); market/estimate never auto — unverified references must not become facts.
+- Ambiguous columns, formula/text price cells, existing prices, zero quantities and possible exclusions are never written silently; the workbook's own total formulas must reconcile with the engine per line and per sheet, otherwise export is blocked.
+- The output keeps every ZIP part byte-identical except touched worksheets and workbook.xml (fullCalcOnLoad); no internal cost/source data is written into the customer file.
+- The historical labor reference (`reference-kv11026.server.ts`) is server-only internal price data; never import it from browser code.
+- Calculations are not persisted (no pricing tables yet); saved versions, approved price master and chat-adjustment approval need the owner-approved data model first.

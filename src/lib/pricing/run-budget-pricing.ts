@@ -68,10 +68,11 @@ function reconcile(model: WorkbookModel, ex: BudgetExtract, run: PricingRun, bef
   }
   if (lineMismatches.length) problems.push(`${lineMismatches.length} tételsor összege a munkafüzetben eltér a számítástól vagy nem képlet.`);
   if (sheets.some((s) => !s.ok)) problems.push("Lapszintű összeg-egyeztetés eltér.");
-  const unsupportedFormulas = [...after.stats.unsupported].map(([fn, count]) => ({ fn, count }));
-  if (unsupportedFormulas.length) problems.push(`Nem ellenőrizhető képletek: ${unsupportedFormulas.map((u) => `${u.fn} (${u.count})`).join(", ")}.`);
+  // Minden képletcella újraszámolása (nem csak a tételsoroké), hogy a nem ellenőrizhető képletek is kiderüljenek.
   let errorsAfter = 0;
   for (const s of model.sheets) for (const [a, c] of s.cells) if (c.f) { const v = after.value(s, a); if (isErr(v) && !String(v.error).startsWith("#UNSUPPORTED") && !(c.v && isErr(c.v))) errorsAfter++; }
+  const unsupportedFormulas = [...after.stats.unsupported].map(([fn, count]) => ({ fn, count }));
+  if (unsupportedFormulas.length) problems.push(`Nem ellenőrizhető képletek: ${unsupportedFormulas.map((u) => `${u.fn} (${u.count})`).join(", ")}.`);
   if (errorsAfter) problems.push(`${errorsAfter} képlet új hibaértéket ad az árazás után.`);
   return { sheets, lineMismatches: lineMismatches.slice(0, 200), unsupportedFormulas, formulaErrorsAfter: errorsAfter, ok: problems.length === 0, problems };
 }
