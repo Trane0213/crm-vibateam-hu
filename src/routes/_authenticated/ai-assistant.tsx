@@ -19,6 +19,8 @@ import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { SalesWatch } from '@/components/ai/sales-watch';
 import { useRunProgress } from '@/components/ai/use-run-progress';
 import { friendlyAiError } from '@/lib/ai-os/transparency';
+import { ChatAttachControls, PendingAttachments, useChatAttachments } from '@/components/ai/chat-attachments';
+import { agentAcceptsAttachments, composeModelContent, DEFAULT_ATTACHMENT_QUESTION } from '@/lib/chat-uploads/chat-attachments';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
 
@@ -80,6 +82,7 @@ function AiAssistantPage() {
   }, [urlAgent]);
 
   const [input, setInput] = useState("");
+  const attach = useChatAttachments();
   const [busy, setBusy] = useState(false);
   const [progressSince,setProgressSince]=useState<string|null>(null);
   const [progressThread,setProgressThread]=useState<string|null>(null);
@@ -131,7 +134,8 @@ function AiAssistantPage() {
   }
 
   async function ask(text: string) {
-    const question = text.trim();
+    const files = agentAcceptsAttachments(active?.agent ?? agent) ? attach.pending : [];
+    const question = text.trim() || (files.length ? DEFAULT_ATTACHMENT_QUESTION : "");
     if (!question || busy || checking) return;
     if (question.length > 4000) {
       toast.error("A kérdés túl hosszú", { description: "Rövidítsd 4000 karakter alá." });
@@ -140,14 +144,14 @@ function AiAssistantPage() {
     let thread = active;
     if (!thread) thread = newThread(question, agent);
     const usedAgent: AgentId = thread.agent ?? agent;
-    const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now() };
+    const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now(), modelContent: composeModelContent("", question, files), attachments: files.length ? files : undefined };
     setThreads((prev) => prev.map((t) => t.id === thread!.id ? {
       ...t,
       title: t.messages.length === 0 ? question.slice(0, 60) : t.title,
       updatedAt: Date.now(),
       messages: [...t.messages, userMsg],
     } : t));
-    setInput("");
+    setInput(""); attach.clear();
     setBusy(true);
     const executionThread=/^[0-9a-f-]{36}$/i.test(thread.id)?thread.id:crypto.randomUUID();
     setProgressThread(executionThread);setProgressSince(new Date().toISOString());
@@ -319,7 +323,9 @@ function AiAssistantPage() {
                 </Button>
               ))}
             </div>
+            <div className="mb-2"><PendingAttachments state={attach} disabled={busy} /></div>
             <div className="flex items-end gap-2">
+              {agentAcceptsAttachments(agent) && <ChatAttachControls agent={agent} state={attach} recordCtx={null} disabled={busy} />}
               <Textarea
                 ref={inputRef}
                 value={input}
@@ -332,7 +338,7 @@ function AiAssistantPage() {
                 disabled={busy}
                 className="resize-none"
               />
-              <Button size="icon" onClick={() => ask(input)} disabled={busy || !input.trim()}>
+              <Button size="icon" onClick={() => ask(input)} disabled={busy || (!input.trim() && !(agentAcceptsAttachments(agent) && attach.pending.length))} aria-label="Küldés">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               </Button>
             </div>

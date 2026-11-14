@@ -18,6 +18,8 @@ import { useAiApprovals } from "@/components/ai/use-ai-approvals";
 import { SalesWatch } from './sales-watch';
 import { useRunProgress } from './use-run-progress';
 import { friendlyAiError } from '@/lib/ai-os/transparency';
+import { ChatAttachControls, PendingAttachments, useChatAttachments } from "@/components/ai/chat-attachments";
+import { agentAcceptsAttachments, composeModelContent, DEFAULT_ATTACHMENT_QUESTION } from "@/lib/chat-uploads/chat-attachments";
 import { contextPrefix, detectRecordContext, type RecordContext, CONTEXT_QUESTIONS, GENERAL_QUESTIONS } from "@/lib/ai-panel-context";
 import {
   AGENT_IDS, AGENT_META, Bubble, THREADS_EVENT, isLegacyErrorMessage, loadThreads, saveThreads,
@@ -103,6 +105,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
   const [progressThread,setProgressThread]=useState<string|null>(null);
   const progress=useRunProgress(busy?progressThread:null,busy?progressSince:null);
   const [useCtx, setUseCtx] = useState(true);
+  const attach = useChatAttachments();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const SOURCE = "panel";
@@ -137,7 +140,8 @@ function PanelBody({ onClose }: { onClose: () => void }) {
   }
 
   async function ask(text: string) {
-    const question = text.trim();
+    const files = agentAcceptsAttachments(agent) ? attach.pending : [];
+    const question = text.trim() || (files.length ? DEFAULT_ATTACHMENT_QUESTION : "");
     if (!question || busy || checking) return;
     if (question.length > 4000) { toast.error("A kérdés túl hosszú", { description: "Rövidítsd 4000 karakter alá." }); return; }
     let thread = active && active.agent === agent ? active : null;
@@ -148,10 +152,10 @@ function PanelBody({ onClose }: { onClose: () => void }) {
       setActiveId(t.id);
     }
     const prefix = ctxOn ? contextPrefix(recordCtx!, ctxLabel ?? null) : "";
-    const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now(), modelContent: prefix ? `${prefix}\n\n${question}` : undefined, contextLabel: ctxOn ? (ctxLabel ?? recordCtx!.label) : undefined };
+    const userMsg: Msg = { id: uid(), role: "user", content: question, at: Date.now(), modelContent: composeModelContent(prefix, question, files), contextLabel: ctxOn ? (ctxLabel ?? recordCtx!.label) : undefined, attachments: files.length ? files : undefined };
     const tid = thread.id;
     commit((prev) => prev.map((t) => t.id === tid ? { ...t, updatedAt: Date.now(), messages: [...t.messages, userMsg] } : t));
-    setInput("");
+    setInput(""); attach.clear();
     setBusy(true);
     const executionThread=/^[0-9a-f-]{36}$/i.test(tid)?tid:crypto.randomUUID();
     setProgressThread(executionThread);setProgressSince(new Date().toISOString());
@@ -296,13 +300,15 @@ function PanelBody({ onClose }: { onClose: () => void }) {
             </Button>
           ))}
         </div>
+        <PendingAttachments state={attach} disabled={busy} />
         <div className="flex items-end gap-2">
+          {agentAcceptsAttachments(agent) && <ChatAttachControls agent={agent} state={attach} recordCtx={recordCtx} ctxLabel={ctxLabel} disabled={busy} />}
           <Textarea ref={inputRef} value={input} rows={2} disabled={busy}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input); } }}
             placeholder={`Kérdezd ${meta.firstName}-t…`}
             className="min-h-[44px] resize-none bg-background text-sm" />
-          <Button size="icon" variant="glow" onClick={() => ask(input)} disabled={busy || !input.trim()} aria-label="Küldés">
+          <Button size="icon" variant="glow" onClick={() => ask(input)} disabled={busy || (!input.trim() && !(agentAcceptsAttachments(agent) && attach.pending.length))} aria-label="Küldés">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </div>

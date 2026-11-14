@@ -20,7 +20,7 @@ function fixture(tables: Record<string, Row[]>, hidden: string[] = [], userId = 
       then(resolve: (v: unknown) => unknown) { const rows = (tables[table] ?? []).filter((r) => !hidden.includes(String(r.id)) && filters.every(([k, v]) => r[k] === v));
         return Promise.resolve(resolve({ data: single ? rows[0] ?? null : rows, count: rows.length, error: null })); } }; return q;
   } };
-  return { calls, ctx: { supabaseUser: client, supabaseAdmin: new Proxy({}, { get() { throw new Error("Admin forbidden"); } }), userId, agentId: "timothy" } as unknown as ToolContext };
+  return { calls, ctx: { supabaseUser: client, supabaseAdmin: new Proxy({}, { get() { throw new Error("Admin forbidden"); } }), userId, agentId: "timothy", userRole: "sales" } as unknown as ToolContext };
 }
 function pdf(text = "") {
   const stream = `BT /F1 12 Tf 20 200 Td (${text}) Tj ET`;
@@ -161,9 +161,11 @@ describe("Képfelismerés a dokumentumolvasóban — jogosultság, jelölés, k�
     const out = await readDocument({ ...args, ocr: true }, f.ctx, async () => PNG, m.call);
     const audit = documentToolAudit(out); expect(JSON.stringify(audit)).not.toContain("PRIVATE"); expect(JSON.stringify(audit)).toContain("openai-vision");
   });
-  it("a jogosultság nem bővült: továbbra is csak Timothy, Owner/Sales szerepkörben", () => {
-    expect(getTool("crm_read_document")?.allowed_agents).toEqual(["timothy"]);
-    for (const role of ["marketing", "pm", null]) expect(toolsForAgent({ agentId: "timothy", agentDomains: ["crm.quotes"], userRole: role }).some((t) => t.name === "crm_read_document")).toBe(false);
-    for (const agent of ["george", "scarlet", "boss", "michael"]) expect(toolsForAgent({ agentId: agent, agentDomains: ["crm.quotes"], userRole: "owner" }).some((t) => t.name === "crm_read_document")).toBe(false);
+  it("képfelismerés minden chat-asszisztensnél ugyanazzal az eszközzel; Michael és szerepkör nélküli felhasználó nem", () => {
+    expect(getTool("crm_read_document")?.allowed_agents).toEqual(["george", "timothy", "boss", "scarlet"]);
+    for (const [agent, role] of [["george", "owner"], ["scarlet", "marketing"], ["boss", "pm"], ["timothy", "sales"]] as const)
+      expect(toolsForAgent({ agentId: agent, agentDomains: ["crm.documents"], userRole: role }).some((t) => t.name === "crm_read_document")).toBe(true);
+    expect(toolsForAgent({ agentId: "michael", agentDomains: ["crm.documents"], userRole: "owner" }).some((t) => t.name === "crm_read_document")).toBe(false);
+    for (const role of ["user", null]) expect(toolsForAgent({ agentId: "george", agentDomains: ["crm.documents"], userRole: role }).some((t) => t.name === "crm_read_document")).toBe(false);
   });
 });

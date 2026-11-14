@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/r2-upload")({
           const targetRaw = String(form.get("targetId") ?? "");
           const category = String(form.get("category") ?? "other");
           if (!(file instanceof File)) return Response.json({ ok: false, error: "Hiányzó fájl" }, { status: 400 });
-          if (!["project", "company", "outbound", "quote"].includes(purpose)) {
+          if (!["project", "company", "outbound", "quote", "chat"].includes(purpose)) {
             return Response.json({ ok: false, error: "Érvénytelen feltöltési cél" }, { status: 400 });
           }
 
@@ -33,6 +33,21 @@ export const Route = createFileRoute("/api/r2-upload")({
           ]);
           if (!isOwner && !UPLOAD_ROLES[purpose].includes(String(role ?? ""))) {
             return Response.json({ ok: false, error: "Ehhez a feltöltéshez nincs jogosultságod" }, { status: 403 });
+          }
+
+          if (purpose === "chat") {
+            const { handleChatUpload, ChatUploadError } = await import("@/lib/chat-uploads/chat-upload.server");
+            try {
+              const upload = await handleChatUpload({ supabase: supabase as any, userId, isOwner: !!isOwner, role: role ? String(role) : null, file,
+                linkKind: form.get("linkKind") ? String(form.get("linkKind")) : null, linkId: form.get("linkId") ? String(form.get("linkId")) : null,
+                agentId: form.get("agentId") ? String(form.get("agentId")) : null });
+              return Response.json({ ok: true, upload });
+            } catch (e) {
+              if (e instanceof ChatUploadError) return Response.json({ ok: false, error: e.message }, { status: e.status });
+              const status = (e as { status?: number }).status === 502 ? 502 : 500;
+              console.error("[r2-upload:chat]", (e as Error)?.message);
+              return Response.json({ ok: false, error: status === 502 ? "Tárhely hiba" : "Feltöltési hiba" }, { status });
+            }
           }
 
           let targetId: string | null = null;

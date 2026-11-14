@@ -1,7 +1,18 @@
 // R2 dokumentumvédelem (1/C) — tiszta, tesztelhető szabályok. Szerver- és kliensbiztos.
 // A szerepkörök az 1/B adatbázis-szabályokkal egyeznek.
 
-export type UploadPurpose = "project" | "company" | "outbound" | "quote";
+export type UploadPurpose = "project" | "company" | "outbound" | "quote" | "chat";
+
+/** AI chat-feltöltések szerepköri mappái (az adatbázis `ai_chat_folder_of` tükre). */
+export const CHAT_FOLDERS = ["sales", "marketing", "pm", "owner"] as const;
+export type ChatFolder = (typeof CHAT_FOLDERS)[number];
+export function chatFolderOf(role: string | null | undefined, isOwner: boolean): ChatFolder | null {
+  if (isOwner) return "owner";
+  if (role === "sales") return "sales";
+  if (role === "marketing") return "marketing";
+  if (role === "project_manager" || role === "pm") return "pm";
+  return null;
+}
 
 export const PROJECT_DOC_CATEGORIES = ["quote", "contract", "plan", "technical", "photo", "other"] as const;
 export const COMPANY_DOC_CATEGORIES = [...PROJECT_DOC_CATEGORIES, "marketing"] as const;
@@ -13,6 +24,7 @@ export const UPLOAD_ROLES: Record<UploadPurpose, readonly string[]> = {
   company: ["project_manager", "pm", "sales", "marketing"],
   outbound: ["project_manager", "pm", "sales", "marketing"],
   quote: ["project_manager", "pm", "sales"],
+  chat: ["project_manager", "pm", "sales", "marketing"],
 };
 
 export const MAX_BYTES: Record<UploadPurpose, number> = {
@@ -20,6 +32,7 @@ export const MAX_BYTES: Record<UploadPurpose, number> = {
   company: 50 * 1024 * 1024,
   outbound: 20 * 1024 * 1024,
   quote: 50 * 1024 * 1024,
+  chat: 50 * 1024 * 1024,
 };
 
 /** Engedélyezett kiterjesztések → elfogadott MIME-típusok (üres MIME is elfogadott, ha a kiterjesztés rendben van). */
@@ -70,6 +83,10 @@ export function buildKey(args: {
   if (args.purpose === "project") return `${args.targetId ?? "global"}/${args.category}/${stamp}-${safe}`;
   if (args.purpose === "company") return `company-documents/${args.targetId}/${args.category}/${stamp}-${safe}`;
   if (args.purpose === "quote") return `quote-documents/${args.targetId}/${args.category}/${stamp}-${safe}`;
+  if (args.purpose === "chat") {
+    if (!(CHAT_FOLDERS as readonly string[]).includes(args.category)) throw new Error("Érvénytelen chat-mappa");
+    return `ai-chat-uploads/${args.category}/${args.userId}/${stamp}-${safe}`;
+  }
   return `outbound-attachments/${args.userId}/${stamp}-${safe}`;
 }
 

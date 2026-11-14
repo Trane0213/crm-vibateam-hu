@@ -19,7 +19,7 @@ function fixture(tables: Record<string, Row[]>, hidden: string[] = []) {
         return Promise.resolve(resolve({ data: single ? rows[0] ?? null : rows.slice(start, end + 1), count: rows.length, error: null }));
       } }; return q;
   } };
-  return { calls, ctx: { supabaseUser: client, supabaseAdmin: new Proxy({}, { get() { throw new Error("Admin forbidden"); } }), userId: "TESZT", agentId: "timothy" } as unknown as ToolContext };
+  return { calls, ctx: { supabaseUser: client, supabaseAdmin: new Proxy({}, { get() { throw new Error("Admin forbidden"); } }), userId: "TESZT", agentId: "timothy", userRole: "sales" } as unknown as ToolContext };
 }
 function pdfFixture(text = "TESZT PDF") {
   const stream = `BT /F1 12 Tf 20 200 Td (${text}) Tj ET`;
@@ -135,10 +135,32 @@ describe("Timothy P1/D authorized source and provenance", () => {
     const audit = documentToolAudit({ ok: true, data: { source: { id }, provenance: { sha256: "hash" }, units: [{ text: "PRIVATE CONTENT" }], name: "PRIVATE NAME" } });
     expect(JSON.stringify(audit)).not.toContain("PRIVATE"); expect(audit.content_omitted).toBe(true);
   });
-  it("new reads remain Timothy owner/sales-only, not another execution layer", () => {
+  it("tulajdonosi döntés 2026-11-14: minden chat-asszisztens olvas, csak CRM-szerepkörrel, Michael és szerepkör nélküli felhasználó nem", () => {
     for (const name of ["crm_list_documents", "crm_read_document"]) {
-      expect(getTool(name)?.allowed_agents).toEqual(["timothy"]);
-      for (const role of ["marketing", "pm", null]) expect(toolsForAgent({ agentId: "timothy", agentDomains: ["crm.quotes"], userRole: role }).some((t) => t.name === name)).toBe(false);
+      expect(getTool(name)?.allowed_agents).toEqual(["george", "timothy", "boss", "scarlet"]);
+      expect(getTool(name)?.domain).toBe("crm.documents");
+      for (const [agentId, role] of [["george", "marketing"], ["boss", "pm"], ["scarlet", "marketing"], ["timothy", "sales"], ["george", "owner"]] as const)
+        expect(toolsForAgent({ agentId, agentDomains: ["crm.documents"], userRole: role }).some((t) => t.name === name)).toBe(true);
+      for (const role of ["user", null]) expect(toolsForAgent({ agentId: "george", agentDomains: ["crm.documents"], userRole: role }).some((t) => t.name === name)).toBe(false);
+      expect(toolsForAgent({ agentId: "michael", agentDomains: ["crm.documents"], userRole: "owner" }).some((t) => t.name === name)).toBe(false);
+      // a régi ajánlat-domain nem ad dokumentumolvasást (George-nál továbbra sincs crm.quotes)
+      expect(toolsForAgent({ agentId: "george", agentDomains: ["crm.quotes"], userRole: "owner" }).some((t) => t.name === name)).toBe(false);
     }
+  });
+  it("levélmelléklet Marketing/PM szerepkörben nem olvasható, letöltés és levélolvasás nélkül", async () => {
+    for (const userRole of ["marketing", "pm", "project_manager"]) {
+      const f = fixture({ email_attachments: [{ id, email_id: quoteId, r2_key: "private" }] });
+      let downloaded = false;
+      await expect(readDocument({ source: "email_attachments", document_id: id, email_id: quoteId, company_id: id, thread_id: id, mailbox: "teszt@example.com" }, { ...f.ctx, userRole, agentId: "george" } as ToolContext, async () => { downloaded = true; return strToU8("private"); })).rejects.toThrow("szerepkörben");
+      expect(downloaded).toBe(false);
+    }
+  });
+  it("chat-feltöltés: csak a hívó által (RLS) látható sor olvasható, szülőrekord nélkül; idegen mappa → nincs letöltés", async () => {
+    const visible = fixture({ ai_chat_uploads: [{ id, name: "TESZT.txt", file_url: `ai-chat-uploads/sales/u/1-TESZT.txt`, created_at: "2026-11-14T10:00:00Z" }] });
+    const out = await readDocument({ source: "ai_chat_uploads", document_id: id }, visible.ctx, async () => strToU8("TESZT CHAT SZOVEG")) as any;
+    expect(out.data.units[0].text).toContain("TESZT CHAT SZOVEG"); expect(out.data.source.table).toBe("ai_chat_uploads");
+    const hidden = fixture({ ai_chat_uploads: [] }); let downloaded = false;
+    await expect(readDocument({ source: "ai_chat_uploads", document_id: id }, hidden.ctx, async () => { downloaded = true; return strToU8("x"); })).rejects.toThrow();
+    expect(downloaded).toBe(false);
   });
 });

@@ -22,6 +22,8 @@ import {pipelineStatusSchema} from '@/lib/ai-os/pipeline-status-action';
 import {LEAD_STATUS_LABEL} from '@/lib/sales/constants';
 import {emailSendAction} from '@/lib/ai-os/email-send-action';
 import {EmailSendApproval} from './email-send-approval';
+import { MessageAttachments } from "@/components/ai/chat-attachments";
+import type { ChatAttachment } from "@/lib/chat-uploads/chat-attachments";
 import { RUN_STATE_LABEL, runState, type RunTransparency } from '@/lib/ai-os/transparency';
 
 /** UI agent azonosítók — a `?agent=` paraméter és a thread agent mezője ezt használja. */
@@ -55,6 +57,8 @@ export type Msg = {
   transparency?: RunTransparency;
   /** Hibaüzenet-e (érthető hibaszöveg, nem történt módosítás). */
   failed?: boolean;
+  /** Chatbe feltöltött, szerepköri mappába mentett fájlok (csak azonosító + kulcs; megnyitás jogosultság-ellenőrzéssel). */
+  attachments?: ChatAttachment[];
 };
 export type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
 
@@ -280,6 +284,7 @@ export function Bubble({ msg, onOpenNav, onApproveTool, onRejectTool, onCheckToo
     <div className="flex justify-end gap-2">
       <div className="max-w-[75%] rounded-lg bg-primary px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed text-primary-foreground">
         {msg.content}
+        {msg.attachments?.length ? <MessageAttachments items={msg.attachments} /> : null}
       </div>
     </div>
   );

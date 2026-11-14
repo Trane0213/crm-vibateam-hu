@@ -4,8 +4,9 @@ import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentManager } from "@/components/documents/document-manager";
 import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
+import { ChatUploadsBrowser } from "@/components/ai/chat-attachments";
 
-type View = "projekt" | "tobbi";
+type View = "projekt" | "tobbi" | "chat";
 
 export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({ meta: [
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
     { property: "og:description", content: "Projekt-, ajánlati és ügyfél-dokumentumok egy helyen, jogosultság szerint." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
-  validateSearch: (s: Record<string, unknown>): { nezet?: View } => (s.nezet === "tobbi" ? { nezet: "tobbi" } : {}),
+  validateSearch: (s: Record<string, unknown>): { nezet?: View } => (s.nezet === "tobbi" || s.nezet === "chat" ? { nezet: s.nezet } : {}),
   component: DocumentsPage,
 });
 
@@ -33,6 +34,7 @@ function DocumentsPage() {
           <TabsList className="h-auto max-w-full flex-wrap justify-start">
             <TabsTrigger value="projekt">Projektdokumentumok és feltöltés</TabsTrigger>
             <TabsTrigger value="tobbi">Ajánlati és ügyfél-dokumentumok</TabsTrigger>
+            <TabsTrigger value="chat">AI chatbe feltöltött fájlok</TabsTrigger>
           </TabsList>
           <TabsContent value="projekt" className="mt-4">
             <DocumentManager />
@@ -45,6 +47,10 @@ function DocumentsPage() {
               description="Csak megnyitás és keresés. Feltölteni az ajánlat, illetve az ügyfél adatlapján lehet, hogy a fájl a megfelelő rekordhoz kapcsolódjon."
               emptyTitle="Nincs számodra látható ajánlati vagy ügyfél-dokumentum"
             />
+          </TabsContent>
+          <TabsContent value="chat" className="mt-4 space-y-2">
+            <p className="text-sm text-muted-foreground">Az AI-asszisztensnek feltöltött fájlok szerepkörönként külön mappában. Feltölteni a chat gemkapocs gombjával lehet.</p>
+            <ChatUploadsBrowser className="max-h-[70vh]" />
           </TabsContent>
         </Tabs>
       </div>

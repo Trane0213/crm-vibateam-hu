@@ -2,8 +2,13 @@ import { z } from "zod";
 import type { ToolContext } from "../types";
 import { getTool } from "../tool-registry";
 import { DOCUMENT_LIMITS } from "./document-extract.server";
+import { OWNER_ROLES } from "../roles";
 
-export const documentInput = z.object({ source: z.enum(["quote_documents", "company_documents", "project_documents", "email_attachments"]), document_id: z.string().uuid(),
+/** Levélmelléklet csak Tulajdonosnak és Salesnek (a postafiók-hozzáférés szerepköri határa). */
+export const ATTACHMENT_ROLES: readonly string[] = [...OWNER_ROLES, "sales"];
+export const DOCUMENT_SOURCES = ["quote_documents", "company_documents", "project_documents", "email_attachments", "ai_chat_uploads"] as const;
+
+export const documentInput = z.object({ source: z.enum(DOCUMENT_SOURCES), document_id: z.string().uuid(),
   quote_id: z.string().uuid().optional(), company_id: z.string().uuid().optional(), project_id: z.string().uuid().optional(),
   thread_id: z.string().uuid().optional(), email_id: z.string().uuid().optional(), mailbox: z.string().email().optional(),
   unit: z.number().int().min(0).default(0), text_offset: z.number().int().min(0).default(0), expected_hash: z.string().regex(/^[a-f0-9]{64}$/).optional(), ocr: z.boolean().default(false) });
@@ -11,7 +16,13 @@ export type DocumentInput = z.infer<typeof documentInput>;
 
 export async function authorizeDocumentScope(data: Partial<DocumentInput> & { source: DocumentInput["source"] }, ctx: ToolContext) {
   const sb = ctx.supabaseUser;
+  // Chat-feltöltés: nincs szülőrekord; a sort a hívó RLS-e (saját szerepkör mappája / Tulajdonos) szűri.
+  if (data.source === "ai_chat_uploads") {
+    if (!data.document_id) throw new Error("Chat-feltöltéshez pontos document_id szükséges.");
+    return { key: "id", id: data.document_id, version: null };
+  }
   if (data.source === "email_attachments") {
+    if (!ATTACHMENT_ROLES.includes(String(ctx.userRole ?? ""))) throw new Error("Levélmelléklet ebben a szerepkörben nem olvasható.");
     if (!data.email_id || !data.thread_id || !data.company_id || !data.mailbox) throw new Error("Melléklethez pontos levél/szál/cég/postafiók szükséges.");
     const tool = getTool("crm_read_email_thread");
     if (!tool) throw new Error("A levélhozzáférés nem ellenőrizhető.");

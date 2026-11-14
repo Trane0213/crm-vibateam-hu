@@ -4,12 +4,17 @@ import { OWNER_ROLES } from "../roles";
 import { toolError } from "../tool-errors";
 import type { ToolContext } from "../types";
 import { CRM_PAGE_PROPERTIES, crmReadPage, readWindow } from "./crm-read-page";
-import { authorizeDocumentScope, authorizedDocument, documentInput, fetchDocumentBytes } from "./document-access.server";
+import { authorizeDocumentScope, authorizedDocument, documentInput, DOCUMENT_SOURCES, fetchDocumentBytes } from "./document-access.server";
 import { DOCUMENT_LIMITS, extractDocument, LargeDocumentError, pdfTextLayerPages } from "./document-extract.server";
 import { safeMailText } from "./gmail-context";
 import { imageMime, isImageName, VISION_LIMITS, VISION_VERIFICATION, VisionFailure, visionExtract, type VisionCaller, type VisionResult } from "./vision-extract.server";
 
-const properties = { source: { type: "string", enum: ["quote_documents", "company_documents", "project_documents", "email_attachments"] },
+/** Dokumentumolvasás: minden chat-asszisztens, mindig a felhasználó saját (RLS) jogosultságával. Michael (Ads) nem. */
+export const DOCUMENT_AGENTS = ["george", "timothy", "boss", "scarlet"];
+export const DOCUMENT_ROLES = [...OWNER_ROLES, "sales", "marketing", "project_manager", "pm"];
+const CHAT_FOLDERS = ["sales", "marketing", "pm", "owner"] as const;
+
+const properties = { source: { type: "string", enum: [...DOCUMENT_SOURCES] }, folder: { type: "string", enum: [...CHAT_FOLDERS] },
   quote_id: { type: "string" }, company_id: { type: "string" }, project_id: { type: "string" }, email_id: { type: "string" }, thread_id: { type: "string" }, mailbox: { type: "string" } };
 
 export async function readDocument(args: Record<string, unknown>, ctx: ToolContext, download = fetchDocumentBytes, vision?: VisionCaller) {
@@ -75,26 +80,36 @@ export function readDocumentFailure(e: unknown) {
 }
 
 export function registerDocumentTools() {
-  registerTool({ name: "crm_list_documents", domain: "crm.quotes", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
-    description: "Dokumentumok pontos meglévő ajánlat/cég/projekt vagy jogosult postafióklevél alapján; lapozott metadata, nem fájltartalom. Egyetlen forrást válassz, minden forrás külön lapozandó.",
+  registerTool({ name: "crm_list_documents", domain: "crm.documents", allowed_agents: DOCUMENT_AGENTS, allowed_roles: DOCUMENT_ROLES,
+    description: "Dokumentumok pontos meglévő ajánlat/cég/projekt vagy jogosult postafióklevél alapján; source=ai_chat_uploads: a chatbe feltöltött fájlok szerepköri mappája (folder opcionális; mindenki csak a saját szerepköre mappáját látja). Lapozott metadata, nem fájltartalom. Egyetlen forrást válassz, minden forrás külön lapozandó.",
     parameters: { type: "object", properties: { ...properties, ...CRM_PAGE_PROPERTIES }, required: ["source"] },
   }, async (args, ctx) => {
     try {
       const data = documentInput.omit({ document_id: true }).parse(args);
-      const scope = await authorizeDocumentScope(data, ctx);
       const window = readWindow(args, 10);
-      const result = await ctx.supabaseUser.from(data.source).select("*", { count: "exact" }).eq(scope.key, scope.id)
-        .order("created_at", { ascending: false }).order("id").range(window.offset, window.offset + window.limit - 1);
+      let result;
+      if (data.source === "ai_chat_uploads") {
+        // Szerepköri mappák: a hívó csak a saját szerepköre mappáját látja (Tulajdonos mindet) — RLS.
+        const folder = z.enum(CHAT_FOLDERS).optional().parse(args.folder ?? undefined);
+        let q = ctx.supabaseUser.from("ai_chat_uploads").select("id,name,mime_type,size_bytes,created_at,folder,uploader_name,link_table,link_parent_id", { count: "exact" });
+        if (folder) q = q.eq("folder", folder);
+        result = await q.order("created_at", { ascending: false }).order("id").range(window.offset, window.offset + window.limit - 1);
+      } else {
+        const scope = await authorizeDocumentScope(data, ctx);
+        result = await ctx.supabaseUser.from(data.source).select("*", { count: "exact" }).eq(scope.key, scope.id)
+          .order("created_at", { ascending: false }).order("id").range(window.offset, window.offset + window.limit - 1);
+      }
       if (result.error) throw result.error;
       const rows = (result.data ?? []).map((raw: Record<string, unknown>) => ({ id: raw.id, name: safeMailText(String(raw.name ?? raw.filename ?? "")).text,
         document_type: raw.document_type ?? null, mime_type: raw.mime_type, size_bytes: raw.size_bytes ?? null, created_at: raw.created_at,
         quote_id: raw.quote_id ?? null, project_id: raw.project_id ?? null, company_id: raw.company_id ?? null, email_id: raw.email_id ?? null,
+        ...(data.source === "ai_chat_uploads" ? { folder: raw.folder, uploader: raw.uploader_name ? safeMailText(String(raw.uploader_name)).text : null, linked_to: raw.link_table ? { table: raw.link_table, parent_id: raw.link_parent_id } : null } : {}),
         content_read: false, source: { table: data.source, id: raw.id } }));
       return { ok: true, data: { ...crmReadPage(rows, result.count, window, data.source, 6500), limitations: ["Csak jogosultan látható mentett fájlrekordok; nincs Gmail letöltés vagy szinkronfrissítés."] } };
     } catch { return toolError.fromException("A dokumentumlista nem olvasható; ellenőrizd a pontos ügyazonosítót és jogosultságot."); }
   });
-  registerTool({ name: "crm_read_document", domain: "crm.quotes", allowed_agents: ["timothy"], allowed_roles: [...OWNER_ROLES, "sales"],
-    description: "Meglévő R2 fájl PDF/XLSX/DOCX/TXT/CSV szövege, pontos forrás+document_id+ügy vagy fióklevél alapján. 5 MB korlát; unit=PDF-oldal/munkalap (0-alapú), text_offset szövegfolytatás. Folytatáshoz expected_hash kötelező; teljes műszaki auditot nem állít, URL/kulcs nem paraméter. ocr=true: kép (PNG/JPEG/GIF/WEBP) vagy szövegréteg nélküli (szkennelt, legfeljebb 20 oldalas) PDF képfelismerése egy lépésben; az eredmény AI-kiolvasás (ai_extracted, source_fact=false), nem ellenőrzött forrás.",
+  registerTool({ name: "crm_read_document", domain: "crm.documents", allowed_agents: DOCUMENT_AGENTS, allowed_roles: DOCUMENT_ROLES,
+    description: "Meglévő R2 fájl PDF/XLSX/DOCX/TXT/CSV szövege, pontos forrás+document_id+ügy vagy fióklevél alapján (ai_chat_uploads: csak document_id). 5 MB korlát; unit=PDF-oldal/munkalap (0-alapú), text_offset szövegfolytatás. Folytatáshoz expected_hash kötelező; teljes műszaki auditot nem állít, URL/kulcs nem paraméter. ocr=true: kép (PNG/JPEG/GIF/WEBP) vagy szövegréteg nélküli (szkennelt, legfeljebb 20 oldalas) PDF képfelismerése egy lépésben; az eredmény AI-kiolvasás (ai_extracted, source_fact=false), nem ellenőrzött forrás.",
     parameters: { type: "object", properties: { ...properties, document_id: { type: "string" }, unit: { type: "integer", minimum: 0 }, text_offset: { type: "integer", minimum: 0 }, expected_hash: { type: "string" }, ocr: { type: "boolean" } }, required: ["source", "document_id"] },
   }, async (args, ctx) => {
     try {
