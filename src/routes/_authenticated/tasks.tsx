@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ListChecks } from "lucide-react";
+import { taskDefaultsFromUrl } from "@/lib/pm/pm-day-flow";
 import { Badge } from "@/components/ui/badge";
 import {
   ResourcePage,
@@ -47,6 +48,7 @@ function TasksPage() {
       newButtonLabel="Új feladat"
       icon={ListChecks}
       table="tasks"
+      newDefaultsFromUrl={taskDefaultsFromUrl}
       order="due_date"
       ascending={true}
       fields={[

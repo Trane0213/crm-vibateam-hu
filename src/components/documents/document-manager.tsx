@@ -10,6 +10,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmptyState } from "@/components/page-header";
+import { Link } from "@tanstack/react-router";
+import { useLookup } from "@/components/resource/resource-page";
 import { formatDateTime } from "@/lib/format";
 import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,13 +48,15 @@ function getName(row: any): string {
   return row.name ?? "Névtelen";
 }
 
-export function DocumentManager({ projectId }: { projectId?: string | null }) {
+/** `initialFilter`: projektadatlapról pl. „Fénykép” nézettel nyitható; a feltöltési kategória is ehhez igazodik. */
+export function DocumentManager({ projectId, initialFilter = "all" }: { projectId?: string | null; initialFilter?: "all" | DocCategory }) {
   const qc = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [uploadCategory, setUploadCategory] = useState<DocCategory>("other");
-  const [filter, setFilter] = useState<"all" | DocCategory>("all");
+  const [uploadCategory, setUploadCategory] = useState<DocCategory>(initialFilter === "all" ? "other" : initialFilter);
+  const [filter, setFilter] = useState<"all" | DocCategory>(initialFilter);
   const [deleting, setDeleting] = useState<any | null>(null);
   const { role, profile } = usePermissions();
+  const projectLabel = useLookup("projects", "title");
   const [uploading, setUploading] = useState(false);
 
   const presignDownload = useServerFn(r2PresignDownload);
@@ -198,10 +202,10 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
       </div>
 
       <Tabs value={filter} onValueChange={(v) => setFilter(v as any)}>
-        <TabsList>
+        <TabsList className="h-auto max-w-full flex-wrap justify-start">
           <TabsTrigger value="all">Mind ({docs.data?.length ?? 0})</TabsTrigger>
           {CATEGORIES.map((c) => (
-            <TabsTrigger key={c} value={c}>{CATEGORY_LABEL[c]}</TabsTrigger>
+            <TabsTrigger key={c} value={c}>{CATEGORY_LABEL[c]} ({(docs.data ?? []).filter((r) => getCategory(r) === c).length})</TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
@@ -213,14 +217,15 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
       ) : docs.error ? (
         <EmptyState icon={AlertCircle} title="Nem sikerült betölteni" description={humanizeSupabaseError(docs.error)} />
       ) : rows.length === 0 ? (
-        <EmptyState icon={FileText} title="Még nincs dokumentum" description="Tölts fel egy fájlt a feltöltés gombbal." />
+        <EmptyState icon={FileText} title={filter === "all" ? "Még nincs dokumentum" : `Nincs „${CATEGORY_LABEL[filter]}” kategóriájú fájl`} description="Válaszd ki a kategóriát a feltöltés gomb mellett, majd tölts fel egy fájlt." />
       ) : (
-        <div className="overflow-hidden rounded-md border bg-card">
+        <div className="overflow-x-auto rounded-md border bg-card">
           <DocumentProcessingNotice map={processing.data} />
           <table className="w-full text-sm">
             <thead className="bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 text-left">Fájl</th>
+{!projectId && <th className="px-3 py-2 text-left">Projekt</th>}
                 <th className="px-3 py-2 text-left">Kategória</th>
                 <th className="px-3 py-2 text-left">Feltöltve</th>
                 <th className="px-3 py-2 text-right">Művelet</th>
@@ -230,6 +235,13 @@ export function DocumentManager({ projectId }: { projectId?: string | null }) {
               {rows.map((r: any) => (
                 <tr key={r.id} className="border-t hover:bg-muted/30">
                   <td className="px-3 py-2 font-medium"><div>{getName(r)}</div><div className="mt-0.5"><DocumentProcessingBadge row={processing.data?.get(r.id)} loading={processing.isLoading || !!processing.error} /></div></td>
+                  {!projectId && (
+                    <td className="px-3 py-2">
+                      {r.project_id
+                        ? <Link to="/projects/$id" params={{ id: r.project_id }} search={{ tab: "docs" } as any} className="text-primary hover:underline">{projectLabel(r.project_id)}</Link>
+                        : <span className="text-muted-foreground">—</span>}
+                    </td>
+                  )}
                   <td className="px-3 py-2"><Badge variant="secondary">{CATEGORY_LABEL[getCategory(r)]}</Badge></td>
                   <td className="px-3 py-2">{formatDateTime(r.created_at)}</td>
                   <td className="px-3 py-2 text-right">

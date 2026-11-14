@@ -14,11 +14,18 @@ import {
 } from "@/lib/viba-constants";
 import { useAuth } from "@/hooks/use-auth";
 import { Checkbox } from "@/components/ui/checkbox";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
+import { projectManagerOf } from "@/lib/pm/pm-day-flow";
 
 function ProjectsPage() {
   const companyLabel = useLookup("companies", "name");
   const { user } = useAuth();
-  const [onlyMine, setOnlyMine] = useState(false);
+  const { role } = usePermissions();
+  const pmName = useAssigneeLookup();
+  // Projektvezetőnek alapból a saját projektjei látszanak; a jelölő kikapcsolható.
+  const [mineChoice, setOnlyMine] = useState<boolean | null>(null);
+  const onlyMine = mineChoice ?? role === "project_manager";
   return (
     <ResourcePage
       title="Projektek"
@@ -30,7 +37,7 @@ function ProjectsPage() {
       table="projects"
       filter={(rows) =>
         onlyMine && user?.id
-          ? rows.filter((r) => r.project_manager_user_id === user.id)
+          ? rows.filter((r) => projectManagerOf(r) === user.id)
           : rows
       }
       toolbar={
@@ -108,6 +115,7 @@ function ProjectsPage() {
             </Badge>
           ),
         },
+        { key: "pm", label: "Projektvezető", className: "text-muted-foreground", render: (r) => pmName(projectManagerOf(r)) },
         { key: "address", label: "Helyszín", className: "text-muted-foreground" },
         {
           key: "deadline",

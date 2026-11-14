@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { attendanceToday, attendanceMonthStart } from "@/lib/attendance/attendance-dates";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,14 +25,8 @@ export const Route = createFileRoute("/_authenticated/attendance/")({
   component: AttendanceIndex,
 });
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
-function monthStartISO() {
-  const d = new Date();
-  d.setDate(1);
-  return d.toISOString().slice(0, 10);
-}
+const todayISO = () => attendanceToday();
+const monthStartISO = () => attendanceMonthStart();
 
 function AttendanceIndex() {
   const navigate = useNavigate();

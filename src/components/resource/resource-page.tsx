@@ -103,6 +103,7 @@ export function ResourcePage({
   actionsFor,
   beforeCreate,
   beforeUpdate,
+  newDefaultsFromUrl,
 }: {
   title: string;
   description?: string;
@@ -125,6 +126,8 @@ export function ResourcePage({
   beforeCreate?: (values: Record<string, any>) => Record<string, any> | Promise<Record<string, any>>;
   /** Meglévő rekord mentése előtt ellenőriz / módosít; hibát dobva megállítja a mentést. */
   beforeUpdate?: (values: Record<string, any>, current: any) => Record<string, any> | Promise<Record<string, any>>;
+  /** `?new=1` mellett az URL-ből előtöltött mezők új rekordhoz (pl. projekt). Csak kitöltés, mentés a megszokott úton. */
+  newDefaultsFromUrl?: (params: URLSearchParams) => Record<string, any> | null;
 }) {
   const { data, isLoading, error, refetch } = useList<any>(table, { order, ascending });
   const upsert = useUpsert(table);
@@ -134,6 +137,7 @@ export function ResourcePage({
   const canDelete = !OWNER_ONLY_DELETE.has(table) || role === "owner";
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [createDefaults, setCreateDefaults] = useState<Record<string, any> | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const rows = filter && data ? filter(data) : (data ?? []);
@@ -145,6 +149,7 @@ export function ResourcePage({
     const params = new URLSearchParams(window.location.search);
     if (params.get("new") === "1") {
       setEditing(null);
+      setCreateDefaults(newDefaultsFromUrl?.(params) ?? null);
       setOpen(true);
       params.delete("new");
       const q = params.toString();
@@ -167,6 +172,7 @@ export function ResourcePage({
               size="sm"
               onClick={() => {
                 setEditing(null);
+                setCreateDefaults(null);
                 setOpen(true);
               }}
             >
@@ -237,7 +243,8 @@ export function ResourcePage({
         onOpenChange={setOpen}
         title={editing ? `${title} · szerkesztés` : newButtonLabel}
         fields={fields}
-        defaults={editing}
+        defaults={editing ?? createDefaults}
+        mode={editing ? "edit" : "create"}
         submitting={upsert.isPending}
         onSubmit={async (v) => {
           const payload = editing
@@ -315,12 +322,15 @@ export function RecordDialog({
   defaults,
   onSubmit,
   submitting,
+  mode,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   title: string;
   fields: Field[];
   defaults: Record<string, any> | null;
+  /** Alapértelmezés: van `defaults` → szerkesztés. Előtöltött új rekordnál "create". */
+  mode?: "create" | "edit";
   onSubmit: (values: Record<string, any>) => Promise<void>;
   submitting?: boolean;
 }) {
@@ -330,7 +340,7 @@ export function RecordDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            {defaults ? "A mentés a megnyitott rekordot módosítja." : "A mentés új rekordot hoz létre."} A csillaggal jelölt mezők kötelezők.
+            {(mode ?? (defaults ? "edit" : "create")) === "edit" ? "A mentés a megnyitott rekordot módosítja." : "A mentés új rekordot hoz létre."} A csillaggal jelölt mezők kötelezők.
           </DialogDescription>
         </DialogHeader>
         {open ? (

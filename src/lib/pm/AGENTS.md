@@ -1,0 +1,3 @@
+- PM daily guidance (next action, day stages, project steps, handover/TIG checklist) comes only from presentation-only `pm-day-flow.ts`; it never writes, and the only PM-home write is the existing task save path (`useUpsert("tasks")`) — keeps one rule source without new data paths.
+- CRM projects and attendance projects have no saved link: show attendance headcount only on a single exact normalized-name match, labelled as name-based; TIG, material requests and a daily-sheet form stay UI-guidance only until an approved data model exists.
+- Boss quick prompts must reference only tools in Boss's registered domains (projects/tasks/followups/meetings) and state that documents and attendance are not visible to Boss.

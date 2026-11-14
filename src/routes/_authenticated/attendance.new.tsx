@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { attendanceToday } from "@/lib/attendance/attendance-dates";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -25,9 +26,7 @@ export const Route = createFileRoute("/_authenticated/attendance/new")({
   component: AttendanceNew,
 });
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
+const todayISO = () => attendanceToday();
 
 type RowState = {
   selected: boolean;

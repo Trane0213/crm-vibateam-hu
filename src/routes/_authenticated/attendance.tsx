@@ -24,13 +24,13 @@ function AttendanceLayout() {
   }
   return (
     <div className="flex flex-col">
-      <div className="border-b px-6 py-4">
+      <div className="border-b px-4 py-4 sm:px-6">
         <h1 className="text-xl font-semibold tracking-tight">Jelenlét</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Napi jelenléti napló, időszaki összesítő, dolgozó- és projektlista.
         </p>
       </div>
-      <nav className="flex gap-1 border-b px-4 pt-2">
+      <nav aria-label="Jelenlét részei" className="flex gap-1 overflow-x-auto border-b px-4 pt-2">
         {tabs.map((t) => {
           const exact = "exact" in t && t.exact;
           const active = exact ? path === t.to : path === t.to || path.startsWith(t.to + "/");
@@ -38,7 +38,7 @@ function AttendanceLayout() {
             <Link
               key={t.to}
               to={t.to}
-              className={`flex items-center gap-2 rounded-t-md px-3 py-2 text-sm transition-colors ${
+              className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-md px-3 py-2 text-sm transition-colors ${
                 active
                   ? "bg-background border border-b-background -mb-px text-foreground font-medium"
                   : "text-muted-foreground hover:text-foreground"
@@ -50,7 +50,7 @@ function AttendanceLayout() {
           );
         })}
       </nav>
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <Outlet />
       </div>
     </div>

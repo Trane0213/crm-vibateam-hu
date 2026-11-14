@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { attendanceToday } from "@/lib/attendance/attendance-dates";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RecordCombobox } from "@/components/resource/record-combobox";
 import { Plus, Zap } from "lucide-react";
+import { attendanceProjectFromSearch } from "@/lib/pm/pm-day-flow";
 import {
   createProject, createEntriesBatch,
 } from "@/lib/attendance/attendance.functions";
@@ -20,12 +22,15 @@ export const Route = createFileRoute("/_authenticated/attendance/quick")({
     { property: "og:title", content: "Gyors jelenléti rögzítés | VIBA CRM" }, { property: "og:description", content: "Dolgozók napi jelenlétének gyors rögzítése a VIBA CRM-ben." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
   ] }),
+  // `?project=<uuid>`: a projektvezetői napi nézetből érkezve a jelenléti projekt előre kiválasztva.
+  validateSearch: (s: Record<string, unknown>): { project?: string } => {
+    const project = attendanceProjectFromSearch(s.project);
+    return project ? { project } : {};
+  },
   component: AttendanceQuick,
 });
 
-function todayISO() {
-  return new Date().toISOString().slice(0, 10);
-}
+const todayISO = () => attendanceToday();
 
 /**
  * Gyors rögzítés — egy dolgozó → Mentés → következő dolgozó.
@@ -40,7 +45,8 @@ function AttendanceQuick() {
 
 
   const [workDate, setWorkDate] = useState(todayISO());
-  const [projectId, setProjectId] = useState<string>("");
+  const { project: presetProject } = Route.useSearch();
+  const [projectId, setProjectId] = useState<string>(presetProject ?? "");
   const [overwrite, setOverwrite] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [workerId, setWorkerId] = useState<string>("");
