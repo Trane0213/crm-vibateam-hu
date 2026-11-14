@@ -122,7 +122,7 @@ const allowed = (role: RoleSlug) => (i: NavItem) =>
   canAccessRoute(role, i.url) && !(i.hideForRoles?.includes(role) ?? false);
 
 export function primaryItems(role: RoleSlug): NavItem[] {
-  const home = { ...HOME, short: "Ma", title: role === "owner" ? "Vezetői áttekintés" : role === "sales" ? "Ma · feladataim" : role === "project_manager" ? "Mai projektmunka" : "Mai munka" };
+  const home = { ...HOME, short: "Ma", title: role === "owner" ? "Mai vezetői munka" : role === "sales" ? "Ma · feladataim" : role === "project_manager" ? "Mai projektmunka" : "Mai munka" };
   return [home, ...(WORKSPACES_BY_ROLE[role] ?? WORKSPACES_BY_ROLE.owner)].filter(allowed(role));
 }
 

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ownerReportGenerate, ownerReportOverview } from "@/lib/owner-report/owner-report.functions";
 import { KIND_LABEL, type FactItem, type FactSection, type OwnerFacts, type ReportKind } from "@/lib/owner-report/model";
-import { safeLink } from "@/lib/notifications/model";
+import { parseInternalLink } from "@/lib/owner/owner-day-flow";
 import type { SpecialistReport } from "@/lib/ai-os/consult";
 
 export const Route = createFileRoute("/_authenticated/owner-report")({
@@ -31,8 +31,8 @@ const ROLE: Record<string, string> = { owner: "Tulajdonos", sales: "Sales", mark
 const fmt = (s?: string | null) => (s ? new Date(s).toLocaleString("hu-HU", { timeZone: "Europe/Budapest" }) : "");
 
 function FactLink({ item }: { item: FactItem }) {
-  const link = safeLink(item.link ?? null);
-  return link ? <Link to={link as "/notifications"} className="underline-offset-2 hover:underline">{item.label}</Link> : <span>{item.label}</span>;
+  const link = parseInternalLink(item.link ?? null);
+  return link ? <Link to={link.to as "/notifications"} search={(link.search ?? {}) as never} className="underline-offset-2 hover:underline">{item.label}</Link> : <span>{item.label}</span>;
 }
 
 function OwnerReportPage() {
@@ -70,6 +70,7 @@ function OwnerReportPage() {
           {(["daily", "weekly"] as ReportKind[]).map((k) => <Button key={k} size="sm" variant={k === kind ? "default" : "outline"} onClick={() => setKind(k)}>{KIND_LABEL[k]}</Button>)}
           {facts && <span className="text-sm text-muted-foreground">Időszak: {facts.period.label}</span>}
           <Button asChild size="sm" variant="ghost" className="ml-auto"><Link to="/settings/ai-review">AI-keret és felülvizsgálat</Link></Button>
+          <Button asChild size="sm" variant="outline"><Link to="/today">Vissza: Mai vezetői munka</Link></Button>
         </div>
 
         {q.isLoading && <p className="text-sm text-muted-foreground">Tények betöltése…</p>}
