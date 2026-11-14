@@ -1,6 +1,6 @@
 # PM (projektvezetői) napi munkafelület — 3. nagy csomag
 
-Dátum: 2026-11-14 (UTC). Előzmény: Marketing 2. csomag `192dc26`. Állapot: **KÓD KÉSZ, RÉSZBEN KÉSZ** — bejelentkezett PM/Owner végigpróba **NEM TESZTELT** (`external_unmanaged`, a sandbox nem tud valódi munkamenetet létrehozni).
+Dátum: 2026-11-14 (UTC). Előzmény: Marketing 2. csomag `192dc26`. Állapot: **KÓD KÉSZ, RÉSZBEN KÉSZ** (commit `057a034`) — bejelentkezett PM/Owner végigpróba **NEM TESZTELT** (`external_unmanaged`, a sandbox nem tud valódi munkamenetet létrehozni).
 
 ## 1. Felmérés (read-only, a módosítás előtt)
 
@@ -61,7 +61,7 @@ Csak útmutatás / nincs adatmodell: anyagigény, műszaki akadály külön nyil
 
 ## 7. Rollback
 
-Egy commit: `git revert <e csomag commitja>`. Adatot, sémát, jogosultságot nem érint, ezért a visszavonás adatmentést nem igényel.
+Egy commit: `git revert 057a034` (a jelentés-hivatkozás frissítése külön, utólagos dokumentációs commit). Adatot, sémát, jogosultságot nem érint, ezért a visszavonás adatmentést nem igényel.
 
 ## 8. Következő nagy csomag
 
