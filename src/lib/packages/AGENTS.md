@@ -1,0 +1,3 @@
+- Large plan packages upload only through `packages.functions.ts` + `upload-engine.ts`: the server checks parent visibility with the caller's RLS, generates every R2 key, signs multipart parts and writes package rows with the service client; the browser never chooses keys — keeps large uploads under the same authorization as `/api/r2-upload`.
+- A file becomes openable only after server-side completion verifies every part MD5 against R2 and the whole-file SHA-256 was registered; duplicates/revisions/quotas are decided in one locked DB function, and verified originals are immutable.
+- Direct browser→R2 PUT falls back to the authenticated `/api/package-upload-part` relay when CORS blocks it; never depend on reading ETag in the browser.

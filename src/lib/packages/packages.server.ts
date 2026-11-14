@@ -13,7 +13,7 @@ export type { RegisterResult } from "./package-policy";
 export class PackageError extends Error { constructor(message: string, public status = 400, public code = "bad_request") { super(message); this.name = "PackageError"; } }
 
 type Sb = SupabaseClient<any, any, any>;
-const admin = async (): Promise<Sb> => (await import("@/lib/gmail/admin.server")).getAdminClient() as Sb;
+const admin = async (): Promise<Sb> => (await import("@/integrations/supabase/client.server")).supabaseAdmin as unknown as Sb;
 const r2 = () => import("./r2-multipart.server");
 
 /** A csomagtáblák még nincsenek az adatbázisban (jóváhagyásra váró migráció). */

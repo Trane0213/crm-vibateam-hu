@@ -72,7 +72,7 @@ function PackageRow({ pkg, showParent, expanded, onToggle, onResume }: { pkg: Pa
   return (
     <li>
       <div className="flex flex-wrap items-center gap-2 p-3 sm:px-4">
-        <button type="button" onClick={onToggle} className="flex min-w-0 flex-1 items-center gap-2 text-left" aria-expanded={expanded}>
+        <button type="button" onClick={onToggle} className="flex min-w-0 basis-full items-center gap-2 text-left sm:basis-0 sm:flex-1" aria-expanded={expanded}>
           {expanded ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
           <span className="min-w-0">
             <span className="block truncate text-sm font-medium">{pkg.title}</span>
