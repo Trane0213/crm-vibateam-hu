@@ -1,4 +1,4 @@
-# Tulajdonosi döntések — 2026-11-15 10:15 (P2–P5 összevonva)
+# Tulajdonosi döntések — 2026-11-15 10:15 (P2–P6 összevonva)
 
 Minden pont blokkoló az adott részre; a tőlük független fejlesztés folyt. Jelenleg egyik sincs élesítve.
 
@@ -25,3 +25,12 @@ Minden pont blokkoló az adott részre; a tőlük független fejlesztés folyt. 
 
 ## Ellenőrzés
 12. Bejelentkezett végigpróba P1–P5-re: ki és milyen TESZT-ügyön (jelszót chatben nem kérünk)?
+
+## P6 — saját VIBA-ajánlat (új pontok)
+13. **Kalkuláció mentése** (adatbázis, az 1–2. ponttal összevonható): `quotes.pricing_mode` mező és változtathatatlan `quote_calculations` tábla (SQL a P6 jelentésben). Addig a munkapéldány csak a felhasználó böngészőjében marad.
+14. **VIBA m²-csomagok:** csomagnevek (pl. Alap/Közép/Prémium?), tartalom pontonként, feltételek és Ft/m² díj (anyag és munkadíj külön) — ki hagyja jóvá és mikor. Most nincs egyetlen jóváhagyott csomag sem.
+15. **Rezsióradíjak:** szerepkörönkénti óradíj, éjszakai/hétvégi/sürgősségi felár, minimális kiszállási időkeret, kiszállási díj (alkalom vagy km). A 6 500 Ft-os minta maradjon csak referencia?
+16. **VBF-díjak:** felmérési/kiszállási díj, javítás utáni mérés és dokumentálás díja; ki végzi a jogosult felülvizsgálatot (saját vagy külső).
+17. **Önköltség-alapú árazás:** a saját ajánlatoknál árréssel vagy fedezettel dolgozzunk alapból, és mekkora célértékkel? (Most nincs alapérték; eladási árnál nem kerül rá semmi.)
+18. **Timothy tételírása:** maradjon a mostani „javaslatkód betöltése + kézi beírás”, vagy legyen P0-jóváhagyásos Timothy-tételírás (új művelettípus, adatbázis-módosítással)?
+

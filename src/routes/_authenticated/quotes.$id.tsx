@@ -20,6 +20,8 @@ import { DocumentPackagesPanel } from "@/components/packages/document-packages-p
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
 import { QuoteSendPanel, type SendDraft } from "@/components/quotes/quote-send-panel";
 import { QuotePackagePanel } from "@/components/quote-package/quote-package-panel";
+import { VibaOfferCalcPanel } from "@/components/viba-offer/viba-offer-calc-panel";
+import { mergeText } from "@/lib/viba-offer/item-plan";
 import { QuoteTemplatePanel } from "@/components/quotes/quote-template-panel";
 import { QuoteStatusPanel } from "@/components/quotes/quote-status-panel";
 import { quoteStatusLabel } from "@/lib/quotes/quote-status";
@@ -397,6 +399,8 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
         </div>
         </TabsContent>
         <TabsContent value="pricing" forceMount hidden={workspace !== "pricing"}>
+          {own && canPriceBudget && <div className="mb-6 pt-5"><VibaOfferCalcPanel quoteId={quote.id} locked={!!(quote as any).locked_at} scopeType={form.scope_type || null}
+            onApplyScope={(sc) => setForm((f) => ({ ...f, technical_scope: mergeText(f.technical_scope, sc.technicalScope), exclusions: mergeText(f.exclusions, sc.exclusions) }))} /></div>}
           {own ? <QuoteTemplatePanel quote={quote as any} headerDraft={{
             title: form.title, valid_until: form.valid_until || null, notes: form.notes,
             technical_scope: form.technical_scope, exclusions: form.exclusions,
