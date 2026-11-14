@@ -114,6 +114,16 @@ function priceComponent(row: BudgetRow, comp: PriceComponent, idx: SourceIndex, 
   return { ...base, status: "priced", category, score: group[0].score, source: src, candidates: cands, hours, rateHuf: rate, steps, unitFiller: unit, confidence };
 }
 
+/**
+ * P4 — ugyanaz az összetevő-árazás nem költségvetési sorra (pl. szekrény-BOM tétel), mellékhatás nélkül.
+ * Nincs második árazási logika: a forrásrangsor, minősítés, járulék/tartalék/fedezet és kerekítés azonos.
+ */
+export function priceDescriptor(desc: { name: string; unit: string; type?: string | null; context?: string | null }, comp: PriceComponent, idx: SourceIndex, p: CalculationProfile, asOf: string): ComponentResult {
+  const row: BudgetRow = { key: "descriptor", sheet: "", row: 0, kind: "item", itemNo: null, name: desc.name, designation: null, type: desc.type ?? null, note: null, qty: 1,
+    unitRaw: desc.unit, unit: desc.unit, section: "", flags: [], context: desc.context ?? null, priceCells: [], totalCells: [] };
+  return priceComponent(row, comp, idx, p, asOf, emptyDirective());
+}
+
 function priceLines(rows: BudgetRow[], layouts: SheetLayout[], idx: SourceIndex, p: CalculationProfile, asOf: string, directives: Map<string, Directive>): PricingResult {
   const layoutBySheet = new Map(layouts.map((l) => [l.sheet, l]));
   const blockers: string[] = [], warnings: string[] = [];

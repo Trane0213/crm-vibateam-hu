@@ -4,11 +4,11 @@
  */
 import { clean, fold, pageLines, snip, type Evidence, type PlanFile, type PlanLine, type PlanPage } from "./plan-text";
 
-export type DocType = "single_line" | "cabinet_view" | "floor_plan" | "legend" | "technical_description" | "designer_statement" | "lightning_protection" | "kitchen_plan" | "drawing_list" | "budget_sheet" | "unknown";
+export type DocType = "single_line" | "cabinet_view" | "floor_plan" | "legend" | "technical_description" | "designer_statement" | "lightning_protection" | "cabinet_notes" | "kitchen_plan" | "drawing_list" | "budget_sheet" | "unknown";
 export type Discipline = "erosaram" | "gyengearam" | "villamvedelem" | "gepeszet" | "epiteszet" | "belsoepiteszet" | "ismeretlen";
 export const DOC_TYPE_LABEL: Record<DocType, string> = {
   single_line: "Elosztó egyvonalas/kapcsolási rajz", cabinet_view: "Elosztó nézeti rajz", floor_plan: "Alaprajz / szerelési terv", legend: "Jelmagyarázat",
-  technical_description: "Műszaki leírás", designer_statement: "Tervezői nyilatkozat", lightning_protection: "Villámvédelmi / földelési terv", kitchen_plan: "Konyhaterv / belsőépítészeti terv",
+  technical_description: "Műszaki leírás", designer_statement: "Tervezői nyilatkozat", lightning_protection: "Villámvédelmi / földelési terv", cabinet_notes: "Elosztó műszaki adatai / megjegyzések", kitchen_plan: "Konyhaterv / belsőépítészeti terv",
   drawing_list: "Tervjegyzék", budget_sheet: "Költségvetési munkalap", unknown: "Nem azonosított",
 };
 export const DISCIPLINE_LABEL: Record<Discipline, string> = { erosaram: "Erősáram", gyengearam: "Gyengeáram", villamvedelem: "Villámvédelem/földelés", gepeszet: "Gépészet", epiteszet: "Építészet", belsoepiteszet: "Belsőépítészet", ismeretlen: "Nem azonosított" };
@@ -59,14 +59,15 @@ function drawingCandidates(p: PlanPage, lines: PlanLine[], fileName: string) {
 
 const TYPE_RULES: { type: DocType; re: RegExp; w: number }[] = [
   { type: "cabinet_view", re: /nezeti rajz|\b\d+\s*db\s+(kismegszakito|rcd|fi\b|fokapcsolo)/, w: 3 },
-  { type: "single_line", re: /aramkor:|beep\.? telj|kismegszakito.*(1p|3p)|egyvonalas|kapcsolasi rajz|aram-?vedokapcsolo/, w: 2 },
+  { type: "single_line", re: /aramkor:|beep\.? telj|egyvonalas|kapcsolasi rajz/, w: 3 },
   { type: "legend", re: /jelmagyarazat/, w: 3 },
+  { type: "cabinet_notes", re: /az eloszto (kialakitasa|nevleges arama)|eloszto(berendezes)? zarlatszilardsaga/, w: 3 },
   { type: "designer_statement", re: /tervezoi nyilatkozat/, w: 3 },
   { type: "technical_description", re: /muszaki leiras|muszaki tartalom|kiegeszito tajekoztat/, w: 3 },
   { type: "lightning_protection", re: /villamvedelem|foldelesi halozat|felfogo/, w: 2 },
   { type: "kitchen_plan", re: /konyhaterv/, w: 3 },
   { type: "drawing_list", re: /tervjegyzek|rajzjegyzek/, w: 3 },
-  { type: "floor_plan", re: /alaprajz|foldszint|emelet|tetoter|pince|elektromos terve|dugalj|szerelesi terv/, w: 1 },
+  { type: "floor_plan", re: /alaprajz|foldszint|emelet|tetoter|pince|dugalj|szerelesi terv/, w: 1 },
 ];
 const DISC_RULES: { d: Discipline; re: RegExp }[] = [
   { d: "villamvedelem", re: /villamvedelem|foldeles/ }, { d: "gyengearam", re: /gyengearam|vagyonvedelem|beteghivo|strukturalt halozat/ },
@@ -96,14 +97,16 @@ export function identifyPage(file: Pick<PlanFile, "fileId" | "fileName">, p: Pla
     if (sh && !res.sheetNo) res.sheetNo = { value: Number(sh[1]), confidence: titleRegion(p, l) || !l.items ? "high" : "medium", evidence: ev(file, p.page, l.text) };
     const tot = t.match(/(\d{1,3})\s*lapbol all|lapok szama\s*:?\s*(\d{1,3})|osszesen\s*(\d{1,3})\s*lap/);
     if (tot && !res.sheetTotal) res.sheetTotal = { value: Number(tot[1] ?? tot[2] ?? tot[3]), confidence: "high", evidence: ev(file, p.page, l.text) };
-    const rev = l.text.match(/\b(?:rev(?:izio|ízió)?\.?\s*[:.]?\s*|módosítás\s*[:.]?\s*|R)([0-9]{2}|[A-Z])\b/i) ?? l.text.match(/\bREV\s*([0-9A-Z]{1,3})\b/i);
-    if (rev && !res.revision && /rev|módosítás|^R\d{2}$|\bR\d{2}\b/i.test(rev[0])) res.revision = { value: rev[0].replace(/\s+/g, " ").trim(), confidence: /rev|módosítás/i.test(rev[0]) ? "high" : "medium", evidence: ev(file, p.page, l.text) };
+    const rev = l.text.match(/(?<![\p{L}\d])(?:rev|REV|Rev)(?:\.|ízió|izió|izio)?[\s:.]+([0-9]{1,2}|[A-Z])(?![\p{L}\d])/u) ?? l.text.match(/\bmódosítás\s*[:.]\s*([0-9A-Z]{1,3})\b/i)
+      ?? (titleRegion(p, l) ? l.items!.map((i) => i.s.trim()).find((x) => /^R\d{2}$/.test(x))?.match(/^R\d{2}$/) ?? null : null);
+    if (rev && !res.revision) res.revision = { value: rev[0].replace(/\s+/g, " ").trim(), confidence: /rev|módosítás/i.test(rev[0]) ? "high" : "medium", evidence: ev(file, p.page, l.text) };
     const d = l.text.match(/\b(20\d{2})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})\.?/);
     if (d && !res.date) { const iso = `${d[1]}-${d[2]!.padStart(2, "0")}-${d[3]!.padStart(2, "0")}`; if (!Number.isNaN(Date.parse(iso))) res.date = { value: iso, confidence: titleRegion(p, l) ? "high" : "medium", evidence: ev(file, p.page, l.text) }; }
     const cab = [...t.matchAll(/(?:["„“”'\s]|^)([a-z]{1,3}\d{0,2}(?:-\d{1,2})?|\d{1,2}[a-z]{0,2})["„“”']?\s+jelu\s+(?:(?:fo|al|foldszinti|emeleti|pinceszinti)\s*)?eloszto/g)];
     for (const m of cab) { const id = m[1]!.toUpperCase(); if (!res.cabinetIds.some((c) => c.id === id)) res.cabinetIds.push({ id, evidence: ev(file, p.page, l.text) }); }
   }
   const fileHint = fold(fileStem(file.fileName));
+
   let best: { type: DocType; score: number; line: string } = { type: res.docType.value, score: res.docType.score, line: "" };
   for (const r of TYPE_RULES) {
     const hit = lines.find((l) => r.re.test(fold(l.text)));
@@ -111,7 +114,14 @@ export function identifyPage(file: Pick<PlanFile, "fileId" | "fileName">, p: Pla
     if (s > best.score) best = { type: r.type, score: s, line: hit?.text ?? file.fileName };
   }
   if (best.type === "single_line" && /nezeti rajz/.test(f)) best = { type: "cabinet_view", score: best.score + 1, line: best.line };
+  const titleHit = [...lines].reverse().find((l) => /(foldszint|emelet|tetoter|pince|alaprajz)\S* (elektromos|villamos|erosaramu|gyengearamu)? ?terv/.test(fold(l.text)));
+  if (titleHit && best.type !== "cabinet_view" && best.type !== "single_line") best = { type: "floor_plan", score: Math.max(best.score, 2), line: titleHit.text };
+  if (titleHit && best.type === "single_line" && !/aramkor:/.test(f)) best = { type: "floor_plan", score: 2, line: titleHit.text };
+  const prose = lines.filter((l) => l.text.length > 45).length;
+  const portrait = p.width != null && p.height != null ? p.height > p.width : true;
+  if (portrait && lines.length >= 12 && prose / lines.length > 0.45 && !["designer_statement", "single_line", "cabinet_view"].includes(best.type)) best = { type: "technical_description", score: Math.max(best.score, 2.5), line: lines.find((l) => l.text.length > 45)!.text };
   res.docType = { value: best.type, score: best.score, evidence: best.score ? ev(file, p.page, best.line) : null };
+  if (["technical_description", "designer_statement"].includes(res.docType.value) && res.drawingNo && res.drawingNo.evidence.kind !== "file_name") res.drawingNo = null;
   for (const r of DISC_RULES) { const hit = lines.find((l) => r.re.test(fold(l.text))); if (hit || r.re.test(fileHint)) { res.discipline = { value: r.d, evidence: ev(file, p.page, hit?.text ?? file.fileName, hit ? "plan" : "file_name") }; break; } }
   const titleLine = [...lines].reverse().find((l) => /terve\b|rajza\b|leiras|jelmagyarazat|nyilatkozat|konyhaterv/.test(fold(l.text)) && l.text.length <= 90);
   if (titleLine) res.title = { value: clean(titleLine.text), confidence: titleRegion(p, titleLine) ? "high" : "medium", evidence: ev(file, p.page, titleLine.text) };
@@ -125,7 +135,7 @@ export type DrawingEntry = {
 };
 export type FileMatrixRow = { fileId: string; fileName: string; origin: PlanFile["origin"]; status: "full" | "partial" | "unreadable" | "not_processed"; label: string; pages: number; readablePages: number; reasons: string[] };
 
-export const MATRIX_LABEL: Record<FileMatrixRow["status"], string> = { full: "Teljesen feldolgozott", partial: "Részleges", unreadable: "Olvashatatlan (OCR szükséges)", not_processed: "Nem feldolgozott" };
+export const MATRIX_LABEL: Record<FileMatrixRow["status"], string> = { full: "Szövegréteg teljesen olvasva", partial: "Részleges", unreadable: "Olvashatatlan (OCR szükséges)", not_processed: "Nem feldolgozott" };
 
 export function buildRegistry(files: PlanFile[], ids: PageIdentity[]) {
   const map = new Map<string, DrawingEntry>();
@@ -148,12 +158,11 @@ export function buildRegistry(files: PlanFile[], ids: PageIdentity[]) {
     e.sheetNos.sort((a, b) => a - b);
     const pagesOf = ids.filter((p) => p.drawingNo?.value === e.drawingNo);
     if (e.sheetTotal) {
-      const covered = new Set(e.sheetNos.length ? e.sheetNos : []);
-      const pageCount = pagesOf.length;
-      const missing = Array.from({ length: e.sheetTotal }, (_, i) => i + 1).filter((n) => !covered.has(n) && !(n === 1 && pageCount >= e.sheetTotal));
-      const effectiveMissing = covered.size ? missing.filter((n) => n !== 1 || pageCount < e.sheetTotal) : pageCount < e.sheetTotal ? [pageCount + 1] : [];
-      if (pageCount < e.sheetTotal || (covered.size && effectiveMissing.length && pageCount < e.sheetTotal))
-        e.issues.push({ code: "missing_sheets", message: `A terv ${e.sheetTotal} lapból áll, de csak ${pageCount} oldal érhető el.`, evidence: pagesOf.filter((p) => p.sheetTotal).map((p) => p.sheetTotal!.evidence).slice(0, 2) });
+      const pageCount = new Set(pagesOf.map((p) => `${p.fileId}:${p.page}`)).size;
+      if (pageCount < e.sheetTotal) {
+        const missingNos = e.sheetNos.length ? Array.from({ length: e.sheetTotal }, (_, i) => i + 1).filter((n) => n !== 1 && !e.sheetNos.includes(n)) : [];
+        e.issues.push({ code: "missing_sheets", message: `A terv ${e.sheetTotal} lapból áll, de csak ${pageCount} oldal érhető el${missingNos.length ? ` (hiányzó lapszám: ${missingNos.join(", ")})` : ""}.`, evidence: pagesOf.filter((p) => p.sheetTotal).map((p) => p.sheetTotal!.evidence).slice(0, 2) });
+      }
     }
     const fileKeys = new Set(pagesOf.map((p) => p.fileId));
     if (fileKeys.size > 1 && (e.revisions.length > 1 || e.dates.length > 1))

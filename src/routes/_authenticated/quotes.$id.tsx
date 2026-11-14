@@ -15,6 +15,7 @@ import { useUpsert, useListWhere } from "@/lib/db-hooks";
 import { QuoteItemsPanel } from "@/components/quotes/quote-items-panel";
 import { QuoteDocumentManager } from "@/components/quotes/quote-document-manager";
 import { BudgetPricingPanel } from "@/components/pricing/budget-pricing-panel";
+import { PlanReviewPanel } from "@/components/plans/plan-review-panel";
 import { DocumentPackagesPanel } from "@/components/packages/document-packages-panel";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
 import { QuoteSendPanel } from "@/components/quotes/quote-send-panel";
@@ -403,6 +404,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           <div className="mt-6 border-t py-5"><QuoteItemsPanel quoteId={quote.id} locked={!!(quote as any).locked_at} /></div>
           </QuoteTemplatePanel> : <>
             {canPriceBudget && <BudgetPricingPanel quoteId={quote.id} scopeType={form.scope_type || null} locked={!!(quote as any).locked_at} onUseNet={(n) => set("manual_net_amount", String(n))} />}
+            {canPriceBudget && <PlanReviewPanel quoteId={quote.id} scopeType={form.scope_type || null} />}
             {pricingEditor}
           </>}
         </TabsContent>

@@ -19,13 +19,13 @@ export async function assertPricingRole(sb: SupabaseClient, userId: string, know
   return role;
 }
 
-async function fetchR2(key: string, limit: number): Promise<Uint8Array> {
+export async function fetchR2(key: string, limit: number): Promise<Uint8Array> {
   const { presignR2Url } = await import("../r2.server");
   const res = await fetch(presignR2Url({ key, method: "GET", expiresIn: 60 }), { redirect: "error", signal: AbortSignal.timeout(20000) });
   if (!res.ok || !res.body) throw new Error("A fájl nem tölthető le a fájltárból.");
-  if (Number(res.headers.get("content-length") ?? 0) > limit) { await res.body.cancel(); throw new Error("A munkafüzet túl nagy a számításhoz (20 MB felett)."); }
+  if (Number(res.headers.get("content-length") ?? 0) > limit) { await res.body.cancel(); throw new Error("A fájl túl nagy a CRM-en belüli feldolgozáshoz (20 MB felett)."); }
   const reader = res.body.getReader(), parts: Uint8Array[] = []; let total = 0;
-  while (true) { const { done, value } = await reader.read(); if (done) break; total += value.length; if (total > limit) { await reader.cancel(); throw new Error("A munkafüzet túl nagy a számításhoz (20 MB felett)."); } parts.push(value); }
+  while (true) { const { done, value } = await reader.read(); if (done) break; total += value.length; if (total > limit) { await reader.cancel(); throw new Error("A fájl túl nagy a CRM-en belüli feldolgozáshoz (20 MB felett)."); } parts.push(value); }
   const out = new Uint8Array(total); let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
   return out;
 }
