@@ -1468,6 +1468,57 @@ export type Database = {
         }
         Relationships: []
       }
+      document_packages: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          parent_kind: string
+          project_id: string | null
+          quote_id: string | null
+          source: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          parent_kind: string
+          project_id?: string | null
+          quote_id?: string | null
+          source?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          parent_kind?: string
+          project_id?: string | null
+          quote_id?: string | null
+          source?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_packages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_packages_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_attachments: {
         Row: {
           content_id: string | null
@@ -3304,6 +3355,192 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      package_file_parts: {
+        Row: {
+          etag: string | null
+          file_id: string
+          md5: string
+          part_number: number
+          recorded_at: string
+          size_bytes: number
+        }
+        Insert: {
+          etag?: string | null
+          file_id: string
+          md5: string
+          part_number: number
+          recorded_at?: string
+          size_bytes: number
+        }
+        Update: {
+          etag?: string | null
+          file_id?: string
+          md5?: string
+          part_number?: number
+          recorded_at?: string
+          size_bytes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_file_parts_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_files: {
+        Row: {
+          created_at: string
+          duplicate_of: string | null
+          error_code: string | null
+          file_kind: string | null
+          fingerprint: string
+          id: string
+          mime_type: string | null
+          name: string
+          package_id: string
+          parent_id: string
+          parent_kind: string
+          part_count: number | null
+          part_size: number | null
+          processing_status: string
+          r2_key: string | null
+          relative_path: string
+          revision_no: number
+          revision_of: string | null
+          sha256: string
+          size_bytes: number
+          status: string
+          updated_at: string
+          upload_id: string | null
+          uploaded_by: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          duplicate_of?: string | null
+          error_code?: string | null
+          file_kind?: string | null
+          fingerprint: string
+          id?: string
+          mime_type?: string | null
+          name: string
+          package_id: string
+          parent_id: string
+          parent_kind: string
+          part_count?: number | null
+          part_size?: number | null
+          processing_status?: string
+          r2_key?: string | null
+          relative_path: string
+          revision_no?: number
+          revision_of?: string | null
+          sha256: string
+          size_bytes: number
+          status?: string
+          updated_at?: string
+          upload_id?: string | null
+          uploaded_by: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          duplicate_of?: string | null
+          error_code?: string | null
+          file_kind?: string | null
+          fingerprint?: string
+          id?: string
+          mime_type?: string | null
+          name?: string
+          package_id?: string
+          parent_id?: string
+          parent_kind?: string
+          part_count?: number | null
+          part_size?: number | null
+          processing_status?: string
+          r2_key?: string | null
+          relative_path?: string
+          revision_no?: number
+          revision_of?: string | null
+          sha256?: string
+          size_bytes?: number
+          status?: string
+          updated_at?: string
+          upload_id?: string | null
+          uploaded_by?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_files_duplicate_of_fkey"
+            columns: ["duplicate_of"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_files_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "document_packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_files_revision_of_fkey"
+            columns: ["revision_of"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_upload_events: {
+        Row: {
+          actor: string
+          created_at: string
+          detail: Json
+          event: string
+          file_id: string | null
+          id: number
+          package_id: string
+        }
+        Insert: {
+          actor: string
+          created_at?: string
+          detail?: Json
+          event: string
+          file_id?: string | null
+          id?: never
+          package_id: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          detail?: Json
+          event?: string
+          file_id?: string | null
+          id?: never
+          package_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_upload_events_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_upload_events_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "document_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -5809,6 +6046,30 @@ export type Database = {
       }
       crm_role_of: { Args: { _auth_user: string }; Returns: string }
       current_profile_id: { Args: never; Returns: string }
+      document_package_parent_visible: {
+        Args: { p_kind: string; p_project: string; p_quote: string }
+        Returns: boolean
+      }
+      document_package_register_file: {
+        Args: {
+          p_fingerprint: string
+          p_kind: string
+          p_max_file: number
+          p_max_files: number
+          p_max_parent: number
+          p_mime: string
+          p_name: string
+          p_package: string
+          p_part_count: number
+          p_part_size: number
+          p_processing: string
+          p_relative_path: string
+          p_sha256: string
+          p_size: number
+          p_user: string
+        }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
