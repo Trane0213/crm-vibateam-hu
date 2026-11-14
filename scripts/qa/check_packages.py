@@ -103,6 +103,18 @@ async def handle_fn(route, req, log):
   if MODE=='notready': return await ok({'available':False,'packages':[]})
   return await ok({'available':True,'packages':summary_pkgs()})
  if 'listPackageFiles' in name: return await ok({'files':DEMO_FILES})
+ if 'packageProcessingReport' in name:
+  log.append('report')
+  rows=[
+   {'fileId':'f-4','path':'Költségvetés/Árazatlan.xlsx','state':'failed','label':'Hiba – újrapróbálható','reasons':['A feldolgozó váratlan hibát jelzett.'],'details':None,'fromArchive':False,'retryable':True},
+   {'fileId':'f-9','path':'Kiviteli terv/G-Gépészet/G-03 jelszavas.pdf','state':'unreadable','label':'Nem olvasható','reasons':['Jelszóval védett, nem olvasható.'],'details':None,'fromArchive':True,'retryable':False},
+   {'fileId':'f-8','path':'Kiviteli terv/A-Építész/A-205 szkennelt metszet.pdf','state':'partial','label':'Részben olvasható','reasons':['Szkennelt oldal; a csomag képfelismerési kerete elfogyott.'],'details':'24 oldal · 18 szöveges · 2 képfelismeréssel','fromArchive':True,'retryable':True},
+   {'fileId':'f-3','path':'CAD/E-01.dwg','state':'not_supported','label':'Csak tárolva','reasons':['Ez a formátum még nem olvasható (csak tárolva).'],'details':None,'fromArchive':False,'retryable':False},
+   {'fileId':'f-1','path':'Kiviteli terv/E-Erősáram/E-01 alaprajz.pdf','state':'processed','label':'Feldolgozva','reasons':[],'details':'12 oldal · 12 szöveges','fromArchive':False,'retryable':False},
+   {'fileId':'f-7','path':'Költségvetés/TESZT kiírás.xlsx','state':'processed','label':'Feldolgozva','reasons':['Rejtett munkalapot tartalmaz (megőriztük, jelöltük).'],'details':'3 munkalap · 412 képlet · 186 költségvetési tétel (186 árazatlan)','fromArchive':False,'retryable':False},
+  ]
+  return await ok({'configured':MODE!='report-on','totals':{'files':6,'processed':2,'partial':1,'unreadable':1,'notSupported':1,'waiting':0,'running':0,'failed':1,'duplicates':0,'extractedFromZip':2,'ocrPages':2,'textPages':30,'sheets':3,'formulas':412},'rows':rows})
+ if 'startPackageProcessing' in name: log.append('startProcessing'); return await ok({'started':0,'waiting':2,'skipped':4,'configured':False})
  if 'packageLimits' in name: return await ok({'maxFileBytes':1<<30,'maxParentBytes':5<<30,'maxFilesPerPackage':5000})
  if 'createDocumentPackage' in name: log.append('createPackage'); return await ok({'packageId':PKG_ID})
  if 'registerPackageFiles' in name:
@@ -231,6 +243,22 @@ async def main():
     await go(path); await page.wait_for_timeout(2500)
     print(ROLE,MODE,label,'panel',await panel.count(),'| upload btn',await page.get_by_role('button',name='Új dokumentáció feltöltése').count(),'| parent links',await page.get_by_role('link',name=re.compile('^Projekt:')).count(),'| overflow',await ovf())
     await page.screenshot(path=str(OUT/f'{ROLE}-{MODE}-{label}.png'))
+  if MODE in ('report','report-mobile'):
+   if MODE=='report-mobile': await page.set_viewport_size({'width':390,'height':844})
+   await go(f'/projects/{P2}?tab=docs'); await page.wait_for_timeout(2500)
+   tab=page.get_by_role('tab',name=re.compile('Dokumentumok'))
+   if await tab.count(): await tab.first.click(); await page.wait_for_timeout(1500)
+   await page.get_by_role('button',name=re.compile('TESZT Kiviteli terv')).click(); await page.wait_for_timeout(1500)
+   await panel.get_by_role('button',name='Feldolgozási jelentés').click(); await page.wait_for_timeout(1500)
+   dlg=page.get_by_role('dialog')
+   print(ROLE,MODE,'report rows',await dlg.locator('li').count(),'| start btn',await dlg.get_by_role('button',name=re.compile('Feldolgozás indítása')).count(),'| retry btns',await dlg.get_by_role('button',name='Újra').count(),'| overflow',await ovf())
+   await page.screenshot(path=str(OUT/f'{ROLE}-{MODE}-report.png'))
+   await dlg.get_by_role('button',name='Összes').click(); await page.wait_for_timeout(500)
+   print(ROLE,MODE,'all rows',await dlg.locator('li').count())
+   if await dlg.get_by_role('button',name=re.compile('Feldolgozás indítása')).count():
+    await dlg.get_by_role('button',name=re.compile('Feldolgozás indítása')).click(); await page.wait_for_timeout(1500)
+    print(ROLE,MODE,'toast',await page.locator('[data-sonner-toast]').all_inner_texts())
+   await page.screenshot(path=str(OUT/f'{ROLE}-{MODE}-report-all.png'))
   if MODE in ('upload','resume'):
    await go(f'/projects/{P2}'); await page.wait_for_timeout(2000)
    await page.get_by_role('tab',name=re.compile('Dokumentumok')).first.click(); await page.wait_for_timeout(1500)

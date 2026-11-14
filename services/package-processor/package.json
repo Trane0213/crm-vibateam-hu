@@ -1,0 +1,19 @@
+{
+  "name": "viba-package-processor",
+  "private": true,
+  "type": "module",
+  "description": "VIBA CRM elkülönített tervcsomag-feldolgozó (ZIP, Excel, PDF, képfelismerés-visszahívás). Cloudflare Containers-ben fut.",
+  "scripts": {
+    "start": "node src/server.ts",
+    "test": "node --test test/*.check.ts",
+    "deploy": "wrangler deploy"
+  },
+  "engines": { "node": ">=22.18" },
+  "dependencies": {
+    "xlsx": "0.18.5",
+    "yauzl": "3.4.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

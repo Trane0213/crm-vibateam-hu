@@ -90,6 +90,7 @@ import { Route as ApiGmailRefreshBodyRouteImport } from './routes/api/gmail/refr
 import { Route as ApiGmailSendRouteImport } from './routes/api/gmail/send'
 import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
+import { Route as ApiPublicPackageProcessorRouteImport } from './routes/api/public/package-processor'
 import { Route as ApiPublicWebsiteLeadSyncRouteImport } from './routes/api/public/website-lead-sync'
 import { Route as AuthenticatedQuotesIdPrintRouteImport } from './routes/_authenticated/quotes.$id_.print'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
@@ -550,6 +551,12 @@ const ApiGmailSyncRoute = ApiGmailSyncRouteImport.update({
   path: '/api/gmail/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPackageProcessorRoute =
+  ApiPublicPackageProcessorRouteImport.update({
+    id: '/api/public/package-processor',
+    path: '/api/public/package-processor',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebsiteLeadSyncRoute =
   ApiPublicWebsiteLeadSyncRouteImport.update({
     id: '/api/public/website-lead-sync',
@@ -670,6 +677,7 @@ export interface FileRoutesByFullPath {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/api/public/package-processor': typeof ApiPublicPackageProcessorRoute
   '/api/public/website-lead-sync': typeof ApiPublicWebsiteLeadSyncRoute
   '/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/companies/': typeof AuthenticatedCompaniesIndexRoute
@@ -759,6 +767,7 @@ export interface FileRoutesByTo {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/api/public/package-processor': typeof ApiPublicPackageProcessorRoute
   '/api/public/website-lead-sync': typeof ApiPublicWebsiteLeadSyncRoute
   '/attendance': typeof AuthenticatedAttendanceIndexRoute
   '/companies': typeof AuthenticatedCompaniesIndexRoute
@@ -852,6 +861,7 @@ export interface FileRoutesById {
   '/api/gmail/send': typeof ApiGmailSendRoute
   '/api/gmail/status': typeof ApiGmailStatusRoute
   '/api/gmail/sync': typeof ApiGmailSyncRoute
+  '/api/public/package-processor': typeof ApiPublicPackageProcessorRoute
   '/api/public/website-lead-sync': typeof ApiPublicWebsiteLeadSyncRoute
   '/_authenticated/attendance/': typeof AuthenticatedAttendanceIndexRoute
   '/_authenticated/companies/': typeof AuthenticatedCompaniesIndexRoute
@@ -945,6 +955,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/api/public/package-processor'
     | '/api/public/website-lead-sync'
     | '/attendance/'
     | '/companies/'
@@ -1034,6 +1045,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/api/public/package-processor'
     | '/api/public/website-lead-sync'
     | '/attendance'
     | '/companies'
@@ -1126,6 +1138,7 @@ export interface FileRouteTypes {
     | '/api/gmail/send'
     | '/api/gmail/status'
     | '/api/gmail/sync'
+    | '/api/public/package-processor'
     | '/api/public/website-lead-sync'
     | '/_authenticated/attendance/'
     | '/_authenticated/companies/'
@@ -1162,6 +1175,7 @@ export interface RootRouteChildren {
   ApiGmailSendRoute: typeof ApiGmailSendRoute
   ApiGmailStatusRoute: typeof ApiGmailStatusRoute
   ApiGmailSyncRoute: typeof ApiGmailSyncRoute
+  ApiPublicPackageProcessorRoute: typeof ApiPublicPackageProcessorRoute
   ApiPublicWebsiteLeadSyncRoute: typeof ApiPublicWebsiteLeadSyncRoute
   ApiGmailOauthCallbackRoute: typeof ApiGmailOauthCallbackRoute
   ApiGmailOauthStartRoute: typeof ApiGmailOauthStartRoute
@@ -1741,6 +1755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGmailSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/package-processor': {
+      id: '/api/public/package-processor'
+      path: '/api/public/package-processor'
+      fullPath: '/api/public/package-processor'
+      preLoaderRoute: typeof ApiPublicPackageProcessorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/website-lead-sync': {
       id: '/api/public/website-lead-sync'
       path: '/api/public/website-lead-sync'
@@ -1998,6 +2019,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGmailSendRoute: ApiGmailSendRoute,
   ApiGmailStatusRoute: ApiGmailStatusRoute,
   ApiGmailSyncRoute: ApiGmailSyncRoute,
+  ApiPublicPackageProcessorRoute: ApiPublicPackageProcessorRoute,
   ApiPublicWebsiteLeadSyncRoute: ApiPublicWebsiteLeadSyncRoute,
   ApiGmailOauthCallbackRoute: ApiGmailOauthCallbackRoute,
   ApiGmailOauthStartRoute: ApiGmailOauthStartRoute,

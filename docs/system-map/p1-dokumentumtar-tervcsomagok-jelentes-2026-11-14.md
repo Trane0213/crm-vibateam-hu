@@ -24,7 +24,9 @@
 Módosított: `src/lib/r2.server.ts` (r2Env export), `src/lib/r2.functions.ts` (csomagfájl-letöltés ellenőrzése), `src/routes/_authenticated/projects.$id.tsx`, `quotes.$id.tsx`, `documents.tsx` (panel beillesztése), `package.json`/`bun.lock` (hash-wasm).
 Nem változott: régi `/api/r2-upload`, `r2-policy.ts` 50 MB-os útvonal, meglévő dokumentumtáblák és RLS, Gmail, ajánlat, AI OS.
 
-## 3. Adatbázis-objektumok (előkészítve, NEM futtatva)
+## 3. Adatbázis-objektumok
+
+> **Helyesbítés (2026-11-14, P2):** a tulajdonos 18:44 UTC-kor jóváhagyta („Adatbázis: Igen, mindkettő”), ezután a P1 migráció élesben lefutott (`supabase/migrations/20261114184622_…`). Az alábbi „nem futtatva” állapot a jelentés írásakor volt igaz.
 
 `01_document_packages.sql`: táblák `document_packages`, `package_files`, `package_file_parts`, `package_upload_events`; olvasási RLS a meglévő projekt-/ajánlat-láthatóságra (`document_package_parent_visible`), írás csak szerveroldali szolgáltatásszerepkörrel; `package_files_guard` (ellenőrzött eredeti nem módosítható/törölhető); `document_package_register_file` (tanácsadói zárral: kvóta, duplikáció, revízió); `document_package_limits` alapérték a settings táblában. Visszaállítás: `99_rollback_document_packages.sql`. Mindkettő PGlite-ban próbálva; éles adatbázist nem érintett. Meglévő hozzáférés nem bővül és nem szűkül.
 

@@ -24,6 +24,7 @@ import { UploadAborted, uploadFiles, type FileOutcome, type LocalFile } from "@/
 import { createDocumentPackage, listDocumentPackages, listPackageFiles, packageLimits } from "@/lib/packages/packages.functions";
 import { makeTransport } from "./package-transport";
 import { fromDrop, fromInput, supportsFolderPicker } from "./local-files";
+import { PackageReportButton } from "./package-report";
 
 const pkgKey = (parent: PackageParent | null) => ["documents", "packages", parent?.kind ?? "all", parent?.id ?? "all"] as const;
 
@@ -68,6 +69,8 @@ export function DocumentPackagesPanel({ parent, title = "Tervcsomagok", classNam
 }
 
 function PackageRow({ pkg, showParent, expanded, onToggle, onResume }: { pkg: PackageSummary; showParent: boolean; expanded: boolean; onToggle: () => void; onResume: () => void }) {
+  const { role, isLoading: roleLoading } = usePermissions();
+  const canStart = !roleLoading && canUploadPackage(pkg.parentKind, role, role === "owner");
   const state = pkg.open ? "open" : pkg.failed ? "failed" : "done";
   return (
     <li>
@@ -90,12 +93,12 @@ function PackageRow({ pkg, showParent, expanded, onToggle, onResume }: { pkg: Pa
         {state === "open" && <Badge variant="outline" className="gap-1"><PauseCircle className="h-3 w-3" />{pkg.open} fájl befejezetlen</Badge>}
         {(state === "open" || state === "failed") && pkg.mine && <Button size="sm" variant="outline" onClick={onResume}><RotateCcw className="mr-1.5 h-3.5 w-3.5" />Feltöltés folytatása</Button>}
       </div>
-      {expanded && <PackageFiles packageId={pkg.id} />}
+      {expanded && <PackageFiles packageId={pkg.id} title={pkg.title} canStart={canStart} />}
     </li>
   );
 }
 
-function PackageFiles({ packageId }: { packageId: string }) {
+function PackageFiles({ packageId, title, canStart }: { packageId: string; title: string; canStart: boolean }) {
   const q = useQuery({ queryKey: ["documents", "packages", "files", packageId], queryFn: () => listPackageFiles({ data: { packageId } }) });
   const { open, pending } = useOpenDocument();
   const [onlyProblems, setOnlyProblems] = useState(false);
@@ -117,6 +120,7 @@ function PackageFiles({ packageId }: { packageId: string }) {
         <Button size="sm" variant={onlyProblems ? "default" : "outline"} onClick={() => setOnlyProblems(!onlyProblems)} disabled={!problems.length}>
           <AlertTriangle className="mr-1.5 h-3.5 w-3.5" />Hibák ({problems.length})
         </Button>
+        <PackageReportButton packageId={packageId} title={title} canStart={canStart} />
       </div>
       {!shown.length && <p className="text-sm text-muted-foreground">Nincs megjeleníthető fájl.</p>}
       {groups.map(([folder, list]) => (

@@ -3356,6 +3356,93 @@ export type Database = {
         }
         Relationships: []
       }
+      package_file_extracts: {
+        Row: {
+          encrypted: boolean
+          entry_count: number | null
+          extracted_count: number | null
+          file_id: string
+          formula_count: number | null
+          has_macros: boolean
+          job_id: string | null
+          ocr_pages: number | null
+          ocr_skipped: number | null
+          page_count: number | null
+          parser: string
+          problems: Json
+          processed_at: string
+          sha256_ok: boolean | null
+          sheet_count: number | null
+          status: string
+          structure_key: string | null
+          summary: Json
+          text_pages: number | null
+          unreadable_pages: number | null
+          updated_at: string
+        }
+        Insert: {
+          encrypted?: boolean
+          entry_count?: number | null
+          extracted_count?: number | null
+          file_id: string
+          formula_count?: number | null
+          has_macros?: boolean
+          job_id?: string | null
+          ocr_pages?: number | null
+          ocr_skipped?: number | null
+          page_count?: number | null
+          parser: string
+          problems?: Json
+          processed_at?: string
+          sha256_ok?: boolean | null
+          sheet_count?: number | null
+          status: string
+          structure_key?: string | null
+          summary?: Json
+          text_pages?: number | null
+          unreadable_pages?: number | null
+          updated_at?: string
+        }
+        Update: {
+          encrypted?: boolean
+          entry_count?: number | null
+          extracted_count?: number | null
+          file_id?: string
+          formula_count?: number | null
+          has_macros?: boolean
+          job_id?: string | null
+          ocr_pages?: number | null
+          ocr_skipped?: number | null
+          page_count?: number | null
+          parser?: string
+          problems?: Json
+          processed_at?: string
+          sha256_ok?: boolean | null
+          sheet_count?: number | null
+          status?: string
+          structure_key?: string | null
+          summary?: Json
+          text_pages?: number | null
+          unreadable_pages?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_file_extracts_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: true
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_file_extracts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "package_processing_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       package_file_parts: {
         Row: {
           etag: string | null
@@ -3391,11 +3478,64 @@ export type Database = {
           },
         ]
       }
+      package_file_units: {
+        Row: {
+          ai_extracted: boolean
+          chars: number
+          created_at: string
+          file_id: string
+          label: string | null
+          search: unknown
+          source: string
+          text: string
+          uncertain: Json
+          unit_kind: string
+          unit_no: number
+        }
+        Insert: {
+          ai_extracted?: boolean
+          chars?: number
+          created_at?: string
+          file_id: string
+          label?: string | null
+          search?: unknown
+          source: string
+          text: string
+          uncertain?: Json
+          unit_kind: string
+          unit_no: number
+        }
+        Update: {
+          ai_extracted?: boolean
+          chars?: number
+          created_at?: string
+          file_id?: string
+          label?: string | null
+          search?: unknown
+          source?: string
+          text?: string
+          uncertain?: Json
+          unit_kind?: string
+          unit_no?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_file_units_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       package_files: {
         Row: {
+          archive_entry: string | null
           created_at: string
           duplicate_of: string | null
           error_code: string | null
+          extract_depth: number
+          extracted_from: string | null
           file_kind: string | null
           fingerprint: string
           id: string
@@ -3420,9 +3560,12 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          archive_entry?: string | null
           created_at?: string
           duplicate_of?: string | null
           error_code?: string | null
+          extract_depth?: number
+          extracted_from?: string | null
           file_kind?: string | null
           fingerprint: string
           id?: string
@@ -3447,9 +3590,12 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          archive_entry?: string | null
           created_at?: string
           duplicate_of?: string | null
           error_code?: string | null
+          extract_depth?: number
+          extracted_from?: string | null
           file_kind?: string | null
           fingerprint?: string
           id?: string
@@ -3482,6 +3628,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "package_files_extracted_from_fkey"
+            columns: ["extracted_from"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "package_files_package_id_fkey"
             columns: ["package_id"]
             isOneToOne: false
@@ -3493,6 +3646,72 @@ export type Database = {
             columns: ["revision_of"]
             isOneToOne: false
             referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      package_processing_jobs: {
+        Row: {
+          attempt: number
+          created_at: string
+          dispatched_at: string | null
+          error_code: string | null
+          error_detail: string | null
+          file_id: string
+          finished_at: string | null
+          heartbeat_at: string | null
+          id: string
+          package_id: string
+          requested_by: string
+          status: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          dispatched_at?: string | null
+          error_code?: string | null
+          error_detail?: string | null
+          file_id: string
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          package_id: string
+          requested_by: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          dispatched_at?: string | null
+          error_code?: string | null
+          error_detail?: string | null
+          file_id?: string
+          finished_at?: string | null
+          heartbeat_at?: string | null
+          id?: string
+          package_id?: string
+          requested_by?: string
+          status?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_processing_jobs_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "package_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_processing_jobs_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "document_packages"
             referencedColumns: ["id"]
           },
         ]
@@ -6049,6 +6268,22 @@ export type Database = {
       document_package_parent_visible: {
         Args: { p_kind: string; p_project: string; p_quote: string }
         Returns: boolean
+      }
+      document_package_register_extracted: {
+        Args: {
+          p_entry: string
+          p_kind: string
+          p_max_file: number
+          p_max_files: number
+          p_mime: string
+          p_name: string
+          p_processing: string
+          p_relative_path: string
+          p_sha256: string
+          p_size: number
+          p_zip: string
+        }
+        Returns: Json
       }
       document_package_register_file: {
         Args: {

@@ -199,7 +199,7 @@ export async function recordParts(sb: Sb, userId: string, fileId: string, parts:
 }
 
 /** Lezárás: minden darab megvan, MD5 = ETag, méretek stimmelnek → R2 összefűzés → méretellenőrzés → ellenőrzött. */
-export async function completeFile(sb: Sb, userId: string, fileId: string) {
+export async function completeFile(sb: Sb, userId: string, fileId: string, origin?: string) {
   const f = await ownOpenFile(sb, userId, fileId);
   const a = await admin();
   const m = await r2();
@@ -230,6 +230,8 @@ export async function completeFile(sb: Sb, userId: string, fileId: string) {
   const { error } = await a.from("package_files").update({ status: "verified", upload_id: null, verified_at: new Date().toISOString(), error_code: null }).eq("id", fileId).eq("status", "uploading");
   if (error) throw new PackageError("A fájl állapota nem menthető", 500, "storage");
   await logEvent(a, f.package_id, fileId, userId, "upload_verified", { size: f.size_bytes, sha256: f.sha256, parts: f.part_count });
+  // P2: feldolgozás sorba állítása (hiba esetén a feltöltés sikeres marad, a feladat várakozik).
+  if (origin) await (await import("./processing.server")).afterUploadVerified(fileId, userId, origin);
   return { ok: true as const };
 }
 

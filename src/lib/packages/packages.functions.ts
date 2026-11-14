@@ -1,6 +1,7 @@
 // P1 – tervcsomag szerverfüggvények. Mind bejelentkezéshez kötött; a jogosultságot
 // a packages.server.ts ellenőrzi a hívó saját (RLS-es) kliensével.
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { PackageParent } from "./package-policy";
 
@@ -10,12 +11,15 @@ const idIn = (v: any) => { if (typeof v !== "string" || v.length !== 36) throw n
 async function run<T>(fn: () => Promise<T>): Promise<T> {
   try { return await fn(); } catch (e: any) {
     // A felhasználó emberi nyelvű üzenetet kap; a technikai részlet a szervernaplóba kerül.
-    if (e?.name === "PackageError") throw new Error(e.message);
+    if (e?.name === "PackageError" || e?.name === "ProcessingError") throw new Error(e.message);
     console.error("[packages]", e?.message ?? e);
     throw new Error("A tárhely átmenetileg nem érhető el. A feltöltés később folytatható.");
   }
 }
 const svc = () => import("./packages.server");
+const proc = () => import("./processing.server");
+/** A CRM saját nyilvános címe (a feldolgozó ide küldi az aláírt visszajelzést). */
+const originOf = () => { try { return new URL(getRequest().url).origin; } catch { return ""; } };
 
 export const packageLimits = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .handler(async () => run(async () => (await svc()).loadLimits()));
@@ -58,8 +62,20 @@ export const recordPackageParts = createServerFn({ method: "POST" }).middleware(
 
 export const completePackageFile = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((i: { fileId: string }) => ({ fileId: idIn(i?.fileId) }))
-  .handler(async ({ data, context }) => run(async () => (await svc()).completeFile(context.supabase as any, context.userId, data.fileId)));
+  .handler(async ({ data, context }) => run(async () => (await svc()).completeFile(context.supabase as any, context.userId, data.fileId, originOf())));
 
 export const abortPackageFile = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((i: { fileId: string }) => ({ fileId: idIn(i?.fileId) }))
   .handler(async ({ data, context }) => run(async () => (await svc()).abortFile(context.supabase as any, context.userId, data.fileId)));
+
+// P2 – feldolgozás: jelentés és (újra)indítás. Az indítás a feltöltési joghoz kötött (meglévő szabály).
+export const packageProcessingReport = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((i: { packageId: string }) => ({ packageId: idIn(i?.packageId) }))
+  .handler(async ({ data, context }) => run(async () => (await proc()).packageReport(context.supabase as any, data.packageId)));
+
+export const startPackageProcessing = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((i: { packageId: string; fileIds?: string[] | null }) => ({
+    packageId: idIn(i?.packageId),
+    fileIds: Array.isArray(i?.fileIds) ? i.fileIds.slice(0, 200).map(idIn) : null,
+  }))
+  .handler(async ({ data, context }) => run(async () => (await proc()).retryFiles(context.supabase as any, context.userId, data.packageId, data.fileIds, originOf())));

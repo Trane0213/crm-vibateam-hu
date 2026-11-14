@@ -1,0 +1,25 @@
+{
+  // VIBA CRM tervcsomag-feldolgozó. Telepítés: a tulajdonos Cloudflare-fiókjában, Dockerrel:
+  //   npx wrangler secret put PROCESSOR_SECRET   (ugyanaz az érték, mint a CRM PACKAGE_PROCESSOR_SECRET)
+  //   npx wrangler deploy
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "viba-package-processor",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-11-14",
+  "containers": [
+    {
+      "class_name": "PackageProcessor",
+      "scheduling_policy": "durable_object",
+      "max_instances": 3,
+      "images": { "base": { "dockerfile": "./Dockerfile" } }
+    }
+  ],
+  "durable_objects": { "bindings": [{ "name": "PROCESSOR", "class_name": "PackageProcessor" }] },
+  "exports": { "PackageProcessor": { "type": "durable-object", "storage": "sqlite" } },
+  "vars": {
+    "INSTANCES": "3",
+    // Kötelező: csak ezekre a címekre kapcsolódhat a feldolgozó (üresen semmit nem fogad el).
+    "ALLOWED_STORAGE_HOSTS": "<R2-fiók-azonosító>.r2.cloudflarestorage.com",
+    "ALLOWED_CALLBACK_ORIGINS": "https://crm-vibateam-hu.lovable.app"
+  }
+}

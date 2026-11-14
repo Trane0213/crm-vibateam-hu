@@ -241,3 +241,12 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [ ] Bejelentkezett Owner végigpróba éles adattal — saját belépés szükséges (external_unmanaged).
 - [ ] Óránkénti jelzésgyűjtő bekapcsolása — tulajdonosi költségkeret-jóváhagyás kell (most KIKAPCSOLVA, 0 futás).
 - [ ] Szerepkörös (Sales/PM) George-nézet, tétel-szintű „elfogadva/elvetve” tárolás — új adatmodell/RLS döntést igényel.
+
+## Tervcsomagok P1–P2 (2026-11-14)
+- [x] P1 darabolt, folytatható feltöltés + adatbázis élesítve (tulajdonosi jóváhagyás 18:44 UTC)
+- [x] P2 adatbázis (feladatok, eredmények, kereshető oldalak, ZIP-kapcsolat) élesítve (ugyanaz a jóváhagyás)
+- [x] P2 elkülönített feldolgozó kódja (Cloudflare Containers): ZIP, Excel, PDF, kép/szöveg, OCR-visszahívás, hálózati korlát
+- [x] P2 CRM-bekötés: kiküldés, aláírt visszajelzés, újrapróbálás, csomagjelentés felület
+- [x] P2 Timothy-előkészítés: csak olvasó tervcsomag-eszközök (áttekintés, fájlolvasás, keresés)
+- [ ] Feldolgozó telepítése a Cloudflare-fiókba — tulajdonosi lépés (Workers Paid, Docker + wrangler deploy, közös titkos kulcs + CRM beállítások)
+- [ ] Élő végigpróba 500 MB-os TESZT-csomaggal a telepítés után (valódi OCR-költséggel)
