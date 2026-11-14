@@ -14,6 +14,7 @@ import type { FactItem, FactSection } from "@/lib/owner-report/model";
 import { safeLink } from "@/lib/notifications/model";
 import { budapestYmd, classifyTask, isActiveProject, projectManagerOf, type PmProject, type PmTask } from "@/lib/pm/pm-day-flow";
 import { PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
+import { contractPrepSummary, contractWarningsFromPrep, type ContractQuote } from "@/lib/contract/contract-prep";
 
 /** Nincs számla-/befizetés-/bank-/Billingo-adat a CRM-ben (2026-11-14). */
 export const FINANCE_DATA_CONNECTED = false as const;
@@ -183,15 +184,16 @@ export function projectRisks(projects: OwnerProject[], tasks: OwnerTask[], now: 
 // Szerződés-előkészítés (csak meglévő adat; nincs jóváhagyási adatmodell)
 // ---------------------------------------------------------------------------
 export function contractPrepWarnings(lead: OwnerLead, quotes: OwnerQuote[]): string[] {
-  const own = quotes.filter((q) => q.lead_id === lead.id && q.is_current !== false);
-  const accepted = own.filter((q) => q.status === "accepted");
-  const w: string[] = [];
-  if (!lead.company_id) w.push("Nincs ügyfél megadva — Megnyertük nem lehetséges");
-  if (!accepted.length) w.push("Nincs elfogadottnak jelölt ajánlat");
-  if (!lead.contact_id) w.push("Nincs kapcsolattartó");
-  if (accepted.length && accepted.every((q) => q.net == null || q.net <= 0)) w.push("Az elfogadott ajánlat nettó összege nincs rögzítve");
-  if (!lead.assigned_to) w.push("Nincs felelős Sales");
-  return w;
+  // Közös szerződés-előkészítési modell (contract-prep.ts); itt csak a lead/ajánlat
+  // szintű tételek ismertek — cég/kapcsolattartó rekord nincs betöltve, ezért csak a hiányzó ID számít hiánynak.
+  const own: ContractQuote[] = quotes.filter((q) => q.lead_id === lead.id).map((q) => ({
+    id: q.id, title: q.title, status: q.status, sent_at: null, is_current: q.is_current, valid_until: null, site_address: null,
+    total_amount: q.net ?? null, manual_net_amount: null, template_terms: null, version: null, alternative_key: null,
+  }));
+  return contractWarningsFromPrep(contractPrepSummary({
+    lead: { id: lead.id, status: lead.status, company_id: lead.company_id, contact_id: lead.contact_id, assigned_to: lead.assigned_to },
+    company: undefined, contact: undefined, quotes: own, termsDocs: undefined, project: undefined, contractDocs: undefined,
+  }));
 }
 
 // ---------------------------------------------------------------------------
@@ -235,7 +237,7 @@ export function ownerItems(input: OwnerInputs, now: Date = new Date()): OwnerIte
     const name = company(l.company_id) ?? l.summary ?? "Ügy";
     items.push({
       key: `c:${l.id}`, kind: "contract", lane: "deals", title: `Szerződés előkészítése: ${name}`,
-      detail: "Szerződés szakasz. A Megnyertük → projektátadás a Pipeline adatlapon (tulajdonos vagy a felelős Sales). Jóváhagyási lépés és e-aláírás a CRM-ben nincs.",
+      detail: "Szerződés szakasz. A teljes szerződés-előkészítési lista (ügyfél, adószám, elfogadott verzió, összeg, érvényesség, feltételek, tulajdonosi döntések) és a Megnyertük → projektátadás a Pipeline adatlapon. Jóváhagyási lépés és e-aláírás a CRM-ben nincs.",
       source: "Pipeline-ügy", sourceId: l.id, at: l.next_step_due_at, who: person(l.assigned_to),
       link: leadLink(l), button: "Pipeline adatlap", warnings: contractPrepWarnings(l, quotes), severity: "warning",
     });

@@ -1,0 +1,4 @@
+- Contract preparation (accepted quote → contract → owner decision prep → PM handoff) comes only from presentation-only `contract-prep.ts`; Pipeline sheet, accepted-quote status step, won-lead card, project Handover tab and owner `contractPrepWarnings` share it, so no screen can disagree.
+- Inputs are read by `contract-prep-loader.ts` with the caller's RLS (select only); an unreadable source is NINCS ADAT, never done. Contract files open only through the existing `r2PresignDownload`.
+- There is no contract record, approval workflow, decision log or e-signature (`CONTRACT_RECORD_AVAILABLE = false`); the UI never shows approved/signed states. The data-model plan lives in docs/system-map/szerzodes-elokeszites-7-csomag-2026-11-14.md and is not migrated.
+- On the Handover tab, items already in the Sales→PM list are hidden via `contractItemsBesideHandoff`; owner decisions are merged once per topic by `ownerDecisionPrep`.

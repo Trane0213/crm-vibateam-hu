@@ -16,6 +16,7 @@ import { handoffFixTab } from "@/lib/handoff/handoff-links";
 import { PROJECT_STATUS_LABEL } from "@/lib/viba-constants";
 import { useAssigneeLookup } from "@/lib/sales/use-assignee-name";
 import { HandoffPhaseBadge } from "./handoff-checklist";
+import { ContractPrepCompact } from "@/components/contract/contract-prep-panel";
 import { cn } from "@/lib/utils";
 
 export function LeadHandoffCard({ project }: { project: ProjectHandoffRow }) {
@@ -63,6 +64,10 @@ export function LeadHandoffCard({ project }: { project: ProjectHandoffRow }) {
           </>
         );
       })()}
+      <div className="mt-2">
+        <ContractPrepCompact leadId={project.lead_id} projectId={project.id}
+          fullLink={{ to: "/projects/$id", params: { id: project.id }, search: { tab: "handover" }, label: "Szerződés-előkészítés az Átadás fülön" }} />
+      </div>
       {canOpen ? (
         <Button size="sm" className="mt-3" asChild>
           <Link to="/projects/$id" params={{ id: project.id }} search={{ tab: "handover" }}>Átadás fül megnyitása<ArrowUpRight /></Link>

@@ -46,6 +46,7 @@ import {
 import { handoffNext, handoffSummary, HANDOFF_ROLE_LABEL, type HandoffItem, type HandoffSummary } from "@/lib/handoff/sales-pm-handoff";
 import { HandoffChecklist, HandoffNotInCrm, HandoffPhaseBadge } from "@/components/handoff/handoff-checklist";
 import { ProjectBasicsForm } from "@/components/handoff/project-basics-form";
+import { ContractPrepPanel } from "@/components/contract/contract-prep-panel";
 import { handoffEditRights } from "@/lib/handoff/project-basics";
 
 export const Route = createFileRoute("/_authenticated/projects/$id")({
@@ -540,8 +541,12 @@ function ProjectDetail() {
                 </div>
               </div>
             </section>
+            <section id="szerzodes-elokeszites" aria-labelledby="szerzodes-elokeszites-cim" className="space-y-3">
+              <h2 id="szerzodes-elokeszites-cim" className="text-sm font-semibold">2. Szerződés-előkészítés és szerződésfájlok</h2>
+              <ContractPrepPanel leadId={project.lead_id ?? null} projectId={id} besideHandoff handoff={handoffReady ? handoff : null} title="Szerződés-előkészítés (a megnyert ajánlatból)" />
+            </section>
             <section aria-labelledby="muszaki-atadas" className="space-y-3">
-              <h2 id="muszaki-atadas" className="text-sm font-semibold">2. Műszaki átadás a megrendelőnek (TIG-előkészítés)</h2>
+              <h2 id="muszaki-atadas" className="text-sm font-semibold">3. Műszaki átadás a megrendelőnek (TIG-előkészítés)</h2>
               <HandoverPanel readiness={readiness} status={project.status} onTab={(t) => setTab(t)} onPhotos={() => openDocs("photo")} />
             </section>
           </TabsContent>

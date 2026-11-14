@@ -18,9 +18,10 @@ import { logActivity } from "@/lib/activity-log";
 import { ExternalLink, Building2, Mail, User, Calendar, FileText, Plus, Trophy, ArrowRight, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { quoteStatusLabel } from "@/lib/quotes/quote-status";
-import { leadNextAction, contractReadiness, currentQuotes, ESIGN_AVAILABLE } from "@/lib/sales/sales-flow";
+import { leadNextAction, currentQuotes } from "@/lib/sales/sales-flow";
+import { ContractPrepPanel } from "@/components/contract/contract-prep-panel";
 import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
-import { PrimaryActionCard, ReadinessList } from "@/components/sales/sales-flow-ui";
+import { PrimaryActionCard } from "@/components/sales/sales-flow-ui";
 import { createDraftQuote } from "@/lib/quotes/create";
 import type { LeadStatus } from "@/lib/sales/constants";
 import { statusToLostStage } from "@/lib/sales/constants";
@@ -71,19 +72,6 @@ export function PipelineDetailSheet({
   });
   const quotes = currentQuotes(leadQuotes.data ?? []);
   const accepted = quotes.find((q) => q.status === "accepted") ?? null;
-  const termsDoc = useQuery({
-    queryKey: ["quote_documents", "contract_terms", accepted?.id],
-    enabled: open && !!accepted?.id,
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("quote_documents" as any)
-        .select("id", { count: "exact", head: true })
-        .eq("quote_id", accepted!.id)
-        .eq("document_type", "contract_terms");
-      if (error) throw error;
-      return count ?? 0;
-    },
-  });
   const newQuote = useMutation({
     mutationFn: async (kind: QuoteWorkflow) => {
       if (!lead) throw new Error("Nincs lead.");
@@ -155,16 +143,6 @@ export function PipelineDetailSheet({
   });
 
   const next = lead ? leadNextAction(lead, quotes) : null;
-  const contract = lead
-    ? contractReadiness({
-        leadStatus: lead.status,
-        acceptedQuote: !!accepted,
-        companyId: lead.company_id,
-        contactId: lead.contact_id ?? null,
-        net: (lead.quote_total && lead.quote_total > 0 ? lead.quote_total : null) ?? accepted?.manual_net_amount ?? null,
-        contractTermsDoc: (termsDoc.data ?? 0) > 0,
-      })
-    : null;
   const busy = statusMut.isPending || lostMut.isPending || newQuote.isPending;
   const primaryButton = !next ? null
     : next.kind === "create_quote" ? <Button size="sm" disabled={busy || leadQuotes.isLoading} onClick={() => setQuoteChoiceOpen(true)}><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlat létrehozása</Button>
@@ -260,13 +238,10 @@ export function PipelineDetailSheet({
                   </ul>
                 )}
 
-                {contract && (lead.status === "contract" || accepted) && (
+                {(lead.status === "contract" || accepted) && (
                   <div className="mb-6">
-                    <ReadinessList
-                      title="Szerződés-előkészítés"
-                      readiness={contract}
-                      note={`${ESIGN_AVAILABLE ? "" : "Elektronikus aláírás a CRM-ben nem érhető el: a szerződést a CRM-en kívül írjátok alá. "}A megnyerés után az aláírt példány a projekt Dokumentumai között „Szerződés” kategóriában tölthető fel. Ez a lista tájékoztató, nem ment adatot.`}
-                    />
+                    {/* Közös szerződés-előkészítési modell (contract-prep.ts) — csak olvas, nem hagy jóvá. */}
+                    <ContractPrepPanel leadId={lead.id} />
                   </div>
                 )}
 

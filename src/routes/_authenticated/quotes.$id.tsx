@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ContractPrepCompact } from "@/components/contract/contract-prep-panel";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { FileText, Building2, Radar, Printer, Save } from "lucide-react";
@@ -409,8 +410,9 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           <QuoteStatusPanel quote={quote as any} />
           {quote.status === "accepted" && <div className="mt-6 max-w-2xl rounded-lg border border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 p-3 text-sm">
             <p className="font-semibold">Elfogadott ajánlat — következik a szerződés</p>
-            <p className="mt-1 text-xs text-muted-foreground">A szerződés-előkészítés és a „Megnyertük → projektátadás” a Pipeline ügy-adatlapján történik. Elektronikus aláírás a CRM-ben nem érhető el; a szerződési feltételek fájlja az 1. lépésben „Szerződési / fizetési feltételek” típusként tölthető fel.</p>
-            {quote.lead_id && (role === "sales" || role === "owner") && <Link to="/sales/leads" search={{ lead: quote.lead_id }} className="mt-2 inline-block text-xs font-medium text-primary hover:underline">Ügy megnyitása a Pipeline-ban →</Link>}
+            <p className="mt-1 text-xs text-muted-foreground">A szerződés-előkészítés és a „Megnyertük → projektátadás” a Pipeline ügy-adatlapján történik. Elektronikus aláírás és szerződés-jóváhagyás a CRM-ben nincs; a szerződési feltételek fájlja „Szerződési / fizetési feltételek” típusként tölthető fel.</p>
+            {(quote.lead_id || quote.project_id) && <div className="mt-2"><ContractPrepCompact leadId={quote.lead_id} projectId={quote.lead_id ? null : quote.project_id}
+              fullLink={quote.project_id ? { to: "/projects/$id", params: { id: quote.project_id }, search: { tab: "handover" }, label: "Projekt Átadás fül" } : quote.lead_id ? { to: "/sales/leads", search: { lead: quote.lead_id }, label: "Teljes lista a Pipeline adatlapon" } : null} /></div>}
           </div>}
         </TabsContent>
       </Tabs>}
