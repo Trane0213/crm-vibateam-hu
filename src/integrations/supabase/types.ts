@@ -418,6 +418,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_chat_uploads: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          file_url: string
+          folder: string
+          id: string
+          link_document_id: string | null
+          link_parent_id: string | null
+          link_table: string | null
+          mime_type: string | null
+          name: string
+          size_bytes: number | null
+          uploaded_by: string
+          uploader_name: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          file_url: string
+          folder: string
+          id?: string
+          link_document_id?: string | null
+          link_parent_id?: string | null
+          link_table?: string | null
+          mime_type?: string | null
+          name: string
+          size_bytes?: number | null
+          uploaded_by?: string
+          uploader_name?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          file_url?: string
+          folder?: string
+          id?: string
+          link_document_id?: string | null
+          link_parent_id?: string | null
+          link_table?: string | null
+          mime_type?: string | null
+          name?: string
+          size_bytes?: number | null
+          uploaded_by?: string
+          uploader_name?: string | null
+        }
+        Relationships: []
+      }
       ai_memory: {
         Row: {
           created_at: string
@@ -5497,6 +5545,7 @@ export type Database = {
       }
     }
     Functions: {
+      ai_chat_folder_of: { Args: { _auth_user: string }; Returns: string }
       ai_os_approval_create: {
         Args: {
           p_agent: string
