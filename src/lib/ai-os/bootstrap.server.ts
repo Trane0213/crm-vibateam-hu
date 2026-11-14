@@ -17,6 +17,7 @@ import { registerDocumentTools } from "./adapters/document-tools.server";
 import { registerPackageTools } from "./adapters/package-tools.server";
 import { registerPricingTools } from "./adapters/pricing-tools.server";
 import { registerPlanTools } from "./adapters/plan-tools.server";
+import { registerQuotePackageTools } from "./adapters/quote-package-tools.server";
 import { registerEmailSendTool } from './adapters/email-send-action.server';
 
 let booted = false;
@@ -30,6 +31,7 @@ export function ensureBootstrapped() {
   registerPackageTools();
   registerPricingTools();
   registerPlanTools();
+  registerQuotePackageTools();
   registerEmailSendTool();
   registerGoogleAdsTools();
   registerKgTools();

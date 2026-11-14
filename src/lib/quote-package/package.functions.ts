@@ -7,7 +7,8 @@ export const prepareQuotePackageFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => packageInput.parse(data))
   .handler(async ({ data, context }) => {
-    const { prepareQuotePackage, packageDto, PackageInputError } = await import("./package.server");
+    const { prepareQuotePackage, PackageInputError } = await import("./package.server");
+    const { packageDto } = await import("./package-dto");
     const { PricingAccessError } = await import("@/lib/pricing/pricing.server");
     try {
       return { ok: true as const, pkg: packageDto(await prepareQuotePackage(context.supabase as never, context.userId, data)) };

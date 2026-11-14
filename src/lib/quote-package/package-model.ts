@@ -6,6 +6,7 @@
  */
 import type { LineStatus } from "@/lib/pricing/engine";
 import type { FindingCategory } from "@/lib/plans/scope-check";
+import { formatHuf } from "@/lib/format";
 
 export type PackageMode = "subcontractor_labor" | "full_construction";
 export const OPEN_LINE_STATUSES: readonly LineStatus[] = ["missing", "review", "blocked", "excluded_review"];
@@ -46,7 +47,7 @@ export type QuotePackageCore = {
 };
 
 const lines = (s: string | null | undefined, max = 20) => (s ?? "").split(/\r?\n/).map((x) => x.replace(/^[\s•\-–*]+/, "").trim()).filter((x) => x.length >= 3).slice(0, max);
-const huf = (n: number) => `${new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 0 }).format(n)} Ft`;
+const huf = (n: number) => formatHuf(Math.round(n));
 const uniq = (a: ScopeItem[]) => { const seen = new Set<string>(); return a.filter((x) => { const k = x.text.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }); };
 
 /** Ügyfélnek szánt szövegben tiltott belső fogalmak (önköltség, fedezet, forrás, norma, tartalék…). */
@@ -115,7 +116,7 @@ export function coverLetter(i: ComposeInput, s: ScopeSections, net: number | nul
     ...(i.quote.validUntil ? [`Ajánlatunk érvényes: ${i.quote.validUntil}-ig.`] : []),
     "", "Mellékletek:", ...files, "",
     "A vállalt, nem vállalt és feltételes munkarészeket a mellékelt lehatárolási dokumentum tartalmazza.",
-    ...(q.length ? ["", "Az ajánlat véglegesítéséhez kérjük az alábbi pontok tisztázását:", ...q.map((x, n) => `${n + 1}. ${x.text}`), ...(s.questions.length > q.length ? [`(További ${s.questions.length - q.length} kérdés a lehatárolási dokumentumban.)`] : [])] : []),
+    ...(q.length ? ["", "Ajánlatunk a jelenlegi terv- és kiíráscsomag alapján készült előzetes árazás. A végleges műszaki tartalom és ár meghatározásához kérjük az alábbi pontok írásos pontosítását; tervellentmondás esetén kérjük, a választ a tervezővel egyeztetve küldjék meg:", ...q.map((x, n) => `${n + 1}. ${x.text}`), ...(s.questions.length > q.length ? [`(További ${s.questions.length - q.length} kérdés a lehatárolási dokumentumban.)`] : [])] : []),
     "", "Kérdés esetén állunk rendelkezésükre.", "", "Üdvözlettel:", "VIBA-TEAM",
   ].join("\n");
   return { subject: `Ajánlat – ${title} (v${i.quote.version ?? 1}${i.quote.alternativeKey && i.quote.alternativeKey !== "A" ? ` / ${i.quote.alternativeKey}` : ""})`, body };
@@ -128,6 +129,7 @@ export function contentGates(i: ComposeInput, s: ScopeSections, letter: CoverLet
   const high = r ? r.findings.filter((f) => f.severity === "high").length : 0;
   const leaks = internalLeaks(`${customerText}\n${letter.subject}\n${letter.body}`);
   const net = offerNet(p);
+  const plans = r ? r.files.filter((f) => f.fileName !== i.scopeFileName) : [], partial = plans.some((f) => !f.full);
   return [
     { key: "not_locked", label: "Nem kiküldött (nem zárolt) ajánlatverzió", ok: !i.quote.locked, blocking: true, hint: "Kiküldött verzió nem módosítható — 1. lépés → Verziók → Új verzió." },
     { key: "budget", label: "Árazatlan költségvetés kijelölve", ok: !!i.budgetDocName, blocking: true, hint: "1. lépés: „Árazatlan költségvetés” típusú Excel feltöltése." },
@@ -138,7 +140,8 @@ export function contentGates(i: ComposeInput, s: ScopeSections, letter: CoverLet
     { key: "net", label: "Ismert, pozitív ajánlati nettó", ok: net != null && net > 0, blocking: true },
     { key: "no_internal", label: "Ügyfélnek szánt szövegben nincs belső kalkulációs adat", ok: leaks.length === 0, blocking: true, hint: leaks.length ? `Belső kifejezés: ${leaks.join(", ")}` : undefined },
     { key: "plans", label: "Tervellenőrzés lefutott (P4)", ok: !!r && !i.reviewError, blocking: false, hint: i.reviewError ?? "Tervek nélkül a lehatárolás csak a költségvetésre épül." },
-    { key: "plans_read", label: "Minden terv szövege teljesen olvasható", ok: !!r && r.allTextRead, blocking: false, needsAck: !!r && !r.allTextRead, hint: "Részleges olvasás — a lehatárolásba fenntartásként bekerült; jóváhagyáskor tudomásul kell venni." },
+    { key: "plans_read", label: "Minden terv szövege teljesen olvasható", ok: !!r && plans.length > 0 && !partial, blocking: false, needsAck: partial,
+      hint: !r ? undefined : !plans.length ? "Nincs tervdokumentáció — a lehatárolás csak a költségvetésre épül." : "Részleges olvasás — a lehatárolásba fenntartásként bekerült; jóváhagyáskor tudomásul kell venni." },
     { key: "findings", label: "Nincs nyitott jelentős (magas) műszaki eltérés", ok: high === 0, blocking: false, needsAck: high > 0, hint: high ? `${high} jelentős eltérés — feltételként/kérdésként a lehatárolásba került; jóváhagyáskor tudomásul kell venni.` : undefined },
     { key: "existing", label: "Nincs megrendelő által előre kitöltött ár", ok: !p || p.totals.existingHuf === 0, blocking: false, hint: "A meglévő árak változatlanul a végösszeg részei — ellenőrizd." },
     { key: "questions", label: "Kérdéslista rendelkezésre áll", ok: true, blocking: false, hint: `${s.questions.length} kérdés.` },

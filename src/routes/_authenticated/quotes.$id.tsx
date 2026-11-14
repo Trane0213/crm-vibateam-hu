@@ -18,7 +18,8 @@ import { BudgetPricingPanel } from "@/components/pricing/budget-pricing-panel";
 import { PlanReviewPanel } from "@/components/plans/plan-review-panel";
 import { DocumentPackagesPanel } from "@/components/packages/document-packages-panel";
 import { QuoteVersionsBar } from "@/components/quotes/quote-versions-bar";
-import { QuoteSendPanel } from "@/components/quotes/quote-send-panel";
+import { QuoteSendPanel, type SendDraft } from "@/components/quotes/quote-send-panel";
+import { QuotePackagePanel } from "@/components/quote-package/quote-package-panel";
 import { QuoteTemplatePanel } from "@/components/quotes/quote-template-panel";
 import { QuoteStatusPanel } from "@/components/quotes/quote-status-panel";
 import { quoteStatusLabel } from "@/lib/quotes/quote-status";
@@ -103,6 +104,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
   const [form, setForm] = useState<FormState>(() => Object.fromEntries(FIELDS.map((f) => [f, ""])) as FormState);
   const [workspace, setWorkspace] = useState("overview");
   const [formFor, setFormFor] = useState<string | null>(null);
+  const [sendDraft, setSendDraft] = useState<SendDraft | null>(null);
   const set = (k: keyof FormState, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   useEffect(() => {
@@ -409,12 +411,15 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
           </>}
         </TabsContent>
         <TabsContent value="send" forceMount hidden={workspace !== "send"} className="py-5">
+          {!own && canPriceBudget && <div className="mb-6"><QuotePackagePanel quote={quote as any}
+            onSaveNet={async (n) => { await upsert.mutateAsync({ id: quote.id, manual_net_amount: n }); set("manual_net_amount", String(n)); }}
+            onHandoff={setSendDraft} /></div>}
           <div className="mb-6 max-w-2xl"><QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} /></div>
           {own && <div className="mb-6 space-y-4">
             <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
             <QuoteDocumentManager quoteId={quote.id} locked={!!(quote as any).locked_at} />
           </div>}
-          <QuoteSendPanel quote={quote as any} companyId={companyId} />
+          <QuoteSendPanel quote={quote as any} companyId={companyId} draft={sendDraft} />
         </TabsContent>
         <TabsContent value="status" forceMount hidden={workspace !== "status"} className="py-5">
           <QuoteStatusPanel quote={quote as any} />

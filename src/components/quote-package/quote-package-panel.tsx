@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { formatHuf } from "@/lib/format";
 import { quoteNetOf } from "@/lib/contract/contract-prep";
 import { prepareQuotePackageFn } from "@/lib/quote-package/package.functions";
-import type { PackageDto } from "@/lib/quote-package/package.server";
+import type { PackageDto } from "@/lib/quote-package/package-dto";
 import {
   ACK_LABEL, diffPackages, handoffAllowed, linkageGates, prepareApproval, requiredAcks, SCOPE_SECTION_LABEL, versionDiff,
   type ApprovalAck, type ApprovalPrep, type Gate, type PackageSnapshot, type ScopeSections, type SavedVersion,

@@ -1,0 +1,5 @@
+- The customer quote package (received budgets) is composed only by pure `package-model.ts` from the P3 pricing run and P4 plan review executed in one server call (`package.server.ts`); UI panel and Timothy `crm_quote_package_preview` share it, so no second pricing, scope or gate logic exists.
+- Customer-facing text (scope DOCX, cover letter) must pass `internalLeaks`; internal totals, sources and the missing list stay in CRM views only.
+- Saved package files count only when their content matches the current package (XLSX part-by-part, DOCX SHA-256 — the DOCX is deterministic); an older file with the same name never satisfies a gate.
+- Files are saved only by explicit user action through `uploadQuoteDocument` (the single client upload path); net is saved through the existing quotes upsert; sending stays in QuoteSendPanel → `/api/gmail/send` with manual confirmation.
+- Internal approval is preparation only (`persisted: false`), bound to the package fingerprint; a durable approval record needs the owner-approved table in docs/system-map/p5-ajanlatcsomag-jelentes-2026-11-15.md and is not migrated.
