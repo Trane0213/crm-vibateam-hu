@@ -1,6 +1,6 @@
 # Tulajdonosi (Owner) napi munkafelület — 4. nagy csomag
 
-Dátum: 2026-11-14 (UTC). Előzmény: PM 3. csomag `057a034` (935 unit, 21 AI acceptance). Állapot: **KÓD KÉSZ, RÉSZBEN KÉSZ** (commit: lásd 7. pont) — bejelentkezett Owner/Sales/PM végigpróba **NEM TESZTELT** (`external_unmanaged`: a sandbox nem tud valódi munkamenetet létrehozni).
+Dátum: 2026-11-14 (UTC). Előzmény: PM 3. csomag `057a034` (935 unit, 21 AI acceptance). Állapot: **KÓD KÉSZ, RÉSZBEN KÉSZ** (commit `0b0e80d`) — bejelentkezett Owner/Sales/PM végigpróba **NEM TESZTELT** (`external_unmanaged`: a sandbox nem tud valódi munkamenetet létrehozni).
 
 ## 1. Felmérés (read-only, a módosítás előtt)
 
@@ -56,7 +56,7 @@ Nincs adatkapcsolat, ezért csak kiírva: kintlévőség, pénz beérkezése, sz
 
 ## 7. Commit és rollback
 
-Munkacsomag-commit: lásd a git naplóban a „Owner 4. csomag” üzenetű commitot (a hash a végleges válaszban). Visszavonás: `git revert <hash>`. Adatot, sémát, jogosultságot nem érint, ezért a visszavonás adatmentést nem igényel.
+Munkacsomag-commit: `0b0e80d`; a jelentés commit-hivatkozásának frissítése külön dokumentációs commit. Visszavonás: `git revert 0b0e80d`. Adatot, sémát, jogosultságot nem érint, ezért a visszavonás adatmentést nem igényel.
 
 ## 8. Következő nagy csomag
 
