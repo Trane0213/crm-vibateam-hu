@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { r2DeleteDocument, r2GetStatus } from "@/lib/r2.functions";
 import { QUOTE_DOC_CATEGORIES } from "@/lib/r2-policy";
+import { uploadQuoteDocument } from "@/lib/quotes/quote-document-upload";
 
 type Cat = (typeof QUOTE_DOC_CATEGORIES)[number];
 export const QUOTE_DOC_LABEL: Record<Cat, string> = {
@@ -56,21 +57,7 @@ export function QuoteDocumentManager({ quoteId, locked = false }: { quoteId: str
   const upload = useMutation({
     mutationFn: async (file: File) => {
       setUploading(true);
-      const fd = new FormData();
-      fd.append("file", file, file.name);
-      fd.append("purpose", "quote");
-      fd.append("targetId", quoteId);
-      fd.append("category", cat);
-      const { data: sess } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      const res = await fetch("/api/r2-upload", { method: "POST", body: fd, headers: token ? { authorization: `Bearer ${token}` } : {} });
-      const j = await res.json().catch(() => ({}));
-      if (!res.ok || !j?.key) throw new Error(j?.error ?? `Feltöltés sikertelen (HTTP ${res.status})`);
-      const ins = await supabase.from("quote_documents" as any).insert({
-        quote_id: quoteId, name: file.name, file_url: j.key, document_type: cat,
-        mime_type: file.type || null, size_bytes: file.size ?? null,
-      });
-      if (ins.error) throw ins.error;
+      await uploadQuoteDocument(quoteId, file, cat);
     },
     onSuccess: () => { toast.success("Dokumentum feltöltve"); qc.invalidateQueries({ queryKey: ["quote_documents"] }); qc.invalidateQueries({ queryKey: ["documents"] }); },
     onError: (e: any) => toast.error("Feltöltési hiba", { description: e?.message ?? humanizeSupabaseError(e) }),

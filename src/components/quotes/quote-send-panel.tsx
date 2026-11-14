@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link2, Send, AlertTriangle } from "lucide-react";
@@ -18,12 +18,14 @@ import { checkOutboundSize, checkReferencedAttachment } from "@/lib/quotes/send-
 import { quoteLinkSentEmail } from "@/lib/quotes/quote-send.functions";
 import { QUOTE_DOC_LABEL } from "@/components/quotes/quote-document-manager";
 
-type Props = { quote: { id: string; lead_id: string | null; project_id: string | null; title: string | null; version: number | null; alternative_key?: string; contact_id?: string | null }; companyId: string | null };
+/** P5: ajánlatcsomagból előkészített levéltervezet. Csak kitölti a meglévő küldési párbeszédet — küldés továbbra is kézi megerősítéssel, a meglévő /api/gmail/send úton. */
+export type SendDraft = { token: number; subject: string; body: string; documentIds: string[]; fingerprint: string; approvedBy: string | null };
+type Props = { quote: { id: string; lead_id: string | null; project_id: string | null; title: string | null; version: number | null; alternative_key?: string; contact_id?: string | null }; companyId: string | null; draft?: SendDraft | null };
 
 const STATUS_LABEL: Record<string, string> = { sent: "Kiküldve (CRM)", recorded: "Gmailből rögzítve", failed: "Sikertelen", sending: "Folyamatban" };
 
 /** S4: kiküldés a meglévő CRM-levelezésből, vagy Gmailben küldött levél hozzákapcsolása. */
-export function QuoteSendPanel({ quote, companyId }: Props) {
+export function QuoteSendPanel({ quote, companyId, draft = null }: Props) {
   const qc = useQueryClient();
   const { profile } = usePermissions();
   const link = useServerFn(quoteLinkSentEmail);
@@ -33,6 +35,7 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
   const [subject, setSubject] = useState(""); const [body, setBody] = useState("");
   const [picked, setPicked] = useState<string[]>([]);
   const [confirm, setConfirm] = useState(false);
+  const [fromDraft, setFromDraft] = useState<SendDraft | null>(null);
 
   const sends = useQuery({
     queryKey: ["quote_sends", quote.id],
@@ -70,8 +73,16 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
   const sizeErr = useMemo(() => checkOutboundSize((docs.data ?? []).filter((d) => picked.includes(d.id)).map((d) => d.size_bytes)), [docs.data, picked]);
   const attachmentErr = checkReferencedAttachment(body, picked.length);
 
+  useEffect(() => {
+    if (!draft) return;
+    setIdemKey(crypto.randomUUID()); setConfirm(false); setFromDraft(draft);
+    setTo(contact.data?.email ?? ""); setCc(""); setSubject(draft.subject); setBody(draft.body); setPicked(draft.documentIds);
+    setOpen("send");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft?.token]);
+
   const openSend = () => {
-    setIdemKey(crypto.randomUUID()); setConfirm(false);
+    setIdemKey(crypto.randomUUID()); setConfirm(false); setFromDraft(null);
     setTo(contact.data?.email ?? ""); setCc("");
     setSubject(`Ajánlat – ${quote.title ?? "VIBA-TEAM"} (v${quote.version ?? 1})`);
     setBody("Tisztelt Partnerünk!\n\nMellékelten küldjük ajánlatunkat.\n\nÜdvözlettel:\nVIBA-TEAM");
@@ -139,6 +150,7 @@ export function QuoteSendPanel({ quote, companyId }: Props) {
           <DialogHeader><DialogTitle>Ajánlat küldése – v{quote.version} / {quote.alternative_key ?? "A"}</DialogTitle></DialogHeader>
           <div className="grid gap-3">
             <p className="text-xs text-muted-foreground">Küldő: {profile?.gmail_email}</p>
+            {fromDraft && <p className="rounded-md border bg-muted/30 p-2 text-xs">Ajánlatcsomagból előkészítve · ujjlenyomat {fromDraft.fingerprint.slice(0, 12)}… · belső jóváhagyás-előkészítés: {fromDraft.approvedBy ?? "—"} (nem mentett jóváhagyás). A levél csak a lenti megerősítés és a Küldés gomb után megy ki.</p>}
             <div className="grid gap-1.5"><Label htmlFor="qs-to">Címzett</Label><Input id="qs-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="nev@ceg.hu" /></div>
             <div className="grid gap-1.5"><Label htmlFor="qs-cc">Másolat</Label><Input id="qs-cc" value={cc} onChange={(e) => setCc(e.target.value)} /></div>
             <div className="grid gap-1.5"><Label htmlFor="qs-sub">Tárgy</Label><Input id="qs-sub" value={subject} onChange={(e) => setSubject(e.target.value)} /></div>
