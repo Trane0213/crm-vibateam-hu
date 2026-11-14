@@ -65,7 +65,7 @@ Módosított: `src/components/pipeline/pipeline-detail-sheet.tsx` (régi lista +
 
 ## 5. Commit, diff, rollback
 
-Commit: lásd `git log --grep "7. csomag"` (a hash a záró üzenetben). Diff: `git show --stat <hash>`. Visszavonás: `git revert <hash>` — csak kód változott, adat-visszaállítás nem kell.
+Commit: `f97312f` (15 fájl, +1271 / −45). Diff: `git show --stat f97312f`. Visszavonás: `git revert f97312f` — csak kód változott, adat-visszaállítás nem kell.
 
 ## 6. Megmaradt hiányok
 
