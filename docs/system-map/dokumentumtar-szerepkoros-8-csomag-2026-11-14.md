@@ -80,8 +80,8 @@ Módosított: `src/components/documents/document-manager.tsx`, `company-document
 - **NEM TESZTELT:** valódi bejelentkezett szerepkörös RLS-szűrés, valódi R2 aláírt letöltés és fájlmegnyitás, valódi „Nincs hozzáférésed” szerverválasz, mobil felugró-ablak viselkedés valódi eszközön, feltöltés/törlés (szándékosan nem futtatva).
 
 ## 5. Commit, diff, rollback
-- Commit: lásd `git log` („8. csomag: szerepkörös dokumentumelérés…”); a hash a jelentés-kiegészítő commitban.
-- Diff: `git show --stat <commit>`; visszavonás: `git revert <commit>` (csak kód; adat, séma, jogosultság nem változott, így adat-visszaállítás nem kell).
+- Commit: `0fab5a6` (28 fájl, +1714 / −382). Diff: `git show --stat 0fab5a6`.
+- Visszavonás: `git revert 0fab5a6` (csak kód; adat, séma, jogosultság nem változott, így adat-visszaállítás nem kell).
 
 ## 6. Valós hiányok és jóváhagyást igénylő döntések (NINCS élesítve)
 1. **`project_documents` SELECT túl tág:** minden PM/Sales/Marketing felhasználó minden projekt fájlját olvashatja (a Data API-n át is). Javaslat: `can_access_project_document(project_id)` – Owner; PM saját projekt (`project_manager_user_id`); Sales a projekt leadjének felelőse (mint `can_access_quote`); Marketing nem; projekt nélküli sor csak Owner + feltöltő. Elfogadás: négy szerepkör pozitív/negatív SQL-teszt, `r2PresignDownload` ugyanígy szűr. Hatás: PM/Sales kevesebbet lát – előtte darabszám-összevetés.
