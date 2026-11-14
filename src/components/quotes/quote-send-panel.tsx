@@ -36,6 +36,7 @@ export function QuoteSendPanel({ quote, companyId, draft = null }: Props) {
   const [picked, setPicked] = useState<string[]>([]);
   const [confirm, setConfirm] = useState(false);
   const [fromDraft, setFromDraft] = useState<SendDraft | null>(null);
+  const [draftRevoked, setDraftRevoked] = useState(false);
 
   const sends = useQuery({
     queryKey: ["quote_sends", quote.id],
@@ -74,15 +75,16 @@ export function QuoteSendPanel({ quote, companyId, draft = null }: Props) {
   const attachmentErr = checkReferencedAttachment(body, picked.length);
 
   useEffect(() => {
-    if (!draft) return;
-    setIdemKey(crypto.randomUUID()); setConfirm(false); setFromDraft(draft);
+    // P7: ha a csomag az átadás után megváltozott/elavult, a tervezet már nem „csomagból előkészített” (csak a címke változik, a küldés nem).
+    if (!draft) { if (fromDraft) { setFromDraft(null); setDraftRevoked(true); } return; }
+    setIdemKey(crypto.randomUUID()); setConfirm(false); setFromDraft(draft); setDraftRevoked(false);
     setTo(contact.data?.email ?? ""); setCc(""); setSubject(draft.subject); setBody(draft.body); setPicked(draft.documentIds);
     setOpen("send");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft?.token]);
 
   const openSend = () => {
-    setIdemKey(crypto.randomUUID()); setConfirm(false); setFromDraft(null);
+    setIdemKey(crypto.randomUUID()); setConfirm(false); setFromDraft(null); setDraftRevoked(false);
     setTo(contact.data?.email ?? ""); setCc("");
     setSubject(`Ajánlat – ${quote.title ?? "VIBA-TEAM"} (v${quote.version ?? 1})`);
     setBody("Tisztelt Partnerünk!\n\nMellékelten küldjük ajánlatunkat.\n\nÜdvözlettel:\nVIBA-TEAM");
@@ -150,6 +152,7 @@ export function QuoteSendPanel({ quote, companyId, draft = null }: Props) {
           <DialogHeader><DialogTitle>Ajánlat küldése – v{quote.version} / {quote.alternative_key ?? "A"}</DialogTitle></DialogHeader>
           <div className="grid gap-3">
             <p className="text-xs text-muted-foreground">Küldő: {profile?.gmail_email}</p>
+            {draftRevoked && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs">Az ajánlatcsomag az átadás óta megváltozott vagy elavult — ez a levél már NEM a belső jóváhagyás-előkészítésen átment csomag. Állítsd össze és add át újra a csomagot.</p>}
             {fromDraft && <p className="rounded-md border bg-muted/30 p-2 text-xs">Ajánlatcsomagból előkészítve · ujjlenyomat {fromDraft.fingerprint.slice(0, 12)}… · belső jóváhagyás-előkészítés: {fromDraft.approvedBy ?? "—"} (nem mentett jóváhagyás). A levél csak a lenti megerősítés és a Küldés gomb után megy ki.</p>}
             <div className="grid gap-1.5"><Label htmlFor="qs-to">Címzett</Label><Input id="qs-to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="nev@ceg.hu" /></div>
             <div className="grid gap-1.5"><Label htmlFor="qs-cc">Másolat</Label><Input id="qs-cc" value={cc} onChange={(e) => setCc(e.target.value)} /></div>

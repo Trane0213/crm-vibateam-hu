@@ -417,7 +417,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
         <TabsContent value="send" forceMount hidden={workspace !== "send"} className="py-5">
           {!own && canPriceBudget && <div className="mb-6"><QuotePackagePanel quote={quote as any}
             onSaveNet={async (n) => { await upsert.mutateAsync({ id: quote.id, manual_net_amount: n }); set("manual_net_amount", String(n)); }}
-            onHandoff={setSendDraft} /></div>}
+            onHandoff={setSendDraft} onHandoffRevoked={() => setSendDraft(null)} /></div>}
           <div className="mb-6 max-w-2xl"><QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} /></div>
           {own && <div className="mb-6 space-y-4">
             <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>

@@ -211,8 +211,9 @@ export function requiredAcks(gates: Gate[]): ApprovalAck[] {
 export const APPROVAL_ROLES = ["owner", "tulajdonos", "admin", "superadmin", "sales"] as const;
 export type ApprovalPrep = { fingerprint: string; role: string; by: string | null; at: string; acks: ApprovalAck[]; persisted: false };
 /** Belső jóváhagyás-előkészítés: csak Owner/Sales, minden blokkoló kapu rendben, minden kötelező nyugtázás megvan. */
-export function prepareApproval(a: { role: string | null; by: string | null; fingerprint: string; gates: Gate[]; acks: ApprovalAck[]; now?: Date }): { ok: true; prep: ApprovalPrep } | { ok: false; reason: string } {
+export function prepareApproval(a: { role: string | null; by: string | null; fingerprint: string; gates: Gate[]; acks: ApprovalAck[]; stale?: string[]; now?: Date }): { ok: true; prep: ApprovalPrep } | { ok: false; reason: string } {
   if (!a.role || !(APPROVAL_ROLES as readonly string[]).includes(a.role.toLowerCase())) return { ok: false, reason: "Ajánlattartalmat csak Tulajdonos vagy Sales hagyhat jóvá." };
+  if (a.stale?.length) return { ok: false, reason: `A csomag elavult — állítsd össze újra: ${a.stale.join("; ")}` };
   const bad = a.gates.filter((g) => g.blocking && !g.ok);
   if (bad.length) return { ok: false, reason: `Nyitott kötelező feltétel: ${bad.map((g) => g.label).join("; ")}` };
   const missing = requiredAcks(a.gates).filter((k) => !a.acks.includes(k));
@@ -220,12 +221,47 @@ export function prepareApproval(a: { role: string | null; by: string | null; fin
   if (!/^[a-f0-9]{64}$/.test(a.fingerprint)) return { ok: false, reason: "Érvénytelen csomag-ujjlenyomat." };
   return { ok: true, prep: { fingerprint: a.fingerprint, role: a.role.toLowerCase(), by: a.by, at: (a.now ?? new Date()).toISOString(), acks: [...a.acks], persisted: false } };
 }
-/** Kiküldésre átadható, ha a jóváhagyás-előkészítés UGYANARRA a csomag-ujjlenyomatra és összekötésre szól. */
-export function handoffAllowed(fingerprint: string, approval: ApprovalPrep | null, linkage: Gate[]): { ok: boolean; reason: string | null } {
+/** Kiküldésre átadható, ha a jóváhagyás-előkészítés UGYANARRA a csomag-ujjlenyomatra és összekötésre szól, és a csomag nem elavult. */
+export function handoffAllowed(fingerprint: string, approval: ApprovalPrep | null, linkage: Gate[], stale: string[] = []): { ok: boolean; reason: string | null } {
+  if (stale.length) return { ok: false, reason: `A csomag elavult — állítsd össze újra: ${stale.join("; ")}` };
   if (!approval) return { ok: false, reason: "Előbb a belső jóváhagyás-előkészítés." };
   if (approval.fingerprint !== fingerprint) return { ok: false, reason: "A csomag tartalma a jóváhagyás óta megváltozott — új jóváhagyás szükséges." };
   const bad = linkage.filter((g) => g.blocking && !g.ok);
   return bad.length ? { ok: false, reason: bad.map((g) => g.label).join("; ") } : { ok: true, reason: null };
+}
+
+// ---------- Elavulás (P7) ----------
+/** Amiből a csomag összeállt: a panel beállításai + a mentett ajánlat ügyfélszöveget befolyásoló mezői. */
+export type PackageBasis = {
+  budgetId: string; mode: PackageMode; rate: string; contingency: string; margin: string; template: string | null;
+  quote: { title: string | null; version: number | null; alternativeKey: string | null; validUntil: string | null; technicalScope: string | null; exclusions: string | null; contactId: string | null; locked: boolean };
+};
+const nStr = (s: string | null | undefined) => (s ?? "").trim().replace(/\s+/g, " ");
+const nNum = (s: string) => { const t = s.trim().replace(/\s/g, "").replace(",", "."); if (t === "") return ""; const n = Number(t); return Number.isFinite(n) ? String(n) : t; };
+/**
+ * A csomag csak azokra a beállításokra és mentett ajánlatadatokra érvényes, amelyekből összeállt. Ha összeállítás után
+ * bármelyik változik (költségvetés, mód, óradíj, tartalék, célfedezet, ársablon, cím, verzió, érvényesség, lehatárolás,
+ * kizárások, kapcsolattartó, zárolás), a csomag elavult: nem menthető, nem hagyható jóvá és nem adható át kiküldésre.
+ * A mentett nettó szándékosan nincs benne — azt az összekötési kapu ellenőrzi.
+ */
+export function packageStaleness(composed: PackageBasis | null, now: PackageBasis): string[] {
+  if (!composed) return ["nincs ismert összeállítási alap"];
+  const out: string[] = [], a = composed, b = now;
+  if (a.budgetId !== b.budgetId) out.push("más költségvetés van kijelölve");
+  if (a.mode !== b.mode) out.push("az árazási mód megváltozott");
+  if (nNum(a.rate) !== nNum(b.rate)) out.push("az óradíj megváltozott");
+  if (nNum(a.contingency) !== nNum(b.contingency)) out.push("a tartalék megváltozott");
+  if (nNum(a.margin) !== nNum(b.margin)) out.push("a célfedezet megváltozott");
+  if ((a.template ?? null) !== (b.template ?? null)) out.push("az ársablon megváltozott");
+  const q = a.quote, r = b.quote;
+  if (nStr(q.title) !== nStr(r.title)) out.push("az ajánlat címe megváltozott");
+  if ((q.version ?? null) !== (r.version ?? null) || nStr(q.alternativeKey) !== nStr(r.alternativeKey)) out.push("más ajánlatverzió/alternatíva");
+  if (nStr(q.validUntil) !== nStr(r.validUntil)) out.push("az érvényesség megváltozott");
+  if (nStr(q.technicalScope) !== nStr(r.technicalScope)) out.push("a műszaki lehatárolás mezője megváltozott");
+  if (nStr(q.exclusions) !== nStr(r.exclusions)) out.push("a kizárások mezője megváltozott");
+  if ((q.contactId ?? null) !== (r.contactId ?? null)) out.push("a kapcsolattartó megváltozott");
+  if (q.locked !== r.locked) out.push(r.locked ? "az ajánlatverzió közben zárolódott (kiment)" : "a zárolási állapot megváltozott");
+  return out;
 }
 
 // ---------- Változatok / diff ----------

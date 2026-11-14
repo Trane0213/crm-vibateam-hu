@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, CheckCircle2, CircleDashed, Download, FileCheck2, Loader2, PackageCheck, Save, Send, ShieldCheck, Upload, X } from "lucide-react";
@@ -17,8 +17,8 @@ import { quoteNetOf } from "@/lib/contract/contract-prep";
 import { prepareQuotePackageFn } from "@/lib/quote-package/package.functions";
 import type { PackageDto } from "@/lib/quote-package/package-dto";
 import {
-  ACK_LABEL, diffPackages, handoffAllowed, linkageGates, prepareApproval, requiredAcks, SCOPE_SECTION_LABEL, versionDiff,
-  type ApprovalAck, type ApprovalPrep, type Gate, type PackageSnapshot, type ScopeSections, type SavedVersion,
+  ACK_LABEL, diffPackages, handoffAllowed, linkageGates, packageStaleness, prepareApproval, requiredAcks, SCOPE_SECTION_LABEL, versionDiff,
+  type ApprovalAck, type ApprovalPrep, type Gate, type PackageBasis, type PackageSnapshot, type ScopeSections, type SavedVersion,
 } from "@/lib/quote-package/package-model";
 import { uploadQuoteDocument } from "@/lib/quotes/quote-document-upload";
 import type { SendDraft } from "@/components/quotes/quote-send-panel";
@@ -26,7 +26,7 @@ import type { SendDraft } from "@/components/quotes/quote-send-panel";
 type Mode = "subcontractor_labor" | "full_construction";
 type Tab = "scope" | "questions" | "missing" | "letter" | "changes";
 type QuoteLike = { id: string; group_id?: string | null; alternative_key?: string | null; version: number | null; title: string | null; locked_at?: string | null; manual_net_amount?: number | null; total_amount?: number | null; tax_percent?: number | null;
-  technical_scope?: string | null; exclusions?: string | null; valid_until?: string | null; notes?: string | null; status: string | null; scope_type?: string | null };
+  technical_scope?: string | null; exclusions?: string | null; valid_until?: string | null; notes?: string | null; status: string | null; scope_type?: string | null; contact_id?: string | null };
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const num = (s: string) => (s.trim() === "" ? undefined : Number(s.replace(",", ".")));
 const bytesOf = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
@@ -50,7 +50,7 @@ function GateRow({ g }: { g: Gate }) {
  * kísérőlevél-tervezet. Mentés csak kifejezett gombnyomásra a meglévő feltöltési úton; belső jóváhagyás-előkészítés nem mentett;
  * kiküldés kizárólag a meglévő küldési párbeszédben, kézi megerősítéssel.
  */
-export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: QuoteLike; onSaveNet: (net: number) => Promise<void>; onHandoff: (d: SendDraft) => void }) {
+export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoked }: { quote: QuoteLike; onSaveNet: (net: number) => Promise<void>; onHandoff: (d: SendDraft) => void; onHandoffRevoked?: () => void }) {
   const qc = useQueryClient();
   const { role, profile } = usePermissions();
   const run = useServerFn(prepareQuotePackageFn);
@@ -87,6 +87,11 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: Quot
   const [ackOpen, setAckOpen] = useState(false), [acks, setAcks] = useState<ApprovalAck[]>([]);
   const prevSnap = useRef<PackageSnapshot | null>(null), [sessionPrev, setSessionPrev] = useState<PackageSnapshot | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // P7: amiből a csomag összeállt — ha összeállítás után bármi változik, a csomag elavult (nem menthető, nem hagyható jóvá, nem adható át).
+  const basisNow: PackageBasis = { budgetId: selectedBudget, mode, rate, contingency, margin, template: template?.name ?? null,
+    quote: { title: quote.title, version: quote.version, alternativeKey: quote.alternative_key ?? "A", validUntil: quote.valid_until ?? null, technicalScope: quote.technical_scope ?? null, exclusions: quote.exclusions ?? null, contactId: quote.contact_id ?? null, locked } };
+  const pendingBasis = useRef<PackageBasis | null>(null), [basis, setBasis] = useState<PackageBasis | null>(null);
+  const [handedOff, setHandedOff] = useState<string | null>(null);
 
   const calc = useMutation({
     mutationFn: async () => {
@@ -95,8 +100,8 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: Quot
       if (!res.ok) throw new Error(res.error);
       return res.pkg;
     },
-    onMutate: () => { setSessionPrev(prevSnap.current); },
-    onSuccess: (p) => { setUploadedKeys({ priced: [], scope: [] }); setTab("scope"); prevSnap.current = snapshot(p, p.gates); },
+    onMutate: () => { setSessionPrev(prevSnap.current); pendingBasis.current = basisNow; },
+    onSuccess: (p) => { setUploadedKeys({ priced: [], scope: [] }); setTab("scope"); prevSnap.current = snapshot(p, p.gates); setBasis(pendingBasis.current); },
     onError: (e: Error) => toast.error("Az ajánlatcsomag nem állt össze", { description: e.message }),
   });
   const p = calc.data;
@@ -112,8 +117,15 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: Quot
   const linkage = p ? linkageGates(p, { pricedDocIds, scopeDocIds, savedNetHuf: savedNet }) : [];
   const allGates = p ? [...p.gates, ...linkage] : [];
   const contentReady = !!p && p.gates.every((g) => g.ok || !g.blocking);
-  const handoff = p ? handoffAllowed(p.fingerprint, approval, linkage) : { ok: false, reason: null };
-  const approvalValid = !!p && !!approval && approval.fingerprint === p.fingerprint;
+  const stale = p ? packageStaleness(basis, basisNow) : [];
+  const handoff = p ? handoffAllowed(p.fingerprint, approval, linkage, stale) : { ok: false, reason: null };
+  const approvalValid = !!p && !!approval && approval.fingerprint === p.fingerprint && stale.length === 0;
+  const staleKey = stale.join("|");
+  useEffect(() => {
+    // Az átadott levéltervezet csak addig „csomagból előkészített”, amíg a csomag ugyanaz és nem elavult.
+    if (handedOff && (!p || p.fingerprint !== handedOff || staleKey)) { setHandedOff(null); onHandoffRevoked?.(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handedOff, p?.fingerprint, staleKey]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -138,12 +150,13 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: Quot
   };
   const doApprove = () => {
     if (!p) return;
-    const r = prepareApproval({ role, by: profile?.full_name ?? profile?.email ?? null, fingerprint: p.fingerprint, gates: p.gates, acks });
+    const r = prepareApproval({ role, by: profile?.full_name ?? profile?.email ?? null, fingerprint: p.fingerprint, gates: p.gates, acks, stale });
     if (!r.ok) { toast.error("A jóváhagyás nem készíthető elő", { description: r.reason }); return; }
     setApproval(r.prep); setAckOpen(false); toast.success("Belső jóváhagyás előkészítve (nem mentett)");
   };
   const doHandoff = () => {
     if (!p || !handoff.ok || !approval) return;
+    setHandedOff(p.fingerprint);
     onHandoff({ token: Date.now(), subject: p.coverLetter.subject, body: p.coverLetter.body, documentIds: [...pricedDocIds.slice(0, 1), ...scopeDocIds.slice(0, 1)], fingerprint: p.fingerprint, approvedBy: approval.by });
   };
 
@@ -197,6 +210,10 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: Quot
               <p className="text-xs text-muted-foreground">Ajánlati nettó: <strong className="text-foreground">{p.offerNetHuf == null ? "—" : formatHuf(p.offerNetHuf)}</strong> · {p.asOf} · ujjlenyomat {p.fingerprint.slice(0, 12)}…{p.internal ? ` · belső: anyag ${formatHuf(p.internal.materialHuf)}, munkadíj ${formatHuf(p.internal.laborHuf)}` : ""}</p>
             </div>
           </div>
+          {stale.length > 0 && <div role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+            <p className="font-medium">A csomag elavult — az összeállítás óta megváltozott: {stale.join("; ")}.</p>
+            <p className="text-xs text-muted-foreground">Elavult csomag nem menthető, nem hagyható jóvá és nem adható át kiküldésre. Állítsd össze újra (vagy állítsd vissza a beállítást).</p>
+          </div>}
           <ul className="grid gap-x-6 sm:grid-cols-2" aria-label="Csomag feltételei">{allGates.map((g) => <GateRow key={g.key} g={g} />)}</ul>
 
           <div className="flex flex-wrap gap-2">
@@ -205,13 +222,13 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff }: { quote: Quot
             <Button size="sm" variant="ghost" onClick={() => download(csv([["Típus", "Tétel / leírás", "Hivatkozás"], ...p.missing.map((m) => [m.kind, m.text, m.ref])]), `VIBA_BELSO_hianyjegyzek_v${p.quote.version ?? 1}.csv`, "text/csv;charset=utf-8")}><Download className="mr-1.5 h-4 w-4" /> Belső hiányjegyzék (CSV)</Button>
           </div>
           <div className="flex flex-wrap gap-2 border-t pt-3">
-            <Button size="sm" disabled={!contentReady || save.isPending || (linkage[0]?.ok && linkage[1]?.ok)} onClick={() => save.mutate()}>{save.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <FileCheck2 className="mr-1.5 h-4 w-4" />} Fájlok mentése az ajánlathoz</Button>
-            <Button size="sm" variant="outline" disabled={!contentReady || saveNet.isPending || !!linkage[2]?.ok} onClick={() => saveNet.mutate()}><Save className="mr-1.5 h-4 w-4" /> Nettó átvétele és mentése</Button>
-            <Button size="sm" variant="outline" disabled={!contentReady} onClick={() => { setAcks([]); setAckOpen(true); }}><ShieldCheck className="mr-1.5 h-4 w-4" /> Belső jóváhagyás-előkészítés</Button>
+            <Button size="sm" disabled={!contentReady || stale.length > 0 || save.isPending || (linkage[0]?.ok && linkage[1]?.ok)} onClick={() => save.mutate()}>{save.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <FileCheck2 className="mr-1.5 h-4 w-4" />} Fájlok mentése az ajánlathoz</Button>
+            <Button size="sm" variant="outline" disabled={!contentReady || stale.length > 0 || saveNet.isPending || !!linkage[2]?.ok} onClick={() => saveNet.mutate()}><Save className="mr-1.5 h-4 w-4" /> Nettó átvétele és mentése</Button>
+            <Button size="sm" variant="outline" disabled={!contentReady || stale.length > 0} onClick={() => { setAcks([]); setAckOpen(true); }}><ShieldCheck className="mr-1.5 h-4 w-4" /> Belső jóváhagyás-előkészítés</Button>
             <Button size="sm" disabled={!handoff.ok} title={handoff.reason ?? undefined} onClick={doHandoff}><Send className="mr-1.5 h-4 w-4" /> Átadás a kiküldéshez</Button>
           </div>
           {approvalValid && <p className="text-xs text-muted-foreground">Belső jóváhagyás előkészítve: {approval!.by ?? "—"} ({approval!.role}), {new Date(approval!.at).toLocaleString("hu-HU")} — NEM mentett jóváhagyási napló; a kiküldés a meglévő párbeszédben kézi megerősítéssel történik.</p>}
-          {!handoff.ok && handoff.reason && contentReady && <p className="text-xs text-muted-foreground">Kiküldéshez még: {handoff.reason}</p>}
+          {!handoff.ok && handoff.reason && contentReady && !stale.length && <p className="text-xs text-muted-foreground">Kiküldéshez még: {handoff.reason}</p>}
 
           <div className="flex flex-wrap gap-1" role="tablist" aria-label="Csomag részei">
             {([["scope", "Lehatárolás"], ["questions", `Kérdések (${p.scope.questions.length})`], ["missing", `Belső hiányjegyzék (${p.missingTotal})`], ["letter", "Kísérőlevél"], ["changes", "Változások"]] as [Tab, string][]).map(([k, l]) =>
