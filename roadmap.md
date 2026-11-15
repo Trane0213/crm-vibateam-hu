@@ -262,3 +262,5 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [ ] Tartós árazási adatmodell (verziók, ártörzs, módosítási napló, pricing_mode) — tulajdonosi migrációs döntés
 - [ ] Bejelentkezett éles végigpróba — external_unmanaged, saját belépés szükséges
 - [ ] P4: tervolvasás, BOM, szekrénykalkulátor — a feldolgozó telepítésére és P4 indítására vár
+
+- [x] Sales–Marketing új frontend tervcsomag (audit, architektúra, prototípus v2, lecserélési terv, önellenőrzés 44/44) – 2026-11-15; megvalósítás tulajdonosi jóváhagyásra vár.
