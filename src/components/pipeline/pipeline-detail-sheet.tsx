@@ -25,8 +25,8 @@ import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 import { PrimaryActionCard } from "@/components/sales/sales-flow-ui";
 import { createDraftQuote } from "@/lib/quotes/create";
 import type { LeadStatus } from "@/lib/sales/constants";
-import { statusToLostStage } from "@/lib/sales/constants";
 import type { PipelineLead } from "./pipeline-types";
+import { usePipelineLeadMutations } from "./use-pipeline-lead-mutations";
 import { QuoteWorkflowChoice } from "@/components/quotes/quote-workflow-choice";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { QuoteWorkflow } from "@/lib/quotes/workflow";
@@ -91,47 +91,18 @@ export function PipelineDetailSheet({
     },
   });
 
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["pipeline"] });
-    qc.invalidateQueries({ queryKey: ["pipeline", "activity", lead?.id] });
-    // A Ma oldal és a Workspace lista a ["leads", ...] cache-eken él — won/lost
-    // után ezek a számlálók is változnak, ezért közösen invalidáljuk.
-    qc.invalidateQueries({ queryKey: ["leads"] });
+  const { statusMut: sharedStatus, lostMut: sharedLost, invalidate: sharedInvalidate } = usePipelineLeadMutations(() => { setLostOpen(false); onOpenChange(false); });
+  const invalidate = () => sharedInvalidate(lead?.id);
+  // Közös írási útvonal (use-pipeline-lead-mutations): ugyanaz a visszaolvasás, napló és invalidálás.
+  // A „won” átmenet továbbra is kizárólag a CreateProjectDialog → sales_mark_won_with_project úton.
+  const statusMut = {
+    isPending: sharedStatus.isPending,
+    mutate: (next: LeadStatus) => { if (lead) sharedStatus.mutate({ lead, next }); },
   };
-
-  const statusMut = useMutation({
-    mutationFn: async (next: LeadStatus) => {
-      if (!lead) throw new Error("Nincs lead.");
-      const from = lead.status;
-      await updateLeadOrThrow(lead.id, { status: next });
-      await logActivity("leads", "status_change", lead.id, { from, to: next });
-    },
-    onError: (e: any) => toast.error("Státuszváltás sikertelen", { description: humanizeSupabaseError(e) }),
-    onSuccess: (_d, next) => { toast.success(`Az ügy átkerült: ${LEAD_STATUS_LABEL[next]}`); invalidate(); },
-  });
-
-  // A 2026-06-27 invariáns óta a won-átmenetet a backend trigger
-  // elutasítja külön — a „Megnyertük" gomb közvetlenül a CreateProjectDialog-ot
-  // nyitja, ami egyetlen RPC-vel atomian állítja won-ra a leadet ÉS hozza
-  // létre a projektet. (Korábbi köztes WonDialog megerősítő törölve.)
-
-  const lostMut = useMutation({
-    mutationFn: async (p: { lost_reason: string; lost_note: string | null }) => {
-      if (!lead) throw new Error("Nincs lead.");
-      await updateLeadOrThrow(lead.id, {
-          status: "lost",
-          // lost_at-et az adatbázis trigger tölti ki.
-          lost_reason: p.lost_reason,
-          lost_note: p.lost_note,
-          // 2026-06-27 invariáns: a lost_stage a tényleges aktuális
-          // pipeline-státusz, hogy a reaktiváló 1:1 vissza tudja állítani.
-          lost_stage: statusToLostStage(lead.status),
-      });
-      await logActivity("leads", "status_change", lead.id, { from: lead.status, to: "lost", reason: p.lost_reason });
-    },
-    onError: (e: any) => toast.error("Az Elveszett jelölés sikertelen", { description: humanizeSupabaseError(e) }),
-    onSuccess: () => { toast.success("Az ügy elveszettként lezárva"); invalidate(); setLostOpen(false); onOpenChange(false); },
-  });
+  const lostMut = {
+    isPending: sharedLost.isPending,
+    mutate: (p: { lost_reason: string; lost_note: string | null }) => { if (lead) sharedLost.mutate({ lead, ...p }); },
+  };
 
   const nextStepMut = useMutation({
     mutationFn: async (p: { next_step_type: any; next_step_due_at: string | null; next_step_note: string | null }) => {

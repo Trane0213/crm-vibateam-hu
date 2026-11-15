@@ -8,6 +8,8 @@ const ROUTES: { re: RegExp; kind: RecordKind; label: string }[] = [
   { re: /^\/contacts\/([0-9a-f-]{36})(?:\/|$)/i, kind: "contact", label: "Kapcsolattartó" },
   { re: /^\/leads\/([0-9a-f-]{36})(?:\/|$)/i, kind: "lead", label: "Lead" },
   { re: /^\/quotes\/([0-9a-f-]{36})(?:\/|$)/i, kind: "quote", label: "Ajánlat" },
+  { re: /^\/munka\/ugyfel\/([0-9a-f-]{36})(?:\/|$)/i, kind: "company", label: "Ügyfél" },
+  { re: /^\/munka\/sales\/ajanlat\/([0-9a-f-]{36})(?:\/|$)/i, kind: "quote", label: "Ajánlat" },
   { re: /^\/projects\/([0-9a-f-]{36})(?:\/|$)/i, kind: "project", label: "Projekt" },
 ];
 

@@ -3,20 +3,21 @@
 import type { RoleSlug } from "@/lib/permissions";
 
 export type WsArea = "sales" | "marketing";
-/** ready = az új képernyő kész; legacy = addig a meglévő oldal nyílik; planned = háttér hiányzik. */
+/** ready = az új képernyő kész; legacy = a meglévő oldal nyílik; planned = háttér hiányzik, nem kattintható. */
 export type WsItemState = "ready" | "legacy" | "planned";
 export type WsItem = { key: string; title: string; area: WsArea; state: WsItemState; url: string; note?: string };
 
 export const WS_ITEMS: WsItem[] = [
-  { key: "s-ma", title: "Ma", area: "sales", state: "legacy", url: "/sales" },
-  { key: "s-pipeline", title: "Ügyek (Pipeline)", area: "sales", state: "legacy", url: "/sales/leads" },
-  { key: "s-ugyfelek", title: "Ügyfelek", area: "sales", state: "legacy", url: "/customers" },
-  { key: "s-ajanlatok", title: "Ajánlatok", area: "sales", state: "legacy", url: "/quotes", note: "Kapott Excel és saját VIBA-ajánlat külön képernyőn" },
+  { key: "s-ma", title: "Ma", area: "sales", state: "ready", url: "/munka/sales/ma" },
+  { key: "s-pipeline", title: "Ügyek (Pipeline)", area: "sales", state: "ready", url: "/munka/sales/pipeline" },
+  { key: "s-ugyfelek", title: "Ügyfelek", area: "sales", state: "ready", url: "/munka/ugyfelek" },
+  { key: "s-ajanlatok", title: "Ajánlatok", area: "sales", state: "ready", url: "/munka/sales/ajanlatok", note: "Kapott Excel és saját VIBA-ajánlat külön" },
   { key: "s-projektek", title: "Projektek", area: "sales", state: "legacy", url: "/projects" },
-  { key: "m-ma", title: "Ma", area: "marketing", state: "legacy", url: "/today" },
-  { key: "m-erdeklodok", title: "Érdeklődők", area: "marketing", state: "legacy", url: "/web-quote-requests" },
-  { key: "m-kampanyok", title: "E-mail-kampányok", area: "marketing", state: "legacy", url: "/campaign-list" },
-  { key: "m-levelezes", title: "Levelezés és piszkozatok", area: "marketing", state: "legacy", url: "/emails" },
+  { key: "m-ma", title: "Ma", area: "marketing", state: "ready", url: "/munka/marketing/ma" },
+  { key: "m-erdeklodok", title: "Érdeklődők", area: "marketing", state: "ready", url: "/munka/marketing/erdeklodok" },
+  { key: "m-kampanyok", title: "E-mail-kampányok", area: "marketing", state: "ready", url: "/munka/marketing/kampanyok" },
+  { key: "m-levelezes", title: "Levelezés és tartalom", area: "marketing", state: "ready", url: "/munka/marketing/levelezes" },
+  { key: "m-ugyfelek", title: "Ügyfelek", area: "marketing", state: "ready", url: "/munka/ugyfelek" },
   { key: "m-tartalom", title: "Tartalomnaptár és kreatívtár", area: "marketing", state: "planned", url: "/munka", note: "Tervezett – adattárolás és integráció szükséges" },
 ];
 
@@ -32,4 +33,11 @@ export function wsAreasForRole(role: RoleSlug): WsArea[] {
 export function wsItemsForRole(role: RoleSlug): WsItem[] {
   const areas = wsAreasForRole(role);
   return WS_ITEMS.filter((i) => areas.includes(i.area));
+}
+
+/** Szerepkör „Ma” képernyője az új munkaterületen (tulajdonosnál nincs automatikus átirányítás). */
+export function wsHomeForRole(role: RoleSlug): "/munka/sales/ma" | "/munka/marketing/ma" | null {
+  if (role === "sales") return "/munka/sales/ma";
+  if (role === "marketing") return "/munka/marketing/ma";
+  return null;
 }

@@ -23,3 +23,13 @@ describe("AI-panel kontextus", () => {
     expect(p).toContain("jóváhagyás nélkül");
   });
 });
+
+describe("új munkaterület rekordkontextus", () => {
+  it("az új ügyféladatlap céget, az új ajánlatoldal ajánlatot jelöl", async () => {
+    const { detectRecordContext: d } = await import("./ai-panel-context");
+    const id = "b454cd40-3473-4653-9424-9cc5bbebe527";
+    expect(d(`/munka/ugyfel/${id}`)).toEqual({ kind: "company", id, label: "Ügyfél" });
+    expect(d(`/munka/sales/ajanlat/${id}`)).toEqual({ kind: "quote", id, label: "Ajánlat" });
+    expect(d("/munka/ugyfelek")).toBeNull();
+  });
+});

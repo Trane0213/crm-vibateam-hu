@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { QuoteWorkflowChoice } from "./quote-workflow-choice";
 import type { QuoteWorkflow } from "@/lib/quotes/workflow";
 
-export function NewQuoteButton({ leadId = null, label = "Új ajánlat", variant = "secondary" }: { leadId?: string | null; label?: string; variant?: "default" | "secondary" | "outline" }) {
+export function NewQuoteButton({ leadId = null, label = "Új ajánlat", variant = "secondary", openIn = "legacy" }: { leadId?: string | null; label?: string; variant?: "default" | "secondary" | "outline"; openIn?: "legacy" | "v2" }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
@@ -25,7 +25,8 @@ export function NewQuoteButton({ leadId = null, label = "Új ajánlat", variant 
       } else toast.success("Új piszkozat létrehozva");
       qc.invalidateQueries({ queryKey: ["quotes"] });
       setOpen(false);
-      navigate({ to: "/quotes/$id", params: { id } });
+      if (openIn === "v2") navigate({ to: "/munka/sales/ajanlat/$id", params: { id } });
+      else navigate({ to: "/quotes/$id", params: { id } });
     } catch (error) { toast.error(error instanceof Error ? error.message : "Nem sikerült létrehozni."); }
     finally { setBusy(false); }
   };

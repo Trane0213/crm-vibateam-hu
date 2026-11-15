@@ -38,3 +38,4 @@
 - Both chats correlate runs by UUID and display only own-run content-free audit progress; risk QA distinguishes deterministic, model and authenticated results — progress is not execution proof or measured reliability.
 - AI OS agent model/provider/api/reasoning come only from `src/lib/ai-os/model-config.ts` (spread into each agent) — one place to switch models.
 - Client RLS never uses USING (true): reads need a CRM role, attendance owner/PM, legacy tables owner — roleless users see nothing.
+- Sales/Marketing v2 screens under /munka are presentation layers over existing hooks, server functions and mutation paths (shared `QuoteWorkflowDetail`, `usePipelineLeadMutations`); monthly targets live in `settings` behind owner-only server writes with revision CAS — the legacy UI stays a working fallback with identical rules.

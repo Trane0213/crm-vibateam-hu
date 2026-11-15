@@ -28,3 +28,13 @@ describe("új munkaterület menü", () => {
     expect(t?.state).toBe("planned");
   });
 });
+
+describe("új munkaterület kezdőlap", () => {
+  it("csak Sales és Marketing kap automatikus Ma-oldalt, a tulajdonos marad a saját kezdőlapján", async () => {
+    const { wsHomeForRole } = await import("./nav");
+    expect(wsHomeForRole("sales")).toBe("/munka/sales/ma");
+    expect(wsHomeForRole("marketing")).toBe("/munka/marketing/ma");
+    expect(wsHomeForRole("owner")).toBeNull();
+    expect(wsHomeForRole("project_manager")).toBeNull();
+  });
+});
