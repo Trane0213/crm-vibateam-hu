@@ -1,6 +1,6 @@
+import { useCrmNavigate } from "@/components/workspace-v2/crm-link";
 import { useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { RecordDialog, type Field } from "@/components/resource/resource-page";
 import { useUpsert } from "@/lib/db-hooks";
@@ -72,7 +72,7 @@ function QuickButton({
 }
 
 export function QuickCreateLeadButton({ onCreated }: { onCreated?: (row: any) => void }) {
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
   const [open, setOpen] = useState(false);
   const upsert = useUpsert("leads");
   return (

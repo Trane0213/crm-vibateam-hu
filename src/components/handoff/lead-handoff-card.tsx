@@ -4,7 +4,7 @@
  * (RLS), és a hiányzó tétel pótlási helyére (a projekt megfelelő fülére) visszük
  * a felhasználót. Nem ír, nem jelöl „kész” átadást.
  */
-import { Link } from "@tanstack/react-router";
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { ArrowUpRight, Briefcase, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useListWhere } from "@/lib/db-hooks";
@@ -55,7 +55,7 @@ export function LeadHandoffCard({ project }: { project: ProjectHandoffRow }) {
                   <li key={i.key} className="flex flex-wrap items-center justify-between gap-2 rounded border bg-background px-2 py-1">
                     <span><span className={cn("font-medium", i.state === "missing" ? "text-destructive" : "text-[color:var(--status-warning)]")}>{HANDOFF_STATE_LABEL[i.state]}:</span> {i.label} <span className="text-muted-foreground">· {HANDOFF_ROLE_LABEL[i.role]}</span></span>
                     {canOpen && open(i) && (
-                      <Link to="/projects/$id" params={{ id: project.id }} search={{ tab: open(i)! }} className="text-primary hover:underline">Pótlás helye</Link>
+                      <CrmLink to="/projects/$id" params={{ id: project.id }} search={{ tab: open(i)! }} className="text-primary hover:underline">Pótlás helye</CrmLink>
                     )}
                   </li>
                 ))}
@@ -70,7 +70,7 @@ export function LeadHandoffCard({ project }: { project: ProjectHandoffRow }) {
       </div>
       {canOpen ? (
         <Button size="sm" className="mt-3" asChild>
-          <Link to="/projects/$id" params={{ id: project.id }} search={{ tab: "handover" }}>Átadás fül megnyitása<ArrowUpRight /></Link>
+          <CrmLink to="/projects/$id" params={{ id: project.id }} search={{ tab: "handover" }}>Átadás fül megnyitása<ArrowUpRight /></CrmLink>
         </Button>
       ) : (
         <p className="mt-2 text-xs text-muted-foreground">A projekt adatlapját a szerepköröd nem nyithatja meg.</p>

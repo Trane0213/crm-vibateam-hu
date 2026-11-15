@@ -1,5 +1,5 @@
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 import { Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -48,7 +48,7 @@ export function KpiCard({
   );
   const cls = `block rounded-lg border bg-card p-3 transition ${TONE_BORDER[tone]}`;
   return to
-    ? <Link to={to as any} className={`${cls} hover:bg-muted/40`}>{inner}</Link>
+    ? <CrmLink to={to as any} className={`${cls} hover:bg-muted/40`}>{inner}</CrmLink>
     : <div className={cls}>{inner}</div>;
 }
 

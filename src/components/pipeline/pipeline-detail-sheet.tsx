@@ -276,7 +276,7 @@ export function PipelineDetailSheet({
                     <DialogContent><DialogHeader><DialogTitle>Új ajánlat</DialogTitle></DialogHeader>{quotes.length > 0 && <p className="text-xs text-[color:var(--status-warning)]">Figyelem: ehhez az ügyhöz már van {quotes.length} aktuális ajánlat. Ez külön piszkozatot hoz létre.</p>}<QuoteWorkflowChoice disabled={newQuote.isPending} onChoose={(kind) => newQuote.mutate(kind)} /></DialogContent>
                   </Dialog>
                 </div>
-                <details className="mt-4 rounded-md border bg-card p-3 text-[11px] text-muted-foreground">
+                {!inline && <details className="mt-4 rounded-md border bg-card p-3 text-[11px] text-muted-foreground">
                   <summary className="flex cursor-pointer items-center gap-1 font-medium text-foreground"><Info className="h-3.5 w-3.5" />Mit hol intézek?</summary>
                   <ul className="mt-2 list-disc space-y-0.5 pl-4">
                     <li>Itt: Pipeline-szakasz, következő lépés, Megnyertük / Elveszett.</li>
@@ -284,7 +284,7 @@ export function PipelineDetailSheet({
                     <li>Felelős átadása: csak tulajdonos.</li>
                     <li>Projekt adatai: a megnyerés után a projekt Átadás fülén (ott látszik, mi ment át és mi hiányzik).</li>
                   </ul>
-                </details>
+                </details>}
               </aside>
             </div>
 

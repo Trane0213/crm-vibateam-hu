@@ -24,8 +24,8 @@ export function BrandLogo({
       className={cn(
         "select-none object-contain w-auto",
         onDark
-          ? "[filter:invert(1)_brightness(2)]"
-          : "dark:[filter:invert(1)_brightness(2)]",
+          ? "invert brightness-200"
+          : "dark:invert dark:brightness-200",
         className,
       )}
     />

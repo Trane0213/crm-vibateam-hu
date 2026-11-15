@@ -45,7 +45,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
     <WorkspaceLinkProvider>
       <div className="crm-workspace flex min-h-screen w-full bg-background">
         <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
-          <div className="px-4 py-4"><BrandLogo className="h-7" /></div>
+          <div className="px-4 py-4"><BrandLogo onDark className="h-8 max-w-full" alt="VIBA-TEAM Kft" /></div>
           <nav aria-label="Munkaterület" className="flex-1 overflow-y-auto px-2">{navLinks(false)}</nav>
           <AccountBlock />
         </aside>
