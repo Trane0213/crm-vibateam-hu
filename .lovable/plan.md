@@ -5,14 +5,18 @@ Cél: a meglévő funkciókat kevesebb kattintással, kevesebb menüponttal és 
 ## Kiinduló tények (ellenőrizve)
 - Kb. 75 bejelentkezett oldal (Ma, Sales x6, ajánlatok, projektek, jelenlét x8, levelezés, beállítások x17 stb.).
 - Létező munkakörök az adatbázisban: tulajdonos, admin, projektvezető, értékesítő, marketing, általános felhasználó.
-- Csoportvezető, villanyszerelő és műszaki előkészítő munkakör NEM létezik. Ezekhez az 1. körben csak tervezett felület készül; tényleges bevezetésük új jogosultságot igényel (külön tulajdonosi döntés).
+- Tulajdonosi döntés (2026-11-15): új munkakör most NEM kell; a terv csak a meglévő munkakörökre készül (tulajdonos, admin/pénzügy, projektvezető, értékesítő, marketing).
+
+## 0. Első lépés: látványterv (jóváhagyásra)
+- Ajánlat-munkaterület, Sales Ma, Projektvezető Ma és egyszerűsített főmenü látványterve desktopon és mobilon, VIBA arculattal (navy/villamoskék/cián).
+- Csak képek/kattintható előnézeti oldal, működő kód és adatírás nélkül. Jóváhagyás után folytatódik az audit és a prototípus.
 
 ## 1. Teljes UX-audit (dokumentum)
 `docs/system-map/ux-audit-2026-11-15.md`
 - Minden oldal, menüpont, űrlap és munkafolyamat egy táblázatban, besorolva: Megtartandó / Egyszerűsítendő / Összevonandó / Szakértői nézetbe / Timothy automatizálhatja / Eltávolítható (adatvesztés nélkül).
 - Mérés minden fő feladatra: kattintás, adatbevitel, képernyőváltás, becsült idő — a jelenlegi kódból és Playwright-bejárásból számolva (izolált környezet), jelenlegi vs. tervezett.
 
-## 2. Munkakörönkénti terv (8 munkakör)
+## 2. Munkakörönkénti terv (meglévő 5 munkakör)
 `docs/system-map/ux-terv-munkakorok-2026-11-15.md`, munkakörönként:
 - jelenlegi és tervezett munkafolyamat, menütérkép (legfeljebb 5 fő menüpont), felületvázlat
 - Timothy-pontok (melyik képernyőn, milyen kontextust kap automatikusan)
@@ -34,8 +38,8 @@ Egyetlen ajánlat-munkaterület, három lépéssel:
 
 ## 4. Fejlesztési sorrend (jóváhagyás után, szakaszonként STOP)
 1. Ajánlatkészítés + Sales Ma/leadek
-2. Projektvezető + terepi (csoportvezető, villanyszerelő — szerepkör-döntés után)
-3. Marketing, műszaki előkészítő, adminisztráció/pénzügy, tulajdonos
+2. Projektvezető és terepi munka
+3. Marketing, adminisztráció/pénzügy, tulajdonos
 
 ## Ellenőrzés
 - Meglévő 1430 teszt + 21 AI-elfogadási teszt változatlanul zöld.
@@ -43,5 +47,4 @@ Egyetlen ajánlat-munkaterület, három lépéssel:
 - Playwright desktop + mobil képernyőképek a prototípusról (izolált, bejelentkezett éles próba nem elérhető).
 
 ## Döntést igényel (nem blokkolja az 1. kört)
-- Új munkakörök (csoportvezető, villanyszerelő, műszaki előkészítő) felvétele — jogosultság-bővítés.
 - A teljes átépítés indítása a prototípus átvétele után.
