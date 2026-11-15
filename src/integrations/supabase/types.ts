@@ -6363,6 +6363,7 @@ export type Database = {
         Returns: Json
       }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
+      quote_discard_unsent: { Args: { p_quote_id: string }; Returns: Json }
       quote_lock_sent: { Args: { p_quote_id: string }; Returns: string }
       quote_new_alternative: {
         Args: { p_label: string; p_quote_id: string }
