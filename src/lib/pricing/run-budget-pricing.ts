@@ -5,7 +5,7 @@
  */
 import { extractBudget, type BudgetExtract } from "./budget-extract";
 import { calculatePricing, type Adjustment, type PricingRun } from "./engine";
-import { isErr, WorkbookEvaluator, type Scalar, type WorkbookModel } from "./formula";
+import { colToNum, isErr, WorkbookEvaluator, type Scalar, type WorkbookModel } from "./formula";
 import type { PriceSourceItem } from "./price-sources";
 import { resolveProfile, type PricingMode, type ProfileOverrides } from "./profiles";
 import { patchXlsx, type CellPatch } from "./workbook-patch";
@@ -66,15 +66,41 @@ function reconcile(model: WorkbookModel, ex: BudgetExtract, run: PricingRun, bef
     const leak = sheets.filter((s) => s.role === "material_total" && Math.abs(s.deltaHuf) > 0.005);
     if (leak.length) problems.push(`Munkadíjas módban az anyag-összeg oszlop változott (${leak.map((s) => `${s.sheet}!${s.column}`).join(", ")}).`);
   }
-  if (lineMismatches.length) problems.push(`${lineMismatches.length} tételsor összege a munkafüzetben eltér a számítástól vagy nem képlet.`);
-  if (sheets.some((s) => !s.ok)) problems.push("Lapszintű összeg-egyeztetés eltér.");
+  if (lineMismatches.length) {
+    const fmt = (v: number | string) => (typeof v === "number" ? `${new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 0 }).format(v)} Ft` : v);
+    const ex5 = lineMismatches.slice(0, 5).map((m) => { const i = m.key.lastIndexOf("!"); return `'${m.key.slice(0, i)}'!${m.address}${m.formula ? ` = ${m.formula.slice(0, 50)}` : ""}: számítás ${fmt(m.expectedHuf)}, Excel ${fmt(m.workbookHuf)}`; });
+    problems.push(`${lineMismatches.length} tételsor összegképlete a megrendelő Excelében nem a sor mennyiség × egységár értékét adja (hibás képlet vagy hivatkozás): ${ex5.join("; ")}${lineMismatches.length > 5 ? " …" : ""}. Javítsd a képletet az eredeti fájlban (vagy kérj javított fájlt), és töltsd fel újra.`);
+  }
+  if (sheets.some((s) => !s.ok)) problems.push(`Lapszintű összeg-egyeztetés eltér (${sheets.filter((s) => !s.ok).map((s) => `'${s.sheet}'!${s.column}`).join(", ")})${lineMismatches.length ? " — a fenti hibás tételsor-képletek miatt" : ""}.`);
   // Minden képletcella újraszámolása (nem csak a tételsoroké), hogy a nem ellenőrizhető képletek is kiderüljenek.
-  let errorsAfter = 0;
-  for (const s of model.sheets) for (const [a, c] of s.cells) if (c.f) { const v = after.value(s, a); if (isErr(v) && !String(v.error).startsWith("#UNSUPPORTED") && !(c.v && isErr(c.v))) errorsAfter++; }
+  // Az árazás előtt is hibás képlet (pl. a megrendelő fájljában lévő körkörös SUM) nem „új” hiba: külön, cellaszinten jelezzük.
+  let errorsAfter = 0; const original: { sheet: string; address: string; formula: string; error: string; self: boolean }[] = [];
+  for (const s of model.sheets) for (const [a, c] of s.cells) if (c.f) {
+    const v = after.value(s, a); if (!isErr(v) || String(v.error).startsWith("#UNSUPPORTED") || (c.v && isErr(c.v))) continue;
+    const b0 = before.value(s, a);
+    if (isErr(b0) && b0.error === v.error) original.push({ sheet: s.name, address: a, formula: c.f, error: String(v.error), self: selfReferencing(a, c.f) });
+    else errorsAfter++;
+  }
+  if (original.length) {
+    const roots = [...original.filter((o) => o.self), ...original.filter((o) => !o.self)].slice(0, 4);
+    const cyc = original.some((o) => o.error === "#CYCLE");
+    problems.push(`A megrendelő Excelében ${original.length} képlet már árazás előtt is hibás${cyc ? " (körkörös hivatkozás: az összeg önmagát is tartalmazza)" : ""}: ${roots.map((o) => `'${o.sheet}'!${o.address} = ${o.formula.slice(0, 60)}`).join("; ")}. Ezek az összesítők nem ellenőrizhetők — javítsd a képletet az eredeti fájlban (vagy kérj javított fájlt), és töltsd fel újra.`);
+  }
   const unsupportedFormulas = [...after.stats.unsupported].map(([fn, count]) => ({ fn, count }));
   if (unsupportedFormulas.length) problems.push(`Nem ellenőrizhető képletek: ${unsupportedFormulas.map((u) => `${u.fn} (${u.count})`).join(", ")}.`);
   if (errorsAfter) problems.push(`${errorsAfter} képlet új hibaértéket ad az árazás után.`);
   return { sheets, lineMismatches: lineMismatches.slice(0, 200), unsupportedFormulas, formulaErrorsAfter: errorsAfter, ok: problems.length === 0, problems };
+}
+
+/** A képlet egy tartománya saját cellát is lefedi (pl. G101 = SUM(G40:G101)). */
+function selfReferencing(address: string, formula: string): boolean {
+  const m = /^([A-Z]+)(\d+)$/.exec(address); if (!m) return false;
+  const col = colToNum(m[1]), row = Number(m[2]);
+  for (const r of formula.toUpperCase().matchAll(/(?<![A-Z!'])\$?([A-Z]{1,3})\$?(\d+):\$?([A-Z]{1,3})\$?(\d+)/g)) {
+    const c1 = colToNum(r[1]), r1 = Number(r[2]), c2 = colToNum(r[3]), r2 = Number(r[4]);
+    if (col >= Math.min(c1, c2) && col <= Math.max(c1, c2) && row >= Math.min(r1, r2) && row <= Math.max(r1, r2)) return true;
+  }
+  return false;
 }
 
 function sameScalar(a: Scalar, b: Scalar) {

@@ -13,7 +13,7 @@ export function timothyQuickCommands(kind: unknown, step: "pricing" | "offer" = 
     : ["Készíts kérdéslistát az ügyfélnek a hiányzó adatokról.", "Mi hiányzik még a kiküldéshez?", "Írj kísérőlevél-tervezetet ehhez az ajánlathoz (nem küldöd el)."];
   return own
     ? ["Javasolj tételeket ehhez az ajánlathoz a jóváhagyott díjtörzs alapján, és jelezd a hiányzó árakat.", "Mely tételeknek nincs még ára?"]
-    : ["Vizsgáld meg a feltöltött költségvetést, csak az erősáramot árazzuk, és jelezd a hiányokat.", "Sorold fel az ár nélküli és ellenőrizendő tételeket okkal.", "Ellenőrizd a terveket a költségvetéshez képest, és listázd az eltéréseket."];
+    : ["Árazd be a feltöltött költségvetést, csak az erősáramot árazzuk; foglald össze, hány tétel kapott árat és mi hiányzik.", "Sorold fel az ár nélküli és ellenőrizendő tételeket okkal, munkanemenként csoportosítva.", "Hogyan készül el az árazott Excel, és hol tudom letölteni?", "Ellenőrizd a terveket a költségvetéshez képest, és listázd az eltéréseket."];
 }
 
 /** Régi nézetparaméter: csak az „egyszeru” értéket fogadja el; a felület ettől nem változik. */

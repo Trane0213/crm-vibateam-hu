@@ -274,6 +274,8 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [x] 1. Konkrét ajánlatkérés: Marketing-jelölés → Sales elfogadás → „Ajánlat előkészítése”; új ajánlat csak ügyhöz, típussal; új ajánlat ≠ verzió ≠ alternatíva
 - [x] 2. Ajánlatkészítő egy nézet, négy lépés, egy dokumentumhely, beadási határidő + érvényesség, zárolt = csak olvasható
 - [x] 3. Árazás: ajánlatonkénti árazási beállítás (nincs rejtett óradíj), hiányos árazás nem vehető át végösszegként
+- [x] Árazás gomb éles hibája (fájlletöltés a szerveren) javítva; Kitöltendő ártábla oda-vissza; árazott Excel letöltése/mentése az ajánlathoz; megrendelői képlethibák cellára pontosan
+- [ ] Dohány V-DO-02 Excel: 14 körkörös összeg + 2 hibás tételképlet (H206, H372) a megrendelő fájljában — javított fájl vagy tulajdonosi döntés kell
 - [x] 4. Timothy: ajánlatonként/ügyenként külön beszélgetés, Excel-szerkesztési képesség pontos jelzése
 - [x] 5. Kiküldés: válasz az eredeti Gmail-szálban vagy új levél, szerveroldali ellenőrzés, kiküldés után utánkövetés + „Ajánlat kiadva”
 - [x] 6. Tesztek, tesztlépések, hibajegyzék

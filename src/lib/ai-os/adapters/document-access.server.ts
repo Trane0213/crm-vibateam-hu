@@ -53,7 +53,7 @@ export async function authorizedDocument(data: DocumentInput, ctx: ToolContext) 
 /** Existing R2 signer, only after identity + user-visible row + parent checks. No URL reaches the model. */
 export async function fetchDocumentBytes(key: string): Promise<Uint8Array> {
   const { presignR2Url } = await import("../../r2.server");
-  const response = await fetch(presignR2Url({ key, method: "GET", expiresIn: 60 }), { redirect: "error", signal: AbortSignal.timeout(15000) });
+  const response = await fetch(presignR2Url({ key, method: "GET", expiresIn: 60 }), { redirect: "manual", signal: AbortSignal.timeout(15000) });
   if (!response.ok || !response.body) throw new Error("A fájl nem tölthető le.");
   const declared = Number(response.headers.get("content-length") ?? 0);
   if (declared > DOCUMENT_LIMITS.bytes) { await response.body.cancel(); throw new Error("A fájl nagyfeldolgozást igényel (5 MB felett)."); }

@@ -50,7 +50,8 @@ export function importPriceTemplate(bytes: Uint8Array, fileName: string): Templa
         const name = s("Megnevezés"), unit = s("ME");
         if (!name && !unit && !s("Munkadíj egységár (Ft)") && !s("Anyag egységár (Ft)")) continue;
         rowsRead++;
-        if (/^teszt\b/i.test(name)) { issues.push({ row: rr, message: "TESZT mintasor — kihagyva." }); continue; }
+        // A kitöltendő ártábla sorai (Azonosító „SOR:…”) a költségvetés saját tételei — a TESZT-szűrés csak a mintasorokra vonatkozik.
+        if (/^teszt\b/i.test(name) && !/^SOR:/.test(s("Azonosító"))) { issues.push({ row: rr, message: "TESZT mintasor — kihagyva." }); continue; }
         if (!name || !unit) { issues.push({ row: rr, message: "Megnevezés és ME kötelező." }); continue; }
         const labor = parseNumber(g("Munkadíj egységár (Ft)")), hours = parseNumber(g("Normaóra (óra/ME)")), material = parseNumber(g("Anyag egységár (Ft)"));
         if ([labor, hours, material].some((x) => x != null && x < 0)) { issues.push({ row: rr, message: "Negatív ár vagy normaóra." }); continue; }
@@ -100,4 +101,46 @@ export function buildPriceTemplateWorkbook(): Uint8Array {
   help["!cols"] = [{ wch: 140 }];
   XLSX.utils.book_append_sheet(wb, help, "Útmutató");
   return new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer);
+}
+
+/** Ártábla-sor a költségvetés egy ár nélküli / ellenőrizendő tételéből (az árazómotor sorából). */
+export type FillLine = { sheet: string; row: number; name: string; unitRaw: string | null; section: string; status: string };
+
+/**
+ * „Kitöltendő ártábla”: a költségvetés ár nélküli és ellenőrizendő tételei a sablon oszlopaival, azonos
+ * megnevezés + ME szerint összevonva. Árat NEM tölt ki: a felhasználó írja be, és az Ársablon-feltöltéssel
+ * pontos megnevezés-egyezéssel kerül vissza ugyanabba a számításba. Az ár dátuma a kitöltés napja (átírható).
+ */
+export function buildFillTemplateWorkbook(lines: FillLine[], opts: { asOf: string; mode: "subcontractor_labor" | "full_construction"; budgetFileName: string }): { bytes: Uint8Array; rows: number } {
+  const groups = new Map<string, { line: FillLine; refs: string[]; statuses: Set<string> }>();
+  for (const l of lines) {
+    if (l.status !== "missing" && l.status !== "review") continue;
+    if (!l.name.trim() || !String(l.unitRaw ?? "").trim()) continue;
+    const k = `${norm(l.name)}|${normUnit(String(l.unitRaw))}`;
+    const g = groups.get(k) ?? { line: l, refs: [], statuses: new Set<string>() };
+    g.refs.push(`${l.sheet}!${l.row}`); g.statuses.add(l.status); groups.set(k, g);
+  }
+  const labor = opts.mode === "subcontractor_labor";
+  const rows: (string | number)[][] = [[...TEMPLATE_COLUMNS]];
+  for (const { line, refs, statuses } of groups.values()) {
+    const state = statuses.has("review") ? "ellenőrizendő" : "nincs ár";
+    rows.push([`SOR:${refs[0]}`, "VIBA sablon", line.section.slice(0, 120), line.name, "", String(line.unitRaw).trim(), "", "eladási", "", "", "", "beszerzési", "", "", "", opts.asOf, "", "", "",
+      `Előfordulás: ${refs.slice(0, 12).join(", ")}${refs.length > 12 ? ` (+${refs.length - 12})` : ""} · ${state}`]);
+  }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = TEMPLATE_COLUMNS.map((c) => ({ wch: c === "Megnevezés" ? 70 : c === "Megjegyzés" ? 40 : Math.max(12, c.length + 2) }));
+  XLSX.utils.book_append_sheet(wb, ws, "Ártábla");
+  const help = XLSX.utils.aoa_to_sheet([
+    [`Kitöltendő ártábla — ${opts.budgetFileName}`], [""],
+    [`${groups.size} különböző tétel vár árra (azonos megnevezés + ME egy sorban). A „Megnevezés” és „ME” oszlopot NE írd át: ez alapján kerül vissza az ár a költségvetés soraiba.`],
+    [labor ? "Munkadíjas árazás: töltsd ki a „Munkadíj egységár (Ft)” VAGY a „Normaóra (óra/ME)” oszlopot (normaóránál az ajánlat óradíja számol). Az anyagár oszlop ilyenkor nem kerül az ajánlatba." :
+      "Anyag + munkadíj: töltsd ki a „Munkadíj egységár (Ft)” vagy „Normaóra (óra/ME)”, és az „Anyag egységár (Ft)” oszlopot."],
+    ["„Ár dátuma”: a kitöltés napja szerepel; ha régebbi árajánlatból veszed az árat, írd át annak dátumára. Ár nélkül hagyott sor ár nélkül marad."],
+    ["Munkadíj ár jellege: „eladási” = ajánlati díj (erre nem jön haszon), „önköltség” = erre jön az ajánlat haszna. Anyagár jellege: „beszerzési” vagy „eladási”."],
+    ["Kész? Az ajánlat 2. Árazás lépésében: „Kitöltött ártábla feltöltése” → „Számítás”. Az eredeti költségvetés nem változik."],
+  ]);
+  help["!cols"] = [{ wch: 140 }];
+  XLSX.utils.book_append_sheet(wb, help, "Útmutató");
+  return { bytes: new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer), rows: groups.size };
 }

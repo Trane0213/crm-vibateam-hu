@@ -73,7 +73,7 @@ export async function prepareQuotePackage(sb: Sb, userId: string, input: Package
       writesDigest = await sha256Hex(canonical(res.lines.flatMap((l) => l.writes.map((w) => `${w.address}=${w.valueHuf}`)).sort()));
     } catch (e) {
       if (e instanceof PricingAccessError) throw e;
-      pricingError = e instanceof Error && /korlát|túl nagy|nem Excel|munkafüzet|ársablon|Érvénytelen|szükséges/.test(e.message) ? e.message : "A költségvetés nem dolgozható fel (sérült, titkosított vagy nem támogatott fájl).";
+      pricingError = e instanceof Error && /korlát|túl nagy|nem Excel|munkafüzet|ársablon|Érvénytelen|szükséges|nem tölthető le/.test(e.message) ? e.message : "A költségvetés nem dolgozható fel (sérült, titkosított vagy nem támogatott fájl).";
     }
   }
   let review: ReviewFacts | null = null, reviewError: string | null = null;

@@ -1,9 +1,9 @@
 import { openLines, pricingComplete } from "@/lib/pricing/completeness";
 import { pricingSettingsSummary, type QuotePricingSettings } from "@/lib/quotes/pricing-settings";
 import { Fragment, useMemo, useRef, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Calculator, CheckCircle2, Download, FileSpreadsheet, Loader2, Upload, X } from "lucide-react";
+import { AlertTriangle, Calculator, CheckCircle2, Download, FileSpreadsheet, Loader2, Save, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatHuf } from "@/lib/format";
 import { priceReceivedBudget } from "@/lib/pricing/pricing.functions";
+import { uploadQuoteDocument } from "@/lib/quotes/quote-document-upload";
 import type { LineDto } from "@/lib/pricing/pricing-dto";
 import { LINE_STATUS_LABEL, pricingCsv, STATUS_FILTERS, type StatusFilter } from "@/lib/pricing/pricing-view";
 
@@ -25,6 +26,8 @@ function download(bytes: Uint8Array | string, name: string, type: string) {
   const url = URL.createObjectURL(blob), a = document.createElement("a");
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const fromB64 = (b64: string) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
 const huf2 = (n: number) => `${new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 2 }).format(n)} Ft`;
 
 /**
@@ -33,6 +36,7 @@ const huf2 = (n: number) => `${new Intl.NumberFormat("hu-HU", { maximumFractionD
  */
 export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet, settings }: { quoteId: string; scopeType: string | null; locked: boolean; onUseNet: (net: number) => void; settings: QuotePricingSettings }) {
   const run = useServerFn(priceReceivedBudget);
+  const qc = useQueryClient();
   const docs = useQuery({
     queryKey: ["quote_documents", quoteId],
     queryFn: async () => {
@@ -69,6 +73,17 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet, setti
     const buf = new Uint8Array(await f.arrayBuffer()); let s = ""; for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
     setTemplate({ name: f.name, base64: btoa(s) });
   };
+  // Az árazott TERVEZET mentése az ajánlat dokumentumai közé (egyetlen feltöltési útvonal), csapat-átnézéshez.
+  const savePriced = useMutation({
+    mutationFn: async () => {
+      const x = calc.data; const e = x?.summary.exportResult;
+      if (!x?.workbookBase64 || e?.status !== "verified") throw new Error("Nincs mentható, visszaellenőrzött árazott Excel.");
+      if ((docs.data ?? []).some((d) => d.document_type === "priced_budget" && d.name === e.fileName)) throw new Error("Ez a fájlnév már szerepel az ajánlat dokumentumai között — előbb töröld vagy nevezd át a régit.");
+      await uploadQuoteDocument(quoteId, new File([fromB64(x.workbookBase64)], e.fileName, { type: XLSX_MIME }), "priced_budget");
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ["quote_documents", quoteId] }); void qc.invalidateQueries({ queryKey: ["documents"] }); toast.success("Árazott Excel elmentve az ajánlat dokumentumai közé (Árazott költségvetés)."); },
+    onError: (e: Error) => toast.error("Mentés sikertelen", { description: e.message }),
+  });
   const emptyTemplate = async () => { const { buildPriceTemplateWorkbook } = await import("@/lib/pricing/template-import"); download(buildPriceTemplateWorkbook(), "VIBA_arsablon_ures.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"); };
 
   const t = r?.summary.totals, ex = r?.summary.exportResult;
@@ -76,7 +91,13 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet, setti
     <section className="space-y-4 border-b py-5" aria-labelledby="budget-pricing-title">
       <div className="flex flex-col gap-1">
         <h2 id="budget-pricing-title" className="flex items-center gap-2 text-sm font-semibold"><Calculator className="h-4 w-4" /> Költségvetés árazása</h2>
-        <p className="text-xs text-muted-foreground">A feltöltött megrendelői Excel tételeit árazza az eredeti szerkezetben, ellenőrizhető forrásból. Számítás és TERVEZET-letöltés — nem ment, nem küld. Bizonytalan tétel nem kap automatikus árat.</p>
+        <p className="text-xs text-muted-foreground">A megrendelő Excelét az eredeti szerkezetében árazzuk. Árat a rendszer nem talál ki: ahol nincs ellenőrizhető ár, azt neked kell megadnod.</p>
+        <ol className="mt-1 grid gap-1.5 rounded-md border bg-muted/30 p-3 text-xs sm:grid-cols-3" aria-label="Az árazás menete">
+          <li><span className="font-semibold">1. Számítás</span> — beárazza, amire van ellenőrizhető ár, és megmutatja, mi hiányzik.</li>
+          <li><span className="font-semibold">2. Hiányzó árak</span> — töltsd le a „Kitöltendő ártáblát”, írd be az egységárakat Excelben, majd töltsd vissza és számolj újra.</li>
+          <li><span className="font-semibold">3. Árazott Excel</span> — letöltheted átnézésre, vagy elmentheted az ajánlathoz, hogy a csapat is lássa.</li>
+        </ol>
+        <p className="text-xs text-muted-foreground">Timothy a számítás eredményét átnézi, felsorolja a hiányzó és bizonytalan tételeket, és tételes módosítást számol (pl. „+10% az elosztókra”). Az Excel-fájlt nem ő írja: azt a fenti Számítás készíti el.</p>
       </div>
 
       {docs.isLoading ? <p className="text-sm text-muted-foreground">Dokumentumok betöltése…</p>
@@ -108,7 +129,7 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet, setti
           <p className="text-xs text-muted-foreground">Árazási beállítás: {pricingSettingsSummary(settings)}. Módosítás a lépés tetején, az „Árazási beállítás” kártyán.</p>
           <div className="flex flex-wrap items-center gap-2">
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void pickTemplate(f); if (fileRef.current) fileRef.current.value = ""; }} />
-            <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}><Upload className="mr-1.5 h-4 w-4" /> Ársablon (opcionális)</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}><Upload className="mr-1.5 h-4 w-4" /> Kitöltött ártábla / ársablon feltöltése</Button>
             {template && <Badge variant="secondary" className="gap-1">{template.name}<button type="button" aria-label="Ársablon eltávolítása" onClick={() => setTemplate(null)}><X className="h-3 w-3" /></button></Badge>}
             <Button type="button" variant="ghost" size="sm" onClick={() => void emptyTemplate()}><FileSpreadsheet className="mr-1.5 h-4 w-4" /> Üres ársablon letöltése</Button>
             <Button type="button" size="sm" className="ml-auto" disabled={!selectedDoc || calc.isPending} onClick={() => calc.mutate()}>
@@ -132,17 +153,20 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet, setti
 
           {ex.status === "verified"
             ? <div className="flex items-start gap-2 rounded-md border border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 p-3 text-sm"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div>
-                <p className="font-medium">Árazott TERVEZET elkészült és visszaellenőrizve</p>
-                <p className="text-xs text-muted-foreground">{ex.writtenCells} árcella írva, {ex.cachedCellsUpdated} képleteredmény újraszámolva; {ex.verification.cellsCompared} cella összevetve, váratlan változás nincs. Az eredeti fájl változatlan. Kiküldés előtt emberi ellenőrzés szükséges.</p></div></div>
+                <p className="font-medium">{pricingComplete(t, ex.status) ? "Az árazott Excel elkészült és visszaellenőrizve" : "Részben árazott Excel elkészült"}</p>
+                <p className="text-xs text-muted-foreground">{ex.writtenCells} árcella írva, az összegképletek újraszámolva, váratlan változás nincs. Az eredeti fájl változatlan.{pricingComplete(t, ex.status) ? " Kiküldés előtt nézd át." : ` ${openLines(t)} tétel még ár nélküli vagy ellenőrizendő — ezek az Excelben üresen maradtak; átnézésre letölthető, ügyfélnek így nem küldhető.`}</p></div></div>
             : <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /><div>
-                <p className="font-medium">Árazott Excel nem adható ki</p>
+                <p className="font-medium">{t.byStatus.priced === 0 ? "Még egyetlen tételnek sincs ára — árazott Excel ezért még nem készült" : "Árazott Excel nem adható ki"}</p>
+                {t.byStatus.priced === 0 && r.fillTemplate && <p className="text-xs">Töltsd le a „Kitöltendő ártáblát” ({r.fillTemplate.rows} tétel), írd be az árakat, töltsd vissza, és nyomd meg újra a Számítást.</p>}
                 <ul className="mt-1 list-disc pl-4 text-xs">{("reasons" in ex ? ex.reasons : []).slice(0, 8).map((x) => <li key={x}>{x}</li>)}</ul></div></div>}
           {r.summary.structure.layouts.some((l) => l.inferred.length || l.ambiguous.length) && (
             <ul className="list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">{r.summary.structure.layouts.flatMap((l) => [...l.inferred, ...l.ambiguous].map((x) => <li key={l.sheet + x}>{l.sheet}: {x}</li>))}</ul>)}
           {r.template && r.template.issues.length > 0 && <details className="text-xs"><summary className="cursor-pointer">Ársablon: {r.template.items} ár beolvasva, {r.template.issues.length} megjegyzés</summary><ul className="list-disc pl-4">{r.template.issues.slice(0, 30).map((i) => <li key={`${i.row}${i.message}`}>{i.row ? `${i.row}. sor: ` : ""}{i.message}</li>)}</ul></details>}
 
           <div className="flex flex-wrap gap-2">
-            {ex.status === "verified" && r.workbookBase64 && <Button size="sm" onClick={() => download(Uint8Array.from(atob(r.workbookBase64!), (c) => c.charCodeAt(0)), ex.fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}><Download className="mr-1.5 h-4 w-4" /> Árazott Excel (TERVEZET)</Button>}
+            {r.fillTemplate && <Button size="sm" variant={ex.status === "verified" ? "outline" : "default"} onClick={() => download(fromB64(r.fillTemplate!.base64), r.fillTemplate!.fileName, XLSX_MIME)}><FileSpreadsheet className="mr-1.5 h-4 w-4" /> Kitöltendő ártábla ({r.fillTemplate.rows} tétel)</Button>}
+            {ex.status === "verified" && r.workbookBase64 && <Button size="sm" onClick={() => download(fromB64(r.workbookBase64!), ex.fileName, XLSX_MIME)}><Download className="mr-1.5 h-4 w-4" /> {pricingComplete(t, ex.status) ? "Árazott Excel letöltése" : "Árazott Excel letöltése (hiányos)"}</Button>}
+            {ex.status === "verified" && r.workbookBase64 && <Button size="sm" variant="outline" disabled={locked || savePriced.isPending} onClick={() => savePriced.mutate()}>{savePriced.isPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />} Mentés az ajánlathoz</Button>}
             <Button size="sm" variant="outline" onClick={() => download(pricingCsv(r.lines), `${r.summary.file.name.replace(/\.[^.]+$/, "")}_VIBA_BELSO_ellenorzes.csv`, "text/csv;charset=utf-8")}><Download className="mr-1.5 h-4 w-4" /> Belső ellenőrzési lista (CSV)</Button>
             {pricingComplete(t, ex.status) ? <Button size="sm" variant="ghost" disabled={locked} onClick={() => { onUseNet(Math.round(t.netHuf)); toast.success("Nettó összeg átvéve — a Mentés gombbal rögzítheted."); }}>Nettó átvétele az ajánlat összegébe</Button>
               : <p className="self-center text-xs text-muted-foreground">Részösszeg — nem vehető át ajánlati összegként, amíg {openLines(t)} tétel ár nélküli vagy ellenőrizendő.</p>}

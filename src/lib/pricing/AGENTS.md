@@ -7,3 +7,6 @@
 - Calculations are not persisted (no pricing tables yet); saved versions, approved price master and chat-adjustment approval need the owner-approved data model first.
 - Labor rate, contingency, margin and rounding come from the quote's single `quotes.pricing_settings`, merged server-side in `priceQuoteBudget`/`reviewQuotePlans` (`src/lib/quotes/pricing-settings.ts`; explicit caller override wins); profiles carry no default labor rate, so a missing rate stays a missing price.
 - A calculated net may become the quote amount only when `pricingComplete` (`completeness.ts`) holds: verified export, zero open lines, net > 0 — partial sums are shown as partial.
+- Missing prices are filled only through the "Kitöltendő ártábla" round trip (`buildFillTemplateWorkbook` → user enters prices in Excel → upload as price template → same engine run, exact name+unit match); the CRM never pre-fills a price, and Timothy's chat adjustments stay previews until entered there.
+- Server-side R2 downloads use `redirect: "manual"` plus a 2xx check: workerd rejects `redirect: "error"` at runtime, which only breaks after publish/preview.
+- Formula errors already present in the customer's workbook (e.g. a self-including SUM) are reported per cell as original defects, separately from errors introduced by pricing; both still block export.

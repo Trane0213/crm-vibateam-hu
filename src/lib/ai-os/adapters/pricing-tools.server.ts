@@ -31,7 +31,7 @@ export async function priceBudgetTool(args: Record<string, unknown>, ctx: ToolCo
     lines: all.slice(data.page * PAGE, (data.page + 1) * PAGE).map(lineDto), lines_total: all.length, page: data.page, next_page: (data.page + 1) * PAGE < all.length ? data.page + 1 : null,
     limitations: [
       "Determinisztikus számítás, nem mentett: módosítás csak ebben a válaszban érvényes; tartós árazási verzió és jóváhagyás még nincs (P5).",
-      "Árazott Excel letöltése az ajánlat „Összeg és megjegyzések” lépésében, a panelen; kiküldés kizárólag a meglévő ellenőrzött Gmail-útvonalon.",
+      "Az Excel-fájlt nem ez az eszköz írja: az árazott XLSX-et a felhasználó az ajánlat 2. Árazás lépésében, a „Költségvetés árazása” panel Számítás gombjával készíti, onnan tölti le vagy menti az ajánlathoz. Hiányzó árakhoz ugyanott „Kitöltendő ártábla” tölthető le, kitöltve visszatölthető. Kiküldés kizárólag a meglévő ellenőrzött Gmail-útvonalon.",
       "Árforrás: a beépített korábbi VIBA-ajánlati munkadíj-referencia (kiküldött, elfogadás nem igazolt). Anyagár-törzs még nincs; teljes kivitelezésnél anyag csak feltöltött ársablonból árazható (panelen).",
       "review/missing/excluded_review sor nem kap automatikus árat; korábbi ár nem önköltség/fedezet.",
     ],
