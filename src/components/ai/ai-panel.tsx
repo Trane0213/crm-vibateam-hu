@@ -27,8 +27,11 @@ import {
 } from "@/components/ai/chat-shared";
 
 // ─── Nyitás/zárás állapot ────────────────────────────────────────────────
-type PanelCtx = { open: boolean; setOpen: (v: boolean) => void; toggle: () => void };
-const Ctx = createContext<PanelCtx>({ open: false, setOpen: () => {}, toggle: () => {} });
+type Prefill = { agent: AgentId; text: string; nonce: number };
+type PanelCtx = { open: boolean; setOpen: (v: boolean) => void; toggle: () => void;
+  /** Megnyitja a panelt egy agenttel és előre beírt (NEM elküldött) szöveggel. */
+  openWith: (agent: AgentId, text: string) => void; prefill: Prefill | null; clearPrefill: () => void };
+const Ctx = createContext<PanelCtx>({ open: false, setOpen: () => {}, toggle: () => {}, openWith: () => {}, prefill: null, clearPrefill: () => {} });
 const OPEN_KEY = "viba.ai.panel.open";
 
 export function AiPanelProvider({ children }: { children: React.ReactNode }) {
@@ -41,7 +44,10 @@ export function AiPanelProvider({ children }: { children: React.ReactNode }) {
     setOpenState(v);
     try { localStorage.setItem(OPEN_KEY, v ? "1" : "0"); } catch { /* ignore */ }
   }, []);
-  const value = useMemo(() => ({ open, setOpen, toggle: () => setOpen(!open) }), [open, setOpen]);
+  const [prefill, setPrefill] = useState<Prefill | null>(null);
+  const openWith = useCallback((agent: AgentId, text: string) => { setPrefill({ agent, text, nonce: Date.now() }); setOpen(true); }, [setOpen]);
+  const clearPrefill = useCallback(() => setPrefill(null), []);
+  const value = useMemo(() => ({ open, setOpen, toggle: () => setOpen(!open), openWith, prefill, clearPrefill }), [open, setOpen, openWith, prefill, clearPrefill]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export const useAiPanel = () => useContext(Ctx);
@@ -112,6 +118,15 @@ function PanelBody({ onClose }: { onClose: () => void }) {
 
   const recordCtx = useMemo(() => detectRecordContext(pathname), [pathname]);
   const { data: ctxLabel } = useContextLabel(recordCtx);
+  const { prefill, clearPrefill } = useAiPanel();
+  // Munkafelületről érkező utasítás: új beszélgetés, szöveg betöltve, küldés a felhasználó dolga.
+  useEffect(() => {
+    if (!prefill || agents.length === 0) return;
+    // A látható agentek listája később töltődhet be: addig várunk, nem esünk vissza George-ra.
+    if (!agents.includes(prefill.agent)) return;
+    setAgent(prefill.agent); setActiveId(null); setShowHistory(false); setUseCtx(true); setInput(prefill.text);
+    clearPrefill();
+  }, [prefill?.nonce, agents.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ha nem engedélyezett agent maradt aktív, vissza George-ra.
   useEffect(() => { if (!agents.includes(agent)) setAgent("crm"); }, [agents.join(","), agent]); // eslint-disable-line react-hooks/exhaustive-deps

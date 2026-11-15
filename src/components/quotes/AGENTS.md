@@ -1,0 +1,1 @@
+- The simplified quote view (`?nezet=egyszeru`, `QuoteSimpleWorkspace`) only rearranges existing quote panels passed as slots; next-step rules live in `src/lib/quotes/simple-workspace.ts` and workspace AI prompts go through `useAiPanel().openWith` (prefill only, user sends) — no parallel save, pricing, approval, send or chat path.

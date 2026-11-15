@@ -34,6 +34,8 @@ import { quoteWorkflowFeatures, type QuoteWorkflow } from "@/lib/quotes/workflow
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuoteReadinessCard } from "@/components/quotes/quote-readiness-card";
 import { quoteFormDirty } from "@/lib/quotes/form-dirty";
+import { parseQuoteView } from "@/lib/quotes/simple-workspace";
+import { QuoteSimpleWorkspace } from "@/components/quotes/quote-simple-workspace";
 
 const NONE = "__none";
 const KIND_LABEL: Record<string, string> = { received_budget: "Kapott költségvetés", viba_offer: "Saját VIBA-ajánlat" };
@@ -51,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/quotes/$id")({
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
   ] }),
+  validateSearch: (s: Record<string, unknown>): { nezet?: "egyszeru" } => ({ nezet: parseQuoteView(s.nezet) }),
   component: QuoteDetail,
 });
 
@@ -79,10 +82,12 @@ type QuoteRow = {
 
 function QuoteDetail() {
   const { id } = Route.useParams();
-  return <QuoteWorkflowDetail id={id} />;
+  const { nezet } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  return <QuoteWorkflowDetail id={id} simple={nezet === "egyszeru"} onToggleSimple={(v) => navigate({ search: { nezet: v ? "egyszeru" : undefined }, replace: true })} />;
 }
 
-export function QuoteWorkflowDetail({ id }: { id: string }) {
+export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id: string; simple?: boolean; onToggleSimple?: (v: boolean) => void }) {
   const companyLabel = useLookup("companies", "name");
   const upsert = useUpsert("quotes");
   const { role } = usePermissions();
@@ -286,6 +291,60 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
             {area("exclusions", "Kizárások", "Mit nem tartalmaz?")}
             {area("notes", "Megjegyzés", "Ügyfélnek szánt megjegyzés — a nyomtatható nézeten megjelenik.")}
   </div>);
+  const basicsFields = (<>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-1.5 sm:col-span-2">
+              <Label htmlFor="q-title">Ajánlat címe</Label>
+              <Input id="q-title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="pl. Klíma szerelés — Kovács villa" maxLength={200} />
+            </div>
+            {sel("scope_type", "Ajánlati tartalom", Object.entries(SCOPE_LABEL))}
+            {form.scope_type === "other" && area("scope_note", "Tartalom leírása", "Mit tartalmaz az ajánlat?")}
+            {sel("contact_id", "Kapcsolattartó", (contacts.data ?? []).map((c: any) => [c.id, c.email ? `${c.name} · ${c.email}` : c.name]), companyId ? "Nincs megadva" : "Előbb cég (ügy/projekt) szükséges")}
+            <div className="grid gap-1.5">
+              <Label>Felelős értékesítő</Label>
+              <Select disabled={!isOwner} value={responsible || NONE} onValueChange={(v) => set("responsible_user_id", v === NONE ? "" : v)}>
+                <SelectTrigger aria-label="Felelős értékesítő"><SelectValue placeholder="Nincs megadva" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Nincs megadva</SelectItem>
+                  {(sellers.data ?? []).map((u: any) => <SelectItem key={u.auth_user_id} value={u.auth_user_id}>{u.full_name ?? "—"}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {!isOwner && <span className="text-xs text-muted-foreground">A felelős a létrehozó; átadni csak tulajdonos tud.</span>}
+            </div>
+            {date("request_due_date", "Ajánlatkérési határidő")}
+            {date("offer_due_date", "Ajánlattételi határidő")}
+            {date("valid_until", "Érvényesség")}
+          </div>
+  </>);
+  const locked = !!(quote as any).locked_at;
+  const saveBtn = <Button size="sm" onClick={onSave} disabled={upsert.isPending || locked}><Save className="mr-1.5 h-4 w-4" /> Mentés</Button>;
+  const acceptedBlock = quote.status === "accepted" && <div className="mt-6 max-w-2xl rounded-lg border border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/10 p-3 text-sm">
+            <p className="font-semibold">Elfogadott ajánlat — következik a szerződés</p>
+            <p className="mt-1 text-xs text-muted-foreground">A szerződés-előkészítés és a „Megnyertük → projektátadás” a Pipeline ügy-adatlapján történik. Elektronikus aláírás és szerződés-jóváhagyás a CRM-ben nincs; a szerződési feltételek fájlja „Szerződési / fizetési feltételek” típusként tölthető fel.</p>
+            {(quote.lead_id || quote.project_id) && <div className="mt-2"><ContractPrepCompact leadId={quote.lead_id} projectId={quote.lead_id ? null : quote.project_id}
+              fullLink={quote.project_id ? { to: "/projects/$id", params: { id: quote.project_id }, search: { tab: "handover" }, label: "Projekt Átadás fül" } : quote.lead_id ? { to: "/sales/leads", search: { lead: quote.lead_id }, label: "Teljes lista a Pipeline adatlapon" } : null} /></div>}
+          </div>;
+  const templateWithItems = own && <QuoteTemplatePanel quote={quote as any} headerDraft={{
+            title: form.title, valid_until: form.valid_until || null, notes: form.notes,
+            technical_scope: form.technical_scope, exclusions: form.exclusions,
+            discount_percent: form.discount_percent || null, tax_percent: form.tax_percent || null,
+            manual_net_amount: form.manual_net_amount || null,
+          }}>{pricingEditor}
+          <div className="mt-6 border-t py-5"><QuoteItemsPanel quoteId={quote.id} locked={locked} /></div>
+          </QuoteTemplatePanel>;
+  const packagePanel = !own && canPriceBudget && <QuotePackagePanel quote={quote as any}
+            onSaveNet={async (n) => { await upsert.mutateAsync({ id: quote.id, manual_net_amount: n }); set("manual_net_amount", String(n)); }}
+            onHandoff={setSendDraft} onHandoffRevoked={() => setSendDraft(null)} />;
+  const readiness = <QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} />;
+  const ownPrint = own && <div className="space-y-4">
+            <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
+            <QuoteDocumentManager quoteId={quote.id} locked={locked} />
+          </div>;
+  const viewToggle = features.kind && onToggleSimple && (
+    <Button size="sm" variant={simple ? "default" : "outline"} onClick={() => onToggleSimple(!simple)} aria-pressed={simple}>
+      {simple ? "Részletes nézet" : "Egyszerűsített nézet (próba)"}
+    </Button>
+  );
   return (
     <div className="flex flex-col">
       <div className="sticky top-0 z-20 border-b bg-background px-4 py-4 sm:px-6">
@@ -307,6 +366,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
               )}
             </h1>
           </div>
+          <div className="flex flex-wrap gap-2">{viewToggle}
           {own && <Link
             to="/quotes/$id/print"
             params={{ id: quote.id }}
@@ -316,7 +376,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
             <Button size="sm" variant="outline">
               <Printer className="mr-1.5 h-4 w-4" /> Nyomtatás / PDF
             </Button>
-          </Link>}
+          </Link>}</div>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           {companyId ? (
@@ -351,7 +411,22 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
       </div>
 
       {!features.kind && <div className="p-4 sm:p-6"><QuoteWorkflowChoice disabled={upsert.isPending} onChoose={chooseWorkflow} /></div>}
-      {features.kind && <Tabs value={workspace} onValueChange={setWorkspace} className="min-w-0 p-4 sm:p-6">
+      {features.kind && simple && <QuoteSimpleWorkspace quoteId={quote.id} onSave={onSave} saving={upsert.isPending}
+        input={{ kind: form.quote_kind, title: (quote as any).title, status: quote.status, locked, dirty, net: savedAmounts.net, itemCount: itemRows.length }}
+        basics={<div className="space-y-4"><div className="flex items-center justify-between"><h3 className="text-sm font-semibold">Ügyfél és alapadatok</h3>{saveBtn}</div>{basicsFields}</div>}
+        documents={<>{!own && <QuoteDocumentManager quoteId={quote.id} locked={locked} />}<DocumentPackagesPanel parent={{ kind: "quote", id: quote.id }} title="Tervcsomagok (teljes projektdokumentáció)" /></>}
+        review={<>{own ? templateWithItems : pricingEditor}{packagePanel}<div className="max-w-2xl">{readiness}</div>{ownPrint}<QuoteSendPanel quote={quote as any} companyId={companyId} draft={sendDraft} /></>}
+        followup={<><QuoteStatusPanel quote={quote as any} />{acceptedBlock}</>}
+        expert={<div className="space-y-6">
+          <div><QuoteVersionsBar quote={quote as any} />{!locked && <div className="max-w-sm py-3">{sel("quote_kind", "Ajánlat típusa", Object.entries(KIND_LABEL))}</div>}</div>
+          {own && canPriceBudget && <VibaOfferCalcPanel quoteId={quote.id} locked={locked} scopeType={form.scope_type || null}
+            onApplyScope={(sc) => setForm((f) => ({ ...f, technical_scope: mergeText(f.technical_scope, sc.technicalScope), exclusions: mergeText(f.exclusions, sc.exclusions) }))} />}
+          {!own && canPriceBudget && <BudgetPricingPanel quoteId={quote.id} scopeType={form.scope_type || null} locked={locked} onUseNet={(n) => set("manual_net_amount", String(n))} />}
+          {!own && canPriceBudget && <PlanReviewPanel quoteId={quote.id} scopeType={form.scope_type || null} />}
+          {!canPriceBudget && <p className="text-sm text-muted-foreground">Árazási beállítások csak Tulajdonos és Sales számára érhetők el.</p>}
+        </div>}
+      />}
+      {features.kind && !simple && <Tabs value={workspace} onValueChange={setWorkspace} className="min-w-0 p-4 sm:p-6">
         <div className="overflow-x-auto border-b pb-3">
           <TabsList aria-label="Ajánlat munkaterületei" className="h-auto w-max justify-start">
             <TabsTrigger value="overview">1. {own ? "Alapadatok" : "Excel és tervek"}</TabsTrigger>
@@ -373,29 +448,7 @@ export function QuoteWorkflowDetail({ id }: { id: string }) {
               <Save className="mr-1.5 h-4 w-4" /> Mentés
             </Button>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-1.5 sm:col-span-2">
-              <Label htmlFor="q-title">Ajánlat címe</Label>
-              <Input id="q-title" value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="pl. Klíma szerelés — Kovács villa" maxLength={200} />
-            </div>
-            {sel("scope_type", "Ajánlati tartalom", Object.entries(SCOPE_LABEL))}
-            {form.scope_type === "other" && area("scope_note", "Tartalom leírása", "Mit tartalmaz az ajánlat?")}
-            {sel("contact_id", "Kapcsolattartó", (contacts.data ?? []).map((c: any) => [c.id, c.email ? `${c.name} · ${c.email}` : c.name]), companyId ? "Nincs megadva" : "Előbb cég (ügy/projekt) szükséges")}
-            <div className="grid gap-1.5">
-              <Label>Felelős értékesítő</Label>
-              <Select disabled={!isOwner} value={responsible || NONE} onValueChange={(v) => set("responsible_user_id", v === NONE ? "" : v)}>
-                <SelectTrigger aria-label="Felelős értékesítő"><SelectValue placeholder="Nincs megadva" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE}>Nincs megadva</SelectItem>
-                  {(sellers.data ?? []).map((u: any) => <SelectItem key={u.auth_user_id} value={u.auth_user_id}>{u.full_name ?? "—"}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              {!isOwner && <span className="text-xs text-muted-foreground">A felelős a létrehozó; átadni csak tulajdonos tud.</span>}
-            </div>
-            {date("request_due_date", "Ajánlatkérési határidő")}
-            {date("offer_due_date", "Ajánlattételi határidő")}
-            {date("valid_until", "Érvényesség")}
-          </div>
+          {basicsFields}
         </div>
         </TabsContent>
         <TabsContent value="pricing" forceMount hidden={workspace !== "pricing"}>
