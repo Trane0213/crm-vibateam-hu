@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { listQuoteRequests } from "@/lib/quote-requests.functions";
 import { receivedAt, isTestRequest } from "@/lib/quote-request-display";
-import { WsPageHeader, NextActionCard } from "@/components/workspace-v2/parts";
+import { WsPageHeader } from "@/components/workspace-v2/parts";
 import { StatusBadge } from "@/components/workspace-v2/status-badge";
 import { formatDateTime } from "@/lib/format";
 import { wsHead } from "@/lib/workspace-v2/head";
@@ -30,8 +30,7 @@ function InboundPage() {
 
   return (
     <>
-      <WsPageHeader title="Érdeklődők" subtitle="Weboldalról beérkezett ajánlatkérések" right={<Button asChild size="sm" variant="outline"><Link to="/munka/marketing/kampanyok">E-mail-kampányok</Link></Button>} />
-      <NextActionCard text="Nyisd meg az érdeklődést, vedd fel a CRM-be (cég és kapcsolattartó), majd az ügyféladatlapon minősítsd és add át a Salesnek. Duplikátumot jelölünk, nem vonunk össze." />
+      <WsPageHeader title="Érdeklődők" subtitle="Weboldalról beérkezett ajánlatkérések" />
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[200px] flex-1 sm:max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -47,7 +46,7 @@ function InboundPage() {
             <ul className="divide-y">
               {rows.slice(0, 200).map((r) => (
                 <li key={r.id}>
-                  <Link to="/web-quote-requests/$id" params={{ id: r.id }} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded px-2 py-2.5 hover:bg-muted/40">
+                  <Link to="/munka/marketing/erdeklodo/$id" params={{ id: r.id }} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded px-2 py-2.5 hover:bg-muted/40">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-medium">{r.company_name || r.name || "Névtelen érdeklődő"}</div>
                       <div className="truncate text-xs text-muted-foreground">{[r.project_type, r.form_type, formatDateTime(receivedAt(r))].filter(Boolean).join(" · ")}</div>

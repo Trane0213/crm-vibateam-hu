@@ -1,5 +1,6 @@
+import { useCrmNavigate } from "@/components/workspace-v2/crm-link";
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ import type { QuoteWorkflow } from "@/lib/quotes/workflow";
 export function NewQuoteButton({ leadId = null, label = "Új ajánlat", variant = "secondary", openIn = "legacy" }: { leadId?: string | null; label?: string; variant?: "default" | "secondary" | "outline"; openIn?: "legacy" | "v2" }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
   const qc = useQueryClient();
   const choose = async (kind: QuoteWorkflow) => {
     setBusy(true);

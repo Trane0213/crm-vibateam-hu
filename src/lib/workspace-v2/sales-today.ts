@@ -28,8 +28,8 @@ export function salesKpis(d: ReturnType<typeof dailyWork>) {
 }
 
 /** Hova vigyen egy napi sor: Pipeline-ban lévő ügy az új Pipeline-ra, előkészítés alatti a meglévő munkafelületre. */
-export function taskTarget(lead: Pick<DailyLead, "id" | "pipeline_entered_at">): { to: "/munka/sales/pipeline"; search: { lead: string } } | { to: "/leads"; search: { lead: string } } {
-  return lead.pipeline_entered_at ? { to: "/munka/sales/pipeline", search: { lead: lead.id } } : { to: "/leads", search: { lead: lead.id } };
+export function taskTarget(lead: Pick<DailyLead, "id">): { to: "/munka/ugy/$id"; params: { id: string } } {
+  return { to: "/munka/ugy/$id", params: { id: lead.id } };
 }
 
 export function timothyDailyPrompt(k: ReturnType<typeof salesKpis>) {

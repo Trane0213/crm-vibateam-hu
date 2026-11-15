@@ -2,21 +2,23 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { CalendarDays, Image, Loader2, Paperclip, Share2 } from "lucide-react";
+import { Loader2, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { getMailboxes, getMailboxPage } from "@/lib/gmail/mailbox.functions";
 import { mailboxResult, defaultMailbox, type MailFolder } from "@/lib/gmail/mailbox-model";
 import { listOwnGmailDrafts } from "@/lib/marketing/gmail-drafts.functions";
-import { WsPageHeader, AiSuggestionCard } from "@/components/workspace-v2/parts";
+import { WsPageHeader, CaseAssistant } from "@/components/workspace-v2/parts";
+import { useAiPanel } from "@/components/ai/ai-panel";
+import { usePermissions } from "@/hooks/use-permissions";
 import { StatusBadge } from "@/components/workspace-v2/status-badge";
 import { formatDateTime } from "@/lib/format";
 import { wsHead } from "@/lib/workspace-v2/head";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/munka/marketing/levelezes")({
-  head: () => wsHead("Levelezés és tartalom", "Saját postafiók, Gmail-piszkozatok és Scarlet által előkészített tartalom."),
+export const Route = createFileRoute("/_authenticated/munka/levelezes/")({
+  head: () => wsHead("Levelezés", "Saját postafiók, Gmail-piszkozatok és tartalomtervezés."),
   component: MailContentPage,
 });
 
@@ -24,8 +26,17 @@ const FOLDERS: { key: MailFolder; label: string }[] = [
   { key: "inbox", label: "Beérkezett" }, { key: "waiting", label: "Válaszra vár" }, { key: "sent", label: "Elküldött" },
 ];
 
+const CONTENT_PROMPTS = [
+  { label: "Megkereső e-mail tervezet", text: "Készíts e-mail-tervezetet (tárgy + 120 szavas szöveg) a VIBA-TEAM villamos kivitelezési szolgáltatásáról irodaházak és társasházak üzemeltetőinek. Csak ellenőrizhető állítást használj, árat ne írj. Ne küldj és ne ments semmit." },
+  { label: "LinkedIn-poszt tervezet", text: "Írj rövid LinkedIn-poszt-tervezetet egy befejezett VIBA-TEAM villamos kivitelezési munkáról, kitalált adatok nélkül; jelöld, hol kell valós adatot beírni. Ne publikálj semmit." },
+  { label: "Utánkövető levél tervezet", text: "Írj udvarias utánkövető levél-tervezetet olyan cégnek, amely nem válaszolt az első megkeresésre. Árat ne írj. Ne küldj semmit." },
+];
+
 function MailContentPage() {
   const { user } = useAuth();
+  const { role } = usePermissions();
+  const marketingRole = role === "marketing" || role === "owner";
+  const { openWith } = useAiPanel();
   const [tab, setTab] = useState("mail");
   const [folder, setFolder] = useState<MailFolder>("inbox");
   const mailboxesFn = useServerFn(getMailboxes);
@@ -42,13 +53,13 @@ function MailContentPage() {
 
   return (
     <>
-      <WsPageHeader title="Levelezés és tartalom" subtitle={mailbox ? `Postafiók: ${mailbox}` : "Saját postafiók"} right={<Button asChild size="sm" variant="outline"><Link to="/emails">Teljes levelezés</Link></Button>} />
+      <WsPageHeader title="Levelezés" subtitle={mailbox ? `Postafiók: ${mailbox}` : "Saját postafiók"} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Tabs value={tab} onValueChange={setTab} className="min-w-0 rounded-xl border bg-card p-4 shadow-[var(--shadow-card)]">
           <TabsList className="flex h-auto flex-wrap justify-start">
             <TabsTrigger value="mail">Levelezés{page.data ? ` (${page.data.counts.inbox ?? 0})` : ""}</TabsTrigger>
             <TabsTrigger value="drafts">Piszkozatok</TabsTrigger>
-            <TabsTrigger value="content">Tartalomtervezés</TabsTrigger>
+            {marketingRole && <TabsTrigger value="content">Tartalomtervezés</TabsTrigger>}
           </TabsList>
           <TabsContent value="mail" className="pt-3">
             <div className="mb-2 flex flex-wrap gap-1">
@@ -67,7 +78,7 @@ function MailContentPage() {
                 <ul className="divide-y">
                   {page.data!.rows.slice(0, 25).map((r) => (
                     <li key={r.thread_id}>
-                      <Link to="/emails/$threadId" params={{ threadId: r.thread_id }} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 hover:bg-muted/40">
+                      <Link to="/munka/levelezes/$threadId" params={{ threadId: r.thread_id }} search={mailbox ? { mailbox } : {}} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 hover:bg-muted/40">
                         <div className="min-w-0">
                           <div className={cn("truncate text-sm", r.unread && "font-semibold")}>{r.subject || "(nincs tárgy)"}</div>
                           <div className="truncate text-xs text-muted-foreground">{[r.outbound ? r.to_email : r.from_email, r.company_name].filter(Boolean).join(" · ")}</div>
@@ -94,22 +105,20 @@ function MailContentPage() {
               )}
             <p className="mt-3 text-xs text-muted-foreground">Piszkozatot kampányba a kampány szerkesztőjében lehet importálni; ott ellenőrzött másolat készül.</p>
           </TabsContent>
-          <TabsContent value="content" className="space-y-3 pt-3">
-            <p className="text-sm">Scarlet e-mail- és posztszöveg-tervezetet készít a jobb oldali gombbal. A tervezet a beszélgetésben marad; mentés, küldés vagy publikálás nem történik automatikusan.</p>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[{ icon: CalendarDays, t: "Tartalomnaptár" }, { icon: Image, t: "Kreatívtár / média" }, { icon: Share2, t: "Közösségi publikálás és mérés" }].map(({ icon: I, t }) => (
-                <div key={t} className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
-                  <I className="mb-1 h-4 w-4" /><div className="font-medium text-foreground">{t}</div>
-                  <StatusBadge status="planned" label="Tervezett – háttérfejlesztés szükséges" className="mt-1" />
-                </div>
+          {marketingRole && <TabsContent value="content" className="space-y-3 pt-3">
+            <p className="text-sm">Kérj Scarlettől e-mail- vagy posztszöveg-tervezetet. A tervezet a beszélgetésben marad; mentés, küldés vagy publikálás nem történik.</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {CONTENT_PROMPTS.map((c) => (
+                <Button key={c.label} variant="outline" className="h-auto justify-start whitespace-normal py-2 text-left" onClick={() => openWith("marketing", c.text)}>{c.label}</Button>
               ))}
             </div>
-          </TabsContent>
+          </TabsContent>}
         </Tabs>
-        <AiSuggestionCard agent="marketing" title="Scarlet – tartalomtervezet"
-          lines={["Tárgysor és megszólítás", "Rövid, átolvasható szöveg", "Csak tervezet, küldés nélkül"]}
-          prompt="Készíts e-mail-tervezetet (tárgy + 120 szavas szöveg) a VIBA-TEAM villamos kivitelezési szolgáltatásáról irodaházak és társasházak üzemeltetőinek. Csak ellenőrizhető állítást használj, árat ne írj. Ne küldj és ne ments semmit."
-          cta="Tervezet kérése Scarlettől" />
+        <CaseAssistant agent={marketingRole ? "marketing" : "sales"} intro="A saját postafiókodban segít; levelet nem küld."
+          prompts={[
+            { label: "Mire kell ma válaszolnom?", text: "Nézd át a saját postafiókom válaszra váró leveleit, és rangsorold, melyikre kell ma válaszolni. Ne küldj és ne módosíts semmit." },
+            { label: "Ügyhöz nem kötött levelek", text: "Keresd meg a saját postafiókomban azokat a leveleket, amelyek nincsenek céghez vagy ügyhöz kötve, és javasolj kötést indoklással. Ne módosíts semmit." },
+          ]} />
       </div>
     </>
   );

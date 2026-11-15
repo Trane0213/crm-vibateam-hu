@@ -21,8 +21,7 @@ describe("Értékesítés – Ma", () => {
     expect(t.map((x) => x.id)).toEqual(["late", "today", "nocontact"]);
     expect(t[0].label).toBe("Lejárt teendő");
   });
-  it("Pipeline-ügy az új Pipeline-ra, előkészítés alatti a meglévő munkafelületre visz", () => {
-    expect(taskTarget({ id: "a", pipeline_entered_at: "x" }).to).toBe("/munka/sales/pipeline");
-    expect(taskTarget({ id: "b", pipeline_entered_at: null }).to).toBe("/leads");
+  it("minden napi teendő az új munkaterület ügyoldalát nyitja meg", () => {
+    expect(taskTarget({ id: "a" })).toEqual({ to: "/munka/ugy/$id", params: { id: "a" } });
   });
 });

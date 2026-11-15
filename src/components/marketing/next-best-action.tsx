@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import {
   CheckCircle2, Mail, UserPlus, StickyNote, ArrowRightCircle,
   AlertCircle, Sparkles, ExternalLink, Tag,
@@ -61,10 +62,10 @@ export function NextBestAction({
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {step.primary.action === "open-lead" && handoffLeadId ? (
               <Button asChild size="sm">
-                <Link to="/leads/$id" params={{ id: handoffLeadId }}>
+                <CrmLink to="/leads/$id" params={{ id: handoffLeadId }}>
                   <PrimaryIcon className="mr-1.5 h-4 w-4" />
                   {step.primary.label}
-                </Link>
+                </CrmLink>
               </Button>
             ) : (
               <Button

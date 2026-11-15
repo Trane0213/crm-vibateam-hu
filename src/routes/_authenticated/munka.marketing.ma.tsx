@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -13,7 +14,8 @@ import { campaignOverview, marketingFocus, marketingPriorityRows, marketingResul
 import { readMarketingHomeCompanies, marketingHomeSummary } from "@/lib/marketing-home-read";
 import { budapestDayBounds } from "@/lib/owner-kpis";
 import { budapestMonthStart } from "@/lib/workspace-v2/targets";
-import { marketingRowLink, marketingRowStatus, scarletDailyPrompt } from "@/lib/workspace-v2/marketing-today";
+import { marketingRowLink, marketingRowStatus, marketingTaskId, scarletDailyPrompt } from "@/lib/workspace-v2/marketing-today";
+import type { MarketingPriorityRow } from "@/lib/marketing/marketing-day-flow";
 import { KpiCard, AiSuggestionCard, NextActionCard, WsPageHeader } from "@/components/workspace-v2/parts";
 import { StatusBadge } from "@/components/workspace-v2/status-badge";
 import { MonthlyTargetCard } from "@/components/workspace-v2/monthly-target";
@@ -47,6 +49,7 @@ function MarketingToday() {
     ? marketingHomeSummary(companies.data, [], { today: monthStart, week: monthStart, todayDay: localDay(monthStart), monthDay: localDay(monthStart) }).handoff30
     : null;
   const results = marketingResultLines({ mail: dailyReady && d ? d.mail : null, newCompanies30: null, handoff30: handoffMonth, emails7: null }).slice(0, 1);
+  const firstLink = rows[0] ? marketingRowLink(rows[0]) : null;
   const today = new Intl.DateTimeFormat("hu-HU", { timeZone: "Europe/Budapest", year: "numeric", month: "short", day: "numeric", weekday: "short" }).format(new Date());
 
   return (
@@ -60,7 +63,7 @@ function MarketingToday() {
         <MonthlyTargetCard area="marketing" actual={handoffMonth} actualLabel={handoffMonth != null ? `${handoffMonth} átadva e hónapban` : undefined} />
       </div>
       {focus && <NextActionCard text={`${focus.title}. ${focus.detail}`}
-        action={rows[0] ? <Button asChild size="sm"><Link {...marketingRowLink(rows[0])}>{focus.actionLabel}<ArrowRight className="h-4 w-4" /></Link></Button>
+        action={rows[0] ? (firstLink ? <Button asChild size="sm"><Link {...firstLink}>{focus.actionLabel}<ArrowRight className="h-4 w-4" /></Link></Button> : null)
           : <Button asChild size="sm"><Link to="/munka/marketing/kampanyok">{focus.actionLabel}</Link></Button>} />}
       {focus?.warnings.map((w) => <p key={w} className="text-xs text-status-warning">{w}</p>)}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -71,25 +74,52 @@ function MarketingToday() {
             : rows.length === 0 ? <p className="py-3 text-sm text-muted-foreground">Nincs esedékes marketingteendő.</p>
             : (
               <ul className="mt-2 divide-y">
-                {rows.slice(0, 12).map((r) => (
-                  <li key={r.id}>
-                    <Link {...marketingRowLink(r)} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 hover:bg-muted/40">
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">{r.title}</div>
-                        <div className="truncate text-xs text-muted-foreground">{r.reason}{r.due ? ` · ${formatDate(r.due)}` : ""}{r.also.length ? ` · +${r.also.join(", ")}` : ""}</div>
-                      </div>
-                      <StatusBadge status={marketingRowStatus(r.kind)} label={r.label} />
-                    </Link>
-                  </li>
-                ))}
+                {rows.slice(0, 12).map((r) => <MarketingRow key={r.id} row={r} />)}
               </ul>
             )}
           {results.map((l) => <p key={l} className="mt-3 border-t pt-3 text-xs text-muted-foreground">{l}</p>)}
         </section>
         <AiSuggestionCard agent="marketing" title="Scarlet – napi javaslat"
-          lines={[`${rows.length} teendő`, `${d?.reply_pending.length ?? 0} beérkezett válasz`, "Scarlet tervezetet készít; küldés csak a te jóváhagyásoddal."]}
+          lines={[`${rows.length} teendő`, `${d?.reply_pending.length ?? 0} beérkezett válasz`]}
           prompt={scarletDailyPrompt({ rows: rows.length, replies: d?.reply_pending.length ?? 0, qualified: d?.qualified.length ?? 0, activeCampaigns: campaigns.isSuccess ? overview.active : null })} />
       </div>
     </>
+  );
+}
+
+/** Egy napi marketingteendő: céges teendő az ügyféladatlapra visz, saját feladat helyben késznek jelölhető. */
+function MarketingRow({ row }: { row: MarketingPriorityRow }) {
+  const qc = useQueryClient();
+  const link = marketingRowLink(row);
+  const taskId = marketingTaskId(row);
+  const done = useMutation({
+    mutationFn: async () => {
+      const r = await supabase.from("tasks").update({ status: "done" }).eq("id", taskId!).select("id");
+      if (r.error) throw r.error;
+      if (r.data?.length !== 1) throw new Error("A feladat nem módosítható (jogosultság vagy már lezárt).");
+    },
+    onSuccess: () => { toast.success("Feladat kész"); void qc.invalidateQueries({ queryKey: ["mkt-home"] }); void qc.invalidateQueries({ queryKey: ["tasks"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const body = (
+    <div className="min-w-0">
+      <div className="truncate text-sm font-medium">{row.title}</div>
+      <div className="truncate text-xs text-muted-foreground">{row.reason}{row.due ? ` · ${formatDate(row.due)}` : ""}{row.also.length ? ` · +${row.also.join(", ")}` : ""}</div>
+    </div>
+  );
+  return (
+    <li>
+      {link ? (
+        <Link {...link} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 hover:bg-muted/40">
+          {body}<StatusBadge status={marketingRowStatus(row.kind)} label={row.label} />
+        </Link>
+      ) : (
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5">
+          {body}
+          {taskId ? <Button size="sm" variant="outline" className="h-7" disabled={done.isPending} onClick={() => done.mutate()}><Check className="h-3.5 w-3.5" />Kész</Button>
+            : <StatusBadge status={marketingRowStatus(row.kind)} label={row.label} />}
+        </div>
+      )}
+    </li>
   );
 }

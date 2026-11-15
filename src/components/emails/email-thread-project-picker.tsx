@@ -1,6 +1,7 @@
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+
 import { Button } from "@/components/ui/button";
 import { RecordCombobox } from "@/components/resource/record-combobox";
 import {
@@ -68,7 +69,7 @@ export function EmailThreadProjectPicker({
       <div className="flex items-center gap-1">
         {cur ? (
           <>
-            <Link
+            <CrmLink
               to="/projects/$id"
               params={{ id: (cur as any).id }}
               className="inline-flex items-center gap-1 max-w-[260px] rounded-md bg-primary/10 px-2 py-1 text-[12px] font-medium text-primary hover:bg-primary/15"
@@ -76,7 +77,7 @@ export function EmailThreadProjectPicker({
             >
               <Briefcase className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate">{label}</span>
-            </Link>
+            </CrmLink>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px] text-muted-foreground">Csere</Button>
@@ -109,9 +110,9 @@ export function EmailThreadProjectPicker({
       </div>
       {cur ? (
         <div className="space-y-2">
-          <Link to="/projects/$id" params={{ id: cur.id }} className="block text-sm font-medium text-primary hover:underline truncate">
+          <CrmLink to="/projects/$id" params={{ id: cur.id }} className="block text-sm font-medium text-primary hover:underline truncate">
             {cur.title ?? "—"}
-          </Link>
+          </CrmLink>
           <div className="flex gap-1.5">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>

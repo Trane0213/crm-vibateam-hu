@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, RotateCcw, Search, Trophy, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -9,7 +10,6 @@ import { humanizeSupabaseError } from "@/lib/db-hooks";
 import { PIPELINE_COLUMNS, type PipelineLead } from "@/components/pipeline/pipeline-types";
 import { fetchPipelineLeads } from "@/components/pipeline/pipeline-data";
 import { PipelineCard } from "@/components/pipeline/pipeline-card";
-import { PipelineDetailSheet } from "@/components/pipeline/pipeline-detail-sheet";
 import { CreateProjectDialog } from "@/components/pipeline/create-project-dialog";
 import { LostDialog } from "@/components/sales/lost-dialog";
 import { usePipelineLeadMutations } from "@/components/pipeline/use-pipeline-lead-mutations";
@@ -28,12 +28,13 @@ const COL_TONE: Record<string, string> = {
 /**
  * Húzható Pipeline. Áthelyezés csak a meglévő STATUS_TRANSITIONS szerint, a közös
  * írási útvonalon; „Megnyert” → meglévő projektlétrehozó ablak, „Elveszett” → okválasztó.
- * Mobilon (érintés) a kártyára koppintva a részletablakban lehet lépni.
+ * A kártyára kattintva (mobilon koppintva) az ügy munkalapja nyílik meg.
  */
-export function PipelineBoardV2({ initialLeadId = null }: { initialLeadId?: string | null }) {
+export function PipelineBoardV2() {
   const { user } = useAuth();
   const leadsQ = useQuery({ queryKey: ["pipeline", "board"], queryFn: fetchPipelineLeads });
-  const [openId, setOpenId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const openCase = (id: string) => navigate({ to: "/munka/ugy/$id", params: { id } });
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<string | null>(null);
   const [mine, setMine] = useState(false);
@@ -43,12 +44,6 @@ export function PipelineBoardV2({ initialLeadId = null }: { initialLeadId?: stri
   const [lostLead, setLostLead] = useState<PipelineLead | null>(null);
   const { statusMut, lostMut } = usePipelineLeadMutations(() => setLostLead(null));
 
-  useEffect(() => {
-    if (!initialLeadId || !leadsQ.data) return;
-    const hit = leadsQ.data.find((l) => l.id === initialLeadId);
-    if (hit) { setOpenId(hit.id); setMobileCol(hit.status); }
-    else toast.error("Ez az ügy nincs az aktív Pipeline-ban, vagy nincs hozzá jogosultságod.");
-  }, [initialLeadId, leadsQ.data]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -73,7 +68,6 @@ export function PipelineBoardV2({ initialLeadId = null }: { initialLeadId?: stri
   });
   const dragged = (leadsQ.data ?? []).find((l) => l.id === dragId) ?? null;
   const verdict = (t: LeadStatus) => (dragged ? pipelineDrop(dragged.status, t).kind : null);
-  const openLead = (leadsQ.data ?? []).find((l) => l.id === openId) ?? null;
 
   if (leadsQ.isLoading) return <div className="flex h-64 items-center justify-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Pipeline betöltése…</div>;
   if (leadsQ.isError) return (
@@ -126,7 +120,7 @@ export function PipelineBoardV2({ initialLeadId = null }: { initialLeadId?: stri
                   : items.map((l) => (
                     <div key={l.id} draggable onDragStart={(e) => { setDragId(l.id); e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", l.id); }}
                       onDragEnd={() => { setDragId(null); setOverCol(null); }} data-lead={l.id} className={cn("cursor-grab active:cursor-grabbing", dragId === l.id && "opacity-50")}>
-                      <PipelineCard lead={l} active={openId === l.id} onOpen={setOpenId} />
+                      <PipelineCard lead={l} onOpen={openCase} />
                     </div>
                   ))}
               </div>
@@ -146,7 +140,6 @@ export function PipelineBoardV2({ initialLeadId = null }: { initialLeadId?: stri
         </div>
       </div>
 
-      <PipelineDetailSheet lead={openLead} open={openId !== null} onOpenChange={(v) => { if (!v) setOpenId(null); }} />
       <CreateProjectDialog lead={wonLead} open={wonLead !== null} onOpenChange={(v) => { if (!v) setWonLead(null); }} />
       <LostDialog open={lostLead !== null} onOpenChange={(v) => { if (!v) setLostLead(null); }} busy={lostMut.isPending}
         onConfirm={(p) => { if (lostLead) lostMut.mutate({ lead: lostLead, ...p }); }} />

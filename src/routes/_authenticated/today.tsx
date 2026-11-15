@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { useWorkspaceV2 } from "@/hooks/use-workspace-v2";
+import { canAccessRoute } from "@/lib/permissions";
 import { usePermissions } from "@/hooks/use-permissions";
 import { OwnerHome } from "@/components/today/owner-home";
 import { SalesHome } from "@/components/today/sales-home";
@@ -26,6 +28,8 @@ function TodayPage() {
   const { role, isLoading } = usePermissions();
   const { lane } = Route.useSearch();
   const navigate = Route.useNavigate();
+  // Aki az új munkaterületet választotta, annak a kezdőlapja az (a régi CRM-be a munkaterület „Régi CRM” gombja visz vissza).
+  const { enabled: workspaceV2 } = useWorkspaceV2();
 
   if (isLoading) {
     return (
@@ -34,6 +38,8 @@ function TodayPage() {
       </div>
     );
   }
+
+  if (workspaceV2 && role !== "owner" && canAccessRoute(role, "/munka")) return <Navigate to="/munka" replace />;
 
   switch (role) {
     case "owner":           return <OwnerHome lane={lane} onLane={(l) => void navigate({ search: l ? { lane: l } : {}, replace: true })} />;

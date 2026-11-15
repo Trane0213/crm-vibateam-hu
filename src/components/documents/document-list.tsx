@@ -5,8 +5,9 @@
  * Csak a hívó által (RLS) már látható sorokat mutatja; megnyitás kizárólag a
  * meglévő `r2PresignDownload` úton (`useOpenDocument`).
  */
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useMemo, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+
 import { AlertCircle, Download, FileText, Link2Off, Loader2, Search, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -146,7 +147,7 @@ export function DocumentList({
                     </div>
                     <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                       {showParent && (link
-                        ? <Link to={link.to as any} params={link.params as any} search={link.search as any} className="font-medium text-primary hover:underline">{docParentKind(d.source)}: {link.label}</Link>
+                        ? <CrmLink to={link.to as any} params={link.params as any} search={link.search as any} className="font-medium text-primary hover:underline">{docParentKind(d.source)}: {link.label}</CrmLink>
                         : docParentState(d) === "not_linked"
                           ? <span className="inline-flex items-center gap-1"><Link2Off className="h-3 w-3" />{DOC_NOT_LINKED_TEXT[d.source]}</span>
                           : <span>{docParentKind(d.source)}: {d.parentLabel ?? "—"}</span>)}

@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { CheckCircle2, Circle, AlertTriangle, ArrowRight, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Readiness } from "@/lib/sales/sales-flow";
@@ -53,7 +54,7 @@ export function SalesFlowMap({ stages, label = "Sales munkafolyamat" }: { stages
       <ol className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:flex lg:items-stretch">
         {stages.map((s, i) => (
           <li key={s.key} className="flex min-w-0 items-center gap-1 lg:flex-1">
-            <Link
+            <CrmLink
               to={s.to}
               {...(s.search ? { search: s.search as any } : {})}
               title={s.hint}
@@ -65,7 +66,7 @@ export function SalesFlowMap({ stages, label = "Sales munkafolyamat" }: { stages
                 <span className="block truncate text-[11px] text-muted-foreground">{s.hint}</span>
               </span>
               <span className="shrink-0 text-base font-semibold tabular-nums">{s.count}</span>
-            </Link>
+            </CrmLink>
             {i < stages.length - 1 && <ChevronRight className="hidden h-4 w-4 shrink-0 text-muted-foreground/50 lg:block" aria-hidden />}
           </li>
         ))}

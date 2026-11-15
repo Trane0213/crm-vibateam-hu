@@ -1,5 +1,6 @@
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { quoteSendReadiness } from "@/lib/sales/sales-flow";
@@ -63,7 +64,7 @@ export function QuoteReadinessCard({
           ? "A kötelező adatok rendben. A kiküldés csak a lenti gombbal, a saját Gmail-fiókodból történik; a piszkozat nem számít kiküldésnek."
           : "Pótold a kötelező hiányokat a megadott lépésben, mielőtt kiküldöd."}
       />
-      {quote.lead_id && (role === "sales" || role === "owner") && <p className="text-xs text-muted-foreground">Kiküldés után a Pipeline-ban léptesd az ügyet „Ajánlat kiadva” szakaszba: <Link to="/sales/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">ügy megnyitása a Pipeline-ban</Link>.</p>}
+      {quote.lead_id && (role === "sales" || role === "owner") && <p className="text-xs text-muted-foreground">Kiküldés után a Pipeline-ban léptesd az ügyet „Ajánlat kiadva” szakaszba: <CrmLink to="/sales/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">ügy megnyitása a Pipeline-ban</CrmLink>.</p>}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ function SalesToday() {
   const { role } = usePermissions();
   const team = role === "owner";
   const daily = useDailyWork();
+  const [showAll, setShowAll] = useState(false);
   const pipeline = useQuery({ queryKey: ["pipeline", "board"], queryFn: fetchPipelineLeads });
   const won = useQuery({
     queryKey: ["leads", "won-month", team ? "team" : user?.id, budapestMonthStart()],
@@ -59,13 +61,13 @@ function SalesToday() {
       {first ? (
         <NextActionCard text={`${first.lead.company_name ?? first.lead.summary ?? "Ügy"} – ${first.label.toLowerCase()}.`}
           action={<Button asChild size="sm"><Link {...taskTarget(first.lead)}>Megnyitás<ArrowRight className="h-4 w-4" /></Link></Button>} />
-      ) : <NextActionCard text="Nincs sürgős teendő. Nézd át a Pipeline-t vagy készíts új ajánlatot." />}
+      ) : <NextActionCard text="Nincs sürgős teendő." action={<Button asChild size="sm" variant="outline"><Link to="/munka/sales/pipeline">Pipeline</Link></Button>} />}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-xl border bg-card p-4 shadow-[var(--shadow-card)]">
           <h2 className="font-display text-base font-semibold">Mai teendők ({tasks.length})</h2>
           {tasks.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">Nincs nyitott teendő.</p> : (
             <ul className="mt-2 divide-y">
-              {tasks.slice(0, 12).map((t) => (
+              {(showAll ? tasks : tasks.slice(0, 12)).map((t) => (
                 <li key={t.id}>
                   <Link {...taskTarget(t.lead)} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5 hover:bg-muted/40">
                     <div className="min-w-0">
@@ -78,10 +80,10 @@ function SalesToday() {
               ))}
             </ul>
           )}
-          {tasks.length > 12 && <Link to="/sales/todo" search={{ bucket: "today" }} className="mt-2 inline-block text-xs text-primary hover:underline">További {tasks.length - 12} teendő a teljes listán</Link>}
+          {tasks.length > 12 && <Button size="sm" variant="ghost" className="mt-2 h-7 px-2 text-xs" onClick={() => setShowAll((v) => !v)}>{showAll ? "Kevesebb" : `További ${tasks.length - 12} teendő`}</Button>}
         </section>
         <AiSuggestionCard agent="sales" title="Timothy – napi összefoglaló"
-          lines={[`${k.overdue} lejárt, ${k.today} mai teendő`, `${k.missing} ügynél hiányzó adat`, "Timothy csak javasol; mentést, küldést te hagysz jóvá."]}
+          lines={[`${k.overdue} lejárt, ${k.today} mai teendő`, `${k.missing} ügynél hiányzó adat`]}
           prompt={timothyDailyPrompt(k)} cta="Részletek és javaslatok" />
       </div>
     </>

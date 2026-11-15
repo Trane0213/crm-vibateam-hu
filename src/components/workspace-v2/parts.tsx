@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAiPanel } from "@/components/ai/ai-panel";
-import type { AgentId } from "@/components/ai/chat-shared";
+import { AGENT_META } from "@/components/ai/chat-shared";
 import { cn } from "@/lib/utils";
 
 /** Lépéssáv: a kész lépések pipát kapnak, az aktuális kiemelt. */
@@ -43,8 +42,35 @@ export function KpiCard({ label, value, tone = "default" }: { label: string; val
   );
 }
 
-/** AI-javaslat kártya: a meglévő AI-panelt nyitja előre beírt kéréssel, magától nem küld. */
-export function AiSuggestionCard({ agent, title, lines, prompt, cta = "Javaslatok megnyitása" }: { agent: AgentId; title: string; lines: string[]; prompt: string; cta?: string }) {
+/**
+ * Ügyön belüli asszisztens (Timothy / Scarlet): az aktuális rekordot az AI-panel az URL-ből
+ * ismeri; a gombok csak előtöltik a kérést, magától semmit nem küld és nem ment.
+ */
+export function CaseAssistant({ agent, intro, prompts }: { agent: "sales" | "marketing"; intro?: string; prompts: { label: string; text: string }[] }) {
+  const { openWith } = useAiPanel();
+  const meta = AGENT_META[agent];
+  return (
+    <section aria-label={`${meta.firstName} segítsége`} className="rounded-xl border border-primary/20 bg-accent/40 p-4">
+      <div className="flex items-center gap-2">
+        <img src={meta.portrait} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-primary/30" />
+        <div className="min-w-0">
+          <h3 className="font-display text-sm font-semibold">{meta.firstName}</h3>
+          <p className="truncate text-[11px] text-muted-foreground">{intro ?? "Ennél az ügynél segít; mentés és küldés csak jóváhagyással."}</p>
+        </div>
+      </div>
+      <div className="mt-3 grid gap-1.5">
+        {prompts.map((p) => (
+          <Button key={p.label} variant="outline" size="sm" className="h-auto justify-between whitespace-normal py-1.5 text-left" onClick={() => openWith(agent, p.text)}>
+            <span className="min-w-0">{p.label}</span><ArrowRight className="h-3.5 w-3.5 shrink-0" />
+          </Button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/** Napi összefoglaló kártya a Ma képernyőkön (ugyanaz az asszisztens, előtöltött kéréssel). */
+export function AiSuggestionCard({ agent, title, lines, prompt, cta = "Javaslatok megnyitása" }: { agent: "sales" | "marketing"; title: string; lines: string[]; prompt: string; cta?: string }) {
   const { openWith } = useAiPanel();
   return (
     <div className="rounded-xl border border-primary/20 bg-accent/40 p-4">
@@ -69,8 +95,4 @@ export function WsPageHeader({ title, subtitle, right }: { title: string; subtit
       {right}
     </header>
   );
-}
-
-export function LegacyLink({ to, children }: { to: string; children: ReactNode }) {
-  return <Button asChild variant="outline" size="sm"><Link to={to}>{children}</Link></Button>;
 }

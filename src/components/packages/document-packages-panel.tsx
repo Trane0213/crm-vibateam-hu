@@ -3,8 +3,9 @@
  * folytatása, megnyitása és hibáinak megtekintése. A meglévő dokumentumtár része:
  * ugyanaz a tárhely, ugyanaz a megnyitási út (r2PresignDownload), a szülő ügy jogosultsága szerint.
  */
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, FileArchive, FolderOpen, FolderUp, Loader2, PauseCircle, RotateCcw, Upload, Files as FilesIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -86,8 +87,8 @@ function PackageRow({ pkg, showParent, expanded, onToggle, onResume }: { pkg: Pa
           </span>
         </button>
         {showParent && (pkg.parentKind === "project"
-          ? <Link to="/projects/$id" params={{ id: pkg.parentId }} className="text-xs text-primary hover:underline">Projekt: {pkg.parentTitle ?? "megnyitás"}</Link>
-          : <Link to="/quotes/$id" params={{ id: pkg.parentId }} className="text-xs text-primary hover:underline">Ajánlat: {pkg.parentTitle ?? "megnyitás"}</Link>)}
+          ? <CrmLink to="/projects/$id" params={{ id: pkg.parentId }} className="text-xs text-primary hover:underline">Projekt: {pkg.parentTitle ?? "megnyitás"}</CrmLink>
+          : <CrmLink to="/quotes/$id" params={{ id: pkg.parentId }} className="text-xs text-primary hover:underline">Ajánlat: {pkg.parentTitle ?? "megnyitás"}</CrmLink>)}
         {state === "done" && <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" />Kész</Badge>}
         {state === "failed" && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" />{pkg.failed} hibás</Badge>}
         {state === "open" && <Badge variant="outline" className="gap-1"><PauseCircle className="h-3 w-3" />{pkg.open} fájl befejezetlen</Badge>}

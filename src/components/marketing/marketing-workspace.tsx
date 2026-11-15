@@ -1,6 +1,7 @@
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useSearch } from "@tanstack/react-router";
+import { useSearch } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   Building2, Mail, UserPlus, StickyNote, History, FolderOpen,
@@ -607,7 +608,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground">
                 A céghez rendelt email szálak. Az új üzeneteket az
-                <Link to="/emails" className="mx-1 text-primary hover:underline">Emailek</Link>
+                <CrmLink to="/emails" className="mx-1 text-primary hover:underline">Emailek</CrmLink>
                 oldalon vagy az alábbi gombbal indíthatod.
               </p>
               {primary?.email && (
@@ -637,9 +638,9 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
                     {derivedThreads.map((t) => (
                       <tr key={t.id} className="border-t hover:bg-muted/30">
                         <td className="px-3 py-2">
-                          <Link to="/emails/$threadId" params={{ threadId: t.id }} className="text-primary hover:underline">
+                          <CrmLink to="/emails/$threadId" params={{ threadId: t.id }} className="text-primary hover:underline">
                             {t.subject ?? "(nincs tárgy)"}
-                          </Link>
+                          </CrmLink>
                         </td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">
                           {(t.participants ?? []).slice(0, 3).join(", ") || "—"}
@@ -660,7 +661,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
             <CompanyCampaigns companyId={companyId} contactIds={(contacts.data ?? []).map(c => c.id)} enabled={!contacts.isLoading} />
           </TabsContent>
           <TabsContent value="followups" className="mt-4 space-y-3">
-            <Button size="sm" variant="outline" asChild><Link to="/followups">Utánkövetések megnyitása</Link></Button>
+            <Button size="sm" variant="outline" asChild><CrmLink to="/followups">Utánkövetések megnyitása</CrmLink></Button>
             {companyFollowups.error ? <p role="alert" className="text-destructive">Az utánkövetések nem tölthetők be.</p> : companyFollowups.isLoading ? <p>Betöltés…</p> : <ul className="divide-y border-y">
               {(companyFollowups.data ?? []).map(f => <li key={f.id} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><span>{f.followup_type ?? 'Utánkövetés'}</span><span>{fmtDateTime(f.due_date)} · {f.completed ? 'Lezárva' : 'Nyitott'}</span></li>)}
             </ul>}
@@ -829,7 +830,7 @@ function ContactsTable({
           {rows.map((c) => (
             <tr key={c.id} className="border-t hover:bg-muted/30">
               <td className="px-3 py-2">
-                <Link to="/contacts/$id" params={{ id: c.id }} className="text-primary hover:underline">{c.name ?? "—"}</Link>
+                <CrmLink to="/contacts/$id" params={{ id: c.id }} className="text-primary hover:underline">{c.name ?? "—"}</CrmLink>
                 <ContactProvenanceSummary contact={c} />
               </td>
               <td className="px-3 py-2">{c.position ?? "—"}</td>
@@ -950,9 +951,9 @@ function SalesNoteEditor({
         {isHandoff && handoffLeadId && (
           <div className="rounded-md border border-[color:var(--status-success)]/40 bg-[color:var(--status-success)]/5 px-3 py-2 text-xs text-[color:var(--status-success)]">
             Ez a cég már át lett adva. A létrejött lead:{" "}
-            <Link to="/leads/$id" params={{ id: handoffLeadId }} className="font-mono underline">
+            <CrmLink to="/leads/$id" params={{ id: handoffLeadId }} className="font-mono underline">
               #{handoffLeadId.slice(0, 8)}
-            </Link>{" "}
+            </CrmLink>{" "}
             (az átadott Sales-ügy; a Pipeline-ba léptetés külön történik).
           </div>
         )}
@@ -1079,9 +1080,9 @@ function HandoffDialog({
               <ul className="mt-1 space-y-0.5">
                 {existingOpenLeads.slice(0, 5).map((l) => (
                   <li key={l.id}>
-                    <Link to="/leads/$id" params={{ id: l.id }} className="text-primary hover:underline">
+                    <CrmLink to="/leads/$id" params={{ id: l.id }} className="text-primary hover:underline">
                       {l.summary || `Lead #${String(l.id).slice(0, 8)}`}
-                    </Link>{" "}
+                    </CrmLink>{" "}
                     <span className="text-muted-foreground">· {l.status ?? "—"} · {fmtDate(l.created_at)}</span>
                   </li>
                 ))}

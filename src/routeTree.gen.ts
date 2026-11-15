@@ -95,13 +95,17 @@ import { Route as ApiGmailStatusRouteImport } from './routes/api/gmail/status'
 import { Route as ApiGmailSyncRouteImport } from './routes/api/gmail/sync'
 import { Route as ApiPublicPackageProcessorRouteImport } from './routes/api/public/package-processor'
 import { Route as ApiPublicWebsiteLeadSyncRouteImport } from './routes/api/public/website-lead-sync'
+import { Route as AuthenticatedMunkaKapcsolattartoIdRouteImport } from './routes/_authenticated/munka.kapcsolattarto.$id'
+import { Route as AuthenticatedMunkaLevelezesIndexRouteImport } from './routes/_authenticated/munka.levelezes.index'
+import { Route as AuthenticatedMunkaLevelezesThreadIdRouteImport } from './routes/_authenticated/munka.levelezes.$threadId'
 import { Route as AuthenticatedMunkaMarketingErdeklodokRouteImport } from './routes/_authenticated/munka.marketing.erdeklodok'
+import { Route as AuthenticatedMunkaMarketingKampanyRouteImport } from './routes/_authenticated/munka.marketing.kampany'
 import { Route as AuthenticatedMunkaMarketingKampanyokRouteImport } from './routes/_authenticated/munka.marketing.kampanyok'
-import { Route as AuthenticatedMunkaMarketingLevelezesRouteImport } from './routes/_authenticated/munka.marketing.levelezes'
 import { Route as AuthenticatedMunkaMarketingMaRouteImport } from './routes/_authenticated/munka.marketing.ma'
 import { Route as AuthenticatedMunkaSalesAjanlatokRouteImport } from './routes/_authenticated/munka.sales.ajanlatok'
 import { Route as AuthenticatedMunkaSalesMaRouteImport } from './routes/_authenticated/munka.sales.ma'
 import { Route as AuthenticatedMunkaSalesPipelineRouteImport } from './routes/_authenticated/munka.sales.pipeline'
+import { Route as AuthenticatedMunkaUgyIdRouteImport } from './routes/_authenticated/munka.ugy.$id'
 import { Route as AuthenticatedMunkaUgyfelIdRouteImport } from './routes/_authenticated/munka.ugyfel.$id'
 import { Route as AuthenticatedQuotesIdPrintRouteImport } from './routes/_authenticated/quotes.$id_.print'
 import { Route as ApiGmailOauthCallbackRouteImport } from './routes/api/gmail/oauth.callback'
@@ -111,7 +115,9 @@ import { Route as ApiGoogleAdsOauthStartRouteImport } from './routes/api/google-
 import { Route as ApiPublicGmailCronSyncRouteImport } from './routes/api/public/gmail/cron-sync'
 import { Route as ApiPublicWebsiteKnowledgeManualTriggerRouteImport } from './routes/api/public/website-knowledge/manual-trigger'
 import { Route as ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport } from './routes/api/public/website-knowledge/netlify-webhook'
+import { Route as AuthenticatedMunkaMarketingErdeklodoIdRouteImport } from './routes/_authenticated/munka.marketing.erdeklodo.$id'
 import { Route as AuthenticatedMunkaSalesAjanlatIdRouteImport } from './routes/_authenticated/munka.sales.ajanlat.$id'
+import { Route as AuthenticatedMunkaSalesProjektIdRouteImport } from './routes/_authenticated/munka.sales.projekt.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -591,22 +597,40 @@ const ApiPublicWebsiteLeadSyncRoute =
     path: '/api/public/website-lead-sync',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedMunkaKapcsolattartoIdRoute =
+  AuthenticatedMunkaKapcsolattartoIdRouteImport.update({
+    id: '/kapcsolattarto/$id',
+    path: '/kapcsolattarto/$id',
+    getParentRoute: () => AuthenticatedMunkaRoute,
+  } as any)
+const AuthenticatedMunkaLevelezesIndexRoute =
+  AuthenticatedMunkaLevelezesIndexRouteImport.update({
+    id: '/levelezes/',
+    path: '/levelezes/',
+    getParentRoute: () => AuthenticatedMunkaRoute,
+  } as any)
+const AuthenticatedMunkaLevelezesThreadIdRoute =
+  AuthenticatedMunkaLevelezesThreadIdRouteImport.update({
+    id: '/levelezes/$threadId',
+    path: '/levelezes/$threadId',
+    getParentRoute: () => AuthenticatedMunkaRoute,
+  } as any)
 const AuthenticatedMunkaMarketingErdeklodokRoute =
   AuthenticatedMunkaMarketingErdeklodokRouteImport.update({
     id: '/marketing/erdeklodok',
     path: '/marketing/erdeklodok',
     getParentRoute: () => AuthenticatedMunkaRoute,
   } as any)
+const AuthenticatedMunkaMarketingKampanyRoute =
+  AuthenticatedMunkaMarketingKampanyRouteImport.update({
+    id: '/marketing/kampany',
+    path: '/marketing/kampany',
+    getParentRoute: () => AuthenticatedMunkaRoute,
+  } as any)
 const AuthenticatedMunkaMarketingKampanyokRoute =
   AuthenticatedMunkaMarketingKampanyokRouteImport.update({
     id: '/marketing/kampanyok',
     path: '/marketing/kampanyok',
-    getParentRoute: () => AuthenticatedMunkaRoute,
-  } as any)
-const AuthenticatedMunkaMarketingLevelezesRoute =
-  AuthenticatedMunkaMarketingLevelezesRouteImport.update({
-    id: '/marketing/levelezes',
-    path: '/marketing/levelezes',
     getParentRoute: () => AuthenticatedMunkaRoute,
   } as any)
 const AuthenticatedMunkaMarketingMaRoute =
@@ -633,6 +657,11 @@ const AuthenticatedMunkaSalesPipelineRoute =
     path: '/sales/pipeline',
     getParentRoute: () => AuthenticatedMunkaRoute,
   } as any)
+const AuthenticatedMunkaUgyIdRoute = AuthenticatedMunkaUgyIdRouteImport.update({
+  id: '/ugy/$id',
+  path: '/ugy/$id',
+  getParentRoute: () => AuthenticatedMunkaRoute,
+} as any)
 const AuthenticatedMunkaUgyfelIdRoute =
   AuthenticatedMunkaUgyfelIdRouteImport.update({
     id: '/ugyfel/$id',
@@ -683,10 +712,22 @@ const ApiPublicWebsiteKnowledgeNetlifyWebhookRoute =
     path: '/api/public/website-knowledge/netlify-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedMunkaMarketingErdeklodoIdRoute =
+  AuthenticatedMunkaMarketingErdeklodoIdRouteImport.update({
+    id: '/marketing/erdeklodo/$id',
+    path: '/marketing/erdeklodo/$id',
+    getParentRoute: () => AuthenticatedMunkaRoute,
+  } as any)
 const AuthenticatedMunkaSalesAjanlatIdRoute =
   AuthenticatedMunkaSalesAjanlatIdRouteImport.update({
     id: '/sales/ajanlat/$id',
     path: '/sales/ajanlat/$id',
+    getParentRoute: () => AuthenticatedMunkaRoute,
+  } as any)
+const AuthenticatedMunkaSalesProjektIdRoute =
+  AuthenticatedMunkaSalesProjektIdRouteImport.update({
+    id: '/sales/projekt/$id',
+    path: '/sales/projekt/$id',
     getParentRoute: () => AuthenticatedMunkaRoute,
   } as any)
 
@@ -776,13 +817,16 @@ export interface FileRoutesByFullPath {
   '/sales/': typeof AuthenticatedSalesIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/web-quote-requests/': typeof AuthenticatedWebQuoteRequestsIndexRoute
+  '/munka/kapcsolattarto/$id': typeof AuthenticatedMunkaKapcsolattartoIdRoute
+  '/munka/levelezes/$threadId': typeof AuthenticatedMunkaLevelezesThreadIdRoute
   '/munka/marketing/erdeklodok': typeof AuthenticatedMunkaMarketingErdeklodokRoute
+  '/munka/marketing/kampany': typeof AuthenticatedMunkaMarketingKampanyRoute
   '/munka/marketing/kampanyok': typeof AuthenticatedMunkaMarketingKampanyokRoute
-  '/munka/marketing/levelezes': typeof AuthenticatedMunkaMarketingLevelezesRoute
   '/munka/marketing/ma': typeof AuthenticatedMunkaMarketingMaRoute
   '/munka/sales/ajanlatok': typeof AuthenticatedMunkaSalesAjanlatokRoute
   '/munka/sales/ma': typeof AuthenticatedMunkaSalesMaRoute
   '/munka/sales/pipeline': typeof AuthenticatedMunkaSalesPipelineRoute
+  '/munka/ugy/$id': typeof AuthenticatedMunkaUgyIdRoute
   '/munka/ugyfel/$id': typeof AuthenticatedMunkaUgyfelIdRoute
   '/quotes/$id/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
@@ -792,7 +836,10 @@ export interface FileRoutesByFullPath {
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
   '/api/public/website-knowledge/manual-trigger': typeof ApiPublicWebsiteKnowledgeManualTriggerRoute
   '/api/public/website-knowledge/netlify-webhook': typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
+  '/munka/levelezes/': typeof AuthenticatedMunkaLevelezesIndexRoute
+  '/munka/marketing/erdeklodo/$id': typeof AuthenticatedMunkaMarketingErdeklodoIdRoute
   '/munka/sales/ajanlat/$id': typeof AuthenticatedMunkaSalesAjanlatIdRoute
+  '/munka/sales/projekt/$id': typeof AuthenticatedMunkaSalesProjektIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -877,13 +924,16 @@ export interface FileRoutesByTo {
   '/sales': typeof AuthenticatedSalesIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/web-quote-requests': typeof AuthenticatedWebQuoteRequestsIndexRoute
+  '/munka/kapcsolattarto/$id': typeof AuthenticatedMunkaKapcsolattartoIdRoute
+  '/munka/levelezes/$threadId': typeof AuthenticatedMunkaLevelezesThreadIdRoute
   '/munka/marketing/erdeklodok': typeof AuthenticatedMunkaMarketingErdeklodokRoute
+  '/munka/marketing/kampany': typeof AuthenticatedMunkaMarketingKampanyRoute
   '/munka/marketing/kampanyok': typeof AuthenticatedMunkaMarketingKampanyokRoute
-  '/munka/marketing/levelezes': typeof AuthenticatedMunkaMarketingLevelezesRoute
   '/munka/marketing/ma': typeof AuthenticatedMunkaMarketingMaRoute
   '/munka/sales/ajanlatok': typeof AuthenticatedMunkaSalesAjanlatokRoute
   '/munka/sales/ma': typeof AuthenticatedMunkaSalesMaRoute
   '/munka/sales/pipeline': typeof AuthenticatedMunkaSalesPipelineRoute
+  '/munka/ugy/$id': typeof AuthenticatedMunkaUgyIdRoute
   '/munka/ugyfel/$id': typeof AuthenticatedMunkaUgyfelIdRoute
   '/quotes/$id/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
@@ -893,7 +943,10 @@ export interface FileRoutesByTo {
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
   '/api/public/website-knowledge/manual-trigger': typeof ApiPublicWebsiteKnowledgeManualTriggerRoute
   '/api/public/website-knowledge/netlify-webhook': typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
+  '/munka/levelezes': typeof AuthenticatedMunkaLevelezesIndexRoute
+  '/munka/marketing/erdeklodo/$id': typeof AuthenticatedMunkaMarketingErdeklodoIdRoute
   '/munka/sales/ajanlat/$id': typeof AuthenticatedMunkaSalesAjanlatIdRoute
+  '/munka/sales/projekt/$id': typeof AuthenticatedMunkaSalesProjektIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -983,13 +1036,16 @@ export interface FileRoutesById {
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/web-quote-requests/': typeof AuthenticatedWebQuoteRequestsIndexRoute
+  '/_authenticated/munka/kapcsolattarto/$id': typeof AuthenticatedMunkaKapcsolattartoIdRoute
+  '/_authenticated/munka/levelezes/$threadId': typeof AuthenticatedMunkaLevelezesThreadIdRoute
   '/_authenticated/munka/marketing/erdeklodok': typeof AuthenticatedMunkaMarketingErdeklodokRoute
+  '/_authenticated/munka/marketing/kampany': typeof AuthenticatedMunkaMarketingKampanyRoute
   '/_authenticated/munka/marketing/kampanyok': typeof AuthenticatedMunkaMarketingKampanyokRoute
-  '/_authenticated/munka/marketing/levelezes': typeof AuthenticatedMunkaMarketingLevelezesRoute
   '/_authenticated/munka/marketing/ma': typeof AuthenticatedMunkaMarketingMaRoute
   '/_authenticated/munka/sales/ajanlatok': typeof AuthenticatedMunkaSalesAjanlatokRoute
   '/_authenticated/munka/sales/ma': typeof AuthenticatedMunkaSalesMaRoute
   '/_authenticated/munka/sales/pipeline': typeof AuthenticatedMunkaSalesPipelineRoute
+  '/_authenticated/munka/ugy/$id': typeof AuthenticatedMunkaUgyIdRoute
   '/_authenticated/munka/ugyfel/$id': typeof AuthenticatedMunkaUgyfelIdRoute
   '/_authenticated/quotes/$id_/print': typeof AuthenticatedQuotesIdPrintRoute
   '/api/gmail/oauth/callback': typeof ApiGmailOauthCallbackRoute
@@ -999,7 +1055,10 @@ export interface FileRoutesById {
   '/api/public/gmail/cron-sync': typeof ApiPublicGmailCronSyncRoute
   '/api/public/website-knowledge/manual-trigger': typeof ApiPublicWebsiteKnowledgeManualTriggerRoute
   '/api/public/website-knowledge/netlify-webhook': typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRoute
+  '/_authenticated/munka/levelezes/': typeof AuthenticatedMunkaLevelezesIndexRoute
+  '/_authenticated/munka/marketing/erdeklodo/$id': typeof AuthenticatedMunkaMarketingErdeklodoIdRoute
   '/_authenticated/munka/sales/ajanlat/$id': typeof AuthenticatedMunkaSalesAjanlatIdRoute
+  '/_authenticated/munka/sales/projekt/$id': typeof AuthenticatedMunkaSalesProjektIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1089,13 +1148,16 @@ export interface FileRouteTypes {
     | '/sales/'
     | '/settings/'
     | '/web-quote-requests/'
+    | '/munka/kapcsolattarto/$id'
+    | '/munka/levelezes/$threadId'
     | '/munka/marketing/erdeklodok'
+    | '/munka/marketing/kampany'
     | '/munka/marketing/kampanyok'
-    | '/munka/marketing/levelezes'
     | '/munka/marketing/ma'
     | '/munka/sales/ajanlatok'
     | '/munka/sales/ma'
     | '/munka/sales/pipeline'
+    | '/munka/ugy/$id'
     | '/munka/ugyfel/$id'
     | '/quotes/$id/print'
     | '/api/gmail/oauth/callback'
@@ -1105,7 +1167,10 @@ export interface FileRouteTypes {
     | '/api/public/gmail/cron-sync'
     | '/api/public/website-knowledge/manual-trigger'
     | '/api/public/website-knowledge/netlify-webhook'
+    | '/munka/levelezes/'
+    | '/munka/marketing/erdeklodo/$id'
     | '/munka/sales/ajanlat/$id'
+    | '/munka/sales/projekt/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1190,13 +1255,16 @@ export interface FileRouteTypes {
     | '/sales'
     | '/settings'
     | '/web-quote-requests'
+    | '/munka/kapcsolattarto/$id'
+    | '/munka/levelezes/$threadId'
     | '/munka/marketing/erdeklodok'
+    | '/munka/marketing/kampany'
     | '/munka/marketing/kampanyok'
-    | '/munka/marketing/levelezes'
     | '/munka/marketing/ma'
     | '/munka/sales/ajanlatok'
     | '/munka/sales/ma'
     | '/munka/sales/pipeline'
+    | '/munka/ugy/$id'
     | '/munka/ugyfel/$id'
     | '/quotes/$id/print'
     | '/api/gmail/oauth/callback'
@@ -1206,7 +1274,10 @@ export interface FileRouteTypes {
     | '/api/public/gmail/cron-sync'
     | '/api/public/website-knowledge/manual-trigger'
     | '/api/public/website-knowledge/netlify-webhook'
+    | '/munka/levelezes'
+    | '/munka/marketing/erdeklodo/$id'
     | '/munka/sales/ajanlat/$id'
+    | '/munka/sales/projekt/$id'
   id:
     | '__root__'
     | '/'
@@ -1295,13 +1366,16 @@ export interface FileRouteTypes {
     | '/_authenticated/sales/'
     | '/_authenticated/settings/'
     | '/_authenticated/web-quote-requests/'
+    | '/_authenticated/munka/kapcsolattarto/$id'
+    | '/_authenticated/munka/levelezes/$threadId'
     | '/_authenticated/munka/marketing/erdeklodok'
+    | '/_authenticated/munka/marketing/kampany'
     | '/_authenticated/munka/marketing/kampanyok'
-    | '/_authenticated/munka/marketing/levelezes'
     | '/_authenticated/munka/marketing/ma'
     | '/_authenticated/munka/sales/ajanlatok'
     | '/_authenticated/munka/sales/ma'
     | '/_authenticated/munka/sales/pipeline'
+    | '/_authenticated/munka/ugy/$id'
     | '/_authenticated/munka/ugyfel/$id'
     | '/_authenticated/quotes/$id_/print'
     | '/api/gmail/oauth/callback'
@@ -1311,7 +1385,10 @@ export interface FileRouteTypes {
     | '/api/public/gmail/cron-sync'
     | '/api/public/website-knowledge/manual-trigger'
     | '/api/public/website-knowledge/netlify-webhook'
+    | '/_authenticated/munka/levelezes/'
+    | '/_authenticated/munka/marketing/erdeklodo/$id'
     | '/_authenticated/munka/sales/ajanlat/$id'
+    | '/_authenticated/munka/sales/projekt/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1942,6 +2019,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebsiteLeadSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/munka/kapcsolattarto/$id': {
+      id: '/_authenticated/munka/kapcsolattarto/$id'
+      path: '/kapcsolattarto/$id'
+      fullPath: '/munka/kapcsolattarto/$id'
+      preLoaderRoute: typeof AuthenticatedMunkaKapcsolattartoIdRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
+    '/_authenticated/munka/levelezes/': {
+      id: '/_authenticated/munka/levelezes/'
+      path: '/levelezes'
+      fullPath: '/munka/levelezes/'
+      preLoaderRoute: typeof AuthenticatedMunkaLevelezesIndexRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
+    '/_authenticated/munka/levelezes/$threadId': {
+      id: '/_authenticated/munka/levelezes/$threadId'
+      path: '/levelezes/$threadId'
+      fullPath: '/munka/levelezes/$threadId'
+      preLoaderRoute: typeof AuthenticatedMunkaLevelezesThreadIdRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
     '/_authenticated/munka/marketing/erdeklodok': {
       id: '/_authenticated/munka/marketing/erdeklodok'
       path: '/marketing/erdeklodok'
@@ -1949,18 +2047,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMunkaMarketingErdeklodokRouteImport
       parentRoute: typeof AuthenticatedMunkaRoute
     }
+    '/_authenticated/munka/marketing/kampany': {
+      id: '/_authenticated/munka/marketing/kampany'
+      path: '/marketing/kampany'
+      fullPath: '/munka/marketing/kampany'
+      preLoaderRoute: typeof AuthenticatedMunkaMarketingKampanyRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
     '/_authenticated/munka/marketing/kampanyok': {
       id: '/_authenticated/munka/marketing/kampanyok'
       path: '/marketing/kampanyok'
       fullPath: '/munka/marketing/kampanyok'
       preLoaderRoute: typeof AuthenticatedMunkaMarketingKampanyokRouteImport
-      parentRoute: typeof AuthenticatedMunkaRoute
-    }
-    '/_authenticated/munka/marketing/levelezes': {
-      id: '/_authenticated/munka/marketing/levelezes'
-      path: '/marketing/levelezes'
-      fullPath: '/munka/marketing/levelezes'
-      preLoaderRoute: typeof AuthenticatedMunkaMarketingLevelezesRouteImport
       parentRoute: typeof AuthenticatedMunkaRoute
     }
     '/_authenticated/munka/marketing/ma': {
@@ -1989,6 +2087,13 @@ declare module '@tanstack/react-router' {
       path: '/sales/pipeline'
       fullPath: '/munka/sales/pipeline'
       preLoaderRoute: typeof AuthenticatedMunkaSalesPipelineRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
+    '/_authenticated/munka/ugy/$id': {
+      id: '/_authenticated/munka/ugy/$id'
+      path: '/ugy/$id'
+      fullPath: '/munka/ugy/$id'
+      preLoaderRoute: typeof AuthenticatedMunkaUgyIdRouteImport
       parentRoute: typeof AuthenticatedMunkaRoute
     }
     '/_authenticated/munka/ugyfel/$id': {
@@ -2054,11 +2159,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebsiteKnowledgeNetlifyWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/munka/marketing/erdeklodo/$id': {
+      id: '/_authenticated/munka/marketing/erdeklodo/$id'
+      path: '/marketing/erdeklodo/$id'
+      fullPath: '/munka/marketing/erdeklodo/$id'
+      preLoaderRoute: typeof AuthenticatedMunkaMarketingErdeklodoIdRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
     '/_authenticated/munka/sales/ajanlat/$id': {
       id: '/_authenticated/munka/sales/ajanlat/$id'
       path: '/sales/ajanlat/$id'
       fullPath: '/munka/sales/ajanlat/$id'
       preLoaderRoute: typeof AuthenticatedMunkaSalesAjanlatIdRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
+    }
+    '/_authenticated/munka/sales/projekt/$id': {
+      id: '/_authenticated/munka/sales/projekt/$id'
+      path: '/sales/projekt/$id'
+      fullPath: '/munka/sales/projekt/$id'
+      preLoaderRoute: typeof AuthenticatedMunkaSalesProjektIdRouteImport
       parentRoute: typeof AuthenticatedMunkaRoute
     }
   }
@@ -2093,32 +2212,47 @@ const AuthenticatedAttendanceRouteWithChildren =
 interface AuthenticatedMunkaRouteChildren {
   AuthenticatedMunkaUgyfelekRoute: typeof AuthenticatedMunkaUgyfelekRoute
   AuthenticatedMunkaIndexRoute: typeof AuthenticatedMunkaIndexRoute
+  AuthenticatedMunkaKapcsolattartoIdRoute: typeof AuthenticatedMunkaKapcsolattartoIdRoute
+  AuthenticatedMunkaLevelezesThreadIdRoute: typeof AuthenticatedMunkaLevelezesThreadIdRoute
   AuthenticatedMunkaMarketingErdeklodokRoute: typeof AuthenticatedMunkaMarketingErdeklodokRoute
+  AuthenticatedMunkaMarketingKampanyRoute: typeof AuthenticatedMunkaMarketingKampanyRoute
   AuthenticatedMunkaMarketingKampanyokRoute: typeof AuthenticatedMunkaMarketingKampanyokRoute
-  AuthenticatedMunkaMarketingLevelezesRoute: typeof AuthenticatedMunkaMarketingLevelezesRoute
   AuthenticatedMunkaMarketingMaRoute: typeof AuthenticatedMunkaMarketingMaRoute
   AuthenticatedMunkaSalesAjanlatokRoute: typeof AuthenticatedMunkaSalesAjanlatokRoute
   AuthenticatedMunkaSalesMaRoute: typeof AuthenticatedMunkaSalesMaRoute
   AuthenticatedMunkaSalesPipelineRoute: typeof AuthenticatedMunkaSalesPipelineRoute
+  AuthenticatedMunkaUgyIdRoute: typeof AuthenticatedMunkaUgyIdRoute
   AuthenticatedMunkaUgyfelIdRoute: typeof AuthenticatedMunkaUgyfelIdRoute
+  AuthenticatedMunkaLevelezesIndexRoute: typeof AuthenticatedMunkaLevelezesIndexRoute
+  AuthenticatedMunkaMarketingErdeklodoIdRoute: typeof AuthenticatedMunkaMarketingErdeklodoIdRoute
   AuthenticatedMunkaSalesAjanlatIdRoute: typeof AuthenticatedMunkaSalesAjanlatIdRoute
+  AuthenticatedMunkaSalesProjektIdRoute: typeof AuthenticatedMunkaSalesProjektIdRoute
 }
 
 const AuthenticatedMunkaRouteChildren: AuthenticatedMunkaRouteChildren = {
   AuthenticatedMunkaUgyfelekRoute: AuthenticatedMunkaUgyfelekRoute,
   AuthenticatedMunkaIndexRoute: AuthenticatedMunkaIndexRoute,
+  AuthenticatedMunkaKapcsolattartoIdRoute:
+    AuthenticatedMunkaKapcsolattartoIdRoute,
+  AuthenticatedMunkaLevelezesThreadIdRoute:
+    AuthenticatedMunkaLevelezesThreadIdRoute,
   AuthenticatedMunkaMarketingErdeklodokRoute:
     AuthenticatedMunkaMarketingErdeklodokRoute,
+  AuthenticatedMunkaMarketingKampanyRoute:
+    AuthenticatedMunkaMarketingKampanyRoute,
   AuthenticatedMunkaMarketingKampanyokRoute:
     AuthenticatedMunkaMarketingKampanyokRoute,
-  AuthenticatedMunkaMarketingLevelezesRoute:
-    AuthenticatedMunkaMarketingLevelezesRoute,
   AuthenticatedMunkaMarketingMaRoute: AuthenticatedMunkaMarketingMaRoute,
   AuthenticatedMunkaSalesAjanlatokRoute: AuthenticatedMunkaSalesAjanlatokRoute,
   AuthenticatedMunkaSalesMaRoute: AuthenticatedMunkaSalesMaRoute,
   AuthenticatedMunkaSalesPipelineRoute: AuthenticatedMunkaSalesPipelineRoute,
+  AuthenticatedMunkaUgyIdRoute: AuthenticatedMunkaUgyIdRoute,
   AuthenticatedMunkaUgyfelIdRoute: AuthenticatedMunkaUgyfelIdRoute,
+  AuthenticatedMunkaLevelezesIndexRoute: AuthenticatedMunkaLevelezesIndexRoute,
+  AuthenticatedMunkaMarketingErdeklodoIdRoute:
+    AuthenticatedMunkaMarketingErdeklodoIdRoute,
   AuthenticatedMunkaSalesAjanlatIdRoute: AuthenticatedMunkaSalesAjanlatIdRoute,
+  AuthenticatedMunkaSalesProjektIdRoute: AuthenticatedMunkaSalesProjektIdRoute,
 }
 
 const AuthenticatedMunkaRouteWithChildren =

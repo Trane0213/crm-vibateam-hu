@@ -5,7 +5,7 @@ import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { listCampaignDrafts } from "@/lib/marketing/campaign-drafts.functions";
 import { campaignOverview, CAMPAIGN_STAGE_LABEL, type CampaignStage } from "@/lib/marketing/marketing-day-flow";
-import { WsPageHeader, StepBar, NextActionCard, AiSuggestionCard } from "@/components/workspace-v2/parts";
+import { WsPageHeader, StepBar, AiSuggestionCard } from "@/components/workspace-v2/parts";
 import { StatusBadge, type WsStatus } from "@/components/workspace-v2/status-badge";
 import { formatDateTime } from "@/lib/format";
 import { wsHead } from "@/lib/workspace-v2/head";
@@ -23,12 +23,10 @@ function CampaignsPage() {
   const list = useServerFn(listCampaignDrafts);
   const q = useQuery({ queryKey: ["campaign-drafts"], queryFn: () => list() });
   const ov = campaignOverview(q.data?.campaigns);
-  const first = ov.open[0];
   return (
     <>
-      <WsPageHeader title="E-mail-kampányok" subtitle="Napi 40 levél / fiók keret; ügyfélküldés külön jóváhagyással"
-        right={<Button asChild size="sm"><Link to="/campaign-list" search={{}}><Plus className="h-4 w-4" />Új kampány</Link></Button>} />
-      {first && <NextActionCard text={`${first.name}: ${first.next}`} action={<Button asChild size="sm"><Link to="/campaign-list" search={{ campaignId: first.id }}>Kampány szerkesztése</Link></Button>} />}
+      <WsPageHeader title="Kampányok" subtitle="Napi 40 levél / fiók; ügyfélküldés csak jóváhagyással"
+        right={<Button asChild size="sm"><Link to="/munka/marketing/kampany" search={{}}><Plus className="h-4 w-4" />Új kampány</Link></Button>} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-xl border bg-card p-4 shadow-[var(--shadow-card)]">
           <h2 className="font-display text-base font-semibold">Nyitott kampányok ({q.isSuccess ? ov.active : "…"})</h2>
@@ -40,7 +38,7 @@ function CampaignsPage() {
                 {ov.open.map((c) => (
                   <li key={c.id} className="rounded-lg border p-3">
                     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                      <Link to="/campaign-list" search={{ campaignId: c.id }} className="min-w-0 truncate text-sm font-medium hover:underline">{c.name}</Link>
+                      <Link to="/munka/marketing/kampany" search={{ campaignId: c.id }} className="min-w-0 truncate text-sm font-medium hover:underline">{c.name}</Link>
                       <StatusBadge status={STAGE_STATUS[c.stage]} label={CAMPAIGN_STAGE_LABEL[c.stage]} />
                     </div>
                     <div className="mt-2"><StepBar steps={STEPS} current={c.stage === "scheduled" ? 3 : c.step - 1} /></div>
@@ -49,7 +47,7 @@ function CampaignsPage() {
                 ))}
               </ul>
             )}
-          <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">Archivált: {ov.counts.archived}. Megnyitás/kattintás mérés nincs bekötve (tervezett).</p>
+          {ov.counts.archived > 0 && <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">Archivált: {ov.counts.archived}</p>}
         </section>
         <AiSuggestionCard agent="marketing" title="Scarlet – kampány-előkészítés"
           lines={["Célcsoport- és tárgysor-javaslat", "Szövegtervezet a kijelölt kampányhoz", "Küldést nem indít"]}

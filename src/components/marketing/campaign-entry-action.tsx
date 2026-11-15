@@ -1,3 +1,4 @@
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { Link } from '@tanstack/react-router';
 import { ListPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,8 +10,8 @@ export function CampaignEntryAction({ companyId, contactId, disabled = false }: 
   if (isLoading || (role !== 'owner' && role !== 'marketing')) return null;
   if (disabled) return <Button variant="outline" size="sm" disabled title="Előbb mentsd a kapcsolattartó módosításait">Hozzáadás kampányhoz</Button>;
   return <Button variant="outline" size="sm" asChild>
-    <Link to="/campaign-list" search={{ companyId, contactId }}>
+    <CrmLink to="/campaign-list" search={{ companyId, contactId }}>
       <ListPlus className="mr-1.5 h-4 w-4" />Hozzáadás kampányhoz
-    </Link>
+    </CrmLink>
   </Button>;
 }

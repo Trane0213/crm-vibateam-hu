@@ -18,10 +18,17 @@ export function marketingRowStatus(kind: MarketingPriorityKind): WsStatus {
   return STATUS[kind];
 }
 
+/** Céges teendő az ügyféladatlapra (a megfelelő fülre) visz; saját feladat helyben zárható, nincs hivatkozása. */
 export function marketingRowLink(row: Pick<MarketingPriorityRow, "target">):
-  | { to: "/munka/ugyfel/$id"; params: { id: string } }
-  | { to: "/tasks" } {
-  return row.target.kind === "company" ? { to: "/munka/ugyfel/$id", params: { id: row.target.companyId } } : { to: "/tasks" };
+  | { to: "/munka/ugyfel/$id"; params: { id: string }; search: { tab?: string } }
+  | null {
+  if (row.target.kind !== "company") return null;
+  return { to: "/munka/ugyfel/$id", params: { id: row.target.companyId }, search: row.target.tab ? { tab: row.target.tab } : {} };
+}
+
+/** A napi listában szereplő saját feladat azonosítója (a sor azonosítójából). */
+export function marketingTaskId(row: Pick<MarketingPriorityRow, "id" | "kind">): string | null {
+  return row.kind === "task-overdue" || row.kind === "task-today" ? row.id.replace(/^task-/, "") : null;
 }
 
 export function scarletDailyPrompt(input: { rows: number; replies: number; qualified: number; activeCampaigns: number | null }) {

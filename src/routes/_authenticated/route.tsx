@@ -18,6 +18,8 @@ import { AiPanel, AiPanelProvider, useAiPanel } from "@/components/ai/ai-panel";
 import { BrandLogo } from "@/components/brand-logo";
 import { CrmNotificationsMenu } from "@/components/crm-notifications-menu";
 import { WorkNavigation } from "@/components/work-navigation";
+import { CrmLink } from "@/components/workspace-v2/crm-link";
+import { WorkspaceShell } from "@/components/workspace-v2/workspace-shell";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -38,6 +40,16 @@ function AppShell() {
   const allowed = permLoading || rp.isLoading
     ? true
     : resolveAccess(role, pathname, rp.data);
+  // Az új Sales/Marketing munkaterület önálló kerettel fut, a régi menük nélkül.
+  if (pathname === "/munka" || pathname.startsWith("/munka/")) {
+    return (
+      <AiPanelProvider>
+        <WorkspaceShell>
+          {allowed ? <Outlet /> : <Forbidden role={ROLE_LABEL[role]} />}
+        </WorkspaceShell>
+      </AiPanelProvider>
+    );
+  }
   return (
     <AiPanelProvider>
     <SidebarProvider>
@@ -106,7 +118,7 @@ function Forbidden({ role, hints = [] }: { role: string; hints?: DocHint[] }) {
         )}
         <div className="mt-5">
           <Button asChild size="sm">
-            <Link to="/today">Vissza a kezdőoldalra</Link>
+            <CrmLink to="/today">Vissza a kezdőoldalra</CrmLink>
           </Button>
         </div>
       </div>

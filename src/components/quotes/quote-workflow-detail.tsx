@@ -1,4 +1,5 @@
-import { Link } from "@tanstack/react-router";
+
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { ContractPrepCompact } from "@/components/contract/contract-prep-panel";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -316,7 +317,7 @@ export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id
             onHandoff={setSendDraft} onHandoffRevoked={() => setSendDraft(null)} />;
   const readiness = <QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} />;
   const ownPrint = own && <div className="space-y-4">
-            <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
+            <CrmLink to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></CrmLink>
             <QuoteDocumentManager quoteId={quote.id} locked={locked} />
           </div>;
   const viewToggle = features.kind && onToggleSimple && (
@@ -346,7 +347,7 @@ export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id
             </h1>
           </div>
           <div className="flex flex-wrap gap-2">{viewToggle}
-          {own && <Link
+          {own && <CrmLink
             to="/quotes/$id/print"
             params={{ id: quote.id }}
             target="_blank"
@@ -355,16 +356,16 @@ export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id
             <Button size="sm" variant="outline">
               <Printer className="mr-1.5 h-4 w-4" /> Nyomtatás / PDF
             </Button>
-          </Link>}</div>
+          </CrmLink>}</div>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
           {companyId ? (
             <span>
               Ügyfél:{" "}
-              <Link to="/customers/$id" params={{ id: companyId }} className="text-primary hover:underline">
+              <CrmLink to="/customers/$id" params={{ id: companyId }} className="text-primary hover:underline">
                 <Building2 className="mr-1 inline h-3.5 w-3.5" />
                 {companyLabel(companyId)}
-              </Link>
+              </CrmLink>
             </span>
           ) : <span>Ügyfél: nincs megadva</span>}
           <span>Felelős: {savedResponsible ?? "Nincs megadva"}</span>
@@ -372,17 +373,17 @@ export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id
           {project.data && (
             <span>
               Projekt:{" "}
-              <Link to="/projects/$id" params={{ id: project.data.id }} className="text-primary hover:underline">{project.data.title}</Link>
+              <CrmLink to="/projects/$id" params={{ id: project.data.id }} className="text-primary hover:underline">{project.data.title}</CrmLink>
             </span>
           )}
           <span>Azonosító: #{String(quote.id).slice(0, 8)}</span>
           {quote.lead_id && (
             <span>
               Ügy:{" "}
-              <Link to="/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">
+              <CrmLink to="/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">
                 <Radar className="mr-1 inline h-3.5 w-3.5" />
                 {lead.data?.summary?.slice(0, 60) ?? `#${quote.lead_id.slice(0, 8)}`}
-              </Link>
+              </CrmLink>
             </span>
           )}
           <span>Létrejött: {fmtDateTime(quote.created_at)}</span>
@@ -452,7 +453,7 @@ export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id
             onHandoff={setSendDraft} onHandoffRevoked={() => setSendDraft(null)} /></div>}
           <div className="mb-6 max-w-2xl"><QuoteReadinessCard quote={quote as any} companyId={companyId} net={savedAmounts.net} mismatch={savedAmounts.mismatch} itemCount={itemRows.length} dirty={dirty} /></div>
           {own && <div className="mb-6 space-y-4">
-            <Link to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></Link>
+            <CrmLink to="/quotes/$id/print" params={{ id: quote.id }} target="_blank" rel="noopener noreferrer"><Button variant="outline" size="sm"><Printer className="mr-1.5 h-4 w-4" /> Mentett ajánlat / PDF</Button></CrmLink>
             <QuoteDocumentManager quoteId={quote.id} locked={!!(quote as any).locked_at} />
           </div>}
           <QuoteSendPanel quote={quote as any} companyId={companyId} draft={sendDraft} />

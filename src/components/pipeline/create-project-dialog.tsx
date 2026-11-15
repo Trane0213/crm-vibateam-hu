@@ -1,6 +1,7 @@
+import { useCrmNavigate } from "@/components/workspace-v2/crm-link";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,7 @@ export function CreateProjectDialog({
   currentQuoteCount?: number | null;
 }) {
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [managerId, setManagerId] = useState<string>("");

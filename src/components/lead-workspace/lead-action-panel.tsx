@@ -1,6 +1,8 @@
+import { CrmLink, useInWorkspace } from "@/components/workspace-v2/crm-link";
+import { useAiPanel } from "@/components/ai/ai-panel";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+
 import {
   Mail, Bot, FileText, Radar, TrendingUp, ArrowRight, CheckCircle2,
   FileSignature, UserCheck, Sparkles, Filter, Phone, ChevronDown,
@@ -65,6 +67,9 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
   const [emailOpen, setEmailOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  // Az új munkaterületen a beépített asszisztenspanel nyílik (Timothy/Scarlet), nem a külön AI-oldal.
+  const inWorkspace = useInWorkspace();
+  const { openWith } = useAiPanel();
   const [emailDefaults, setEmailDefaults] = useState<{ subject?: string; body?: string } | null>(null);
   const [quotesBusy, setQuotesBusy] = useState(false);
 
@@ -287,8 +292,8 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-primary/80">
           <Bot className="h-3 w-3" /> AI segédlet
         </div>
-        <Button size="sm" className="w-full" onClick={() => setAiOpen(true)}>
-          <AgentIcon className="mr-1.5 h-3.5 w-3.5" /> {agentLabel.split(" – ")[0]} megnyitása
+        <Button size="sm" className="w-full" onClick={() => inWorkspace ? openWith(mode === "sales" ? "sales" : "marketing", "") : setAiOpen(true)}>
+          <AgentIcon className="mr-1.5 h-3.5 w-3.5" /> {inWorkspace ? (mode === "sales" ? "Timothy" : "Scarlet") : agentLabel.split(" – ")[0]} megnyitása
         </Button>
         <div className="mt-1.5 text-[11px] text-muted-foreground">
           Bezárás után visszatérsz a Lead Workspace-re.
@@ -321,9 +326,9 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
                   <span className="flex min-w-0 items-center gap-1.5">
                     <Badge variant="outline">v{qu.version}</Badge>
                     {qu.is_current && <Badge>aktuális</Badge>}
-                    <Link to="/quotes/$id" params={{ id: qu.id }} className="truncate text-primary hover:underline">
+                    <CrmLink to="/quotes/$id" params={{ id: qu.id }} className="truncate text-primary hover:underline">
                       megnyitás
-                    </Link>
+                    </CrmLink>
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <span className="tabular-nums">{fmtDate(qu.created_at)}</span>

@@ -2,7 +2,8 @@
 // A meglévő AI OS-t (runAiAgent) és a meglévő, felhasználónként tárolt
 // beszélgetéseket használja. Modellhívás KIZÁRÓLAG a felhasználó küldésére indul.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
+import { useCrmNavigate, useInWorkspace } from "@/components/workspace-v2/crm-link";
 import { useQuery } from "@tanstack/react-query";
 import { History, Loader2, Maximize2, Plus, Send, Trash2, X, MapPin, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -94,7 +95,8 @@ export function AiPanel() {
 }
 
 function PanelBody({ onClose }: { onClose: () => void }) {
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
+  const inWorkspace = useInWorkspace();
   const run = useServerFn(runAiAgent);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { visibleAgentIds } = useVisibleAgents();
@@ -215,10 +217,10 @@ function PanelBody({ onClose }: { onClose: () => void }) {
         <Button size="icon" variant="ghost" className="h-8 w-8" title="Új beszélgetés" onClick={() => startNew()}>
           <Plus className="h-4 w-4" />
         </Button>
-        <Button size="icon" variant="ghost" className="hidden h-8 w-8 md:inline-flex" title="Megnyitás teljes oldalon"
+        {!inWorkspace && <Button size="icon" variant="ghost" className="hidden h-8 w-8 md:inline-flex" title="Megnyitás teljes oldalon"
           onClick={() => navigate({ to: "/ai-assistant", search: { agent } as never })}>
           <Maximize2 className="h-4 w-4" />
-        </Button>
+        </Button>}
         <Button size="icon" variant="ghost" className="h-8 w-8" title="Bezárás" onClick={onClose}>
           <X className="h-4 w-4" />
         </Button>

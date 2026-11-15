@@ -30,6 +30,8 @@ describe("új munkaterület rekordkontextus", () => {
     const id = "b454cd40-3473-4653-9424-9cc5bbebe527";
     expect(d(`/munka/ugyfel/${id}`)).toEqual({ kind: "company", id, label: "Ügyfél" });
     expect(d(`/munka/sales/ajanlat/${id}`)).toEqual({ kind: "quote", id, label: "Ajánlat" });
+    expect(d(`/munka/ugy/${id}`)?.kind).toBe("lead");
+    expect(d(`/munka/sales/projekt/${id}`)?.kind).toBe("project");
     expect(d("/munka/ugyfelek")).toBeNull();
   });
 });

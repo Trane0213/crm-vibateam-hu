@@ -1,6 +1,8 @@
+import { CrmLink, useCrmNavigate } from "@/components/workspace-v2/crm-link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
+
+import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { StatusChip } from "@/components/sales/status-chip";
@@ -44,16 +46,22 @@ export function PipelineDetailSheet({
   lead,
   open,
   onOpenChange,
+  inline = false,
 }: {
   lead: PipelineLead | null;
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** Oldalba ágyazva (új munkaterület ügyoldala), felugró panel nélkül; ugyanazok a műveletek. */
+  inline?: boolean;
 }) {
+  const Hdr = inline ? InlineHeader : SheetHeader;
+  const Ttl = inline ? InlineTitle : SheetTitle;
+  const Desc = inline ? InlineDesc : SheetDescription;
   const qc = useQueryClient();
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
   const [quoteChoiceOpen, setQuoteChoiceOpen] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
   // Az ügy aktuális ajánlatverziói (RLS: can_access_quote) — duplikált
   // piszkozat helyett a meglévő ajánlatot ajánljuk fel.
   const leadQuotes = useQuery({
@@ -118,36 +126,35 @@ export function PipelineDetailSheet({
   const busy = statusMut.isPending || lostMut.isPending || newQuote.isPending;
   const primaryButton = !next ? null
     : next.kind === "create_quote" ? <Button size="sm" disabled={busy || leadQuotes.isLoading} onClick={() => setQuoteChoiceOpen(true)}><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlat létrehozása</Button>
-    : next.kind === "open_quote" && next.quoteId ? <Button size="sm" asChild><Link to="/quotes/$id" params={{ id: next.quoteId }}><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlat megnyitása</Link></Button>
+    : next.kind === "open_quote" && next.quoteId ? <Button size="sm" asChild><CrmLink to="/quotes/$id" params={{ id: next.quoteId }}><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlat megnyitása</CrmLink></Button>
     : next.kind === "change_status" && next.suggestStatus ? <Button size="sm" disabled={busy} onClick={() => statusMut.mutate(next.suggestStatus!)}><ArrowRight className="mr-1.5 h-3.5 w-3.5" />Áthelyezés: {LEAD_STATUS_LABEL[next.suggestStatus]}</Button>
     : next.kind === "win" ? <Button size="sm" disabled={busy} onClick={() => setProjOpen(true)}><Trophy className="mr-1.5 h-3.5 w-3.5" />Megnyertük → projektátadás</Button>
-    : next.kind === "open_prep" ? <Button size="sm" asChild><Link to="/leads" search={{ lead: lead!.id }}>Sales-előkészítés megnyitása</Link></Button>
+    : next.kind === "open_prep" ? <Button size="sm" asChild><CrmLink to="/leads" search={{ lead: lead!.id }}>Sales-előkészítés megnyitása</CrmLink></Button>
     : null;
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full max-w-[1100px] overflow-y-auto p-0 sm:max-w-[1100px]">
+  const body = (
+      <>
         {!lead ? (
           <div className="p-6 text-sm text-muted-foreground">Nincs kiválasztott lead.</div>
         ) : (
           <>
-            <SheetHeader className="border-b bg-card/40 p-5">
+            <Hdr className="border-b bg-card/40 p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <SheetTitle className="flex items-center gap-2 text-base">
+                  <Ttl className="flex items-center gap-2 text-base">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     {lead.company_name || lead.summary || "Lead"}
-                  </SheetTitle>
-                  <SheetDescription>
+                  </Ttl>
+                  <Desc>
                     Ügy adatlap · {lead.assignee_name ? `felelős: ${lead.assignee_name}` : "felelős nincs megadva"}
-                  </SheetDescription>
+                  </Desc>
                 </div>
                 <StatusChip status={lead.status} />
               </div>
               <div className="mt-3">
                 <LeadStatusStepper status={lead.status} />
               </div>
-            </SheetHeader>
+            </Hdr>
 
             {next && (
               <div className="border-b p-4">
@@ -175,14 +182,14 @@ export function PipelineDetailSheet({
                     <p className="whitespace-pre-wrap text-xs text-foreground/80">{lead.summary}</p>
                   </div>
                 )}
-                <div className="mt-4">
+                {!inline && <div className="mt-4">
                   <Button asChild variant="outline" size="sm" className="w-full">
-                    <Link to="/leads/$id" params={{ id: lead.id }}>
+                    <CrmLink to="/leads/$id" params={{ id: lead.id }}>
                       <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
                       Előzmények és ügyféladatok
-                    </Link>
+                    </CrmLink>
                   </Button>
-                </div>
+                </div>}
               </aside>
 
               {/* Közép: next step + aktivitás */}
@@ -200,11 +207,11 @@ export function PipelineDetailSheet({
                   <ul className="mb-6 divide-y rounded-md border text-sm">
                     {quotes.map((q) => (
                       <li key={q.id}>
-                        <Link to="/quotes/$id" params={{ id: q.id }} className="flex items-center gap-2 px-3 py-2 transition hover:bg-muted/50">
+                        <CrmLink to="/quotes/$id" params={{ id: q.id }} className="flex items-center gap-2 px-3 py-2 transition hover:bg-muted/50">
                           <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                           <span className="min-w-0 flex-1 truncate">{q.title?.trim() || `Ajánlat v${q.version ?? 1}`}<span className="ml-1 text-xs text-muted-foreground">· {q.alternative_key ?? "A"} alt.</span></span>
                           <Badge variant={q.sent_at ? "default" : "secondary"} className="shrink-0 text-[10px]">{quoteStatusLabel(q.status)}</Badge>
-                        </Link>
+                        </CrmLink>
                       </li>
                     ))}
                   </ul>
@@ -290,9 +297,26 @@ export function PipelineDetailSheet({
             />
           </>
         )}
+      </>
+  );
+  if (inline) return <div className="min-w-0">{body}</div>;
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full max-w-[1100px] overflow-y-auto p-0 sm:max-w-[1100px]">
+        {body}
       </SheetContent>
     </Sheet>
   );
+}
+
+function InlineHeader({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <div className={cn("flex flex-col space-y-2 text-left", className)}>{children}</div>;
+}
+function InlineTitle({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <h2 className={cn("font-display font-semibold", className)}>{children}</h2>;
+}
+function InlineDesc({ className, children }: { className?: string; children: React.ReactNode }) {
+  return <p className={cn("text-sm text-muted-foreground", className)}>{children}</p>;
 }
 
 function Field({

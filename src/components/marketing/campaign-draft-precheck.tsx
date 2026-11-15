@@ -1,7 +1,8 @@
 // Kampánytervezetek: mentés, újranyitás, szerkesztés, archiválás és tárolt küldés előtti ellenőrzés.
 // KÜLDÉS TILTOTT: nincs jóváhagyás, nincs kiküldés ebben a körben.
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -276,13 +277,13 @@ export function CampaignDraftPrecheck({
               <h3 className="font-medium">Mentett célcégek · {d.targetCompanies.length}</h3>
               {d.targetCompanies.map((company) => (
                 <p key={company.id} className="text-xs">
-                  <Link
+                  <CrmLink
                     to="/customers/$id"
                     params={{ id: company.id }}
                     className="text-primary underline"
                   >
                     {company.name}
-                  </Link>
+                  </CrmLink>
                   {company.marketing_blocked && " · Cégszintű marketingtiltás"} · A célcég nem
                   küldési jogosultság.
                 </p>
@@ -420,13 +421,13 @@ export function CampaignDraftPrecheck({
                       <span className="font-medium">{r.email || "(nincs email)"}</span>
                       <span className="text-muted-foreground">{r.name}</span>
                       {r.company_id && (
-                        <Link
+                        <CrmLink
                           to="/customers/$id"
                           params={{ id: r.company_id }}
                           className="underline"
                         >
                           {r.company_name ?? "cég"}
-                        </Link>
+                        </CrmLink>
                       )}
                       {r.last_at && (
                         <span className="text-xs text-muted-foreground">

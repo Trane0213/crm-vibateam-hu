@@ -1,5 +1,6 @@
+import { CrmLink, useCrmNavigate } from "@/components/workspace-v2/crm-link";
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CopyPlus, GitBranch } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +20,7 @@ type Q = { id: string; group_id: string; alternative_key: string; alternative_la
 /** S3: verziók és alternatívák egy üzleti ajánlaton belül; műveletek egy-egy DB-tranzakcióban. */
 export function QuoteVersionsBar({ quote }: { quote: Q }) {
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
   const [dlg, setDlg] = useState<null | "version" | "alt">(null);
   const [label, setLabel] = useState("");
 
@@ -68,10 +69,10 @@ export function QuoteVersionsBar({ quote }: { quote: Q }) {
           <div key={k} className="flex flex-wrap items-center gap-2 text-sm">
             <Badge variant="outline">{k} alternatíva{rows.find((r) => r.alternative_key === k && r.alternative_label)?.alternative_label ? ` – ${rows.find((r) => r.alternative_key === k && r.alternative_label)!.alternative_label}` : ""}</Badge>
             {rows.filter((r) => r.alternative_key === k).map((r) => (
-              <Link key={r.id} to="/quotes/$id" params={{ id: r.id }}
+              <CrmLink key={r.id} to="/quotes/$id" params={{ id: r.id }}
                 className={`rounded border px-2 py-0.5 text-xs ${r.id === quote.id ? "border-primary bg-primary/10 font-semibold" : "hover:bg-muted"}`}>
                 v{r.version}{r.is_current ? " · aktuális" : ""}{r.locked_at ? " · kiküldve" : ""}
-              </Link>
+              </CrmLink>
             ))}
           </div>
         ))}

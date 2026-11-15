@@ -1,7 +1,8 @@
+import { CrmLink, useCrmNavigate } from "@/components/workspace-v2/crm-link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from 'react';
 import { useServerFn } from '@tanstack/react-start';
-import { Link, useNavigate } from "@tanstack/react-router";
+
 import { toast } from "sonner";
 import { Building2, UserPlus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +22,7 @@ const esc = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
  */
 export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTest: boolean }) {
   const { role } = usePermissions();
-  const navigate = useNavigate();
+  const navigate = useCrmNavigate();
   const qc = useQueryClient();
   const saveFn=useServerFn(createWebsiteIntake);
   const checkFn=useServerFn(readWebsiteIntake);
@@ -83,12 +84,12 @@ export function WebRequestIntakeCard({ req, isTest }: { req: QuoteRequest; isTes
         {attemptedIds.includes(req.id) && !create.isPending ? <div className="space-y-2">
           <p role="alert" className="text-muted-foreground">A felvétel eredményét ellenőrizd; újabb automatikus felvétel tiltott.</p>
           <Button size="sm" variant="outline" disabled={check.isPending} onClick={()=>check.mutate()}>Mentett eredmény ellenőrzése</Button>
-          {savedCompany[req.id] ? <Button asChild size="sm" variant="outline"><Link to="/customers/$id" params={{ id: savedCompany[req.id] ?? '' }}>Létrejött cég megnyitása</Link></Button> : <Button asChild size="sm" variant="outline"><Link to="/customers">Céglista megnyitása</Link></Button>}
+          {savedCompany[req.id] ? <Button asChild size="sm" variant="outline"><CrmLink to="/customers/$id" params={{ id: savedCompany[req.id] ?? '' }}>Létrejött cég megnyitása</CrmLink></Button> : <Button asChild size="sm" variant="outline"><CrmLink to="/customers">Céglista megnyitása</CrmLink></Button>}
         </div> : match.isLoading ? <p className="text-muted-foreground">Egyezés keresése…</p>
           : match.error ? <p className="text-destructive">{(match.error as Error).message}</p>
           : d?.kind === "existing" ? (
             <Button asChild size="sm" variant="outline">
-              <Link to="/customers/$id" params={{ id: d.companyId }}><Building2 className="mr-1.5 h-4 w-4" />Már a CRM-ben — cég megnyitása</Link>
+              <CrmLink to="/customers/$id" params={{ id: d.companyId }}><Building2 className="mr-1.5 h-4 w-4" />Már a CRM-ben — cég megnyitása</CrmLink>
             </Button>
           ) : d?.kind === "create" ? (
             <Button size="sm" onClick={() => create.mutate()} disabled={create.isPending}>

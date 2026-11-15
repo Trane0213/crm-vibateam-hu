@@ -1,5 +1,6 @@
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+
 import { useQuery } from "@tanstack/react-query";
 import {
   Briefcase, BellRing, Building2, UserRound, Save,
@@ -527,9 +528,9 @@ export function LeadDetailColumn({
             </div>
             <div className="mt-1 text-sm font-medium">
               {l.company_id ? (
-                <Link to="/customers/$id" params={{ id: l.company_id }} className="text-primary hover:underline">
+                <CrmLink to="/customers/$id" params={{ id: l.company_id }} className="text-primary hover:underline">
                   {companyLabel(l.company_id)}
-                </Link>
+                </CrmLink>
               ) : <span className="text-muted-foreground">—</span>}
             </div>
             {identity.data && (
@@ -549,9 +550,9 @@ export function LeadDetailColumn({
             </div>
             <div className="mt-1 text-sm font-medium">
               {l.contact_id ? (
-                <Link to="/contacts/$id" params={{ id: l.contact_id }} className="text-primary hover:underline">
+                <CrmLink to="/contacts/$id" params={{ id: l.contact_id }} className="text-primary hover:underline">
                   {contactLabel(l.contact_id)}
-                </Link>
+                </CrmLink>
               ) : <span className="text-muted-foreground">—</span>}
             </div>
           </div>
@@ -626,9 +627,9 @@ export function LeadDetailColumn({
               <ul className="space-y-1.5">
                 {(projects.data ?? []).map((p: any) => (
                   <li key={p.id} className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-xs">
-                    <Link to="/projects/$id" params={{ id: p.id }} search={{ tab: "handover" }} className="truncate text-primary hover:underline">
+                    <CrmLink to="/projects/$id" params={{ id: p.id }} search={{ tab: "handover" }} className="truncate text-primary hover:underline">
                       {p.title ?? p.name ?? "—"}
-                    </Link>
+                    </CrmLink>
                     <span className="text-muted-foreground">{PROJECT_STATUS_LABEL[p.status] ?? p.status ?? "—"}</span>
                   </li>
                 ))}
@@ -659,13 +660,13 @@ export function LeadDetailColumn({
                         ? <Send className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                         : <Inbox className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />}
                       <span className="min-w-0">
-                        <Link
+                        <CrmLink
                           to="/emails/$threadId"
                           params={{ threadId: e.thread_id ?? e.id }}
                           className="block truncate font-medium text-foreground hover:underline"
                         >
                           {e.subject || "(tárgy nélkül)"}
-                        </Link>
+                        </CrmLink>
                         <span className="block truncate text-[11px] text-muted-foreground">
                           {e.is_outbound ? `→ ${e.to_email ?? ""}` : `← ${e.from_email ?? ""}`}
                         </span>
@@ -691,9 +692,9 @@ export function LeadDetailColumn({
               {(companyContacts.data ?? []).map((c: any) => (
                 <li key={c.id} className="rounded border px-3 py-2 text-xs">
                   <div className="flex items-center justify-between gap-2">
-                    <Link to="/contacts/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
+                    <CrmLink to="/contacts/$id" params={{ id: c.id }} className="font-medium text-primary hover:underline">
                       {c.name ?? c.email ?? "—"}
-                    </Link>
+                    </CrmLink>
                     {c.position && <span className="text-[11px] text-muted-foreground">{c.position}</span>}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">

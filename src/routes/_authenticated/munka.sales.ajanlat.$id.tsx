@@ -32,12 +32,9 @@ function QuoteWorkspace() {
     <>
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
         <div className="min-w-0 text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">{kind.isLoading ? "Ajánlat" : QUOTE_TAB_LABEL[tab]}</span> · új munkaterület
+          <span className="font-medium text-foreground">{kind.isLoading ? "Ajánlat" : QUOTE_TAB_LABEL[tab]}</span>
         </div>
-        <div className="flex gap-2">
-          <Button asChild size="sm" variant="ghost"><Link to="/munka/sales/ajanlatok" search={tab === "none" ? { tipus: "none" } : { tipus: tab }}><ArrowLeft className="h-4 w-4" />Ajánlatok</Link></Button>
-          <Button asChild size="sm" variant="outline"><Link to="/quotes/$id" params={{ id }}>Részletes nézet</Link></Button>
-        </div>
+        <Button asChild size="sm" variant="ghost"><Link to="/munka/sales/ajanlatok" search={tab === "none" ? { tipus: "none" } : { tipus: tab }}><ArrowLeft className="h-4 w-4" />Ajánlatok</Link></Button>
       </div>
       <div className="overflow-hidden rounded-xl border bg-card shadow-[var(--shadow-card)]">
         <QuoteWorkflowDetail id={id} simple />

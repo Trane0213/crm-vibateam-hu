@@ -9,8 +9,9 @@
  *
  * Pipeline-ba kerülés egyirányú (DB trigger védi). Projekt fogalom itt nincs.
  */
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+
 import { CheckCircle2, Circle } from "lucide-react";
 import { NEXT_STEP_LABEL, type NextStepType } from "@/lib/sales/constants";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -192,7 +193,7 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
         {inPipeline && l.status !== "won" && (
           <Banner tone="success">
             Ez az ügy {fmtDate(l.pipeline_entered_at)} óta a Pipeline-ban van. Az ajánlat, kiküldés, utánkövetés és szerződés ott folytatódik.
-            {l.status !== "won" && l.status !== "lost" && <Button asChild size="sm" className="mt-2 w-full"><Link to="/sales/leads" search={{ lead: l.id }}>Megnyitás a Pipeline-ban<ArrowRight className="ml-1 h-3.5 w-3.5" /></Link></Button>}
+            {l.status !== "won" && l.status !== "lost" && <Button asChild size="sm" className="mt-2 w-full"><CrmLink to="/sales/leads" search={{ lead: l.id }}>Megnyitás a Pipeline-ban<ArrowRight className="ml-1 h-3.5 w-3.5" /></CrmLink></Button>}
           </Banner>
         )}
         {isLost && (

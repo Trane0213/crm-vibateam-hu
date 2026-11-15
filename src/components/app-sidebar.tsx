@@ -114,7 +114,7 @@ export function AppSidebar() {
       </SidebarContent>
       {!collapsed && canAccessRoute(role, "/munka") && (
         <div className="px-4 pb-2">
-          <Link to="/munka" className="block rounded-md border border-sidebar-border/60 px-3 py-2 text-xs text-sidebar-foreground/80 hover:bg-sidebar-accent">Új munkaterület (próba)</Link>
+          <Link to="/munka" className="block rounded-md border border-sidebar-border/60 px-3 py-2 text-xs text-sidebar-foreground/80 hover:bg-sidebar-accent">Új Sales/Marketing munkaterület</Link>
         </div>
       )}
       {!collapsed && (

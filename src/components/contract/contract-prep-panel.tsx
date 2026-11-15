@@ -4,7 +4,8 @@
  * jóváhagyást vagy aláírást; a fájlok a meglévő, jogosultság-ellenőrzött
  * letöltési úton nyílnak meg.
  */
-import { Link } from "@tanstack/react-router";
+
+import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { AlertTriangle, ArrowUpRight, Ban, CheckCircle2, CircleDashed, CircleHelp, FileText, Link2Off, Loader2, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,9 @@ function SourceLink({ item, can, className }: { item: Pick<ContractItem, "target
   const l = contractTargetLink(item.target, can);
   if (!l) return null;
   return (
-    <Link to={l.to as any} params={l.params as any} search={l.search as any} className={cn("inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline", className)}>
+    <CrmLink to={l.to as any} params={l.params as any} search={l.search as any} className={cn("inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:underline", className)}>
       {l.label}<ArrowUpRight className="h-3 w-3" />
-    </Link>
+    </CrmLink>
   );
 }
 
@@ -221,7 +222,7 @@ export function ContractPrepCompact({ leadId, projectId, fullLink }: {
               <p className="mt-1 text-muted-foreground tabular-nums">{s.missing} hiány · {s.pending} ellenőrizendő · {s.unknown} NINCS ADAT{s.ownerDecisions.length ? ` · ${s.ownerDecisions.length} tulajdonosi döntés` : ""}</p>
               <div className="mt-1.5 flex flex-wrap gap-3">
                 {next.item && next.item.state !== "ok" && <SourceLink item={next.item} can={can} />}
-                {allowed && <Link to={allowed.to as any} params={allowed.params as any} search={allowed.search as any} className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline">{allowed.label}<ArrowUpRight className="h-3 w-3" /></Link>}
+                {allowed && <CrmLink to={allowed.to as any} params={allowed.params as any} search={allowed.search as any} className="inline-flex items-center gap-0.5 font-medium text-primary hover:underline">{allowed.label}<ArrowUpRight className="h-3 w-3" /></CrmLink>}
               </div>
             </>
           );
