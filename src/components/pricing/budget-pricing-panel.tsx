@@ -1,3 +1,5 @@
+import { openLines, pricingComplete } from "@/lib/pricing/completeness";
+import { pricingSettingsSummary, type QuotePricingSettings } from "@/lib/quotes/pricing-settings";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,13 +26,12 @@ function download(bytes: Uint8Array | string, name: string, type: string) {
   a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 const huf2 = (n: number) => `${new Intl.NumberFormat("hu-HU", { maximumFractionDigits: 2 }).format(n)} Ft`;
-const numOrUndef = (s: string) => (s.trim() === "" ? undefined : Number(s.replace(",", ".")));
 
 /**
  * P3 — Kapott költségvetés árazása: determinisztikus számítás az eredeti Excel szerkezetében,
  * tételes forrás- és számítási nyomvonallal, ellenőrzött TERVEZET-letöltéssel. Nem ment és nem küld.
  */
-export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { quoteId: string; scopeType: string | null; locked: boolean; onUseNet: (net: number) => void }) {
+export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet, settings }: { quoteId: string; scopeType: string | null; locked: boolean; onUseNet: (net: number) => void; settings: QuotePricingSettings }) {
   const run = useServerFn(priceReceivedBudget);
   const docs = useQuery({
     queryKey: ["quote_documents", quoteId],
@@ -43,9 +44,8 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { q
   const budgets = (docs.data ?? []).filter((d) => ["unpriced_budget", "priced_budget"].includes(d.document_type) && /\.(xlsx|xlsm|xls)$/i.test(String(d.name ?? "")));
   const [docId, setDocId] = useState<string>("");
   const selectedDoc = docId || budgets.find((d) => d.document_type === "unpriced_budget")?.id || budgets[0]?.id || "";
-  const [mode, setMode] = useState<Mode>(scopeType === "material_labor" ? "full_construction" : "subcontractor_labor");
-  const [rate, setRate] = useState("6500"), [policy, setPolicy] = useState<"as_quoted" | "rate_scaled">("as_quoted");
-  const [contingency, setContingency] = useState("0"), [margin, setMargin] = useState(""), [step, setStep] = useState("1");
+  const [mode, setMode] = useState<Mode>(settings.mode ?? (scopeType === "material_labor" ? "full_construction" : "subcontractor_labor"));
+  const [policy, setPolicy] = useState<"as_quoted" | "rate_scaled">("as_quoted");
   const [template, setTemplate] = useState<{ name: string; base64: string } | null>(null);
   const [filter, setFilter] = useState<StatusFilter>("all"), [page, setPage] = useState(0), [open, setOpen] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -53,7 +53,8 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { q
   const calc = useMutation({
     mutationFn: async () => {
       const res = await run({ data: { quoteId, documentId: selectedDoc, mode, includeReference: true, template, adjustments: [], buildWorkbook: true,
-        overrides: { laborRateHuf: numOrUndef(rate) ?? null, historicalLaborPolicy: policy, contingencyPct: numOrUndef(contingency) ?? 0, marginPct: numOrUndef(margin) ?? null, roundingStepHuf: numOrUndef(step) ?? 1 } } });
+        // Óradíj, tartalék, haszon és kerekítés: az ajánlat mentett árazási beállításából (a szerver olvassa be).
+        overrides: { historicalLaborPolicy: policy } } });
       if (!res.ok) throw new Error(res.error);
       return res;
     },
@@ -96,7 +97,6 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { q
                 <SelectContent>{(Object.keys(MODE_LABEL) as Mode[]).map((m) => <SelectItem key={m} value={m}>{MODE_LABEL[m]}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="grid gap-1.5"><Label htmlFor="bp-rate">Óradíj (Ft/óra, normaórás tételekhez)</Label><Input id="bp-rate" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} /></div>
             <div className="grid gap-1.5">
               <Label>Korábbi VIBA-díj kezelése</Label>
               <Select value={policy} onValueChange={(v) => setPolicy(v as typeof policy)}>
@@ -104,13 +104,8 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { q
                 <SelectContent><SelectItem value="as_quoted">Változatlanul (ellenőrizhető)</SelectItem><SelectItem value="rate_scaled">Óradíjra skálázva (5 800 Ft-os feltételezett alapról — becslés)</SelectItem></SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="grid gap-1.5"><Label htmlFor="bp-cont">Tartalék %</Label><Input id="bp-cont" inputMode="decimal" value={contingency} onChange={(e) => setContingency(e.target.value)} /></div>
-              <div className="grid gap-1.5"><Label htmlFor="bp-margin">Célfedezet %</Label><Input id="bp-margin" inputMode="decimal" placeholder="—" value={margin} onChange={(e) => setMargin(e.target.value)} /></div>
-              <div className="grid gap-1.5"><Label htmlFor="bp-step">Kerekítés Ft</Label><Input id="bp-step" inputMode="numeric" value={step} onChange={(e) => setStep(e.target.value)} /></div>
-            </div>
           </div>
-          <p className="text-xs text-muted-foreground">Célfedezet csak beszerzési/önköltség-alapú árra (pl. anyag) épül; korábbi ajánlati díj már tartalmazza. Az alapértékek tervezetek, nem tulajdonosi jóváhagyású paraméterek.</p>
+          <p className="text-xs text-muted-foreground">Árazási beállítás: {pricingSettingsSummary(settings)}. Módosítás a lépés tetején, az „Árazási beállítás” kártyán.</p>
           <div className="flex flex-wrap items-center gap-2">
             <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void pickTemplate(f); if (fileRef.current) fileRef.current.value = ""; }} />
             <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()}><Upload className="mr-1.5 h-4 w-4" /> Ársablon (opcionális)</Button>
@@ -131,7 +126,7 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { q
           <div className="grid gap-2 sm:grid-cols-3">
             <div className="rounded-md border p-2"><p className="text-xs text-muted-foreground">Anyag (nettó)</p><p className="font-semibold tabular-nums">{formatHuf(t.materialHuf)}</p></div>
             <div className="rounded-md border p-2"><p className="text-xs text-muted-foreground">Munkadíj (nettó)</p><p className="font-semibold tabular-nums">{formatHuf(t.laborHuf)}</p></div>
-            <div className="rounded-md border border-primary/40 bg-primary/5 p-2"><p className="text-xs text-muted-foreground">Árazott tételek nettó összesen</p><p className="font-semibold tabular-nums">{formatHuf(t.netHuf)}</p></div>
+            <div className="rounded-md border border-primary/40 bg-primary/5 p-2"><p className="text-xs text-muted-foreground">{pricingComplete(t, ex.status) ? "Teljes nettó összeg" : "Részösszeg (csak az árazott tételek)"}</p><p className="font-semibold tabular-nums">{formatHuf(t.netHuf)}</p></div>
           </div>
           <p className="text-xs text-muted-foreground">Értéknap {r.summary.asOf} · HUF · nettó · {MODE_LABEL[r.summary.profile.mode as Mode]} · {t.byStatus.zero_qty} db 0 mennyiségű, {t.byStatus.existing_price} db már árazott sor nem változott. Fájl: {r.summary.file.name} (SHA-256 {r.summary.file.sha256.slice(0, 12)}…)</p>
 
@@ -149,7 +144,8 @@ export function BudgetPricingPanel({ quoteId, scopeType, locked, onUseNet }: { q
           <div className="flex flex-wrap gap-2">
             {ex.status === "verified" && r.workbookBase64 && <Button size="sm" onClick={() => download(Uint8Array.from(atob(r.workbookBase64!), (c) => c.charCodeAt(0)), ex.fileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}><Download className="mr-1.5 h-4 w-4" /> Árazott Excel (TERVEZET)</Button>}
             <Button size="sm" variant="outline" onClick={() => download(pricingCsv(r.lines), `${r.summary.file.name.replace(/\.[^.]+$/, "")}_VIBA_BELSO_ellenorzes.csv`, "text/csv;charset=utf-8")}><Download className="mr-1.5 h-4 w-4" /> Belső ellenőrzési lista (CSV)</Button>
-            <Button size="sm" variant="ghost" disabled={locked || !t.netHuf} onClick={() => { onUseNet(Math.round(t.netHuf)); toast.success("Nettó összeg átvéve — a Mentés gombbal rögzítheted."); }}>Nettó átvétele az összeg mezőbe</Button>
+            {pricingComplete(t, ex.status) ? <Button size="sm" variant="ghost" disabled={locked} onClick={() => { onUseNet(Math.round(t.netHuf)); toast.success("Nettó összeg átvéve — a Mentés gombbal rögzítheted."); }}>Nettó átvétele az ajánlat összegébe</Button>
+              : <p className="self-center text-xs text-muted-foreground">Részösszeg — nem vehető át ajánlati összegként, amíg {openLines(t)} tétel ár nélküli vagy ellenőrizendő.</p>}
           </div>
 
           <div className="flex flex-wrap gap-1" role="tablist" aria-label="Tételsorok szűrése">

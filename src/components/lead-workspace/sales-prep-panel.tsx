@@ -37,6 +37,9 @@ import { WonLeadHandoff } from "@/components/handoff/lead-handoff-card";
 import { updateLeadOrThrow } from "@/lib/sales/lead-update";
 import { logActivity } from "@/lib/activity-log";
 import { statusToLostStage } from "@/lib/sales/constants";
+import { canAcceptQuoteRequest, quoteRequestAcceptPatch } from "@/lib/sales/quote-request";
+import { NewQuoteButton } from "@/components/quotes/new-quote-button";
+import { Input } from "@/components/ui/input";
 
 type ActivityType = "call" | "email" | "meeting";
 const ACTIVITY_LABEL: Record<ActivityType, string> = {
@@ -145,6 +148,27 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
     onError: (e: any) => toast.error("Nem sikerült", { description: humanizeSupabaseError(e) }),
   });
 
+  // Konkrét ajánlatkérés: elfogadás → közvetlenül „Ajánlat előkészítése” (köztes aktivitás nélkül).
+  const [acc, setAcc] = useState({ date: "", time: "", note: "" });
+  const acceptRequest = useMutation({
+    mutationFn: async () => {
+      if (!leadId) throw new Error("Nincs kiválasztott lead.");
+      const { data: fresh, error } = await supabase.from("leads").select("status, pipeline_entered_at, quote_requested").eq("id", leadId).maybeSingle();
+      if (error) throw error;
+      if (!fresh || !canAcceptQuoteRequest(fresh as any)) throw new Error("Ez az ügy már nem fogadható el ajánlatkérésként (időközben változott).");
+      const patch = quoteRequestAcceptPatch(acc);
+      if (!patch) throw new Error("Add meg, mikorra készül el az ajánlat (dátum és időpont).");
+      await updateLeadOrThrow(leadId, patch);
+      await logActivity("leads", "status_change", leadId, { from: fresh.status, to: "quote_prep", reason: "quote_request_accepted", due: patch.next_step_due_at });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      qc.invalidateQueries({ queryKey: ["pipeline"] });
+      toast.success("Elfogadva — az ügy az „Ajánlat előkészítése” szakaszban van");
+    },
+    onError: (e: any) => toast.error("Nem sikerült elfogadni", { description: humanizeSupabaseError(e) }),
+  });
+
   if (!leadId) {
     return (
       <div className="flex h-full items-center justify-center p-6 text-center">
@@ -194,12 +218,28 @@ export function SalesPrepPanel({ leadId }: { leadId: string | null }) {
           <Banner tone="success">
             Ez az ügy {fmtDate(l.pipeline_entered_at)} óta a Pipeline-ban van. Az ajánlat, kiküldés, utánkövetés és szerződés ott folytatódik.
             {l.status !== "won" && l.status !== "lost" && <Button asChild size="sm" className="mt-2 w-full"><CrmLink to="/sales/leads" search={{ lead: l.id }}>Megnyitás a Pipeline-ban<ArrowRight className="ml-1 h-3.5 w-3.5" /></CrmLink></Button>}
+            {l.status === "quote_prep" && <div className="mt-2 [&>button]:w-full"><NewQuoteButton leadId={l.id} label="Ajánlat indítása" variant="outline" /></div>}
           </Banner>
         )}
         {isLost && (
           <Banner tone="destructive">
             Ez a lead elveszettként le lett zárva{l.lost_at ? ` (${fmtDate(l.lost_at)})` : ""}.
           </Banner>
+        )}
+
+        {canAcceptQuoteRequest(l) && (
+          <div className="rounded-md border border-primary/40 bg-primary/5 p-3 text-xs">
+            <div className="font-semibold">Konkrét ajánlatkérés</div>
+            <p className="mt-0.5 text-muted-foreground">A Marketing jelölte, hogy az ügyfél már ajánlatot kér. Elfogadás után az ügy közvetlenül az „Ajánlat előkészítése” szakaszba kerül.</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <div className="grid gap-1"><Label htmlFor="qr-date">Ajánlat határideje</Label><Input id="qr-date" type="date" value={acc.date} onChange={(e) => setAcc((a) => ({ ...a, date: e.target.value }))} /></div>
+              <div className="grid gap-1"><Label htmlFor="qr-time">Időpont</Label><Input id="qr-time" type="time" value={acc.time} onChange={(e) => setAcc((a) => ({ ...a, time: e.target.value }))} /></div>
+            </div>
+            <Textarea className="mt-2" rows={2} placeholder="Megjegyzés (opcionális)" value={acc.note} onChange={(e) => setAcc((a) => ({ ...a, note: e.target.value }))} />
+            <Button size="sm" className="mt-2 w-full" disabled={acceptRequest.isPending || !quoteRequestAcceptPatch(acc)} onClick={() => acceptRequest.mutate()}>
+              {acceptRequest.isPending ? "Elfogadás…" : "Elfogadom — Ajánlat előkészítése"}
+            </Button>
+          </div>
         )}
 
         {/* A. Aktivitás rögzítése */}

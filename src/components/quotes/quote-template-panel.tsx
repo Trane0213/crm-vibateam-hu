@@ -16,10 +16,12 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { QuoteTemplateDefaultsEditor } from "./quote-template-defaults-editor";
 import { QuotePrintDocument } from "./quote-print-document";
 
-type Props = { quote: { id: string; locked_at?: string | null; template_key?: string | null; template_version?: number | null; template_terms?: Record<string, string> | null; site_address?: string | null }; headerDraft?: Record<string, unknown>; children?: ReactNode };
+type Props = { quote: { id: string; locked_at?: string | null; template_key?: string | null; template_version?: number | null; template_terms?: Record<string, string> | null; site_address?: string | null }; headerDraft?: Record<string, unknown>; children?: ReactNode;
+  /** A lépés többi mezőjének mentése ugyanazzal az egy gombbal (pl. lehatárolás, kizárások). */
+  extraSave?: () => Promise<void> };
 
 /** S6: sablonválasztás és ajánlatonként szerkeszthető feltételek. */
-export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
+export function QuoteTemplatePanel({ quote, headerDraft, children, extraSave }: Props) {
   const qc = useQueryClient();
   const { role } = usePermissions();
   const getDefaults = useServerFn(getQuoteTemplateDefaults);
@@ -46,6 +48,7 @@ export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
     mutationFn: async () => {
       if (!tpl) throw new Error("Válassz sablont.");
       if (locked) throw new Error("Kiküldött ajánlat nem módosítható.");
+      await extraSave?.();
       const { data, error } = await supabase.from("quotes").update({
         template_key: tpl.key, template_version: quote.template_key === tpl.key ? (quote.template_version ?? tpl.version) : tpl.version,
         template_terms: terms, site_address: site.trim() || null,
@@ -53,7 +56,7 @@ export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
       if (error) throw error;
       if (!data || data.length !== 1) throw new Error("Az ajánlat nem módosítható (nincs jogosultság).");
     },
-    onSuccess: () => { toast.success("Sablon és feltételek mentve"); qc.invalidateQueries({ queryKey: ["quotes"] }); },
+    onSuccess: () => { toast.success("Ügyfélnek szóló ajánlat mentve"); qc.invalidateQueries({ queryKey: ["quotes"] }); },
     onError: (e) => toast.error(humanizeSupabaseError(e)),
   });
 
@@ -62,11 +65,11 @@ export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
     <div className="min-w-0 space-y-4">
       {children}
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-sm font-semibold">VIBA-sablon és feltételek</h2>
+        <h2 className="text-sm font-semibold">Sablon és feltételek</h2>
         {quote.template_key && isTemplateKey(quote.template_key) && (
           <Badge variant="outline">{QUOTE_TEMPLATES[quote.template_key].label} · sablon v{quote.template_version ?? "?"}</Badge>
         )}
-        {hasDraftTerms(terms) && <Badge variant="destructive">jóváhagyatlan tervezetszöveg</Badge>}
+        {hasDraftTerms(terms) && <Badge variant="destructive">ellenőrizetlen mintaszöveg</Badge>}
       </div>
       <div className="flex flex-wrap items-end gap-2">
         <div className="grid gap-1.5">
@@ -99,7 +102,8 @@ export function QuoteTemplatePanel({ quote, headerDraft, children }: Props) {
           ))}
         </div>
       )}
-      <Button size="sm" disabled={!tpl || locked || save.isPending} onClick={() => save.mutate()}>Sablon és feltételek mentése</Button>
+      <Button size="sm" disabled={!tpl || locked || save.isPending} onClick={() => save.mutate()}>Mentés</Button>
+      {!tpl && !locked && <p className="text-xs text-muted-foreground">Mentéshez válassz sablont.</p>}
       {locked && <p className="text-xs text-muted-foreground">Kiküldött verzió — módosításhoz új verziót készíts.</p>}
       {role === "owner" && key && defaults.data && <QuoteTemplateDefaultsEditor key={key} templateKey={key} defaults={defaults.data} />}
     </div>

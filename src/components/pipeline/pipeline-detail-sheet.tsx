@@ -25,11 +25,10 @@ import { ContractPrepPanel } from "@/components/contract/contract-prep-panel";
 import { RelatedDocumentsPanel } from "@/components/documents/related-documents-panel";
 import { LEAD_STATUS_LABEL } from "@/lib/sales/constants";
 import { PrimaryActionCard } from "@/components/sales/sales-flow-ui";
-import { createDraftQuote } from "@/lib/quotes/create";
+import { NewQuoteButton } from "@/components/quotes/new-quote-button";
 import type { LeadStatus } from "@/lib/sales/constants";
 import type { PipelineLead } from "./pipeline-types";
 import { usePipelineLeadMutations } from "./use-pipeline-lead-mutations";
-import { QuoteWorkflowChoice } from "@/components/quotes/quote-workflow-choice";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { QuoteWorkflow } from "@/lib/quotes/workflow";
 
@@ -60,7 +59,6 @@ export function PipelineDetailSheet({
   const qc = useQueryClient();
   const [lostOpen, setLostOpen] = useState(false);
   const [projOpen, setProjOpen] = useState(false);
-  const [quoteChoiceOpen, setQuoteChoiceOpen] = useState(false);
   const navigate = useCrmNavigate();
   // Az ügy aktuális ajánlatverziói (RLS: can_access_quote) — duplikált
   // piszkozat helyett a meglévő ajánlatot ajánljuk fel.
@@ -81,24 +79,6 @@ export function PipelineDetailSheet({
   });
   const quotes = currentQuotes(leadQuotes.data ?? []);
   const accepted = quotes.find((q) => q.status === "accepted") ?? null;
-  const newQuote = useMutation({
-    mutationFn: async (kind: QuoteWorkflow) => {
-      if (!lead) throw new Error("Nincs lead.");
-      const id = await createDraftQuote({ leadId: lead.id });
-      const result = await supabase.from("quotes").update({ quote_kind: kind }).eq("id", id).select("id");
-      if (result.error || result.data?.length !== 1) toast.error("A piszkozat elkészült; az ajánlattípust az adatlapon kell megadni.");
-      await logActivity("quotes", "create", String(id), { lead_id: lead.id });
-      return id;
-    },
-    onError: (e: any) =>
-      toast.error("Nem sikerült létrehozni", { description: humanizeSupabaseError(e) }),
-    onSuccess: (id) => {
-      setQuoteChoiceOpen(false);
-      qc.invalidateQueries({ queryKey: ["quotes"] });
-      navigate({ to: "/quotes/$id", params: { id } });
-    },
-  });
-
   const { statusMut: sharedStatus, lostMut: sharedLost, invalidate: sharedInvalidate } = usePipelineLeadMutations(() => { setLostOpen(false); onOpenChange(false); });
   const invalidate = () => sharedInvalidate(lead?.id);
   // Közös írási útvonal (use-pipeline-lead-mutations): ugyanaz a visszaolvasás, napló és invalidálás.
@@ -123,9 +103,9 @@ export function PipelineDetailSheet({
   });
 
   const next = lead ? leadNextAction(lead, quotes) : null;
-  const busy = statusMut.isPending || lostMut.isPending || newQuote.isPending;
+  const busy = statusMut.isPending || lostMut.isPending;
   const primaryButton = !next ? null
-    : next.kind === "create_quote" ? <Button size="sm" disabled={busy || leadQuotes.isLoading} onClick={() => setQuoteChoiceOpen(true)}><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlat létrehozása</Button>
+    : next.kind === "create_quote" ? <NewQuoteButton leadId={lead!.id} label="Ajánlat létrehozása" variant="default" />
     : next.kind === "open_quote" && next.quoteId ? <Button size="sm" asChild><CrmLink to="/quotes/$id" params={{ id: next.quoteId }}><FileText className="mr-1.5 h-3.5 w-3.5" />Ajánlat megnyitása</CrmLink></Button>
     : next.kind === "change_status" && next.suggestStatus ? <Button size="sm" disabled={busy} onClick={() => statusMut.mutate(next.suggestStatus!)}><ArrowRight className="mr-1.5 h-3.5 w-3.5" />Áthelyezés: {LEAD_STATUS_LABEL[next.suggestStatus]}</Button>
     : next.kind === "win" ? <Button size="sm" disabled={busy} onClick={() => setProjOpen(true)}><Trophy className="mr-1.5 h-3.5 w-3.5" />Megnyertük → projektátadás</Button>
@@ -261,20 +241,10 @@ export function PipelineDetailSheet({
                   onWon={() => setProjOpen(true)}
                   onLost={() => setLostOpen(true)}
                 />
-                <div className="mt-3">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    disabled={newQuote.isPending || leadQuotes.isLoading}
-                    onClick={() => setQuoteChoiceOpen(true)}
-                  >
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    {newQuote.isPending ? "Létrehozás…" : quotes.length ? "Új, külön ajánlat" : "Ajánlat létrehozása"}
-                  </Button>
-                  {quotes.length > 0 && <p className="mt-1 text-[11px] text-muted-foreground">Már van ajánlat. Új verziót vagy alternatívát a meglévő ajánlat adatlapján készíts — ez a gomb egy külön, új piszkozatot hoz létre.</p>}
-                  <Dialog open={quoteChoiceOpen} onOpenChange={(v) => { if (!newQuote.isPending) setQuoteChoiceOpen(v); }}>
-                    <DialogContent><DialogHeader><DialogTitle>Új ajánlat</DialogTitle></DialogHeader>{quotes.length > 0 && <p className="text-xs text-[color:var(--status-warning)]">Figyelem: ehhez az ügyhöz már van {quotes.length} aktuális ajánlat. Ez külön piszkozatot hoz létre.</p>}<QuoteWorkflowChoice disabled={newQuote.isPending} onChoose={(kind) => newQuote.mutate(kind)} /></DialogContent>
-                  </Dialog>
+                <div className="mt-3 [&>button]:w-full">
+                  {leadQuotes.isSuccess && quotes.length === 0
+                    ? <NewQuoteButton leadId={lead.id} label="Ajánlat létrehozása" variant="outline" />
+                    : leadQuotes.isSuccess && <p className="text-[11px] text-muted-foreground">Az ügynek már van ajánlata. Módosításhoz az ajánlat oldalán „Új verzió”, párhuzamos műszaki megoldáshoz „Új alternatíva”.</p>}
                 </div>
                 {!inline && <details className="mt-4 rounded-md border bg-card p-3 text-[11px] text-muted-foreground">
                   <summary className="flex cursor-pointer items-center gap-1 font-medium text-foreground"><Info className="h-3.5 w-3.5" />Mit hol intézek?</summary>

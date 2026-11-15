@@ -1,7 +1,7 @@
 /**
  * P3 — vállalati és alvállalkozói kalkulációs profilok alapjai.
- * Az alapértékek NEM tulajdonos által jóváhagyott üzleti paraméterek: kiinduló tervezetek,
- * amelyeket a számítás minden futásnál kiír (értéknap, deviza, nettó, kerekítés).
+ * Az alapértékek NEM tulajdonos által jóváhagyott üzleti paraméterek. Óradíj-alapérték NINCS:
+ * az óradíjat az ajánlat árazási beállítása adja (quotes.pricing_settings), különben a normaórás tétel hiányzó ár.
  */
 import type { RoundingMode } from "./money";
 
@@ -26,10 +26,10 @@ const COMMON = { currency: "HUF" as const, netOnly: true as const, rounding: { s
 
 export const DEFAULT_PROFILES: Record<PricingMode, CalculationProfile> = {
   subcontractor_labor: { ...COMMON, id: "viba_subcontractor_labor_draft", label: "VIBA alvállalkozói munkadíj (tervezet)", mode: "subcontractor_labor",
-    laborRateHuf: 6500, laborRateBasis: "sell", historicalLaborPolicy: "as_quoted", historicalBaseRateHuf: 5800,
+    laborRateHuf: null, laborRateBasis: "sell", historicalLaborPolicy: "as_quoted", historicalBaseRateHuf: 5800,
     materialSurchargePct: 0, laborSurchargePct: 0, contingencyPct: 0, marginPct: null, allowHistoricalAuto: true, allowUnapprovedTemplate: true },
   full_construction: { ...COMMON, id: "viba_full_construction_draft", label: "VIBA teljes kivitelezés (tervezet)", mode: "full_construction",
-    laborRateHuf: 6500, laborRateBasis: "sell", historicalLaborPolicy: "as_quoted", historicalBaseRateHuf: 5800,
+    laborRateHuf: null, laborRateBasis: "sell", historicalLaborPolicy: "as_quoted", historicalBaseRateHuf: 5800,
     materialSurchargePct: 0, laborSurchargePct: 0, contingencyPct: 0, marginPct: null, allowHistoricalAuto: true, allowUnapprovedTemplate: true },
 };
 

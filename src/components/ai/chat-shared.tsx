@@ -60,7 +60,9 @@ export type Msg = {
   /** Chatbe feltöltött, szerepköri mappába mentett fájlok (csak azonosító + kulcs; megnyitás jogosultság-ellenőrzéssel). */
   attachments?: ChatAttachment[];
 };
-export type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[] };
+export type Thread = { id: string; title: string; agent: AgentId; updatedAt: number; messages: Msg[];
+  /** Rekordhoz kötött beszélgetés („quote:<id>”, „lead:<id>”…); null/hiány = általános. Lásd ai-thread-scope.ts. */
+  scope?: string | null; scopeLabel?: string | null };
 
 const LEGACY_STORAGE_KEY = "viba.ai.threads.v1";
 /** A bejelentkezett felhasználó azonosítója a Supabase munkamenetből (szinkron). */

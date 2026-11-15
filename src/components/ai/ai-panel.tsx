@@ -21,6 +21,7 @@ import { useRunProgress } from './use-run-progress';
 import { friendlyAiError } from '@/lib/ai-os/transparency';
 import { ChatAttachControls, PendingAttachments, useChatAttachments } from "@/components/ai/chat-attachments";
 import { agentAcceptsAttachments, composeModelContent, DEFAULT_ATTACHMENT_QUESTION } from "@/lib/chat-uploads/chat-attachments";
+import { canContinueThread, pickThreadForScope, threadScopeOf } from "@/lib/ai-thread-scope";
 import { contextPrefix, detectRecordContext, type RecordContext, CONTEXT_QUESTIONS, GENERAL_QUESTIONS } from "@/lib/ai-panel-context";
 import {
   AGENT_IDS, AGENT_META, Bubble, THREADS_EVENT, isLegacyErrorMessage, loadThreads, saveThreads,
@@ -103,7 +104,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
   const agents = AGENT_IDS.filter((a) => visibleAgentIds.has(a));
 
   const [threads, setThreads] = useState<Thread[]>(() => loadThreads());
-  const [activeId, setActiveId] = useState<string | null>(() => loadThreads()[0]?.id ?? null);
+  const [activeId, setActiveId] = useState<string | null>(null);
   const active = threads.find((t) => t.id === activeId) ?? null;
   const [agent, setAgent] = useState<AgentId>(() => (loadThreads()[0]?.agent as AgentId) ?? "crm");
   const [showHistory, setShowHistory] = useState(false);
@@ -121,12 +122,17 @@ function PanelBody({ onClose }: { onClose: () => void }) {
   const recordCtx = useMemo(() => detectRecordContext(pathname), [pathname]);
   const { data: ctxLabel } = useContextLabel(recordCtx);
   const { prefill, clearPrefill } = useAiPanel();
+  // Rekordonként külön beszélgetés: oldalváltáskor a rekord saját (vagy új) beszélgetése nyílik.
+  const scope = useCtx ? threadScopeOf(recordCtx) : null;
+  useEffect(() => {
+    setActiveId(pickThreadForScope(loadThreads(), agent, scope)?.id ?? null);
+  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
   // Munkafelületről érkező utasítás: új beszélgetés, szöveg betöltve, küldés a felhasználó dolga.
   useEffect(() => {
     if (!prefill || agents.length === 0) return;
     // A látható agentek listája később töltődhet be: addig várunk, nem esünk vissza George-ra.
     if (!agents.includes(prefill.agent)) return;
-    setAgent(prefill.agent); setActiveId(null); setShowHistory(false); setUseCtx(true); setInput(prefill.text);
+    setAgent(prefill.agent); setActiveId(pickThreadForScope(loadThreads(), prefill.agent, threadScopeOf(recordCtx))?.id ?? null); setShowHistory(false); setUseCtx(true); setInput(prefill.text);
     clearPrefill();
   }, [prefill?.nonce, agents.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -161,9 +167,10 @@ function PanelBody({ onClose }: { onClose: () => void }) {
     const question = text.trim() || (files.length ? DEFAULT_ATTACHMENT_QUESTION : "");
     if (!question || busy || checking) return;
     if (question.length > 4000) { toast.error("A kérdés túl hosszú", { description: "Rövidítsd 4000 karakter alá." }); return; }
-    let thread = active && active.agent === agent ? active : null;
+    // Csak ugyanennek a rekordnak a beszélgetése folytatható — másik ajánlat/ügy előzménye soha nem kerül a modellhez.
+    let thread = canContinueThread(active, agent, scope) ? active : null;
     if (!thread) {
-      thread = { id: uid(), title: question.slice(0, 60), agent, updatedAt: Date.now(), messages: [] };
+      thread = { id: uid(), title: question.slice(0, 60), agent, updatedAt: Date.now(), messages: [], scope, scopeLabel: scope ? `${recordCtx!.label}: ${ctxLabel ?? ""}`.trim() : null };
       const t = thread;
       commit((prev) => [t, ...prev]);
       setActiveId(t.id);
@@ -253,7 +260,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
                 <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left"
                   onClick={() => { setActiveId(t.id); setAgent(t.agent); setShowHistory(false); }}>
                   <img src={AGENT_META[t.agent]?.portrait} alt="" className="h-5 w-5 shrink-0 rounded-full object-cover" />
-                  <span className="truncate">{t.title}</span>
+                  <span className="min-w-0"><span className="block truncate">{t.title}</span>{t.scopeLabel && <span className="block truncate text-[10px] text-muted-foreground">{t.scopeLabel}</span>}</span>
                 </button>
                 <button type="button" title="Törlés" className="opacity-60 hover:opacity-100"
                   onClick={() => { commit((prev) => prev.filter((x) => x.id !== t.id)); if (t.id === activeId) setActiveId(null); }}>
@@ -317,6 +324,7 @@ function PanelBody({ onClose }: { onClose: () => void }) {
             </Button>
           ))}
         </div>
+        {active && !canContinueThread(active, agent, scope) && <p role="status" className="rounded-md border bg-background px-2.5 py-1.5 text-[11px] text-muted-foreground">Ez a beszélgetés {active.scopeLabel ? `másik rekordhoz tartozik (${active.scopeLabel})` : "általános, nem ehhez a rekordhoz tartozik"}. Az új kérdés új beszélgetést indít ehhez az oldalhoz.</p>}
         <PendingAttachments state={attach} disabled={busy} />
         <div className="flex items-end gap-2">
           {agentAcceptsAttachments(agent) && <ChatAttachControls agent={agent} state={attach} recordCtx={recordCtx} ctxLabel={ctxLabel} disabled={busy} />}

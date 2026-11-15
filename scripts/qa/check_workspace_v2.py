@@ -153,6 +153,23 @@ async def main():
       await click_and_expect(page.locator('main a[href^="/munka/sales/ajanlat/"]'), '/munka/sales/ajanlat/', 'Ügy → ajánlat megnyitása')
       await page.wait_for_timeout(1500); await page.screenshot(path=str(OUT / f'{ROLE}{"-m" if MOBILE else ""}-3-ajanlat.png'))
       await legacy_links('Ajánlat')
+      # Egy nézet, négy lépés; a kiküldés ablakában válasz/új levél és kötelező utánkövetés.
+      tabs = await page.get_by_role('tab').all_inner_texts()
+      rec('Ajánlat: egy nézet, négy lépés', [t.strip() for t in tabs][:4] == ['1. Ügyfél és dokumentumok', '2. Árazás', '3. Ügyfélnek szóló ajánlat', '4. Kiküldés és utánkövetés'], json.dumps(tabs, ensure_ascii=False))
+      rec('Ajánlat: nincs nézetváltó gomb', await page.get_by_role('button', name=re.compile('Egyszerűsített nézet|Részletes nézet')).count() == 0)
+      for i, t in enumerate(['2. Árazás', '3. Ügyfélnek szóló ajánlat', '4. Kiküldés és utánkövetés']):
+        await page.get_by_role('tab', name=t).click(); await page.wait_for_timeout(700)
+        await page.screenshot(path=str(OUT / f'{ROLE}{"-m" if MOBILE else ""}-3{"bcd"[i]}-ajanlat.png'))
+      send_btn = page.get_by_role('button', name='Küldés CRM-ből')
+      if await send_btn.count() and await send_btn.first.is_enabled():
+        await send_btn.first.click(); await page.wait_for_timeout(1500)
+        dlg = page.get_by_role('dialog')
+        rec('Kiküldés: választható válasz a szálban / új levél', await dlg.get_by_text('Válasz az ügyfél eredeti levélszálában').count() == 1 and await dlg.get_by_text('Új e-mail').count() == 1)
+        rec('Kiküldés: utánkövetés nélkül a Küldés gomb tiltott', await dlg.get_by_role('button', name='Küldés', exact=True).is_disabled())
+        await page.screenshot(path=str(OUT / f'{ROLE}{"-m" if MOBILE else ""}-3e-kuldes.png'))
+        await page.keyboard.press('Escape'); await page.wait_for_timeout(300)
+      else: rec('Kiküldés: párbeszéd megnyitható', False, 'nincs saját Gmail a tesztfiókban vagy a gomb hiányzik')
+      await page.get_by_role('tab', name='1. Ügyfél és dokumentumok').click(); await page.wait_for_timeout(300)
       await click_and_expect(page.locator('main a[href^="/munka/ugyfel/"]'), '/munka/ugyfel/', 'Ajánlat → ügyféladatlap')
       await page.screenshot(path=str(OUT / f'{ROLE}{"-m" if MOBILE else ""}-4-ugyfel.png'))
       await legacy_links('Ügyféladatlap'); await assistant('Ügyféladatlap', 'Timothy')

@@ -3215,6 +3215,7 @@ export type Database = {
           next_step_type: string | null
           pipeline_entered_at: string | null
           project_type: string | null
+          quote_requested: boolean
           source: string | null
           status: string | null
           summary: string | null
@@ -3236,6 +3237,7 @@ export type Database = {
           next_step_type?: string | null
           pipeline_entered_at?: string | null
           project_type?: string | null
+          quote_requested?: boolean
           source?: string | null
           status?: string | null
           summary?: string | null
@@ -3257,6 +3259,7 @@ export type Database = {
           next_step_type?: string | null
           pipeline_entered_at?: string | null
           project_type?: string | null
+          quote_requested?: boolean
           source?: string | null
           status?: string | null
           summary?: string | null
@@ -4490,6 +4493,7 @@ export type Database = {
           manual_net_amount: number | null
           notes: string | null
           offer_due_date: string | null
+          pricing_settings: Json | null
           project_id: string | null
           quote_kind: string | null
           request_due_date: string | null
@@ -4525,6 +4529,7 @@ export type Database = {
           manual_net_amount?: number | null
           notes?: string | null
           offer_due_date?: string | null
+          pricing_settings?: Json | null
           project_id?: string | null
           quote_kind?: string | null
           request_due_date?: string | null
@@ -4560,6 +4565,7 @@ export type Database = {
           manual_net_amount?: number | null
           notes?: string | null
           offer_due_date?: string | null
+          pricing_settings?: Json | null
           project_id?: string | null
           quote_kind?: string | null
           request_due_date?: string | null
@@ -6363,6 +6369,10 @@ export type Database = {
         Returns: Json
       }
       quote_create_draft: { Args: { p_lead_id: string }; Returns: string }
+      quote_create_for_lead: {
+        Args: { p_kind: string; p_lead_id: string }
+        Returns: string
+      }
       quote_discard_unsent: { Args: { p_quote_id: string }; Returns: Json }
       quote_lock_sent: { Args: { p_quote_id: string }; Returns: string }
       quote_new_alternative: {

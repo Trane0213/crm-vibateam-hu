@@ -257,7 +257,7 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
   // az újrapróbálás NEM hoz létre új leadet, csak a státuszt pótolja.
   const partialHandoffLeadId = useRef<string | null>(null);
   const handoff = useMutation({
-    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => {
+    mutationFn: async (input: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string; quote_requested: boolean }) => {
       if (!cust.data || cust.isFetching) throw new Error('A friss cégállapot betöltése után ellenőrizd az átadást.');
       // A választott csatornát előbb perzisztáljuk a notes-ba, hogy a
       // marketing állapot (leadSource) és a lead.source mindig egyezzen.
@@ -277,6 +277,8 @@ export function MarketingWorkspace({ companyId }: { companyId: string }) {
           status: "new",
           // Kötelező felelős értékesítő (auth user id; DB szabály: nyitott lead felelős nélkül nem menthető).
           assigned_to: input.assigned_to,
+          // Konkrét ajánlatkérés: a Sales elfogadás után közvetlenül „Ajánlat előkészítése” szakaszba teheti.
+          quote_requested: input.quote_requested,
         };
         const { data, error } = await supabase.from("leads").insert(payload).select("id").single();
         if (error) throw error;
@@ -1035,9 +1037,10 @@ function HandoffDialog({
   defaultLeadSource: LeadSource | null;
   salesUsers: any[];
   submitting: boolean;
-  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string }) => void;
+  onSubmit: (d: { summary: string; project_type: string | null; contact_id: string | null; lead_source: LeadSource; assigned_to: string; quote_requested: boolean }) => void;
 }) {
   const [summary, setSummary] = useState(defaultSummary);
+  const [quoteRequested, setQuoteRequested] = useState(false);
   const [projectType, setProjectType] = useState<string>("");
   const [contactId, setContactId] = useState<string>(contacts[0]?.id ?? "");
   const [leadSource, setLeadSource] = useState<string>(defaultLeadSource ?? "");
@@ -1052,6 +1055,7 @@ function HandoffDialog({
     setLeadSource(defaultLeadSource ?? "");
     setAssignee(salesUsers.length === 1 ? salesUsers[0].auth_user_id : "");
     setConfirmSeparate(false);
+    setQuoteRequested(false);
   }, [open, defaultSummary, contacts, defaultLeadSource, salesUsers]);
 
   return (
@@ -1106,6 +1110,11 @@ function HandoffDialog({
               </SelectContent>
             </Select>
           </div>
+          <label className="flex items-start gap-2 rounded-md border p-2.5 text-sm">
+            <input type="checkbox" className="mt-0.5" checked={quoteRequested} onChange={(e) => setQuoteRequested(e.target.checked)} />
+            <span><strong>Konkrét ajánlatkérés</strong> — az ügyfél már ajánlatot kér (pl. küldött költségvetést vagy tervet).
+              <span className="block text-xs text-muted-foreground">Az értékesítő elfogadás után közvetlenül az „Ajánlat előkészítése” szakaszba teheti. Általános érdeklődésnél hagyd üresen: az előbb minősítésre kerül.</span></span>
+          </label>
           <div>
             <label className="text-xs font-medium text-muted-foreground">Lead összefoglaló</label>
             <Textarea aria-label="Átadott ügy összefoglalója" value={summary} onChange={(e) => setSummary(e.target.value)} rows={4} className="mt-1" />
@@ -1146,6 +1155,7 @@ function HandoffDialog({
                 contact_id: contactId || null,
                 lead_source: leadSource as LeadSource,
                 assigned_to: assignee,
+                quote_requested: quoteRequested,
               });
             }}
           >

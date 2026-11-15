@@ -4,6 +4,7 @@
  * E-mailes pontosítás csak akkor számít, ha a megadott idézet szó szerint szerepel egy, a hívó jogosult postafiókjához
  * tartozó és ehhez az ügyhöz (lead/cég/projekt) kötött levélben.
  */
+import { mergePricingOverrides, parseQuotePricingSettings } from "@/lib/quotes/pricing-settings";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { assertPricingRole, budPestDate, fetchR2, PricingAccessError } from "@/lib/pricing/pricing.server";
 import { resolveProfile } from "@/lib/pricing/profiles";
@@ -51,7 +52,7 @@ export function rulesFrom(input: PlanReviewRequest["rules"]): CabinetRules {
 
 export async function reviewQuotePlans(sb: Sb, userId: string, input: PlanReviewRequest, opts: { role?: string | null; download?: Download; referenceSources?: () => PriceSourceItem[] } = {}) {
   await assertPricingRole(sb, userId, opts.role);
-  const q = await sb.from("quotes").select("id,quote_kind,lead_id,project_id").eq("id", input.quoteId).maybeSingle();
+  const q = await sb.from("quotes").select("id,quote_kind,lead_id,project_id,pricing_settings").eq("id", input.quoteId).maybeSingle();
   if (q.error || !q.data) throw new PricingAccessError("Az ajánlat nem hozzáférhető.");
   const download = opts.download ?? fetchR2;
   let budget: Parameters<typeof runPlanReview>[0]["budget"] = null; const budgetWarnings: string[] = [];
@@ -77,7 +78,7 @@ export async function reviewQuotePlans(sb: Sb, userId: string, input: PlanReview
     const { importPriceTemplate } = await import("@/lib/pricing/template-import");
     const imp = importPriceTemplate(raw, input.template.name); sources.push(...imp.items); template = { items: imp.items.length, issues: imp.issues.length };
   }
-  const profile = resolveProfile(input.mode, input.overrides);
+  const profile = resolveProfile(input.mode, mergePricingOverrides(parseQuotePricingSettings((q.data as { pricing_settings?: unknown }).pricing_settings), input.overrides));
   const result = runPlanReview({ files, pages, budget, clarifications: clar.accepted, sources, profile, rules: rulesFrom(input.rules), asOf: budPestDate(), adjustments: input.adjustments });
   return { result, files, budgetFile: budget?.fileName ?? null, budgetWarnings, clarifications: clar, template, profile: { id: profile.id, label: profile.label, mode: profile.mode, laborRateHuf: profile.laborRateHuf, contingencyPct: profile.contingencyPct, marginPct: profile.marginPct } };
 }

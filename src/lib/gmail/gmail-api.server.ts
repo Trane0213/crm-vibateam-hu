@@ -64,6 +64,13 @@ export function getMessage(accessToken: string, id: string, format: "full" | "me
   return call<GmailMessage>(accessToken, `/messages/${id}?${p.toString()}`);
 }
 
+/** Szál fejlécei válaszhoz (Message-ID, References, Subject) — csak metaadat, tartalom nélkül. */
+export function getThreadHeaders(accessToken: string, threadId: string) {
+  const p = new URLSearchParams({ format: "metadata" });
+  for (const h of ["Message-ID", "References", "Subject"]) p.append("metadataHeaders", h);
+  return call<{ id: string; messages?: GmailMessage[] }>(accessToken, `/threads/${encodeURIComponent(threadId)}?${p.toString()}`);
+}
+
 export function getProfile(accessToken: string) {
   return call<{ emailAddress: string; messagesTotal: number; threadsTotal: number; historyId: string }>(
     accessToken,

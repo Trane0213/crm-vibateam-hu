@@ -146,11 +146,11 @@ export function quoteSendReadiness(i: {
   const checks: Check[] = [
     { key: "kind", label: "Ajánlat munkamódja kiválasztva", ok: !!i.kind, blocking: true },
     { key: "company", label: "Ügyfél (cég vagy magánszemély) megadva", ok: !!i.companyId, blocking: true, hint: "Az ügyhöz vagy projekthez kell ügyfelet rendelni." },
-    { key: "contact", label: "Kapcsolattartó kiválasztva, e-mail címmel", ok: !!i.contactId && !!i.contactEmail, blocking: true, hint: i.contactId ? "A kapcsolattartónak nincs e-mail címe." : "1. lépés: Kapcsolattartó." },
+    { key: "contact", label: "Kapcsolattartó kiválasztva, e-mail címmel", ok: !!i.contactId && !!i.contactEmail, blocking: true, hint: i.contactId ? "A kapcsolattartónak nincs e-mail címe." : "1. lépés: Ügyfél és dokumentumok → Kapcsolattartó." },
     own
-      ? { key: "content", label: "Legalább egy ajánlati tétel", ok: i.itemCount > 0, blocking: true, hint: "2. lépés: tételek." }
-      : { key: "content", label: "Árazott költségvetés feltöltve", ok: i.pricedDocCount > 0, blocking: true, hint: "1. lépés: Excel és tervek." },
-    { key: "amount", label: "Ismert nettó összeg", ok: i.net != null && i.net > 0, blocking: true, hint: own ? "A tételekből számolódik." : "2. lépés: megadott nettó összeg." },
+      ? { key: "content", label: "Legalább egy ajánlati tétel", ok: i.itemCount > 0, blocking: true, hint: "2. lépés: Árazás → Tételek." }
+      : { key: "content", label: "Árazott költségvetés feltöltve", ok: i.pricedDocCount > 0, blocking: true, hint: "3. lépés: az ajánlatcsomagban „Fájlok mentése”." },
+    { key: "amount", label: "Ismert nettó összeg", ok: i.net != null && i.net > 0, blocking: true, hint: own ? "A tételekből számolódik." : "2. lépés: Árazás → teljes árazás után „Nettó átvétele”." },
     { key: "mismatch", label: "Tételes és megadott összeg egyezik", ok: !i.mismatch, blocking: true },
     { key: "title", label: "Ajánlat címe", ok: !!i.title?.trim(), blocking: false },
     { key: "valid", label: "Érvényesség dátuma", ok: !!i.validUntil, blocking: false },

@@ -36,3 +36,42 @@ export function checkQuoteDocs(requested: string[], found: { id: string; quote_i
   if (found.length !== uniq.length || found.some((d) => d.quote_id !== quoteId)) return "A melléklet nem ehhez az ajánlathoz tartozik, vagy nem elérhető.";
   return null;
 }
+
+/**
+ * Szerveroldali kiküldhetőség (az /api/gmail/send ajánlat-ágában, a küldési napló előtt).
+ * Már kiküldött (zárolt) változat újraküldése nem tiltott — a duplikációt az idempotencia-kulcs védi.
+ */
+export function quoteSendBlocker(i: {
+  status: string | null; kind: string | null; net: number | null; mismatch: boolean;
+  itemCount: number; attachedDocTypes: string[]; extraAttachmentCount: number;
+}): string | null {
+  if (["withdrawn", "accepted", "rejected"].includes(i.status ?? "")) return "Visszavont vagy lezárt ajánlat nem küldhető ki.";
+  if (i.kind !== "received_budget" && i.kind !== "viba_offer") return "Az ajánlat típusa nincs megadva.";
+  if (i.kind === "viba_offer" && i.itemCount === 0) return "Saját VIBA-ajánlat tételek nélkül nem küldhető ki.";
+  if (i.net == null || !(i.net > 0)) return "Az ajánlatnak nincs ellenőrzött, 0 Ft-nál nagyobb nettó összege — 0 Ft-os vagy hiányosan árazott ajánlat nem küldhető ki.";
+  if (i.mismatch) return "A tételes és a megadott nettó összeg eltér — előbb javítsd.";
+  if (i.attachedDocTypes.length + i.extraAttachmentCount === 0) return "Ajánlat melléklet nélkül nem küldhető ki.";
+  if (i.kind === "received_budget" && !i.attachedDocTypes.some((t) => t === "priced_budget" || t === "sent_offer")) return "Az árazott költségvetést vagy a kiküldendő ajánlatfájlt csatolni kell.";
+  return null;
+}
+
+/** Sikeres kiküldés utáni automatikus lépések: csak igazolt, nem duplikált, figyelmeztetés nélküli küldés után. */
+export function postSendPlan(i: { ok: boolean; duplicate?: boolean; warning?: string | null; leadStatus: string | null; hasLead: boolean }) {
+  const confirmed = i.ok && !i.duplicate && !i.warning;
+  return {
+    scheduleFollowup: confirmed,
+    advancePipeline: confirmed && i.hasLead && (i.leadStatus === "quote_prep" || i.leadStatus === "follow_up"),
+  };
+}
+
+/** Válaszfejlécek az eredeti szál utolsó leveléből (RFC 5322 In-Reply-To / References). */
+export function replyHeadersFromThread(messages: { headers: { name: string; value: string }[] }[]): { inReplyTo: string; references: string; subject: string } | null {
+  const last = messages[messages.length - 1];
+  if (!last) return null;
+  const h = (n: string) => last.headers.find((x) => x.name.toLowerCase() === n.toLowerCase())?.value?.trim() ?? "";
+  const id = h("Message-ID") || h("Message-Id");
+  if (!/^<[^<>\s]+>$/.test(id)) return null;
+  const refs = h("References").split(/\s+/).filter((r) => /^<[^<>\s]+>$/.test(r));
+  if (!refs.includes(id)) refs.push(id);
+  return { inReplyTo: id, references: refs.slice(-20).join(" "), subject: h("Subject") };
+}

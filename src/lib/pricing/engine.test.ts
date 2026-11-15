@@ -77,11 +77,11 @@ describe("árforrás-rangsor és minősítés", () => {
 describe("kalkulációs profil", () => {
   const book = kvBook([["Kábeltálca 200 mm", 44, "m"]]);
   it("korábbi díj óradíjra skálázva: 1740 / 5800 × 6500 = 1950 Ft, becslésként jelölve", () => {
-    const r = run(book, [one("Kábeltálca 200 mm", "m", { kind: "viba_historical_quote", unitPriceHuf: 1740 })], "subcontractor_labor", { historicalLaborPolicy: "rate_scaled" }).result;
+    const r = run(book, [one("Kábeltálca 200 mm", "m", { kind: "viba_historical_quote", unitPriceHuf: 1740 })], "subcontractor_labor", { historicalLaborPolicy: "rate_scaled", laborRateHuf: 6500 }).result;
     expect(r.lines[0].unitSellHuf).toBe(1950); expect(r.lines[0].labor!.confidence).toBe("estimate"); expect(r.lines[0].lineTotalHuf).toBe(85800);
   });
   it("normaórás sablontétel: 0,12 óra × 6500 = 780 Ft", () => {
-    const r = run(book, [one("Kábeltálca 200 mm", "m", { unitPriceHuf: null, normHours: 0.12, normBasis: "experience" })], "subcontractor_labor").result;
+    const r = run(book, [one("Kábeltálca 200 mm", "m", { unitPriceHuf: null, normHours: 0.12, normBasis: "experience" })], "subcontractor_labor", { laborRateHuf: 6500 }).result;
     expect(r.lines[0].unitSellHuf).toBe(780); expect(r.lines[0].labor!.confidence).toBe("estimate");
   });
   it("önköltség-alapú ár célfedezet nélkül blokkolt, nem csendes 0%", () => {

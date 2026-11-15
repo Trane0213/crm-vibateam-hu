@@ -3,10 +3,11 @@ import { getUserClient } from "@/integrations/supabase/server";
 import { isOwnOutboundKey } from "@/lib/r2-policy";
 import { assertSenderIdentity } from "@/lib/gmail/mailbox-model";
 import { getValidAccessToken } from "@/lib/gmail/oauth.server";
-import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile } from "@/lib/gmail/gmail-api.server";
+import { buildRawMimeMessage, sendMessage, parseAddressList, getProfile, getThreadHeaders } from "@/lib/gmail/gmail-api.server";
 import { getAdminClient } from "@/lib/gmail/admin.server";
 import { presignR2Url } from "@/lib/r2.server";
-import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment } from "@/lib/quotes/send-policy";
+import { checkOutboundSize, checkQuoteDocs, isIdempotencyKey, checkReferencedAttachment, quoteSendBlocker, replyHeadersFromThread } from "@/lib/quotes/send-policy";
+import { quoteAmounts } from "@/lib/quotes/amounts";
 import {validateCrmLink} from './validate-crm-link';
 import {resolveThreadLink} from './crm-association';
 
@@ -83,13 +84,27 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
     try { assertSenderIdentity(body.expectedMailbox, email, actual.emailAddress); }
     catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Hibás küldőazonosság" }, { status: 403 }); }
 
+    // Válasz az eredeti szálban: a fejléceket a szerver olvassa ki a saját postafiókból, a kliens nem adhat meg idegen azonosítót.
+    if (body.threadId && !body.inReplyTo) {
+      try {
+        const t = await getThreadHeaders(accessToken, body.threadId);
+        const rh = replyHeadersFromThread((t.messages ?? []).map((m) => ({ headers: m.payload?.headers ?? [] })));
+        if (rh) { body.inReplyTo = rh.inReplyTo; body.references = rh.references; }
+      } catch (error) {
+        return Response.json({ error: `Az eredeti levélszál nem olvasható a postafiókodban: ${error instanceof Error ? error.message.slice(0, 200) : "ismeretlen hiba"}` }, { status: 409 });
+      }
+    }
+
     // S4: ajánlat-kiküldés — jogosultság (RLS), saját dokumentumok, méret, egyszeri küldés.
     let quoteSendId: string | null = null;
     let quoteDocs: { id: string; quote_id: string; name: string; file_url: string; mime_type: string | null; size_bytes: number | null; document_type: string }[] = [];
     if (body.quote_id) {
       if (!isIdempotencyKey(body.idempotency_key)) return Response.json({ error: "Hiányzó küldési azonosító." }, { status: 400 });
-      const { data: qrow } = await caller.from("quotes").select("id").eq("id", body.quote_id).maybeSingle();
+      const { data: qrow } = await caller.from("quotes").select("id,status,quote_kind,total_amount,manual_net_amount,tax_percent,quote_items(count)").eq("id", body.quote_id).maybeSingle();
       if (!qrow) return Response.json({ error: "Az ajánlathoz nincs jogosultságod." }, { status: 403 });
+      // Ugyanannak a kérésnek a megismétlése (pl. hálózati hiba után) ne fusson újra ellenőrzésre/küldésre.
+      const { data: prior } = await (admin as any).from("quote_sends").select("status").eq("idempotency_key", body.idempotency_key).maybeSingle();
+      if (prior?.status === "sent") return Response.json({ ok: true, duplicate: true });
       const ids = (body.quote_document_ids ?? []).filter((x) => typeof x === "string");
       if (ids.length) {
         const { data: docs, error: dErr } = await caller.from("quote_documents" as any)
@@ -99,6 +114,12 @@ export async function handleGmailSend(request: Request, hooks?: SendHooks): Prom
         const docErr = checkQuoteDocs(ids, quoteDocs, body.quote_id);
         if (docErr) return Response.json({ error: docErr }, { status: 403 });
       }
+      const q = qrow as unknown as { status: string | null; quote_kind: string | null; total_amount: number | null; manual_net_amount: number | null; tax_percent: number | null; quote_items?: { count: number }[] };
+      const itemCount = q.quote_items?.[0]?.count ?? 0;
+      const amounts = quoteAmounts({ itemCount, totalAmount: q.total_amount, manualNetAmount: q.manual_net_amount, taxPercent: q.tax_percent });
+      const blocker = quoteSendBlocker({ status: q.status, kind: q.quote_kind, net: amounts.net, mismatch: amounts.mismatch, itemCount,
+        attachedDocTypes: quoteDocs.map((d) => d.document_type), extraAttachmentCount: (body.attachments ?? []).length });
+      if (blocker) return Response.json({ error: blocker }, { status: 409 });
       const sizeErr = checkOutboundSize([...quoteDocs.map((d) => d.size_bytes), ...(body.attachments ?? []).map((a) => a.size_bytes)]);
       if (sizeErr) return Response.json({ error: sizeErr }, { status: 413 });
       const attachmentError = checkReferencedAttachment(`${body.body ?? ""}\n${body.html ?? ""}`, quoteDocs.length + (body.attachments ?? []).length);

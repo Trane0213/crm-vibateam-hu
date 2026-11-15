@@ -412,7 +412,7 @@ export function VibaOfferCalcPanel({ quoteId, locked, scopeType, onApplyScope }:
         </ul>
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" disabled={!plan.canWrite || writing || locked} onClick={write}><Plus className="mr-1 h-4 w-4" />Tételek hozzáadása az ajánlathoz ({plan.rows.length})</Button>
-          <Button type="button" size="sm" variant="outline" disabled={!scope || scope.leaks.length > 0 || locked} onClick={() => { if (scope) { onApplyScope(scope); toast.success("Lehatárolás átvéve — mentsd az Árazási alapadatoknál"); } }}>Lehatárolás átvétele</Button>
+          <Button type="button" size="sm" variant="outline" disabled={!scope || scope.leaks.length > 0 || locked} onClick={() => { if (scope) { onApplyScope(scope); toast.success("Lehatárolás átvéve — mentsd a 3. lépésben (Ügyfélnek szóló ajánlat)"); } }}>Lehatárolás átvétele</Button>
           <Button type="button" size="sm" variant="outline" onClick={() => download(calcCsv(calc.r!), `VIBA_belso_kalkulacio_${calc.r!.calcId}.csv`)}><Download className="mr-1 h-4 w-4" />Belső számítás (CSV)</Button>
         </div>
         {scope && scope.leaks.length > 0 && <p className="text-xs text-destructive">A lehatárolásban belső kifejezés van ({scope.leaks.join(", ")}) — javítsd a szöveget.</p>}

@@ -15,7 +15,7 @@ import { EmailComposer } from "@/components/emails/email-composer";
 import { FollowupQuickForm } from "./followup-quick-form";
 import { AiSheet } from "./ai-sheet";
 import { useCreateLeadFollowup, useUpdateLead } from "./use-lead-mutations";
-import { QuickCreateQuoteButton } from "@/components/today/quick-create";
+import { NewQuoteButton } from "@/components/quotes/new-quote-button";
 import { toast } from "sonner";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
@@ -82,38 +82,6 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
 
   const currentStatus = (lead.data?.status ?? "new") as LeadStatus;
   const quotesEditable = QUOTE_EDITABLE_STATUSES.includes(currentStatus);
-
-  const setCurrentQuote = async (quoteId: string) => {
-    if (!leadId) return;
-    setQuotesBusy(true);
-    try {
-      const off = await supabase.from("quotes").update({ is_current: false }).eq("lead_id", leadId).neq("id", quoteId);
-      if (off.error) throw off.error;
-      const on = await supabase.from("quotes").update({ is_current: true }).eq("id", quoteId);
-      if (on.error) throw on.error;
-      toast.success("Aktuális verzió frissítve");
-      invalidate();
-    } catch (e: any) {
-      toast.error(e.message ?? "Hiba");
-    } finally { setQuotesBusy(false); }
-  };
-
-  const createQuoteVersion = async () => {
-    if (!leadId) return;
-    setQuotesBusy(true);
-    try {
-      const list = quotes.data ?? [];
-      const maxV = list.reduce((m: number, q: any) => Math.max(m, q.version ?? 0), 0);
-      const off = await supabase.from("quotes").update({ is_current: false }).eq("lead_id", leadId);
-      if (off.error) throw off.error;
-      const ins = await supabase.from("quotes").insert({ lead_id: leadId, version: maxV + 1, is_current: true });
-      if (ins.error) throw ins.error;
-      toast.success(`v${maxV + 1} létrehozva`);
-      invalidate();
-    } catch (e: any) {
-      toast.error(e.message ?? "Hiba");
-    } finally { setQuotesBusy(false); }
-  };
 
   const agent = mode === "sales" ? "sales" : "crm";
   const agentLabel = mode === "sales" ? "Timothy – Értékesítési Segítő" : "George – CRM Navigátor";
@@ -305,18 +273,10 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
         <div className="rounded-md border p-3">
           <div className="mb-2 flex items-center justify-between gap-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             <span className="flex items-center gap-1.5"><FileText className="h-3 w-3" /> Ajánlatok</span>
-            <Button size="sm" variant="outline" className="h-6 px-2 text-[11px]" disabled={!quotesEditable || quotesBusy || !leadId} onClick={createQuoteVersion}>
-              <Plus className="mr-1 h-3 w-3" /> Új verzió
-            </Button>
           </div>
-          {!quotesEditable && (
-            <div className="mb-1.5 text-[10px] text-muted-foreground">
-              Új verzió csak ajánlat-fázisú leadnél (quote_prep / quote_sent / follow_up / contract).
-            </div>
-          )}
           {(quotes.data ?? []).length === 0 ? (
             <>
-              <QuickCreateQuoteButton defaults={{ lead_id: leadId }} label="Új ajánlat indítása" variant="secondary" />
+              <NewQuoteButton leadId={leadId} label="Új ajánlat indítása" variant="secondary" />
               <div className="mt-1.5 text-[10px] text-muted-foreground">Még nincs ajánlat ehhez a leadhez.</div>
             </>
           ) : (
@@ -332,16 +292,12 @@ export function LeadActionPanel({ leadId, mode }: { leadId: string | null; mode:
                   </span>
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <span className="tabular-nums">{fmtDate(qu.created_at)}</span>
-                    {!qu.is_current && (
-                      <Button size="sm" variant="ghost" className="h-6 px-1.5 text-[10px]" disabled={quotesBusy} onClick={() => setCurrentQuote(qu.id)}>
-                        <Check className="mr-0.5 h-3 w-3" /> Akt.
-                      </Button>
-                    )}
                   </span>
                 </li>
               ))}
             </ul>
           )}
+          {(quotes.data ?? []).length > 0 && <div className="mt-1.5 text-[10px] text-muted-foreground">Új verzió vagy alternatíva az ajánlat oldalán készül.</div>}
         </div>
       )}
 

@@ -17,8 +17,6 @@ export const Route = createFileRoute("/_authenticated/quotes/$id")({
 
 function QuoteDetail() {
   const { id } = Route.useParams();
-  const { nezet } = Route.useSearch();
-  const navigate = Route.useNavigate();
-  return <QuoteWorkflowDetail id={id} simple={nezet === "egyszeru"} onToggleSimple={(v) => navigate({ search: { nezet: v ? "egyszeru" : undefined }, replace: true })} />;
+  return <QuoteWorkflowDetail id={id} />;
 }
 

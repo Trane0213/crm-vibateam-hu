@@ -9,6 +9,7 @@ import { runBudgetPricing } from "./run-budget-pricing";
 import { importPriceTemplate } from "./template-import";
 import { WORKBOOK_LIMITS } from "./workbook";
 import type { PriceSourceItem } from "./price-sources";
+import { mergePricingOverrides, parseQuotePricingSettings } from "@/lib/quotes/pricing-settings";
 
 export class PricingAccessError extends Error {}
 
@@ -34,8 +35,10 @@ export const budPestDate = (d = new Date()) => new Intl.DateTimeFormat("sv-SE", 
 
 export async function priceQuoteBudget(sb: SupabaseClient, userId: string, input: PriceBudgetInput, opts: { role?: string | null; download?: (key: string, limit: number) => Promise<Uint8Array>; referenceSources?: () => PriceSourceItem[] } = {}) {
   await assertPricingRole(sb, userId, opts.role);
-  const q = await sb.from("quotes").select("id,quote_kind,locked_at").eq("id", input.quoteId).maybeSingle();
+  const q = await sb.from("quotes").select("id,quote_kind,locked_at,pricing_settings").eq("id", input.quoteId).maybeSingle();
   if (q.error || !q.data) throw new PricingAccessError("Az ajánlat nem hozzáférhető.");
+  // Egy ajánlat = egy árazási beállítás; hiányzó óradíj nem kap rejtett alapértéket.
+  const overrides = mergePricingOverrides(parseQuotePricingSettings((q.data as { pricing_settings?: unknown }).pricing_settings), input.overrides);
   const d = await sb.from("quote_documents").select("id,quote_id,name,file_url,size_bytes,document_type").eq("id", input.documentId).eq("quote_id", input.quoteId).maybeSingle();
   if (d.error || !d.data) throw new PricingAccessError("A dokumentum nem olvasható vagy más ajánlathoz tartozik.");
   const doc = d.data as { name: string; file_url: string | null; size_bytes: number | null; document_type: string | null };
@@ -54,6 +57,6 @@ export async function priceQuoteBudget(sb: SupabaseClient, userId: string, input
     sources.push(...imp.items);
     template = { rowsRead: imp.rowsRead, items: imp.items.length, issues: imp.issues.slice(0, 100), file: imp.fileLabel };
   }
-  const output = await runBudgetPricing({ bytes, fileName: doc.name, mode: input.mode, overrides: input.overrides, sources, adjustments: input.adjustments, asOf: budPestDate(), buildWorkbook: input.buildWorkbook });
+  const output = await runBudgetPricing({ bytes, fileName: doc.name, mode: input.mode, overrides, sources, adjustments: input.adjustments, asOf: budPestDate(), buildWorkbook: input.buildWorkbook });
   return { output, template, quote: { id: input.quoteId, kind: (q.data as { quote_kind: string | null }).quote_kind, locked: !!(q.data as { locked_at: string | null }).locked_at }, sourcesUsed: { reference: input.includeReference, templateItems: template?.items ?? 0, total: sources.length } };
 }

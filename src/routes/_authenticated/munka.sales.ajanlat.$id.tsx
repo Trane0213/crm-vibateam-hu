@@ -37,7 +37,7 @@ function QuoteWorkspace() {
         <Button asChild size="sm" variant="ghost"><Link to="/munka/sales/ajanlatok" search={tab === "none" ? { tipus: "none" } : { tipus: tab }}><ArrowLeft className="h-4 w-4" />Ajánlatok</Link></Button>
       </div>
       <div className="overflow-hidden rounded-xl border bg-card shadow-[var(--shadow-card)]">
-        <QuoteWorkflowDetail id={id} simple />
+        <QuoteWorkflowDetail id={id} />
       </div>
     </>
   );

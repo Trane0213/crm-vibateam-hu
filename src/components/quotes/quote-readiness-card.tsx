@@ -37,7 +37,7 @@ export function QuoteReadinessCard({
     queryFn: async () => (await supabase.from("contacts").select("id,name,email").eq("id", quote.contact_id!).maybeSingle()).data as any,
   });
   if (quote.locked_at) {
-    return <p className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">Ez a verzió már kiment és zárolt. Módosításhoz új verziót kell készíteni (1. lépés → Verziók és további műveletek).</p>;
+    return <p className="rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">Ez a verzió már kiment és zárolt. Módosításhoz új verziót kell készíteni (1. lépés → Verziók és alternatívák).</p>;
   }
   if (docs.isLoading || (contact.isLoading && !!quote.contact_id)) return <p className="text-sm text-muted-foreground">Ellenőrzés betöltése…</p>;
   if (docs.isError) return <p role="alert" className="text-sm text-destructive">Az ellenőrzés nem tölthető be. <button className="underline" onClick={() => docs.refetch()}>Újra</button></p>;
@@ -64,7 +64,7 @@ export function QuoteReadinessCard({
           ? "A kötelező adatok rendben. A kiküldés csak a lenti gombbal, a saját Gmail-fiókodból történik; a piszkozat nem számít kiküldésnek."
           : "Pótold a kötelező hiányokat a megadott lépésben, mielőtt kiküldöd."}
       />
-      {quote.lead_id && (role === "sales" || role === "owner") && <p className="text-xs text-muted-foreground">Kiküldés után a Pipeline-ban léptesd az ügyet „Ajánlat kiadva” szakaszba: <CrmLink to="/sales/leads" search={{ lead: quote.lead_id }} className="text-primary hover:underline">ügy megnyitása a Pipeline-ban</CrmLink>.</p>}
+      {quote.lead_id && (role === "sales" || role === "owner") && <p className="text-xs text-muted-foreground">Sikeres CRM-kiküldés után az ügy „Ajánlat előkészítése” szakaszból automatikusan „Ajánlat kiadva” szakaszba lép, és a megadott időpontra utánkövetés jön létre.</p>}
     </div>
   );
 }

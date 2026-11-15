@@ -1,0 +1,1 @@
+- AI panel conversations are scoped per record (`src/lib/ai-thread-scope.ts`, `Thread.scope`); only the same record's thread continues, so another quote's or case's history never reaches the model.

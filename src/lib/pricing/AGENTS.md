@@ -5,3 +5,5 @@
 - The output keeps every ZIP part byte-identical except touched worksheets and workbook.xml (fullCalcOnLoad); no internal cost/source data is written into the customer file.
 - The historical labor reference (`reference-kv11026.server.ts`) is server-only internal price data; never import it from browser code.
 - Calculations are not persisted (no pricing tables yet); saved versions, approved price master and chat-adjustment approval need the owner-approved data model first.
+- Labor rate, contingency, margin and rounding come from the quote's single `quotes.pricing_settings`, merged server-side in `priceQuoteBudget`/`reviewQuotePlans` (`src/lib/quotes/pricing-settings.ts`; explicit caller override wins); profiles carry no default labor rate, so a missing rate stays a missing price.
+- A calculated net may become the quote amount only when `pricingComplete` (`completeness.ts`) holds: verified export, zero open lines, net > 0 — partial sums are shown as partial.

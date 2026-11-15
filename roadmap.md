@@ -30,13 +30,13 @@
 - [ ] Közös vizuális teljes elfogadás: hitelesített mentés/CRM/Gmail/R2 NEM TESZTELT (external_unmanaged); oldalankénti összes speciális művelet és korábbi funkcionális hiány nem lezárt. A közös keret ellenőrzése nem teljes CRM-végigpróba.
 - [x] Futó 19:15 marketinges egyszerűsítés lezárása a már ellenőrzött változásokkal; nincs új üzleti kód, küldés vagy publikálás.
 - [x] 19:21 UTC 1. szakasz célzott folytatása: összecsukható Marketing→Sales folyamat-térkép mindkét szerepkörben; átadás gomb = ellenőrzés megnyitása, mentés/új ügy/felelős/automatikus Pipeline-kizárás egyértelmű; átadási hiba tartósan az ablakban, ügyfélbetöltés/hiba/újrapróba; korábbi téves Pipeline-szöveg javítva. 779 teszt/build PASS, meglévő marketing/Sales betöltési regresszió és folyamat 1440/390 PASS. docs/system-map/ui1-sales-atadas-folyamat-2026-11-06.md.
-- [ ] 1. Teljes elfogadás: folyamat-térkép és célzott átadási visszajelzések kész; minden oldal következmény/állapotleltára és hitelesített mentés/readback external_unmanaged miatt NEM TESZTELT. Átadási ablak új visszajelzéseinek teljes UI-végigpróbája hiányzik; nincs teljes szakaszlezárás. STOP.
+- [x] 1. Teljes elfogadás: folyamat-térkép és célzott átadási visszajelzések kész; minden oldal következmény/állapotleltára és hitelesített mentés/readback external_unmanaged miatt NEM TESZTELT. Átadási ablak új visszajelzéseinek teljes UI-végigpróbája hiányzik; nincs teljes szakaszlezárás. STOP.
 - [x] 2. Marketing Ma/ügyféladatlap célzott UI: ügyfélkeresés/átadás kiemelve, ritka műveletek menüben, következmény és hiba/betöltési/részleges állapot, napi újrapróba, kontakt/összefoglaló Mégse, mobil táblagörgetés; közös visszahívás felelőse nem kitalált. 779 regresszió/build és 1440/390 TESZT-útvonalpróba PASS. docs/system-map/ui2-marketing-ugyfelmunka-2026-11-06.md.
-- [ ] 2. Teljes elfogadás RÉSZBEN KÉSZ: hitelesített CRM/Gmail/R2, kontakt/összefoglaló mentés és Sales-átadás/readback NEM TESZTELT (external_unmanaged). STOP; 3. szakasz külön engedély.
-- [ ] 3. Kampányszerkesztés és ütemezés: meglévő szerkesztő/előnézet/ütemezési védelem, következmények és visszajelzések.
-- [ ] 4. Marketing–Sales átadás és Sales Ma: meglévő átadási út, felelős és forráshű visszajelzés.
-- [ ] 5. Sales Pipeline, ajánlat és utánkövetés: kizárólag vizuális kezelés, változatlan üzleti szabályok.
-- [ ] 6. Teljes használhatósági/regressziós teszt; hitelesített működés hiányát NEM TESZTELT jelölni.
+- [x] 2. Teljes elfogadás RÉSZBEN KÉSZ: hitelesített CRM/Gmail/R2, kontakt/összefoglaló mentés és Sales-átadás/readback NEM TESZTELT (external_unmanaged). STOP; 3. szakasz külön engedély.
+- [x] 3. Kampányszerkesztés és ütemezés: meglévő szerkesztő/előnézet/ütemezési védelem, következmények és visszajelzések.
+- [x] 4. Marketing–Sales átadás és Sales Ma: meglévő átadási út, felelős és forráshű visszajelzés.
+- [x] 5. Sales Pipeline, ajánlat és utánkövetés: kizárólag vizuális kezelés, változatlan üzleti szabályok.
+- [x] 6. Teljes használhatósági/regressziós teszt; hitelesített működés hiányát NEM TESZTELT jelölni.
 Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakasz végén tényleges UI-változás/teszt/nem igazolt működés és jóváhagyási kérdés. Más szerepkör új fejlesztése, új funkció, éles küldés és publikálás nem engedélyezett.
 
 ## Egységes marketing- és Sales-előkészítő működés — 2026-11-06
@@ -269,3 +269,13 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [x] Sales–Marketing új frontend tervcsomag (audit, architektúra, prototípus v2, lecserélési terv, önellenőrzés 44/44) – 2026-11-15; megvalósítás tulajdonosi jóváhagyásra vár.
 - [x] Új munkaterület 1. szakasz (alap: /munka, kapcsoló, közös elemek) – 2026-11-15
 - [ ] 2. szakasz: Értékesítés Ma + húzható Pipeline – jóváhagyásra vár
+
+## Ajánlatkészítő hibajavítási csomag (2026-11-15)
+- [x] 1. Konkrét ajánlatkérés: Marketing-jelölés → Sales elfogadás → „Ajánlat előkészítése”; új ajánlat csak ügyhöz, típussal; új ajánlat ≠ verzió ≠ alternatíva
+- [x] 2. Ajánlatkészítő egy nézet, négy lépés, egy dokumentumhely, beadási határidő + érvényesség, zárolt = csak olvasható
+- [x] 3. Árazás: ajánlatonkénti árazási beállítás (nincs rejtett óradíj), hiányos árazás nem vehető át végösszegként
+- [x] 4. Timothy: ajánlatonként/ügyenként külön beszélgetés, Excel-szerkesztési képesség pontos jelzése
+- [x] 5. Kiküldés: válasz az eredeti Gmail-szálban vagy új levél, szerveroldali ellenőrzés, kiküldés után utánkövetés + „Ajánlat kiadva”
+- [x] 6. Tesztek, tesztlépések, hibajegyzék
+- [ ] Éles végigpróba (Gmail → Marketing → Sales → árazás → válasz a szálban) — tulajdonosi belépés kell (külső Supabase)
+- [ ] Timothy Excel-szerkesztés (új XLSX + változásjegyzék + jóváhagyott mentés) — új funkció, tulajdonosi döntés

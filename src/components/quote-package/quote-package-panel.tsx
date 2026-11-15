@@ -1,3 +1,4 @@
+import { pricingSettingsSummary, type QuotePricingSettings } from "@/lib/quotes/pricing-settings";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -50,7 +51,7 @@ function GateRow({ g }: { g: Gate }) {
  * kísérőlevél-tervezet. Mentés csak kifejezett gombnyomásra a meglévő feltöltési úton; belső jóváhagyás-előkészítés nem mentett;
  * kiküldés kizárólag a meglévő küldési párbeszédben, kézi megerősítéssel.
  */
-export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoked }: { quote: QuoteLike; onSaveNet: (net: number) => Promise<void>; onHandoff: (d: SendDraft) => void; onHandoffRevoked?: () => void }) {
+export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoked, settings }: { quote: QuoteLike; onSaveNet: (net: number) => Promise<void>; onHandoff: (d: SendDraft) => void; onHandoffRevoked?: () => void; settings: QuotePricingSettings }) {
   const qc = useQueryClient();
   const { role, profile } = usePermissions();
   const run = useServerFn(prepareQuotePackageFn);
@@ -78,8 +79,9 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoke
   });
   const budgets = (docs.data ?? []).filter((d) => d.document_type === "unpriced_budget" && /\.(xlsx|xlsm|xls)$/i.test(String(d.name ?? "")));
   const [budgetId, setBudgetId] = useState(""); const selectedBudget = budgetId || budgets[0]?.id || "";
-  const [mode, setMode] = useState<Mode>(quote.scope_type === "material_labor" ? "full_construction" : "subcontractor_labor");
-  const [rate, setRate] = useState("6500"), [contingency, setContingency] = useState("0"), [margin, setMargin] = useState("");
+  const [mode, setMode] = useState<Mode>(settings.mode ?? (quote.scope_type === "material_labor" ? "full_construction" : "subcontractor_labor"));
+  // Az ajánlat egyetlen árazási beállítása; változása elavulttá teszi az összeállított csomagot.
+  const rate = settings.laborRateHuf == null ? "" : String(settings.laborRateHuf), contingency = String(settings.contingencyPct ?? 0), margin = settings.marginPct == null ? "" : String(settings.marginPct);
   const [template, setTemplate] = useState<{ name: string; base64: string } | null>(null);
   const [tab, setTab] = useState<Tab>("scope");
   const [uploadedKeys, setUploadedKeys] = useState<{ priced: string[]; scope: string[] }>({ priced: [], scope: [] });
@@ -96,7 +98,7 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoke
   const calc = useMutation({
     mutationFn: async () => {
       const res = await run({ data: { quoteId: quote.id, budgetDocumentId: selectedBudget || null, mode, template, includeFiles: true,
-        overrides: { laborRateHuf: num(rate) ?? null, contingencyPct: num(contingency) ?? 0, marginPct: num(margin) ?? null } } });
+        overrides: {} } });
       if (!res.ok) throw new Error(res.error);
       return res.pkg;
     },
@@ -187,9 +189,7 @@ export function QuotePackagePanel({ quote, onSaveNet, onHandoff, onHandoffRevoke
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {budgets.length > 1 && <div className="grid gap-1.5 sm:col-span-2"><Label>Költségvetés</Label><Select value={selectedBudget} onValueChange={setBudgetId}><SelectTrigger aria-label="Csomag költségvetése"><SelectValue /></SelectTrigger><SelectContent>{budgets.map((d) => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent></Select></div>}
           <div className="grid gap-1.5 sm:col-span-2"><Label>Árazási mód</Label><Select value={mode} onValueChange={(v) => setMode(v as Mode)}><SelectTrigger aria-label="Csomag árazási módja"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="subcontractor_labor">Alvállalkozói munkadíj (anyag nélkül)</SelectItem><SelectItem value="full_construction">Teljes kivitelezés (anyag + munkadíj)</SelectItem></SelectContent></Select></div>
-          <div className="grid gap-1.5"><Label htmlFor="pk-rate">Óradíj (Ft/óra)</Label><Input id="pk-rate" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} /></div>
-          <div className="grid gap-1.5"><Label htmlFor="pk-cont">Tartalék %</Label><Input id="pk-cont" inputMode="decimal" value={contingency} onChange={(e) => setContingency(e.target.value)} /></div>
-          <div className="grid gap-1.5"><Label htmlFor="pk-margin">Célfedezet %</Label><Input id="pk-margin" inputMode="decimal" placeholder="—" value={margin} onChange={(e) => setMargin(e.target.value)} /></div>
+          <p className="self-end text-xs text-muted-foreground sm:col-span-2 lg:col-span-3">Árazási beállítás: {pricingSettingsSummary(settings)}.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void pickTemplate(f); if (fileRef.current) fileRef.current.value = ""; }} />

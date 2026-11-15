@@ -300,7 +300,7 @@ export function ownerItems(input: OwnerInputs, now: Date = new Date()): OwnerIte
     const l = q.lead_id ? leadById.get(q.lead_id) : undefined;
     items.push({
       key: `r:${q.id}`, kind: "ready_quote", lane: "deals", title: `Küldésre előkészítve: ${q.title ?? "Ajánlat"}`,
-      detail: "Kiküldés csak az ajánlat 3. lépésében, a küldő saját Gmail-fiókjából; a CRM nem küldi automatikusan.",
+      detail: "Kiküldés csak az ajánlat 4. lépésében, a küldő saját Gmail-fiókjából; a CRM nem küldi automatikusan.",
       source: "Ajánlat", sourceId: q.id, at: q.updated_at ?? null, who: l ? person(l.assigned_to) : null,
       link: { to: `/quotes/${q.id}` }, button: "Ajánlat", warnings: [], severity: "info",
     });

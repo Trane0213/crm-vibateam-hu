@@ -44,7 +44,7 @@ export async function vibaOfferCalcTool(args: Record<string, unknown>, ctx: Tool
     scope: { technical_scope: scope.technicalScope, exclusions: scope.exclusions, internal_terms_found: scope.leaks },
     item_plan_preview: { new_rows: plan.rows.length, already_on_quote: plan.duplicates.length, conflicts: plan.conflicts.map((c) => c.name), skipped: plan.skipped, blockers: plan.blockers.filter((b) => !/tudomásul/.test(b)), net_of_new_rows_huf: plan.netHuf },
     panel_import: encodeImport(input),
-    not_done: ["Tétel nem került az ajánlatba: a felhasználó az ajánlat 2. lépésében, a „Kalkuláció” panelen tölti be a javaslatot (panel_import), ellenőrzi és a „Tételek hozzáadása” gombbal írja be.",
+    not_done: ["Tétel nem került az ajánlatba: a felhasználó az ajánlat 2. lépésében (Árazás), a „Segédszámítás” részen tölti be a javaslatot (panel_import), ellenőrzi és a „Tételek hozzáadása” gombbal írja be.",
       "Díj, felár, norma és m²-csomag nem jóváhagyott VIBA-ártörzsből származik (ilyen még nincs); a megadott díjak forrását a felhasználónak kell igazolnia."],
   };
 }

@@ -1,3 +1,4 @@
+import { pricingSettingsSummary, type QuotePricingSettings } from "@/lib/quotes/pricing-settings";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,7 +39,7 @@ function download(text: string, name: string) {
  * P4 — Tervellenőrzés és szekrénykalkuláció: tervjel/lap/revízió, feldolgozottság, elosztó-BOM, költségnemenkénti
  * kalkuláció, eltéréslista és kérdések. Csak olvas és számol; nem ment, nem küld.
  */
-export function PlanReviewPanel({ quoteId, scopeType }: { quoteId: string; scopeType: string | null }) {
+export function PlanReviewPanel({ quoteId, scopeType, settings }: { quoteId: string; scopeType: string | null; settings: QuotePricingSettings }) {
   const run = useServerFn(reviewPlans);
   const docs = useQuery({
     queryKey: ["quote_documents", quoteId],
@@ -52,8 +53,7 @@ export function PlanReviewPanel({ quoteId, scopeType }: { quoteId: string; scope
   const plans = (docs.data ?? []).filter((d) => !["unpriced_budget", "priced_budget", "sent_offer"].includes(d.document_type));
   const [budgetId, setBudgetId] = useState<string>("auto");
   const selectedBudget = budgetId === "auto" ? budgets.find((d) => d.document_type === "unpriced_budget")?.id ?? budgets[0]?.id ?? null : budgetId === "none" ? null : budgetId;
-  const [mode, setMode] = useState<Mode>(scopeType === "material_labor" ? "full_construction" : "subcontractor_labor");
-  const [rate, setRate] = useState("6500"), [contingency, setContingency] = useState("0"), [margin, setMargin] = useState("");
+  const [mode, setMode] = useState<Mode>(settings.mode ?? (scopeType === "material_labor" ? "full_construction" : "subcontractor_labor"));
   const [norms, setNorms] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<Tab>("cabinets"), [cat, setCat] = useState<string>("all");
 
@@ -66,7 +66,7 @@ export function PlanReviewPanel({ quoteId, scopeType }: { quoteId: string; scope
       if (nv("other") != null) for (const c of OTHER_CLASSES) dev[c] = nv("other")!;
       const rules = { assemblyHoursPerDevice: dev, enclosureAssemblyHours: nv("enclosureAssemblyHours"), testDocHoursPerCabinet: nv("testDocHoursPerCabinet"), siteMountHoursPerCabinet: nv("siteMountHoursPerCabinet"),
         siteFeederHoursPerCabinet: nv("siteFeederHoursPerCabinet"), siteOutgoingHoursPerCircuit: nv("siteOutgoingHoursPerCircuit"), siteMeasurementHoursPerCabinet: nv("siteMeasurementHoursPerCabinet") };
-      const res = await run({ data: { quoteId, budgetDocumentId: selectedBudget, mode, overrides: { laborRateHuf: num(rate), contingencyPct: num(contingency) ?? 0, marginPct: num(margin) }, rules, adjustments: [], clarifications: [], template: null } });
+      const res = await run({ data: { quoteId, budgetDocumentId: selectedBudget, mode, overrides: {}, rules, adjustments: [], clarifications: [], template: null } });
       if (!res.ok) throw new Error(res.error);
       return res.review;
     },
@@ -101,9 +101,7 @@ export function PlanReviewPanel({ quoteId, scopeType }: { quoteId: string; scope
               <SelectContent><SelectItem value="subcontractor_labor">Alvállalkozói munkadíj (anyag nélkül)</SelectItem><SelectItem value="full_construction">Teljes kivitelezés (anyag + munkadíj)</SelectItem></SelectContent>
             </Select>
           </div>
-          <div className="grid gap-1.5"><Label htmlFor="pr-rate">Óradíj (Ft/óra)</Label><Input id="pr-rate" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} /></div>
-          <div className="grid gap-1.5"><Label htmlFor="pr-cont">Tartalék %</Label><Input id="pr-cont" inputMode="decimal" value={contingency} onChange={(e) => setContingency(e.target.value)} /></div>
-          <div className="grid gap-1.5"><Label htmlFor="pr-margin">Célfedezet % (anyagra)</Label><Input id="pr-margin" inputMode="decimal" placeholder="—" value={margin} onChange={(e) => setMargin(e.target.value)} /></div>
+          <p className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-3">Árazási beállítás: {pricingSettingsSummary(settings)}.</p>
         </div>
         <details className="rounded-md border p-3 text-sm">
           <summary className="cursor-pointer font-medium">Gyártási és szerelési normaórák (feltételezés)</summary>

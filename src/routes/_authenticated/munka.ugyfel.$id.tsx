@@ -104,7 +104,7 @@ function CustomerSheet() {
   return (
     <>
       <WsPageHeader title={c.name} subtitle={[c.company_type ? COMPANY_TYPE_LABEL[c.company_type] ?? c.company_type : null, meta.status ? MARKETING_STATUS_LABEL[meta.status] : null].filter(Boolean).join(" · ") || "Ügyféladatlap"}
-        right={<NewQuoteButton variant="default" openIn="v2" label="Ajánlat készítése" leadId={openLeads[0]?.id ?? null} />} />
+        right={<NewQuoteButton variant="default" openIn="v2" label="Ajánlat készítése" leadId={openLeads.length === 1 ? openLeads[0]!.id : null} companyId={id} />} />
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Tabs value={tab} onValueChange={setTab} className="min-w-0 rounded-xl border bg-card p-4 shadow-[var(--shadow-card)]">
           <TabsList className="flex h-auto flex-wrap justify-start">
