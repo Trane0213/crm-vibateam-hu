@@ -14,6 +14,7 @@ import { useRoutePermissions, resolveAccess } from "@/hooks/use-route-permission
 import { Button } from "@/components/ui/button";
 import { ShieldAlert, Sparkles } from "lucide-react";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { InterfaceSwitch } from "@/components/workspace-v2/interface-switch";
 import { AiPanel, AiPanelProvider, useAiPanel } from "@/components/ai/ai-panel";
 import { BrandLogo } from "@/components/brand-logo";
 import { CrmNotificationsMenu } from "@/components/crm-notifications-menu";
@@ -76,6 +77,7 @@ function AppShell() {
               <UserMenu />
             </div>
           </header>
+          <InterfaceSwitch current="crm" compact wrapperClassName="border-b bg-sidebar px-3 py-1.5 md:hidden" />
           <PulseBar />
           <WorkNavigation />
           <main className="flex-1 min-w-0 overflow-auto pb-20 md:pb-0">

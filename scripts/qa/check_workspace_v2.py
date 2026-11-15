@@ -121,11 +121,11 @@ async def main():
     def rec(step, ok, detail=''):
       results.append((step, ok, detail)); print(('PASS ' if ok else 'FAIL ') + ROLE + ' | ' + step + (' | ' + detail if detail else ''))
     async def legacy_links(label):
-      hrefs = await page.evaluate("""[...document.querySelectorAll('a[href]')].map(a=>[a.getAttribute('href'),(a.innerText||a.getAttribute('aria-label')||'').trim().slice(0,40)])""")
+      hrefs = await page.evaluate("""[...document.querySelectorAll('a[href]')].filter(a=>!a.closest('[aria-label="Felület váltása"]')).map(a=>[a.getAttribute('href'),(a.innerText||a.getAttribute('aria-label')||'').trim().slice(0,40)])""")
       bad = [h for h in hrefs if h[0].startswith('/') and not h[0].startswith('/munka') and '/print' not in h[0]]
       rec(f'{label}: nincs régi felületre mutató hivatkozás', not bad, json.dumps(bad, ensure_ascii=False)[:300] if bad else '')
     async def shell_check(label):
-      legacy = await page.locator('[data-sidebar="sidebar"]').count()
+      legacy = await (page.get_by_role('button', name='Továbbiak') if MOBILE else page.locator('[data-sidebar="sidebar"]')).count()
       navs = await page.get_by_role('navigation', name='Munkaterület').count()
       ovf = await page.evaluate('document.documentElement.scrollWidth>innerWidth')
       rec(f'{label}: önálló keret, régi menü nélkül' + (' (mobil, nincs vízszintes kilógás)' if MOBILE else ''), legacy == 0 and navs >= 1 and not (MOBILE and ovf), f'régi oldalsáv={legacy}, munkaterület-menü={navs}, kilógás={ovf}')
@@ -185,9 +185,28 @@ async def main():
     await click_and_expect(page.locator('main a[href^="/munka/levelezes/"]'), '/munka/levelezes/', 'Levelezés → levélszál')
     await page.screenshot(path=str(OUT / f'{ROLE}{"-m" if MOBILE else ""}-9-level.png')); await legacy_links('Levélszál')
     visited = await page.evaluate('window.visited')
-    outside = sorted({v for v in visited if not v.startswith('/munka')})
+    # Felületváltó: a menü tetején, Fő CRM ↔ Új munkafelület (szándékos kilépés, a fenti bejárás után).
+    sw = page.get_by_role('group', name='Felület váltása').filter(visible=True)
+    rec('Felületváltó látható a menü tetején', await sw.count() > 0)
+    if await sw.count():
+      box = await sw.first.bounding_box(); rec('Felületváltó a felső részen', box is not None and box['y'] < 200, str(box and round(box['y'])))
+      await sw.first.get_by_role('link', name='Fő CRM').click(); await page.wait_for_timeout(3000)
+      cur = await path(); flag = await page.evaluate("Object.entries(localStorage).filter(([k])=>k.startsWith('viba.workspace-v2.')).map(([,v])=>v).join(',')")
+      legacy = await (page.get_by_role('button', name='Továbbiak') if MOBILE else page.locator('[data-sidebar="sidebar"]')).count()
+      rec('Fő CRM gomb → teljes régi CRM, régi menüvel', cur.startswith('/today') and legacy > 0 and flag == '0', f'{cur} oldalsáv={legacy} választás={flag}')
+      await page.screenshot(path=str(OUT / f'{ROLE}{"-m" if MOBILE else ""}-10-focrm.png'))
+      sw2 = page.get_by_role('group', name='Felület váltása').filter(visible=True)
+      rec('Régi CRM menüjének tetején is ott a váltó', await sw2.count() > 0)
+      if await sw2.count():
+        await sw2.first.get_by_role('link', name='Új munkafelület').click(); await page.wait_for_timeout(3000)
+        cur = await path(); flag = await page.evaluate("Object.entries(localStorage).filter(([k])=>k.startsWith('viba.workspace-v2.')).map(([,v])=>v).join(',')")
+        rec('Új munkafelület gomb → vissza az egyszerűsített felületre', cur.startswith('/munka/') and flag == '1', f'{cur} választás={flag}')
+      # A régi Sales Ma saját, meglévő napi összefoglaló-indítása (runDailyBriefing) nem a váltó műve.
+      writes_after = [w for w in writes if 'runDailyBriefing' not in w]
+      rec('A váltás nem írt adatot', not writes_after, json.dumps(writes_after)[:200])
+    outside = sorted({v for v in visited if not v.startswith('/munka')})  # a felületváltó előtti bejárás
     rec('Végig az új munkaterületen maradt (egyetlen régi oldal sem nyílt meg)', not outside, ', '.join(outside))
-    rec('Nem történt adatírás, küldés', not writes and not blocked, json.dumps(writes + blocked)[:200])
+    rec('Nem történt adatírás, küldés az új felületen', not [w for w in writes if 'runDailyBriefing' not in w] and not blocked, json.dumps(writes + blocked)[:200])
     rec('Nincs oldalhiba', not errors, ' || '.join(errors[:3]))
     json.dump({'role': ROLE, 'results': results, 'visited': visited, 'fn': sorted(set(fncalls))}, open(f'/tmp/browser/ws2/{ROLE}{"-m" if MOBILE else ""}.json', 'w'), ensure_ascii=False, indent=1)
     await browser.close()
