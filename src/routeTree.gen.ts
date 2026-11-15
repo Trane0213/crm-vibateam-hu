@@ -26,6 +26,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
 import { Route as AuthenticatedImportReviewRouteImport } from './routes/_authenticated/import-review'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
+import { Route as AuthenticatedMunkaRouteImport } from './routes/_authenticated/munka'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOwnerReportRouteImport } from './routes/_authenticated/owner-report'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -57,6 +58,7 @@ import { Route as AuthenticatedImportReviewMailRouteImport } from './routes/_aut
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
 import { Route as AuthenticatedLeadsLostRouteImport } from './routes/_authenticated/leads.lost'
+import { Route as AuthenticatedMunkaIndexRouteImport } from './routes/_authenticated/munka.index'
 import { Route as AuthenticatedProjectsIndexRouteImport } from './routes/_authenticated/projects.index'
 import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedQuotesIndexRouteImport } from './routes/_authenticated/quotes.index'
@@ -188,6 +190,11 @@ const AuthenticatedImportReviewRoute =
 const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
   id: '/meetings',
   path: '/meetings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMunkaRoute = AuthenticatedMunkaRouteImport.update({
+  id: '/munka',
+  path: '/munka',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -362,6 +369,11 @@ const AuthenticatedLeadsLostRoute = AuthenticatedLeadsLostRouteImport.update({
   id: '/leads/lost',
   path: '/leads/lost',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMunkaIndexRoute = AuthenticatedMunkaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedMunkaRoute,
 } as any)
 const AuthenticatedProjectsIndexRoute =
   AuthenticatedProjectsIndexRouteImport.update({
@@ -625,6 +637,7 @@ export interface FileRoutesByFullPath {
   '/followups': typeof AuthenticatedFollowupsRoute
   '/import-review': typeof AuthenticatedImportReviewRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
+  '/munka': typeof AuthenticatedMunkaRouteWithChildren
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/owner-report': typeof AuthenticatedOwnerReportRoute
   '/settings': typeof AuthenticatedSettingsRouteWithChildren
@@ -686,6 +699,7 @@ export interface FileRoutesByFullPath {
   '/emails/': typeof AuthenticatedEmailsIndexRoute
   '/help/': typeof AuthenticatedHelpIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/munka/': typeof AuthenticatedMunkaIndexRoute
   '/projects/': typeof AuthenticatedProjectsIndexRoute
   '/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/sales/': typeof AuthenticatedSalesIndexRoute
@@ -776,6 +790,7 @@ export interface FileRoutesByTo {
   '/emails': typeof AuthenticatedEmailsIndexRoute
   '/help': typeof AuthenticatedHelpIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
+  '/munka': typeof AuthenticatedMunkaIndexRoute
   '/projects': typeof AuthenticatedProjectsIndexRoute
   '/quotes': typeof AuthenticatedQuotesIndexRoute
   '/sales': typeof AuthenticatedSalesIndexRoute
@@ -809,6 +824,7 @@ export interface FileRoutesById {
   '/_authenticated/followups': typeof AuthenticatedFollowupsRoute
   '/_authenticated/import-review': typeof AuthenticatedImportReviewRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
+  '/_authenticated/munka': typeof AuthenticatedMunkaRouteWithChildren
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/owner-report': typeof AuthenticatedOwnerReportRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteWithChildren
@@ -870,6 +886,7 @@ export interface FileRoutesById {
   '/_authenticated/emails/': typeof AuthenticatedEmailsIndexRoute
   '/_authenticated/help/': typeof AuthenticatedHelpIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/_authenticated/munka/': typeof AuthenticatedMunkaIndexRoute
   '/_authenticated/projects/': typeof AuthenticatedProjectsIndexRoute
   '/_authenticated/quotes/': typeof AuthenticatedQuotesIndexRoute
   '/_authenticated/sales/': typeof AuthenticatedSalesIndexRoute
@@ -903,6 +920,7 @@ export interface FileRouteTypes {
     | '/followups'
     | '/import-review'
     | '/meetings'
+    | '/munka'
     | '/notifications'
     | '/owner-report'
     | '/settings'
@@ -964,6 +982,7 @@ export interface FileRouteTypes {
     | '/emails/'
     | '/help/'
     | '/leads/'
+    | '/munka/'
     | '/projects/'
     | '/quotes/'
     | '/sales/'
@@ -1054,6 +1073,7 @@ export interface FileRouteTypes {
     | '/emails'
     | '/help'
     | '/leads'
+    | '/munka'
     | '/projects'
     | '/quotes'
     | '/sales'
@@ -1086,6 +1106,7 @@ export interface FileRouteTypes {
     | '/_authenticated/followups'
     | '/_authenticated/import-review'
     | '/_authenticated/meetings'
+    | '/_authenticated/munka'
     | '/_authenticated/notifications'
     | '/_authenticated/owner-report'
     | '/_authenticated/settings'
@@ -1147,6 +1168,7 @@ export interface FileRouteTypes {
     | '/_authenticated/emails/'
     | '/_authenticated/help/'
     | '/_authenticated/leads/'
+    | '/_authenticated/munka/'
     | '/_authenticated/projects/'
     | '/_authenticated/quotes/'
     | '/_authenticated/sales/'
@@ -1305,6 +1327,13 @@ declare module '@tanstack/react-router' {
       path: '/meetings'
       fullPath: '/meetings'
       preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/munka': {
+      id: '/_authenticated/munka'
+      path: '/munka'
+      fullPath: '/munka'
+      preLoaderRoute: typeof AuthenticatedMunkaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/notifications': {
@@ -1523,6 +1552,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/leads/lost'
       preLoaderRoute: typeof AuthenticatedLeadsLostRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/munka/': {
+      id: '/_authenticated/munka/'
+      path: '/'
+      fullPath: '/munka/'
+      preLoaderRoute: typeof AuthenticatedMunkaIndexRouteImport
+      parentRoute: typeof AuthenticatedMunkaRoute
     }
     '/_authenticated/projects/': {
       id: '/_authenticated/projects/'
@@ -1854,6 +1890,17 @@ const AuthenticatedAttendanceRouteWithChildren =
     AuthenticatedAttendanceRouteChildren,
   )
 
+interface AuthenticatedMunkaRouteChildren {
+  AuthenticatedMunkaIndexRoute: typeof AuthenticatedMunkaIndexRoute
+}
+
+const AuthenticatedMunkaRouteChildren: AuthenticatedMunkaRouteChildren = {
+  AuthenticatedMunkaIndexRoute: AuthenticatedMunkaIndexRoute,
+}
+
+const AuthenticatedMunkaRouteWithChildren =
+  AuthenticatedMunkaRoute._addFileChildren(AuthenticatedMunkaRouteChildren)
+
 interface AuthenticatedSettingsRouteChildren {
   AuthenticatedSettingsAgentAuditRoute: typeof AuthenticatedSettingsAgentAuditRoute
   AuthenticatedSettingsAgentVisibilityRoute: typeof AuthenticatedSettingsAgentVisibilityRoute
@@ -1915,6 +1962,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFollowupsRoute: typeof AuthenticatedFollowupsRoute
   AuthenticatedImportReviewRoute: typeof AuthenticatedImportReviewRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
+  AuthenticatedMunkaRoute: typeof AuthenticatedMunkaRouteWithChildren
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOwnerReportRoute: typeof AuthenticatedOwnerReportRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRouteWithChildren
@@ -1965,6 +2013,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFollowupsRoute: AuthenticatedFollowupsRoute,
   AuthenticatedImportReviewRoute: AuthenticatedImportReviewRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
+  AuthenticatedMunkaRoute: AuthenticatedMunkaRouteWithChildren,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOwnerReportRoute: AuthenticatedOwnerReportRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRouteWithChildren,

@@ -67,6 +67,10 @@ export const ROUTE_ACCESS: { prefix: string; roles: RoleSlug[] }[] = [
   { prefix: "/documents", roles: ["owner", "project_manager"] },
   { prefix: "/ai-assistants", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/ai-assistant", roles: ["owner", "project_manager", "sales", "marketing"] },
+  // Új munkaterület (v2): ugyanazok a szerepkörök, mint a megfelelő régi oldalaknak.
+  { prefix: "/munka/sales", roles: ["owner", "sales"] },
+  { prefix: "/munka/marketing", roles: ["owner", "marketing"] },
+  { prefix: "/munka", roles: ["owner", "sales", "marketing"] },
   { prefix: "/sales/research", roles: ["owner", "project_manager", "sales", "marketing"] },
   { prefix: "/sales", roles: ["owner", "sales"] },
   { prefix: "/data-quality", roles: ["owner", "project_manager", "marketing"] },

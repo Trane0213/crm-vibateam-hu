@@ -10,7 +10,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useVisibleAgents } from "@/hooks/use-visible-agents";
 import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
-import { ROLE_LABEL } from "@/lib/permissions";
+import { ROLE_LABEL, canAccessRoute } from "@/lib/permissions";
 import { aiItems, isNavActive, moreGroups, primaryItems, type NavItem } from "@/lib/nav-config";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
@@ -112,6 +112,11 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
+      {!collapsed && canAccessRoute(role, "/munka") && (
+        <div className="px-4 pb-2">
+          <Link to="/munka" className="block rounded-md border border-sidebar-border/60 px-3 py-2 text-xs text-sidebar-foreground/80 hover:bg-sidebar-accent">Új munkaterület (próba)</Link>
+        </div>
+      )}
       {!collapsed && (
         <SidebarFooter className="border-t border-sidebar-border/60 px-4 py-3 text-[11px] text-sidebar-foreground/50">
           Szerepkör: <span className="text-sidebar-foreground/80">{ROLE_LABEL[role]}</span>

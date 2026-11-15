@@ -264,3 +264,5 @@ Minden szakasz előtt meglévő szerverfunkció/adatforrás ellenőrzés; szakas
 - [ ] P4: tervolvasás, BOM, szekrénykalkulátor — a feldolgozó telepítésére és P4 indítására vár
 
 - [x] Sales–Marketing új frontend tervcsomag (audit, architektúra, prototípus v2, lecserélési terv, önellenőrzés 44/44) – 2026-11-15; megvalósítás tulajdonosi jóváhagyásra vár.
+- [x] Új munkaterület 1. szakasz (alap: /munka, kapcsoló, közös elemek) – 2026-11-15
+- [ ] 2. szakasz: Értékesítés Ma + húzható Pipeline – jóváhagyásra vár
