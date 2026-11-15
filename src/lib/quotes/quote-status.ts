@@ -35,3 +35,14 @@ export function allowedNextStatuses(current: string | null | undefined, sentAt: 
 export function canScheduleQuoteFollowup(status: string | null | undefined): boolean {
   return status === "sent" || status === "negotiation";
 }
+
+/**
+ * Kiküldés előtti visszavonás/törlés. Kiküldött (sent_at vagy zárolt) vagy lezárt ajánlatnál egyik sem.
+ * A törlést az adatbázis `quote_discard_unsent` is ellenőrzi (dokumentum/utánkövetés esetén csak visszavonás).
+ */
+export function quoteDiscardOptions(q: { status: string | null | undefined; sent_at?: string | null; locked_at?: string | null }): { canWithdraw: boolean; canDelete: boolean } {
+  const s = (q.status ?? "draft") as QuoteStatus;
+  const unsent = !q.sent_at && !q.locked_at;
+  const open = !CLOSED_QUOTE_STATUSES.includes(s);
+  return { canWithdraw: unsent && open, canDelete: unsent && (s === "draft" || s === "ready" || s === "withdrawn") };
+}

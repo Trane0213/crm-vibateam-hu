@@ -36,6 +36,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuoteReadinessCard } from "@/components/quotes/quote-readiness-card";
 import { quoteFormDirty } from "@/lib/quotes/form-dirty";
 import { QuoteSimpleWorkspace } from "@/components/quotes/quote-simple-workspace";
+import { QuoteDiscardActions } from "@/components/quotes/quote-discard-actions";
 
 const NONE = "__none";
 const KIND_LABEL: Record<string, string> = { received_budget: "Kapott költségvetés", viba_offer: "Saját VIBA-ajánlat" };
@@ -347,6 +348,7 @@ export function QuoteWorkflowDetail({ id, simple = false, onToggleSimple }: { id
             </h1>
           </div>
           <div className="flex flex-wrap gap-2">{viewToggle}
+          <QuoteDiscardActions quote={quote as any} />
           {own && <CrmLink
             to="/quotes/$id/print"
             params={{ id: quote.id }}

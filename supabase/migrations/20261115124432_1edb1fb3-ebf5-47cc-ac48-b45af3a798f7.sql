@@ -1,0 +1,1 @@
+ALTER FUNCTION public.quote_discard_unsent(uuid) SECURITY INVOKER;
