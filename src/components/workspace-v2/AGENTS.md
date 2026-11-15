@@ -1,0 +1,1 @@
+- New Sales/Marketing workspace (v2) lives under /munka with nav in `src/lib/workspace-v2/nav.ts` and shared parts in `src/components/workspace-v2/`; it only links to or embeds existing data paths and mirrors existing route roles, so the old UI stays a safe fallback.
