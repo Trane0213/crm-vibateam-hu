@@ -222,15 +222,70 @@ export async function completeFile(sb: Sb, userId: string, fileId: string, origi
   }
   await m.completeMultipart(f.r2_key!, f.upload_id!, r2Parts.filter((p) => p.partNumber <= f.part_count!).map((p) => ({ partNumber: p.partNumber, etag: p.etag })));
   const head = await m.headObject(f.r2_key!);
-  if (!head || head.size !== f.size_bytes) {
-    await a.from("package_files").update({ status: "failed", error_code: "integrity", upload_id: null }).eq("id", fileId);
-    await logEvent(a, f.package_id, fileId, userId, "integrity_failed", { expected: f.size_bytes, got: head?.size ?? null });
-    return { ok: false as const, badParts: [], failed: true };
+  const verdict = sizeVerdict(head, Number(f.size_bytes));
+  if (verdict !== "match") {
+    // Az összefűzés megtörtént (upload_id már nem érvényes). Ismeretlen méret → később újraellenőrizhető, nem sérülés.
+    const code = verdict === "unknown" ? "verify_unavailable" : "integrity";
+    await a.from("package_files").update({ status: "failed", error_code: code, upload_id: null }).eq("id", fileId);
+    await logEvent(a, f.package_id, fileId, userId, code === "integrity" ? "integrity_failed" : "verify_unavailable", { expected: f.size_bytes, got: head?.size ?? null });
+    return { ok: false as const, badParts: [], failed: true, reverifiable: code === "verify_unavailable" };
   }
   const { error } = await a.from("package_files").update({ status: "verified", upload_id: null, verified_at: new Date().toISOString(), error_code: null }).eq("id", fileId).eq("status", "uploading");
   if (error) throw new PackageError("A fájl állapota nem menthető", 500, "storage");
   await logEvent(a, f.package_id, fileId, userId, "upload_verified", { size: f.size_bytes, sha256: f.sha256, parts: f.part_count });
   // P2: feldolgozás sorba állítása (hiba esetén a feltöltés sikeres marad, a feladat várakozik).
+  if (origin) await (await import("./processing.server")).afterUploadVerified(fileId, userId, origin);
+  return { ok: true as const };
+}
+
+/** Méret-összevetés: hiányzó objektum és eltérő méret = sérülés; vissza nem olvasható méret = ismeretlen. */
+export function sizeVerdict(head: { size: number | null } | null, expected: number): "match" | "mismatch" | "missing" | "unknown" {
+  if (!head) return "missing";
+  if (head.size == null) return "unknown";
+  return head.size === expected ? "match" : "mismatch";
+}
+
+/** Lezárás utáni ellenőrzési események: csak ezek után hívható az újraellenőrzés. */
+export const REVERIFY_EVENTS = ["integrity_failed", "verify_unavailable", "reverify_failed"] as const;
+
+/**
+ * Újraellenőrzés: a lezárt (összefűzött), de méretellenőrzésen elakadt fájlt a tárhelyből
+ * visszaolvasott teljes mérettel újra ellenőrzi. Sikeres csak pontos méretegyezésnél és ha
+ * minden darab MD5-je rögzítve volt; a duplikációt és a jogosultságot ugyanúgy védi, mint a feltöltés.
+ */
+export async function reverifyFile(sb: Sb, userId: string, fileId: string, origin?: string) {
+  if (!isUuid(fileId)) throw new PackageError("Érvénytelen fájl");
+  const { data, error } = await sb.from("package_files")
+    .select("id,package_id,size_bytes,sha256,r2_key,upload_id,part_count,status,error_code,uploaded_by,extracted_from").eq("id", fileId).maybeSingle();
+  if (isMissingTable(error)) throw NOT_READY();
+  if (error || !data) throw new PackageError("A fájl nem található vagy nem elérhető", 403, "forbidden");
+  const f = data as any;
+  if (f.uploaded_by !== userId && !(await callerRole(sb, userId)).isOwner) throw new PackageError("Ezt a feltöltést más indította", 403, "forbidden");
+  if (f.status === "verified") return { ok: true as const, already: true };
+  if (f.status !== "failed" || f.upload_id || !f.r2_key || !f.part_count || f.extracted_from || !["integrity", "verify_unavailable"].includes(f.error_code))
+    throw new PackageError("Ez a fájl nem ellenőrizhető újra — töltsd fel újra.", 409, "not_reverifiable");
+  const a = await admin();
+  const [{ data: last }, { count: partRows }, { data: twins }] = await Promise.all([
+    a.from("package_upload_events").select("event").eq("file_id", fileId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    a.from("package_file_parts").select("part_number", { count: "exact", head: true }).eq("file_id", fileId),
+    a.from("package_files").select("id").eq("package_id", f.package_id).eq("sha256", f.sha256).eq("status", "verified").neq("id", fileId).limit(1),
+  ]);
+  if (!last || !(REVERIFY_EVENTS as readonly string[]).includes(String(last.event)) || partRows !== f.part_count)
+    throw new PackageError("Ez a fájl nem ellenőrizhető újra — töltsd fel újra.", 409, "not_reverifiable");
+  if (twins?.length) throw new PackageError("Ez a fájl már ellenőrzötten megvan a csomagban.", 409, "duplicate");
+  const head = await (await r2()).headObject(f.r2_key);
+  const verdict = sizeVerdict(head, Number(f.size_bytes));
+  if (verdict !== "match") {
+    const code = verdict === "unknown" ? "verify_unavailable" : "integrity";
+    await a.from("package_files").update({ error_code: code }).eq("id", fileId).eq("status", "failed");
+    await logEvent(a, f.package_id, fileId, userId, "reverify_failed", { expected: f.size_bytes, got: head?.size ?? null, verdict });
+    return { ok: false as const, verdict };
+  }
+  const { data: upd, error: uerr } = await a.from("package_files")
+    .update({ status: "verified", verified_at: new Date().toISOString(), error_code: null }).eq("id", fileId).eq("status", "failed").select("id");
+  if (uerr) throw new PackageError("A fájl állapota nem menthető", 500, "storage");
+  if (!upd?.length) return { ok: true as const, already: true };
+  await logEvent(a, f.package_id, fileId, userId, "upload_reverified", { size: f.size_bytes, sha256: f.sha256, parts: f.part_count });
   if (origin) await (await import("./processing.server")).afterUploadVerified(fileId, userId, origin);
   return { ok: true as const };
 }

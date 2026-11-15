@@ -139,11 +139,38 @@ export async function abortMultipart(key: string, uploadId: string): Promise<voi
   if (!res.ok && res.status !== 404) throw new R2Error(`Tárhely: a félbehagyott feltöltés nem törölhető (${res.status})`);
 }
 
-export async function headObject(key: string): Promise<{ size: number } | null> {
-  const res = await fetch(presign("HEAD", key, {}, 60), { method: "HEAD" });
+/** Nem negatív egész fejlécérték; hiányzó vagy hibás érték → null (nem -1, nem 0). */
+export function parseByteLength(v: string | null | undefined): number | null {
+  if (v == null || !/^\d+$/.test(v.trim())) return null;
+  const n = Number(v.trim());
+  return Number.isSafeInteger(n) ? n : null;
+}
+/** „bytes 0-0/904796836” → 904796836; ismeretlen teljes méret („/*”) vagy hibás érték → null. */
+export function parseContentRangeTotal(v: string | null | undefined): number | null {
+  const m = v?.trim().match(/^bytes\s+\d+-\d+\/(\d+)$/i);
+  return m ? parseByteLength(m[1]) : null;
+}
+
+/**
+ * A tárolt objektum mérete. `null` = nincs ilyen objektum; `{ size: null }` = létezik, de a mérete
+ * most nem olvasható vissza (ez NEM sérülés). A HEAD-válaszból a futtatókörnyezet/tárhely
+ * elhagyhatja a Content-Length fejlécet, ezért 1 bájtos tartománykéréssel (Content-Range) is ellenőrzünk.
+ */
+export async function headObject(key: string): Promise<{ size: number | null } | null> {
+  const res = await fetch(presign("HEAD", key, {}, 60), { method: "HEAD", headers: { "accept-encoding": "identity" } });
   if (res.status === 404) return null;
   if (!res.ok) throw new R2Error(`Tárhely: a fájl nem ellenőrizhető (${res.status})`);
-  return { size: Number(res.headers.get("content-length") ?? "-1") };
+  const len = parseByteLength(res.headers.get("content-length"));
+  if (len != null) return { size: len };
+  const r = await fetch(presign("GET", key, {}, 60), { headers: { range: "bytes=0-0", "accept-encoding": "identity" } });
+  try {
+    if (r.status === 404) return null;
+    if (r.status === 206) return { size: parseContentRangeTotal(r.headers.get("content-range")) };
+    if (r.ok) return { size: parseByteLength(r.headers.get("content-length")) };
+    throw new R2Error(`Tárhely: a fájl nem ellenőrizhető (${r.status})`);
+  } finally {
+    await r.body?.cancel().catch(() => {});
+  }
 }
 
 /** Tartalék út: a szerver továbbít egy darabot (korlátozott méret), és visszaadja az ETag-et. */

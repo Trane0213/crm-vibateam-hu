@@ -211,6 +211,7 @@ export const ERROR_TEXT: Record<string, string> = {
   parent_quota: "Az ügy tárhelykerete betelt. A tulajdonos tudja növelni.",
   not_allowed_type: "Ez a fájltípus nem engedélyezett.",
   integrity: "A feltöltött adat nem egyezik a helyi fájllal. Próbáld újra.",
+  verify_unavailable: "A fájl feltöltődött, de az ellenőrzés nem fejeződött be. Kattints az „Ellenőrzés újra” gombra.",
   network: "Megszakadt a kapcsolat. A feltöltés folytatható.",
   storage: "A tárhely nem érhető el. Később folytatható.",
   forbidden: "Ehhez az ügyhöz nincs feltöltési jogosultságod.",

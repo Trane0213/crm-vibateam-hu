@@ -64,6 +64,10 @@ export const completePackageFile = createServerFn({ method: "POST" }).middleware
   .inputValidator((i: { fileId: string }) => ({ fileId: idIn(i?.fileId) }))
   .handler(async ({ data, context }) => run(async () => (await svc()).completeFile(context.supabase as any, context.userId, data.fileId, originOf())));
 
+export const reverifyPackageFile = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
+  .inputValidator((i: { fileId: string }) => ({ fileId: idIn(i?.fileId) }))
+  .handler(async ({ data, context }) => run(async () => (await svc()).reverifyFile(context.supabase as any, context.userId, data.fileId, originOf())));
+
 export const abortPackageFile = createServerFn({ method: "POST" }).middleware([requireSupabaseAuth])
   .inputValidator((i: { fileId: string }) => ({ fileId: idIn(i?.fileId) }))
   .handler(async ({ data, context }) => run(async () => (await svc()).abortFile(context.supabase as any, context.userId, data.fileId)));

@@ -16,7 +16,7 @@ export type Transport = {
   putDirect(url: string, body: Blob, signal?: AbortSignal): Promise<void>;
   relay(fileId: string, partNumber: number, md5: string, body: Blob, signal?: AbortSignal): Promise<void>;
   record(fileId: string, parts: { partNumber: number; size: number; md5: string }[]): Promise<void>;
-  complete(fileId: string): Promise<{ ok: boolean; badParts?: number[]; failed?: boolean }>;
+  complete(fileId: string): Promise<{ ok: boolean; badParts?: number[]; failed?: boolean; reverifiable?: boolean }>;
 };
 
 export type FileOutcome =
@@ -165,6 +165,7 @@ export async function uploadFiles(files: LocalFile[], opts: EngineOptions): Prom
     for (let round = 0; round < 2; round++) {
       const r = await transport.complete(plan.fileId);
       if (r.ok) return { relativePath: p.path, state: "verified", fileId: plan.fileId, uploadedBytes: todo.length ? sent : 0, resumedParts: done.size };
+      if (r.reverifiable) return { relativePath: p.path, state: "failed", fileId: plan.fileId, reason: "verify_unavailable" };
       if (r.failed || !r.badParts?.length) break;
       // A szerver eltérést talált: csak az érintett darabok újra.
       for (const n of r.badParts) { const rr = partRange(size, plan.partSize, n); sent -= rr.end - rr.start; }

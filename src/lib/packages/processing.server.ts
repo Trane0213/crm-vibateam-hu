@@ -240,6 +240,8 @@ export async function handleCallback(raw: string, signature: string | null, deps
       if (child.status === "verified") return reply(200, { ok: true });
       if (child.status !== "uploading" || !child.r2_key) return reply(409, { error: "not_open" });
       const head = await (await r2()).headObject(child.r2_key);
+      // Létező, de most vissza nem olvasható méret: nem sérülés, a feldolgozó később újrapróbálhatja.
+      if (head && head.size == null) return reply(503, { error: "verify_unavailable" });
       if (!head || head.size !== Number(child.size_bytes)) {
         await a.from("package_files").update({ status: "failed", error_code: "integrity" }).eq("id", child.id);
         return reply(200, { ok: false, reason: "integrity_mismatch" });

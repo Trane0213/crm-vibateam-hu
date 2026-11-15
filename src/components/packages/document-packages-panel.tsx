@@ -6,7 +6,7 @@
 import { CrmLink } from "@/components/workspace-v2/crm-link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, FileArchive, FolderOpen, FolderUp, Loader2, PauseCircle, RotateCcw, Upload, Files as FilesIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ import {
   type FileStatus, type PackageParent, type ProcessingStatus, type PackageSummary, type PackageFileView,
 } from "@/lib/packages/package-policy";
 import { UploadAborted, uploadFiles, type FileOutcome, type LocalFile } from "@/lib/packages/upload-engine";
-import { createDocumentPackage, listDocumentPackages, listPackageFiles, packageLimits } from "@/lib/packages/packages.functions";
+import { createDocumentPackage, listDocumentPackages, listPackageFiles, packageLimits, reverifyPackageFile } from "@/lib/packages/packages.functions";
 import { makeTransport } from "./package-transport";
 import { fromDrop, fromInput, supportsFolderPicker } from "./local-files";
 import { PackageReportButton } from "./package-report";
@@ -102,6 +102,17 @@ function PackageRow({ pkg, showParent, expanded, onToggle, onResume }: { pkg: Pa
 function PackageFiles({ packageId, title, canStart }: { packageId: string; title: string; canStart: boolean }) {
   const q = useQuery({ queryKey: ["documents", "packages", "files", packageId], queryFn: () => listPackageFiles({ data: { packageId } }) });
   const { open, pending } = useOpenDocument();
+  const qc = useQueryClient();
+  const { role } = usePermissions();
+  const reverify = useMutation({
+    mutationFn: (fileId: string) => reverifyPackageFile({ data: { fileId } }),
+    onSuccess: (r) => {
+      if (r.ok) toast.success("A fájl ellenőrizve, hiánytalan", { description: "Megnyitható, és a feldolgozás elindul." });
+      else toast.error("A fájl ellenőrzése most sem sikerült", { description: r.verdict === "unknown" ? "A tárhely nem adta vissza a méretet. Próbáld később." : "A tárolt fájl nem egyezik a feltöltöttel. Töltsd fel újra." });
+    },
+    onError: (e) => toast.error("Az ellenőrzés nem indítható", { description: (e as Error).message }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["documents"] }),
+  });
   const [onlyProblems, setOnlyProblems] = useState(false);
   const [search, setSearch] = useState("");
   const files = (q.data?.files ?? []).filter((f) => f.status !== "aborted");
@@ -139,6 +150,11 @@ function PackageFiles({ packageId, title, canStart }: { packageId: string; title
                   </span>
                 </span>
                 {f.openKey && <Button size="sm" variant="ghost" disabled={pending === f.id} onClick={() => open({ uid: f.id, fileKey: f.openKey, name: f.name })}>Megnyitás</Button>}
+                {f.status === "failed" && (f.errorCode === "integrity" || f.errorCode === "verify_unavailable") && (f.mine || role === "owner") && (
+                  <Button size="sm" variant="outline" disabled={reverify.isPending} onClick={() => reverify.mutate(f.id)}>
+                    {reverify.isPending && reverify.variables === f.id ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="mr-1.5 h-3.5 w-3.5" />}Ellenőrzés újra
+                  </Button>
+                )}
               </li>
             ))}
           </ul>
